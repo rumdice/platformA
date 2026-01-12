@@ -1,0 +1,12 @@
+{
+  "PlatformA.Auth.API": "PlatformA.Auth.API.yml",
+  "PlatformA.Auth.API.Controllers": "PlatformA.Auth.API.Controllers.yml",
+  "PlatformA.Auth.API.Controllers.WeatherForecastController": "PlatformA.Auth.API.Controllers.WeatherForecastController.yml",
+  "PlatformA.Auth.API.Controllers.WeatherForecastController.#ctor(Microsoft.Extensions.Logging.ILogger{PlatformA.Auth.API.Controllers.WeatherForecastController})": "PlatformA.Auth.API.Controllers.WeatherForecastController.yml",
+  "PlatformA.Auth.API.Controllers.WeatherForecastController.Get": "PlatformA.Auth.API.Controllers.WeatherForecastController.yml",
+  "PlatformA.Auth.API.WeatherForecast": "PlatformA.Auth.API.WeatherForecast.yml",
+  "PlatformA.Auth.API.WeatherForecast.Date": "PlatformA.Auth.API.WeatherForecast.yml",
+  "PlatformA.Auth.API.WeatherForecast.Summary": "PlatformA.Auth.API.WeatherForecast.yml",
+  "PlatformA.Auth.API.WeatherForecast.TemperatureC": "PlatformA.Auth.API.WeatherForecast.yml",
+  "PlatformA.Auth.API.WeatherForecast.TemperatureF": "PlatformA.Auth.API.WeatherForecast.yml"
+}
