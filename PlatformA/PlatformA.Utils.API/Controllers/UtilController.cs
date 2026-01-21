@@ -14,21 +14,46 @@ namespace PlatformA.Utils.API.Controllers
         // (나중에 DB를 연결하면 static을 뺄 것입니다)
         private static readonly ConcurrentDictionary<string, string> _urlDatabase = new();
 
+        // HttpClient는 무겁기 때문에 static으로 재사용하는 것이 (Socket Exhaustion 방지)
+        private static readonly HttpClient _httpClient = new HttpClient();
+
         // 1. 내 IP 조회 및 위치 정보 반환
         // GET: /api/myip -> util/myip
         [HttpGet("myip")]
-        public IActionResult GetMyIp()
+        public async Task<IActionResult> GetMyIp()
         {
-            Console.WriteLine("GetMyIp 컨트롤러 호출됨.");
 
-            // 컨트롤러에서는 HttpContext 속성으로 바로 접근 가능합니다.
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            // 1. [실무용] 리버스 프록시(Nginx, AWS ELB, Cloudflare) 뒤에 있을 경우 진짜 IP 가져오기
+            string ip = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
 
-            // 로컬 테스트용 IPv6 처리
+            // 2. 프록시 헤더가 없으면 직접 접속 IP 가져오기
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+
+            // IPv6 로컬호스트(::1) 처리
             if (ip == "::1") ip = "127.0.0.1";
+
+            // 🔥 3. [개발 편의용] 만약 로컬호스트(127.0.0.1)라면? 
+            // 사용자에게 의미 없는 127.0.0.1 대신, 실제 공인 IP를 외부에서 조회해옵니다.
+            // (서버가 클라이언트 대신 외부 서비스에 "나 누구요?" 하고 물어보는 방식)
+            if (ip == "127.0.0.1")
+            {
+                try
+                {
+                    // 외부 무료 API를 잠시 빌려 씁니다. (AWS 체크ip 등 사용 가능)
+                    ip = await _httpClient.GetStringAsync("https://api.ipify.org");
+                }
+                catch
+                {
+                    // 외부 통신 실패 시 그냥 127.0.0.1 반환
+                }
+            }
 
             var response = new
             {
+                // TODO: 실제 위치 정보 API 연동 필요
                 ip = ip,
                 city = "Seoul (Controller Ver.)", // 컨트롤러 작동 확인용 마킹
                 region = "KR",
