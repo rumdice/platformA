@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PlatformA.Utils.API.Models;
 using System.Collections.Concurrent;
 
@@ -12,10 +13,19 @@ namespace PlatformA.Utils.API.Controllers
         // 🔥 중요: 컨트롤러는 요청마다 새로 생성됩니다 (Transient).
         // 따라서 데이터가 유지되려면 변수를 static으로 선언해야 합니다.
         // (나중에 DB를 연결하면 static을 뺄 것입니다)
-        private static readonly ConcurrentDictionary<string, string> _urlDatabase = new();
+        //private static readonly ConcurrentDictionary<string, string> _urlDatabase = new();
+
+        private readonly AppDbContext _db;
 
         // HttpClient는 무겁기 때문에 static으로 재사용하는 것이 (Socket Exhaustion 방지)
         private static readonly HttpClient _httpClient = new HttpClient();
+
+        public UtilController(AppDbContext db)
+        {
+            _db = db;
+            // 💡 팁: 서버 켤 때 DB가 없으면 자동으로 만들어줍니다. (실무에선 Migrations를 쓰지만 지금은 간편하게!)
+            _db.Database.EnsureCreated();
+        }
 
         // 1. 내 IP 조회 및 위치 정보 반환
         // GET: /api/myip -> util/myip
@@ -69,7 +79,7 @@ namespace PlatformA.Utils.API.Controllers
         // 2. URL 단축 요청
         // POST: /api/shorten
         [HttpPost("shorten")]
-        public IActionResult ShortenUrl([FromBody] UrlRequestDto request)
+        public async Task<IActionResult> ShortenUrlAsync([FromBody] UrlRequestDto request)
         {
             // 유효성 검사
             if (string.IsNullOrWhiteSpace(request.Url) || !Uri.IsWellFormedUriString(request.Url, UriKind.Absolute))
@@ -81,7 +91,17 @@ namespace PlatformA.Utils.API.Controllers
             var shortCode = Guid.NewGuid().ToString().Substring(0, 6);
 
             // 메모리에 저장
-            _urlDatabase[shortCode] = request.Url;
+            //_urlDatabase[shortCode] = request.Url;
+
+            // DB에 저장
+            var shortUrlEntry = new Models.DB.ShortUrl
+            {
+                Code = shortCode,
+                OriginalUrl = request.Url
+            };
+
+            _db.ShortUrls.Add(shortUrlEntry); // 메모리에 추가하고
+            await _db.SaveChangesAsync(); // 진짜 DB(파일)에 저장!
 
             // 결과 반환
             // Request.Scheme = http/https, Request.Host = localhost:5000 등
@@ -95,11 +115,20 @@ namespace PlatformA.Utils.API.Controllers
         // 컨트롤러 상단에 [Route("api")]가 있어도, 
         // 메서드에 "/"로 시작하는 라우트를 쓰면 절대 경로로 오버라이드 됩니다.
         [HttpGet("/go/{code}")]
-        public IActionResult RedirectUrl(string code)
+        public async Task<IActionResult> RedirectUrlAsync(string code)
         {
-            if (_urlDatabase.TryGetValue(code, out var originalUrl))
+            // 서버 메모리에서 찾기
+            //if (_urlDatabase.TryGetValue(code, out var originalUrl))
+            //{
+            //    return Redirect(originalUrl); // 302 Found (리다이렉트)
+            //}
+
+            // DB에서 찾기.
+            var urlItem = await _db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
+
+            if (urlItem != null)
             {
-                return Redirect(originalUrl); // 302 Found (리다이렉트)
+                return Redirect(urlItem.OriginalUrl);
             }
 
             return NotFound("존재하지 않는 단축 URL입니다."); // 404 Not Found
