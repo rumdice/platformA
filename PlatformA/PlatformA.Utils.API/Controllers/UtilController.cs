@@ -128,10 +128,35 @@ namespace PlatformA.Utils.API.Controllers
 
             if (urlItem != null)
             {
+                urlItem.ClickCount++;
+
+                await _db.SaveChangesAsync(); // 클릭 수 업데이트 저장
+
                 return Redirect(urlItem.OriginalUrl);
             }
 
             return NotFound("존재하지 않는 단축 URL입니다."); // 404 Not Found
+        }
+
+        // 4. 통계 조회 API
+        // GET: /api/stats/{code}
+        [HttpGet("stats/{code}")]
+        public async Task<IActionResult> GetStats(string code)
+        {
+            var urlItem = await _db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
+
+            if (urlItem == null) return NotFound("코드를 찾을 수 없습니다.");
+
+            // 필요한 정보만 골라서 줍니다.
+            var stats = new
+            {
+                Code = urlItem.Code,
+                OriginalUrl = urlItem.OriginalUrl,
+                ClickCount = urlItem.ClickCount,
+                CreatedAt = urlItem.CreatedAt
+            };
+
+            return Ok(stats);
         }
     }
 }
