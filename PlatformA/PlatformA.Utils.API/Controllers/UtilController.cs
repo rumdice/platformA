@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlatformA.Library.Helper;
 using PlatformA.Utils.API.Models;
 using System.Collections.Concurrent;
 
@@ -16,15 +17,18 @@ namespace PlatformA.Utils.API.Controllers
         //private static readonly ConcurrentDictionary<string, string> _urlDatabase = new();
 
         private readonly AppDbContext _db;
+        private readonly SnowflakeGenerator _snowflake;
 
         // HttpClient는 무겁기 때문에 static으로 재사용하는 것이 (Socket Exhaustion 방지)
         private static readonly HttpClient _httpClient = new HttpClient();
 
-        public UtilController(AppDbContext db)
+        public UtilController(AppDbContext db, SnowflakeGenerator snowflake)
         {
             _db = db;
             // 💡 팁: 서버 켤 때 DB가 없으면 자동으로 만들어줍니다. (실무에선 Migrations를 쓰지만 지금은 간편하게!)
             _db.Database.EnsureCreated();
+
+            _snowflake = snowflake;
         }
 
         // 1. 내 IP 조회 및 위치 정보 반환
@@ -88,7 +92,14 @@ namespace PlatformA.Utils.API.Controllers
             }
 
             // 랜덤 코드 생성 (6자리)
-            var shortCode = Guid.NewGuid().ToString().Substring(0, 6);
+            //var shortCode = Guid.NewGuid().ToString().Substring(0, 6);
+
+            // 중복 위험성이 높고 DB B-tree 인덱스 성능이 떨어지므로, Guid 를 Snowflake로 교체
+            long newId = _snowflake.NextId();
+
+            // 2. 숫자를 Base62 문자로 변환 (예: 12345678 -> "Tx9z")
+            // (Base62Converter는 이전 답변의 코드를 사용하세요)
+            string shortCode = Base62Converter.Encode(newId);
 
             // 메모리에 저장
             //_urlDatabase[shortCode] = request.Url;
@@ -96,6 +107,7 @@ namespace PlatformA.Utils.API.Controllers
             // DB에 저장
             var shortUrlEntry = new Models.DB.ShortUrl
             {
+                Id = newId,
                 Code = shortCode,
                 OriginalUrl = request.Url
             };

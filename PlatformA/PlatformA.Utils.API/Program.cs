@@ -1,11 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
 using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+// Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
+// 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
+builder.Services.AddSingleton(new SnowflakeGenerator(1, 1));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
