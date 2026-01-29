@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
+using StackExchange.Redis;
 using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 // 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
 builder.Services.AddSingleton(new SnowflakeGenerator(1, 1));
 
+// sqlite 연결
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
+
+// redis 연결
+// TODO: docker run --name my-redis -p 6379:6379 -d redis 로컬 환경에서 설치 필요.
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = ConfigurationOptions.Parse("localhost:6379", true);
+    return ConnectionMultiplexer.Connect(configuration);
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

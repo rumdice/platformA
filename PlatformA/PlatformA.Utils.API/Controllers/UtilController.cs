@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API.Models;
+using StackExchange.Redis;
 using System.Collections.Concurrent;
 
 namespace PlatformA.Utils.API.Controllers
@@ -18,16 +19,17 @@ namespace PlatformA.Utils.API.Controllers
 
         private readonly AppDbContext _db;
         private readonly SnowflakeGenerator _snowflake;
+        private readonly IDatabase _redis;
 
         // HttpClient는 무겁기 때문에 static으로 재사용하는 것이 (Socket Exhaustion 방지)
         private static readonly HttpClient _httpClient = new HttpClient();
 
-        public UtilController(AppDbContext db, SnowflakeGenerator snowflake)
+        public UtilController(AppDbContext db, SnowflakeGenerator snowflake, IConnectionMultiplexer redisMux)
         {
             _db = db;
             // 💡 팁: 서버 켤 때 DB가 없으면 자동으로 만들어줍니다. (실무에선 Migrations를 쓰지만 지금은 간편하게!)
             _db.Database.EnsureCreated();
-
+            _redis = redisMux.GetDatabase();
             _snowflake = snowflake;
         }
 
@@ -135,14 +137,27 @@ namespace PlatformA.Utils.API.Controllers
             //    return Redirect(originalUrl); // 302 Found (리다이렉트)
             //}
 
+            string cacheKey = $"url:{code}"; // Redis 키 규칙 (예: url:Tx9z)
+
+            // Redis 에서 찾기.
+            var cachedUrl = await _redis.StringGetAsync(cacheKey);
+
+            if (!cachedUrl.IsNullOrEmpty)
+            {
+                return Redirect(cachedUrl.ToString());
+            }
+
             // DB에서 찾기.
             var urlItem = await _db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
 
             if (urlItem != null)
             {
-                urlItem.ClickCount++;
+                // 레디스에 저장
+                await _redis.StringSetAsync(cacheKey, urlItem.OriginalUrl, TimeSpan.FromMinutes(10));
+                
+                //urlItem.ClickCount++;
 
-                await _db.SaveChangesAsync(); // 클릭 수 업데이트 저장
+                //await _db.SaveChangesAsync(); // 클릭 수 업데이트 저장
 
                 return Redirect(urlItem.OriginalUrl);
             }
