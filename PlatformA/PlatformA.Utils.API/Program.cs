@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
+using PlatformA.Utils.API.Services;
 using StackExchange.Redis;
 using System.Collections.Concurrent;
 
@@ -9,9 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
-// 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
-builder.Services.AddSingleton(new SnowflakeGenerator(1, 1));
 
 // sqlite 연결
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -24,6 +22,13 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     var configuration = ConfigurationOptions.Parse("localhost:6379", true);
     return ConnectionMultiplexer.Connect(configuration);
 });
+
+// Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
+// 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
+builder.Services.AddSingleton(new SnowflakeGenerator(1, 1));
+
+// 백그라운드 서비스(Hosted Service) 등록
+builder.Services.AddHostedService<StatSyncsService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -19,7 +19,7 @@ namespace PlatformA.Utils.API.Controllers
 
         private readonly AppDbContext _db;
         private readonly SnowflakeGenerator _snowflake;
-        private readonly IDatabase _redis;
+        private readonly IDatabase _redis; // ex) Redis의 0번 DB를 가리킴.
 
         // HttpClient는 무겁기 때문에 static으로 재사용하는 것이 (Socket Exhaustion 방지)
         private static readonly HttpClient _httpClient = new HttpClient();
@@ -137,32 +137,55 @@ namespace PlatformA.Utils.API.Controllers
             //    return Redirect(originalUrl); // 302 Found (리다이렉트)
             //}
 
-            string cacheKey = $"url:{code}"; // Redis 키 규칙 (예: url:Tx9z)
+            string cacheKey = $"url:{code}"; // Redis 키 규칙 (예: url:Tx9z) 1. URL 정보 (원본 주소)
+            string statsKey = $"stats:{code}";  // 2. 조회수 정보 (숫자)
+
+            string originalUrl = null;
 
             // Redis 에서 찾기.
             var cachedUrl = await _redis.StringGetAsync(cacheKey);
 
             if (!cachedUrl.IsNullOrEmpty)
             {
-                return Redirect(cachedUrl.ToString());
+                // 캐시 히트
+                originalUrl = cachedUrl.ToString();
             }
-
-            // DB에서 찾기.
-            var urlItem = await _db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
-
-            if (urlItem != null)
+            else
             {
-                // 레디스에 저장
-                await _redis.StringSetAsync(cacheKey, urlItem.OriginalUrl, TimeSpan.FromMinutes(10));
-                
-                //urlItem.ClickCount++;
+                // 캐시 미스
+                // DB에서 찾기.
+                var urlItem = await _db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
+                if (urlItem == null)
+                {
+                    return NotFound("존재하지 않는 단축 URL입니다."); // 404 Not Found
+                }
 
-                //await _db.SaveChangesAsync(); // 클릭 수 업데이트 저장
+                originalUrl = urlItem.OriginalUrl;
 
-                return Redirect(urlItem.OriginalUrl);
+                // Redis에 URL 정보 저장 (10분)
+                await _redis.StringSetAsync(cacheKey, originalUrl, TimeSpan.FromMinutes(10));
+
+                // 🔥 [중요] DB에서 가져온 김에, 현재 조회수도 Redis에 세팅해줍니다.
+                // 이걸 안 하면 Redis가 0부터 카운트해서, 기존 조회수가 날아갈 수 있습니다.
+                // (주의: 이미 statsKey가 있다면 덮어쓰지 않게 로직을 짤 수도 있지만, 
+                //  URL이 만료되었다는 건 stats도 만료되었을 확률이 높으므로 초기화가 안전합니다.)
+                await _redis.StringSetAsync(statsKey, urlItem.ClickCount);
             }
 
-            return NotFound("존재하지 않는 단축 URL입니다."); // 404 Not Found
+            // ---------------------------------------------------------
+            // 🔥 C. [Write-Back] 여기가 핵심 변경 사항입니다!
+            // ---------------------------------------------------------
+
+            // 1. DB에 바로 쓰지 않고, Redis 메모리에서 숫자만 1 올립니다. (Atomic)
+            // INCR 명령어는 키가 없으면 0->1로 만들고, 있으면 +1 합니다.
+            await _redis.StringIncrementAsync(statsKey);
+
+            // 2. "이 코드(Tx9z)는 변경되었으니 나중에 DB에 저장해야 해"라고 명단(Set)에 적습니다.
+            // dirty_codes라는 Set에 중복 없이 담깁니다.
+            await _redis.SetAddAsync("dirty_codes", code);
+
+            // 3. 리다이렉트
+            return Redirect(originalUrl);
         }
 
         // 4. 통계 조회 API
@@ -170,16 +193,25 @@ namespace PlatformA.Utils.API.Controllers
         [HttpGet("stats/{code}")]
         public async Task<IActionResult> GetStats(string code)
         {
-            var urlItem = await _db.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);
+            var urlItem = await _db.ShortUrls.AsNoTracking().FirstOrDefaultAsync(u => u.Code == code);
+            if (urlItem == null) 
+                return NotFound("코드를 찾을 수 없습니다.");
 
-            if (urlItem == null) return NotFound("코드를 찾을 수 없습니다.");
+            // 🔥 Redis에 최신 카운트가 있는지 확인
+            var redisCount = await _redis.StringGetAsync($"stats:{code}");
+
+            int finalCount = urlItem.ClickCount; // 기본은 DB 값
+            if (redisCount.HasValue && int.TryParse(redisCount, out int rCount))
+            {
+                finalCount = rCount; // Redis 값이 있으면 그게 '진짜' 최신 값
+            }
 
             // 필요한 정보만 골라서 줍니다.
             var stats = new
             {
                 Code = urlItem.Code,
                 OriginalUrl = urlItem.OriginalUrl,
-                ClickCount = urlItem.ClickCount,
+                ClickCount = finalCount,
                 CreatedAt = urlItem.CreatedAt
             };
 
