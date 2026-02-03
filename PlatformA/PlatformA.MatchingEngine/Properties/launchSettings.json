@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PlatformA.MatchingEngine": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
