@@ -1,0 +1,6 @@
+@PlatformA.Matching.API_HostAddress = http://localhost:5189
+
+GET {{PlatformA.Matching.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
