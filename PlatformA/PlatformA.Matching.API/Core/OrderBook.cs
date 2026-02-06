@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 namespace PlatformA.MatchingEngine
 {
@@ -23,6 +24,29 @@ namespace PlatformA.MatchingEngine
             {
                 MatchOrder(newOrder, _bids, _asks); // 매도 주문은 매수창(_bids)을 보며 매칭 시도
             }
+        }
+
+        // 🔥 [추가] 현재 호가창 상태를 이쁘게 포장해서 반환하는 메서드
+        public OrderBookSnapshot GetSnapshot()
+        {
+            return new OrderBookSnapshot
+            {
+                // 매도(Asks): 싼 가격이 위로 (오름차순)
+                Asks = _asks.Select(k => new PriceLevel
+                {
+                    Price = k.Key,
+                    Quantity = k.Value.Sum(o => o.Quantity) // 해당 가격대의 주문 잔량 합산
+                }).ToList(),
+
+                // 매수(Bids): 비싼 가격이 위로 (내림차순 - SortedDictionary 특성상 Key순회시 반대일 수 있으니 주의)
+                // SortedDictionary<decimal> with Comparer는 이미 Key가 정렬되어 있음.
+                // 여기서는 리스트로 변환만 하면 됨.
+                Bids = _bids.Select(k => new PriceLevel
+                {
+                    Price = k.Key,
+                    Quantity = k.Value.Sum(o => o.Quantity)
+                }).ToList()
+            };
         }
 
         // 매칭 로직 (제네릭함수 아님, 로직 동일)
@@ -109,6 +133,19 @@ namespace PlatformA.MatchingEngine
                 Console.WriteLine($"Price: {bid.Key} | Vol: {bid.Value.Sum(o => o.Quantity)}");
             }
             Console.WriteLine("-------------------\n");
+        }
+
+        // 전송용 DTO 클래스들
+        public class OrderBookSnapshot
+        {
+            public List<PriceLevel> Asks { get; set; } = new();
+            public List<PriceLevel> Bids { get; set; } = new();
+        }
+
+        public class PriceLevel
+        {
+            public decimal Price { get; set; }
+            public long Quantity { get; set; }
         }
     }
 }
