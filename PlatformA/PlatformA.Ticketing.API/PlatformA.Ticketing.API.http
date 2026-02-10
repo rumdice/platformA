@@ -1,0 +1,6 @@
+@PlatformA.Ticketing.API_HostAddress = http://localhost:5282
+
+GET {{PlatformA.Ticketing.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PlatformA.Ticketing.Test": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
