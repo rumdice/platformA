@@ -19,7 +19,8 @@ var sw = Stopwatch.StartNew();
 for (int i = 0; i < attackerCount; i++)
 {
     // 비동기로 요청을 동시에 쏩니다 (await 안 함)
-    tasks.Add(client.PostAsync($"{baseUrl}/api/tickets/buy-bad", null));
+    //tasks.Add(client.PostAsync($"{baseUrl}/api/tickets/buy-bad", null)); // 취약한 버전
+    tasks.Add(client.PostAsync($"{baseUrl}/api/tickets/buy-good", null)); // 분산락 처리 적용 수정
 }
 
 // 모든 요청이 끝날 때까지 대기
