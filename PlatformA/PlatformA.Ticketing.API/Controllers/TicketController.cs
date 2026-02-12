@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlatformA.Library;
+using PlatformA.Ticketing.API.Services;
 using RedLockNet.SERedis;
 using StackExchange.Redis;
 
@@ -13,14 +14,17 @@ namespace PlatformA.Ticketing.API.Controllers
         private readonly RedLockFactory _lockFactory; // 락 공장
         private readonly RedisLockManager _lockManager; // 수동 락 매니저
 
+        private readonly QueueService _queueService; // 대기열 서비스
+
         // static으로 선언하여 서버 내 모든 요청이 이 자물쇠를 공유함
         private static readonly SemaphoreSlim _localLock = new SemaphoreSlim(1, 1);
 
-        public TicketController(IConnectionMultiplexer redis, RedLockFactory lockFactory, RedisLockManager lockManager)
+        public TicketController(IConnectionMultiplexer redis, RedLockFactory lockFactory, RedisLockManager lockManager, QueueService queueService)
         {
             _redis = redis.GetDatabase();
             _lockFactory = lockFactory;
             _lockManager = lockManager;
+            _queueService = queueService;
         }
 
         // 0. (준비) 티켓 수량 초기화 API
@@ -288,6 +292,66 @@ namespace PlatformA.Ticketing.API.Controllers
                 await _redis.StringIncrementAsync(key);
 
                 return BadRequest("매진되었습니다.");
+            }
+        }
+
+
+        // 3. (Lock-Free) Lua Script를 이용한 원자적 차감 - 대기열 적용
+        // POST /api/tickets/buy-final
+        [HttpPost("buy-final")]
+        public async Task<IActionResult> BuyTicketFinal(string _userId)
+        {
+            var (isAllowed, _) = await _queueService.GetStatus(_userId);
+
+            if (!isAllowed)
+            {
+                return StatusCode(403, "아직 입장 순서가 아닙니다. 대기열 상태를 확인해주세요.");
+            }
+
+            var key = "ticket:iu_concert";
+
+            // 🔥 Lua Script 작성
+            // KEYS[1]: 티켓 키 이름 ("ticket:iu_concert")
+            // 로직:
+            // 1. 현재 재고를 가져온다 (tonumber로 숫자 변환)
+            // 2. 재고가 0보다 크면? -> decr(감소) 수행 후 남은 수량 리턴
+            // 3. 재고가 없으면? -> -1 리턴
+            var script = @"
+                    local val = redis.call('get', KEYS[1])
+                    if val == false then return -1 end
+                    local current = tonumber(val)
+                    if current > 0 then
+                        redis.call('decr', KEYS[1])
+                        return current - 1
+                    else
+                        return -1
+                    end
+                ";
+
+            try
+            {
+                // ScriptEvaluateAsync를 통해 스크립트 전송 및 실행
+                var result = await _redis.ScriptEvaluateAsync(script, new RedisKey[] { key });
+
+                // 리턴값 확인
+                int remainingStock = (int)result;
+
+                if (remainingStock >= 0)
+                {
+                    // 🎉 2. 성공 시 대기열에서 퇴장 (뒷사람에게 자리 양보)
+                    await _queueService.LeaveQueue(_userId);
+                    return Ok($"예매 성공! 남은 표: {result}");
+                }
+                else
+                {
+                    // 매진 시에도 퇴장시켜야 할까? -> 정책 나름이지만 보통 퇴장시킴
+                    await _queueService.LeaveQueue(_userId);
+                    return BadRequest("매진되었습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Redis 에러 발생");
             }
         }
     }

@@ -1,7 +1,8 @@
 ﻿using StackExchange.Redis;
 using RedLockNet.SERedis; // 추가
 using RedLockNet.SERedis.Configuration;
-using PlatformA.Library; // 추가
+using PlatformA.Library;
+using PlatformA.Ticketing.API.Services; // 추가
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,10 @@ builder.Services.AddSingleton<RedLockFactory>(sp =>
 });
 
 // 수동 락 매니저 등록
-builder.Services.AddSingleton<RedisLockManager>(); 
+builder.Services.AddSingleton<RedisLockManager>();
+
+// 대기열 서비스 등록
+builder.Services.AddSingleton<QueueService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
