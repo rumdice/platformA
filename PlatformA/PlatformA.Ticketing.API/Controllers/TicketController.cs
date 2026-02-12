@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PlatformA.Library;
 using RedLockNet.SERedis;
 using StackExchange.Redis;
 
@@ -10,11 +11,16 @@ namespace PlatformA.Ticketing.API.Controllers
     {
         private readonly IDatabase _redis;
         private readonly RedLockFactory _lockFactory; // 락 공장
+        private readonly RedisLockManager _lockManager; // 수동 락 매니저
 
-        public TicketController(IConnectionMultiplexer redis, RedLockFactory lockFactory)
+        // static으로 선언하여 서버 내 모든 요청이 이 자물쇠를 공유함
+        private static readonly SemaphoreSlim _localLock = new SemaphoreSlim(1, 1);
+
+        public TicketController(IConnectionMultiplexer redis, RedLockFactory lockFactory, RedisLockManager lockManager)
         {
             _redis = redis.GetDatabase();
             _lockFactory = lockFactory;
+            _lockManager = lockManager;
         }
 
         // 0. (준비) 티켓 수량 초기화 API
@@ -107,6 +113,181 @@ namespace PlatformA.Ticketing.API.Controllers
                     // 락 획득 실패 (대기 시간 초과)
                     return StatusCode(429, "접속자가 너무 많아 실패했습니다. 다시 시도해주세요.");
                 }
+            }
+        }
+
+
+        // 2. (안전함) 분산 락 적용 예매 API
+        // POST /api/tickets/buy-good-manual
+        [HttpPost("buy-good-manual")]
+        public async Task<IActionResult> BuyTicketGoodManual()
+        {
+            var key = "ticket:iu_concert";
+            var lockKey = "lock:ticket:iu_concert"; // 락을 위한 별도 키
+
+            // 🔥 1. 락 획득 시도
+            // (유효기간 3초, 최대 2초 대기, 0.1초 간격 재시도)
+            string? lockValue = await _lockManager.AcquireLockAsync(
+                lockKey,
+                TimeSpan.FromSeconds(3),
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromMilliseconds(100));
+
+            if (lockValue == null)
+            {
+                return StatusCode(429, "접속자가 너무 많아 대기 시간 초과 (수동 락).");
+            }
+
+            try
+            {
+                // 🔒 [임계 구역 (Critical Section)]
+                // A. 재고 확인
+                var currentStockValue = await _redis.StringGetAsync(key);
+                int currentStock = (int)currentStockValue;
+
+                if (currentStock <= 0)
+                {
+                    return BadRequest("매진되었습니다.");
+                }
+
+                // (아까와 똑같은 딜레이를 줘도 안전한지 테스트)
+                await Task.Delay(10);
+
+                // B. 재고 차감
+                int newStock = currentStock - 1;
+
+                // C. 저장
+                await _redis.StringSetAsync(key, newStock);
+
+                return Ok($"예매 성공! 남은 표: {newStock}");
+            }
+            finally
+            {
+                // 2. 락 해제 (예외가 발생하더라도 반드시 해제되도록 finally 블록 사용)
+                await _lockManager.ReleaseLockAsync(lockKey, lockValue);
+            }
+
+        }
+
+
+        // 2. (안전함) 분산 락 적용 로컬 
+        // POST /api/tickets/buy-good-manual-single
+        // [주의!!] 하지만 현업에서는 이렇게 싱글락을 사용할 수 없다. 왜냐? - 티켓팅 서버가 한대일때만 가능함.
+        // 티켓팅 서버가 여러대일때는 여러대의 서버를 공유하는 메모리가 없기 때문에 티켓팅이 엉망이 된다.
+        // 그래서 서버 공유 메모리인 레디스를 활용 하는 것.
+        // 이 SemaphoreSlim 과 소켓 통신을 사용하여 일종의 서버들끼리 통신과 메모리를 공유하는 LockManagerServer 를 만들수는 있지만
+        // 결국 Redis의 하위 호환인 꼴이다.
+        [HttpPost("buy-good-manual-single")]
+        public async Task<IActionResult> BuyTicketGoodManualSingle()
+        {
+            var key = "ticket:iu_concert";
+            var lockKey = "lock:ticket:iu_concert"; // 락을 위한 별도 키
+
+            // 1. 메모리 락 획득 (대기)
+            await _localLock.WaitAsync();
+
+            try
+            {
+                // 🔒 [임계 구역 (Critical Section)]
+                // A. 재고 확인
+                var currentStockValue = await _redis.StringGetAsync(key);
+                int currentStock = (int)currentStockValue;
+
+                if (currentStock <= 0)
+                {
+                    return BadRequest("매진되었습니다.");
+                }
+
+                // (아까와 똑같은 딜레이를 줘도 안전한지 테스트)
+                await Task.Delay(10);
+
+                // B. 재고 차감
+                int newStock = currentStock - 1;
+
+                // C. 저장
+                await _redis.StringSetAsync(key, newStock);
+
+                return Ok($"예매 성공! 남은 표: {newStock}");
+            }
+            finally
+            {
+                // 2. 락 해제 (예외가 발생하더라도 반드시 해제되도록 finally 블록 사용)
+                _localLock.Release();
+            }
+
+        }
+
+
+        // 3. (Lock-Free) Lua Script를 이용한 원자적 차감
+        // POST /api/tickets/buy-lockfree
+        [HttpPost("buy-lockfree")]
+        public async Task<IActionResult> BuyTicketLockFree()
+        {
+            var key = "ticket:iu_concert";
+
+            // 🔥 Lua Script 작성
+            // KEYS[1]: 티켓 키 이름 ("ticket:iu_concert")
+            // 로직:
+            // 1. 현재 재고를 가져온다 (tonumber로 숫자 변환)
+            // 2. 재고가 0보다 크면? -> decr(감소) 수행 후 남은 수량 리턴
+            // 3. 재고가 없으면? -> -1 리턴
+            var script = @"
+                local current_stock = tonumber(redis.call('get', KEYS[1]))
+                if current_stock > 0 then
+                    redis.call('decr', KEYS[1])
+                    return current_stock - 1
+                else
+                    return -1
+                end
+            ";
+
+            try
+            {
+                // ScriptEvaluateAsync를 통해 스크립트 전송 및 실행
+                var result = await _redis.ScriptEvaluateAsync(script, new RedisKey[] { key });
+
+                // 리턴값 확인
+                int remainingStock = (int)result;
+
+                if (remainingStock >= 0)
+                {
+                    return Ok($"[Lock-Free] 예매 성공! 남은 표: {remainingStock}");
+                }
+                else
+                {
+                    return BadRequest("[Lock-Free] 매진되었습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Redis 에러 발생");
+            }
+        }
+
+
+        // 4. (Lock-Free) Redis 감소 연산을 활용
+        // POST /api/tickets/buy-lockfree
+        [HttpPost("buy-decr")]
+        public async Task<IActionResult> BuyTicketDecr()
+        {
+            var key = "ticket:iu_concert";
+
+            // 1. 일단 깎아! (Atomic)
+            long remained = await _redis.StringDecrementAsync(key);
+
+            // 2. 결과 확인
+            if (remained >= 0)
+            {
+                // 성공! (0개 남았을 때 내가 마지막 가져감)
+                return Ok($"예매 성공! 남은 표: {remained}");
+            }
+            else
+            {
+                // 3. 실패! (마이너스 통장이 됨) -> 다시 채워놓자 (보상 트랜잭션)
+                // 비동기로 처리해도 됨 (Fire and Forget)
+                await _redis.StringIncrementAsync(key);
+
+                return BadRequest("매진되었습니다.");
             }
         }
     }

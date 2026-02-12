@@ -1,6 +1,7 @@
 ﻿using StackExchange.Redis;
 using RedLockNet.SERedis; // 추가
-using RedLockNet.SERedis.Configuration; // 추가
+using RedLockNet.SERedis.Configuration;
+using PlatformA.Library; // 추가
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +23,14 @@ builder.Services.AddSingleton<RedLockFactory>(sp =>
     return RedLockFactory.Create(new List<RedLockEndPoint> { new RedLockEndPoint(redis.GetEndPoints()[0]) });
 });
 
+// 수동 락 매니저 등록
+builder.Services.AddSingleton<RedisLockManager>(); 
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
