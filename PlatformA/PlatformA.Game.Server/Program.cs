@@ -173,6 +173,80 @@ namespace PlatformA.Game.Server
         // 📤 [Reader] 파이프에서 데이터를 읽어서 패킷으로 조립 (Parsing)
         static async Task ReadPipeAsync(Socket client, PipeReader reader)
         {
+            while (true)
+            {
+                // 파이프에 들어온 데이터를 읽음
+                ReadResult result = await reader.ReadAsync();
+                ReadOnlySequence<byte> buffer = result.Buffer;
+
+                // 🔥 여기가 핵심! 패킷 자르기 로직
+                // 데이터가 조금 쪼개져서 오거나 뭉쳐서 와도 여기서 처리됨
+                while (TryReadPacket(ref buffer, out ReadOnlySequence<byte> packet))
+                {
+                    // 완성된 패킷(packet) 처리
+                    await ProcessPacketAsync(client, packet);
+                }
+
+                // 다 처리하고 남은 데이터(자투리)가 있으면 다음으로 넘김
+                reader.AdvanceTo(buffer.Start, buffer.End);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+
+            await reader.CompleteAsync();
+        }
+
+
+        // 🔍 [Parser] 패킷 헤더(2바이트)를 확인하고 자르는 함수
+        static bool TryReadPacket(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> packet)
+        {
+            // 1. 헤더(2바이트)보다 적게 왔으면 대기
+            if (buffer.Length < 2)
+            {
+                packet = default;
+                return false;
+            }
+
+            // 2. 앞의 2바이트(패킷 길이)를 읽음
+            // (BitConverter를 쓰기 위해 앞부분만 살짝 가져옴)
+            var lengthBuffer = buffer.Slice(0, 2);
+            // BigEndian인지 LittleEndian인지 주의해야 하지만 일단 심플하게 (ushort)
+            // 여기서는 간단히 BitConverter를 쓰기 위해 배열로 복사하지만, 실제론 BinaryPrimitives를 씀
+            byte[] lenBytes = lengthBuffer.ToArray();
+            ushort packetLength = BitConverter.ToUInt16(lenBytes, 0);
+
+            // 3. 아직 데이터가 "헤더(2) + 본문(Length)" 만큼 안 왔으면 대기
+            if (buffer.Length < 2 + packetLength)
+            {
+                packet = default;
+                return false;
+            }
+
+            // 4. 패킷 하나 완성! 잘라서 리턴
+            packet = buffer.Slice(2, packetLength); // 헤더 제외한 본문만
+
+            // 5. 원본 버퍼에서는 이미 읽은 만큼(헤더+본문) 잘라내고 포인터 이동
+            buffer = buffer.Slice(2 + packetLength);
+
+            return true;
+        }
+
+        // ⚙️ [Handler] 실제 비즈니스 로직
+        static async Task ProcessPacketAsync(Socket client, ReadOnlySequence<byte> packet)
+        {
+            // ReadOnlySequence는 메모리가 여러 조각으로 나뉘어 있을 수 있어서, 
+            // 문자열 변환을 위해선 배열로 합쳐야 할 수도 있음. (여기선 편의상 ToArray 사용)
+            // -> 성능을 위해선 Encoding.GetString(packet) 확장 메서드를 만드는 게 좋음
+            string msg = Encoding.UTF8.GetString(packet.ToArray());
+            Console.WriteLine($"[Packet Received] {msg}");
+
+            // 에코 전송 (헤더 다시 붙여서 보내야 함은 생략. 그냥 원본 보냄 테스트용)
+            // 실제로는 Send도 패킷 구조 맞춰야 함
         }
     }
+
+
 }

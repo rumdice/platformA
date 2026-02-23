@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PlatformA.Game.DummyClient": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
