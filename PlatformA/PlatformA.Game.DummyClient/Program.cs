@@ -19,49 +19,56 @@ namespace PlatformA.Game.DummyClient
                 await client.ConnectAsync("127.0.0.1", 7777);
                 Console.WriteLine("서버 접속 성공!\n");
 
-                // -------------------------------------------------
-                // 1. 정상 패킷 전송 테스트
-                // -------------------------------------------------
-                Console.WriteLine("--- 1. 정상 패킷 전송 ---");
-                await SendPacketAsync(client, "Hello Pipeline!");
-                await Task.Delay(1000);
+                //// -------------------------------------------------
+                //// 1. 정상 패킷 전송 테스트
+                //// -------------------------------------------------
+                //Console.WriteLine("--- 1. 정상 패킷 전송 ---");
+                //await SendPacketAsync(client, "Hello Pipeline!");
+                //await Task.Delay(1000);
 
-                // -------------------------------------------------
-                // 2. 패킷 뭉침 (Sticking) 테스트
-                // -------------------------------------------------
-                // 3개의 패킷을 하나의 배열로 뭉쳐서 한 번의 Send로 전송
-                Console.WriteLine("\n--- 2. 패킷 뭉침 (Sticking) 테스트 ---");
-                byte[] packet1 = MakePacket("First Packet");
-                byte[] packet2 = MakePacket("Second Packet");
-                byte[] packet3 = MakePacket("Third Packet");
+                //// -------------------------------------------------
+                //// 2. 패킷 뭉침 (Sticking) 테스트
+                //// -------------------------------------------------
+                //// 3개의 패킷을 하나의 배열로 뭉쳐서 한 번의 Send로 전송
+                //Console.WriteLine("\n--- 2. 패킷 뭉침 (Sticking) 테스트 ---");
+                //byte[] packet1 = MakePacket("First Packet");
+                //byte[] packet2 = MakePacket("Second Packet");
+                //byte[] packet3 = MakePacket("Third Packet");
 
-                byte[] combined = new byte[packet1.Length + packet2.Length + packet3.Length];
-                Buffer.BlockCopy(packet1, 0, combined, 0, packet1.Length);
-                Buffer.BlockCopy(packet2, 0, combined, packet1.Length, packet2.Length);
-                Buffer.BlockCopy(packet3, 0, combined, packet1.Length + packet2.Length, packet3.Length);
+                //byte[] combined = new byte[packet1.Length + packet2.Length + packet3.Length];
+                //Buffer.BlockCopy(packet1, 0, combined, 0, packet1.Length);
+                //Buffer.BlockCopy(packet2, 0, combined, packet1.Length, packet2.Length);
+                //Buffer.BlockCopy(packet3, 0, combined, packet1.Length + packet2.Length, packet3.Length);
 
-                await client.SendAsync(combined, SocketFlags.None);
-                Console.WriteLine("[Send] 3개의 패킷을 뭉쳐서 한번에 전송함!");
-                await Task.Delay(1000);
+                //await client.SendAsync(combined, SocketFlags.None);
+                //Console.WriteLine("[Send] 3개의 패킷을 뭉쳐서 한번에 전송함!");
+                //await Task.Delay(1000);
 
-                // -------------------------------------------------
-                // 3. 패킷 찢어짐 (Splitting) 테스트
-                // -------------------------------------------------
-                Console.WriteLine("\n--- 3. 패킷 찢어짐 (Splitting) 테스트 ---");
-                byte[] splitPacket = MakePacket("This is a very long split packet test.");
+                //// -------------------------------------------------
+                //// 3. 패킷 찢어짐 (Splitting) 테스트
+                //// -------------------------------------------------
+                //Console.WriteLine("\n--- 3. 패킷 찢어짐 (Splitting) 테스트 ---");
+                //byte[] splitPacket = MakePacket("This is a very long split packet test.");
 
-                int half = splitPacket.Length / 2;
+                //int half = splitPacket.Length / 2;
 
-                // 3-1. 절반만 먼저 보냄
-                await client.SendAsync(splitPacket.AsMemory(0, half), SocketFlags.None);
-                Console.WriteLine($"[Send] 절반({half} bytes) 전송 완료. 2초 대기...");
+                //// 3-1. 절반만 먼저 보냄
+                //await client.SendAsync(splitPacket.AsMemory(0, half), SocketFlags.None);
+                //Console.WriteLine($"[Send] 절반({half} bytes) 전송 완료. 2초 대기...");
 
-                // 3-2. 2초 대기 (이 동안 서버는 패킷이 완성되길 기다려야 함)
-                await Task.Delay(2000);
+                //// 3-2. 2초 대기 (이 동안 서버는 패킷이 완성되길 기다려야 함)
+                //await Task.Delay(2000);
 
-                // 3-3. 나머지 절반 전송
-                await client.SendAsync(splitPacket.AsMemory(half), SocketFlags.None);
-                Console.WriteLine("[Send] 나머지 절반 전송 완료!");
+                //// 3-3. 나머지 절반 전송
+                //await client.SendAsync(splitPacket.AsMemory(half), SocketFlags.None);
+                //Console.WriteLine("[Send] 나머지 절반 전송 완료!");
+
+
+                // 4 문자열 전송을 버리고 바이너리 패킷 전송 테스트
+                Console.WriteLine("--- 바이너리 패킷 전송 테스트 ---");
+                await SendMovePacketAsync(client, 10.5f, 20.0f, 1.2f);
+                await Task.Delay(100);
+                await SendMovePacketAsync(client, -5.0f, 15.5f, 0.0f);
 
                 Console.WriteLine("\n모든 테스트 완료. 종료하려면 엔터를 누르세요.");
                 Console.ReadLine();
@@ -98,5 +105,38 @@ namespace PlatformA.Game.DummyClient
             await client.SendAsync(packet, SocketFlags.None);
             Console.WriteLine($"[Send] {message}");
         }
+
+        // 1. [동기 함수] Span을 이용한 패킷 조립 전용 메서드 (await 없음 -> 에러 안 남!)
+        static byte[] MakeMovePacket(float x, float y, float z)
+        {
+            ushort packetSize = 16;
+            ushort packetId = 1; // C_Move
+
+            byte[] buffer = new byte[packetSize];
+            Span<byte> span = buffer.AsSpan();
+
+            // 1. 헤더 조립 (사이즈 2 + ID 2)
+            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
+            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
+
+            // 2. 본문(Payload) 조립 (X, Y, Z 각각 4바이트)
+            BitConverter.TryWriteBytes(span.Slice(4, 4), x);
+            BitConverter.TryWriteBytes(span.Slice(8, 4), y);
+            BitConverter.TryWriteBytes(span.Slice(12, 4), z);
+
+            return buffer;
+        }
+
+        // 2. [비동기 함수] 완성된 패킷을 전송만 하는 메서드
+        static async Task SendMovePacketAsync(Socket client, float x, float y, float z)
+        {
+            // 조립은 다른 함수에 맡기고 결과물(byte[])만 받아옴
+            byte[] packet = MakeMovePacket(x, y, z);
+
+            // 여기엔 Span이 없으므로 마음껏 await 가능!
+            await client.SendAsync(packet, SocketFlags.None);
+            Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - 16 bytes");
+        }
+
     }
 }
