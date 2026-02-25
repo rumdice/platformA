@@ -111,23 +111,30 @@ namespace PlatformA.Game.Server.Core
 
         private bool TryReadPacket(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> packet)
         {
+            // 1. 최소 사이즈 헤더(2바이트)가 올 때까지 대기
             if (buffer.Length < 2)
             {
                 packet = default;
                 return false;
             }
 
+            // 2. 패킷 전체 길이 파악 (BitConverter 사용)
             var lengthBuffer = buffer.Slice(0, 2);
             ushort packetLength = BitConverter.ToUInt16(lengthBuffer.ToArray(), 0);
 
-            if (buffer.Length < 2 + packetLength)
+            // 3. 🚨 [수정됨] 패킷이 "전체 길이(packetLength)"만큼 다 안 왔으면 대기
+            if (buffer.Length < packetLength)
             {
                 packet = default;
                 return false;
             }
 
-            packet = buffer.Slice(2, packetLength);
-            buffer = buffer.Slice(2 + packetLength);
+            // 4. 🚨 [수정됨] 사이즈 헤더를 포함하여 통째로 잘라서 OnRecv로 넘김!
+            packet = buffer.Slice(0, packetLength);
+
+            // 5. 원본 버퍼에서는 꺼내간 만큼 포인터 이동
+            buffer = buffer.Slice(packetLength);
+
             return true;
         }
     }
