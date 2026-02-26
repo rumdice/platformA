@@ -21,7 +21,9 @@ namespace PlatformA.Game.Server.Packet
         S_Move = 2  // Server -> Client 이동 결과 (브로드캐스트용)
     }
 
+    // Client -> Server
     // 🔥 게임 로직에서 쓸 이동 패킷 구조체 (class가 아니라 struct입니다! GC 할당 없음)
+    // 내가 이만큼 움직였어!
     public struct C_MovePacket
     {
         public float X;
@@ -46,6 +48,27 @@ namespace PlatformA.Game.Server.Packet
             BinaryPrimitives.WriteSingleLittleEndian(span.Slice(0, 4), X);
             BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4, 4), Y);
             BinaryPrimitives.WriteSingleLittleEndian(span.Slice(8, 4), Z);
+        }
+    }
+
+    // Server -> Client
+    // 이동에 관련한 패킷을 서버가 클라로 던진다.
+    public struct S_MovePacket
+    {
+        public int PlayerId; // "누가" 움직였는가? (4바이트)
+        public float X;      // (4바이트)
+        public float Y;      // (4바이트)
+        public float Z;      // (4바이트)
+
+        public const ushort Size = 16; // 4 + 4 + 4 + 4 = 16바이트 (본문 크기)
+
+        // 직렬화: 구조체 -> 바이트 배열 (브로드캐스팅 용도)
+        public void Serialize(Span<byte> span)
+        {
+            BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), PlayerId);
+            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4, 4), X);
+            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(8, 4), Y);
+            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(12, 4), Z);
         }
     }
 }
