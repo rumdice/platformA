@@ -11,6 +11,10 @@ namespace PlatformA.Game.Server
     {
         static async Task Main(string[] args)
         {
+
+            // 우리가 직접 만든 적 없는 클래스와 메서드지만, 컴파일러가 방금 만들어 주었습니다!
+            GeneratorTest.Hello();
+
             Console.WriteLine("=== 🔥 High Performance Game Server (Level 5) ===");
 
             using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
