@@ -61,7 +61,7 @@ namespace PlatformA.Game.Server
 
                     // 구조체 생성 및 파싱 (Zero-Allocation!)
                     C_MovePacket moveReq = new C_MovePacket();
-                    //moveReq.Deserialize(payload);
+                    moveReq.Deserialize(payload); // 패킷 제너레이터로 역직렬화 해제
 
                     //Console.WriteLine($"[C_Move] 클라이언트 이동 요청 -> X: {movePkt.X}, Y: {movePkt.Y}, Z: {movePkt.Z}");
                     Console.WriteLine($"[C_Move] ID({SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
@@ -78,14 +78,18 @@ namespace PlatformA.Game.Server
                     };
 
                     // 📡 2. 패킷 조립 (헤더 4바이트 + 본문 16바이트 = 총 20바이트)
-                    ushort resSize = 20;
+                    // ushort resSize = 20;
+                    // 패킷 제너레이터로 패킷에 정의해둔 본문 크기 상수 활용
+                    ushort resSize = (ushort)(4 + S_MovePacket.Size); // 헤더 4 + 본문 16
                     ushort resId = (ushort)PacketID.S_Move;
+
                     byte[] sendBuffer = new byte[resSize];
                     Span<byte> sendSpan = sendBuffer.AsSpan();
 
                     BitConverter.TryWriteBytes(sendSpan.Slice(0, 2), resSize);
                     BitConverter.TryWriteBytes(sendSpan.Slice(2, 2), resId);
-                    //moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화
+
+                    moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
 
                     // 📡 3. 매니저를 통해 접속한 "모든 유저"에게 발사!
                     SessionManager.Instance.Broadcast(sendBuffer);
