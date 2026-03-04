@@ -61,7 +61,7 @@ namespace PlatformA.Game.Server
 
                     // 구조체 생성 및 파싱 (Zero-Allocation!)
                     C_MovePacket moveReq = new C_MovePacket();
-                    moveReq.Deserialize(payload);
+                    //moveReq.Deserialize(payload);
 
                     //Console.WriteLine($"[C_Move] 클라이언트 이동 요청 -> X: {movePkt.X}, Y: {movePkt.Y}, Z: {movePkt.Z}");
                     Console.WriteLine($"[C_Move] ID({SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
@@ -85,7 +85,7 @@ namespace PlatformA.Game.Server
 
                     BitConverter.TryWriteBytes(sendSpan.Slice(0, 2), resSize);
                     BitConverter.TryWriteBytes(sendSpan.Slice(2, 2), resId);
-                    moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화
+                    //moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화
 
                     // 📡 3. 매니저를 통해 접속한 "모든 유저"에게 발사!
                     SessionManager.Instance.Broadcast(sendBuffer);

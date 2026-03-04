@@ -24,7 +24,8 @@ namespace PlatformA.Game.Server.Packet
     // Client -> Server
     // 🔥 게임 로직에서 쓸 이동 패킷 구조체 (class가 아니라 struct입니다! GC 할당 없음)
     // 내가 이만큼 움직였어!
-    public struct C_MovePacket
+    [Packet]
+    public partial struct C_MovePacket
     {
         public float X;
         public float Y;
@@ -33,27 +34,13 @@ namespace PlatformA.Game.Server.Packet
         // 본문 크기 (float 3개 = 12바이트)
         public const ushort Size = 12;
 
-        // 1. [역직렬화] 바이트 배열 -> 구조체 변환 (Reader)
-        public void Deserialize(ReadOnlySpan<byte> span)
-        {
-            // BinaryPrimitives를 쓰면 메모리 복사 없이, Endian 이슈까지 안전하게 파싱합니다.
-            X = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(0, 4));
-            Y = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(4, 4));
-            Z = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(8, 4));
-        }
-
-        // 2. [직렬화] 구조체 -> 바이트 배열 변환 (Writer)
-        public void Serialize(Span<byte> span)
-        {
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(0, 4), X);
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4, 4), Y);
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(8, 4), Z);
-        }
+        
     }
 
     // Server -> Client
     // 이동에 관련한 패킷을 서버가 클라로 던진다.
-    public struct S_MovePacket
+    [Packet]
+    public partial struct S_MovePacket
     {
         public int PlayerId; // "누가" 움직였는가? (4바이트)
         public float X;      // (4바이트)
@@ -61,14 +48,5 @@ namespace PlatformA.Game.Server.Packet
         public float Z;      // (4바이트)
 
         public const ushort Size = 16; // 4 + 4 + 4 + 4 = 16바이트 (본문 크기)
-
-        // 직렬화: 구조체 -> 바이트 배열 (브로드캐스팅 용도)
-        public void Serialize(Span<byte> span)
-        {
-            BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), PlayerId);
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4, 4), X);
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(8, 4), Y);
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(12, 4), Z);
-        }
     }
 }
