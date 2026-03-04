@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,7 +24,10 @@ namespace PlatformA.Game.Server
             Console.WriteLine($"[GameSession] 유저 입장: {endPoint} (ID: {SessionId})");
 
             // 📝 명부에 내 이름 적기 세션메니저 등록.
-            SessionManager.Instance.Add(this);
+            //SessionManager.Instance.Add(this);
+
+            // 🔥 1. SessionManager 대신 방(GameRoom)의 큐에 입장 작업을 던집니다.
+            GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Enter(this));
         }
 
         //protected override void OnRecv(ReadOnlySequence<byte> packet)
@@ -61,38 +65,45 @@ namespace PlatformA.Game.Server
 
                     // 구조체 생성 및 파싱 (Zero-Allocation!)
                     C_MovePacket moveReq = new C_MovePacket();
-                    moveReq.Deserialize(payload); // 패킷 제너레이터로 역직렬화 해제
+                    moveReq.Deserialize(payload); // 패킷 제너레이터로 역직렬화 해제 (패킷 파싱)
 
-                    //Console.WriteLine($"[C_Move] 클라이언트 이동 요청 -> X: {movePkt.X}, Y: {movePkt.Y}, Z: {movePkt.Z}");
-                    Console.WriteLine($"[C_Move] ID({SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
-
-
-                    // 내가 움직였음을 남들에게 알리기.
-                    // 📡 1. 남들에게 뿌려줄 S_Move 패킷 만들기
-                    S_MovePacket moveRes = new S_MovePacket()
+                    GameRoom.GlobalRoom.Push(() =>
                     {
-                        PlayerId = this.SessionId,
-                        X = moveReq.X,
-                        Y = moveReq.Y,
-                        Z = moveReq.Z
-                    };
+                        //Console.WriteLine($"[C_Move] 클라이언트 이동 요청 -> X: {movePkt.X}, Y: {movePkt.Y}, Z: {movePkt.Z}");
+                        Console.WriteLine($"[C_Move] ID({SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
 
-                    // 📡 2. 패킷 조립 (헤더 4바이트 + 본문 16바이트 = 총 20바이트)
-                    // ushort resSize = 20;
-                    // 패킷 제너레이터로 패킷에 정의해둔 본문 크기 상수 활용
-                    ushort resSize = (ushort)(4 + S_MovePacket.Size); // 헤더 4 + 본문 16
-                    ushort resId = (ushort)PacketID.S_Move;
 
-                    byte[] sendBuffer = new byte[resSize];
-                    Span<byte> sendSpan = sendBuffer.AsSpan();
+                        // 내가 움직였음을 남들에게 알리기.
+                        // 📡 1. 남들에게 뿌려줄 S_Move 패킷 만들기
+                        S_MovePacket moveRes = new S_MovePacket()
+                        {
+                            PlayerId = this.SessionId,
+                            X = moveReq.X,
+                            Y = moveReq.Y,
+                            Z = moveReq.Z
+                        };
 
-                    BitConverter.TryWriteBytes(sendSpan.Slice(0, 2), resSize);
-                    BitConverter.TryWriteBytes(sendSpan.Slice(2, 2), resId);
+                        // 📡 2. 패킷 조립 (헤더 4바이트 + 본문 16바이트 = 총 20바이트)
+                        // ushort resSize = 20;
+                        // 패킷 제너레이터로 패킷에 정의해둔 본문 크기 상수 활용
+                        ushort resSize = (ushort)(4 + S_MovePacket.Size); // 헤더 4 + 본문 16
+                        ushort resId = (ushort)PacketID.S_Move;
 
-                    moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
+                        byte[] sendBuffer = new byte[resSize];
+                        Span<byte> sendSpan = sendBuffer.AsSpan();
 
-                    // 📡 3. 매니저를 통해 접속한 "모든 유저"에게 발사!
-                    SessionManager.Instance.Broadcast(sendBuffer);
+                        BitConverter.TryWriteBytes(sendSpan.Slice(0, 2), resSize);
+                        BitConverter.TryWriteBytes(sendSpan.Slice(2, 2), resId);
+
+                        moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
+
+                        // 📡 3. 매니저를 통해 접속한 "모든 유저"에게 발사!
+                        //SessionManager.Instance.Broadcast(sendBuffer);
+
+                        // 세션 매니저의 전체 접속된 모든유저 (통유저) 가 아닌 같은 게임룸의 대상 유저들에게만 브로드케스팅
+                        GameRoom.GlobalRoom.Broadcast(sendBuffer);
+
+                    }); // 🔥 2. 방의 큐에 이동 요청 처리 작업을 던집니다.
 
                     break;
 
@@ -107,6 +118,9 @@ namespace PlatformA.Game.Server
         protected override void OnDisconnected(EndPoint endPoint)
         {
             Console.WriteLine($"[GameSession] 유저 퇴장: {endPoint}");
+
+            // 🔥 3. 퇴장 처리도 방(GameRoom)의 큐를 통해 안전하게 진행합니다. (방에서 세션 제거)
+            GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Leave(this));
         }
     }
 }
