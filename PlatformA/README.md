@@ -66,6 +66,40 @@
 
 <br/>
 
+## 🧬 아키텍처 진화 과정 (Architecture Evolution)
+본 프로젝트의 핵심 네트워크 코어는 발생 가능한 병목 현상과 동기화 문제를 단계적으로 해결하며 구축되었습니다.
+
+* **Step 1. Raw Socket**
+  * C# 기본 소켓을 활용한 초기 통신 코드 작성 및 문제점(한계) 식별
+* **Step 2. Memory Pool**
+  * **문제:** 잦은 힙(Heap) 메모리 할당으로 인한 GC 부하 발생
+  * **개선:** ArrayPool을 도입하여 메모리 재사용 및 Zero-Allocation 기반 마련
+* **Step 3. System.IO.Pipelines**
+  * **문제:** TCP 스트림 특성상 발생하는 패킷 뭉침 및 끊어짐 현상
+  * **개선:** 파이프라인(Pipelines) 도입을 통해 안전한 버퍼 관리와 패킷 슬라이싱 적용
+* **Step 4. Dummy Client**
+  * **문제:** TCP 스트림 제어의 정확성 검증 필요성
+  * **개선:** 대량의 더미 패킷을 발생시켜 패킷 처리 및 조립을 테스트할 수 있는 툴 제작
+* **Step 5. Session & GameSession**
+  * **문제:** 통신 코어(Network)와 게임 로직(Contents)의 강한 결합
+  * **개선:** 추상 클래스(Session)를 통한 프레임워크 분리 및 세션 관리 구조화
+* **Step 6. Packet Serialize**
+  * **문제:** 단순 문자열(String) 전송으로 인한 파싱 비용 및 메모리 낭비
+  * **개선:** 패킷 구조화 및 바이너리 직렬화(Zero-Allocation) 도입
+* **Step 7. SessionManager & Broadcasting**
+  * **문제:** 1:1 단일 응답 구조의 한계
+  * **개선:** 전체 세션 관리자 도입 및 접속된 클라이언트들에게 동시 응답(Broadcasting) 구현
+* **Step 8. Packet Generator**
+  * **문제:** 수많은 패킷 구조체마다 직렬화/역직렬화 코드를 직접 작성해야 하는 휴먼 에러 및 노가다 발생
+  * **개선:** 소스 생성기(Source Generator)를 도입하여 컴파일 타임에 패킷 처리 코드 자동 생성
+* **Step 9. Job Queue**
+  * **문제:** 수십 개의 네트워크 스레드가 동시에 자원에 접근할 때 발생하는 데이터 오염(Race Condition)
+  * **개선:** 작업 대기열(Job Queue)과 Action 위임을 도입하여 락(Lock) 경합을 최소화한 스레드 세이프 구조 달성
+* **Step 10. Game Room**
+  * **문제:** 전체 접속자를 단일 명부에서 관리함에 따른 논리적 분리의 부재
+  * **개선:** Job Queue를 활용하여 유저들을 그룹화하고, 방 단위로 안전하게 통신하는 게임 룸(Game Room) 시스템 완성
+
+<br/>
 
 ## 📜 라이센스 (License)
 이 프로젝트는 **MIT License**에 따라 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참고하세요.
