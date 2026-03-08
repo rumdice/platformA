@@ -19,13 +19,7 @@ namespace PlatformA.Game.DummyClient
 
                 // 📡 [추가됨] 서버로부터 데이터를 계속 수신하는 백그라운드 작업 시작 (Fire and Forget)
                 _ = ReceiveLoopAsync(client);
-
-                //// 4. 문자열 전송을 버리고 바이너리 패킷 전송 테스트
-                //Console.WriteLine("--- 바이너리 패킷 전송 테스트 ---");
-                //await SendMovePacketAsync(client, 10.5f, 20.0f, 1.2f);
-                //await Task.Delay(100);
-                //await SendMovePacketAsync(client, -5.0f, 15.5f, 0.0f);
-
+         
 
                 // 5. 브로드케스팅 패킷 송/수신 목적의 테스트
                 // --- 테스트 시나리오 ---

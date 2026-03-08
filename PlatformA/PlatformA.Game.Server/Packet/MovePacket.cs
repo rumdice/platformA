@@ -1,12 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-/// 게임서버에서 캐릭터의 이동에 관련된 패킷을 정의한다.
+﻿/// 게임서버에서 캐릭터의 이동에 관련된 패킷을 정의한다.
 ///게임 패킷은 보통 다음과 같은 형태
 ///[헤더] 사이즈  (2 바이트): 이 패킷의 전체 길이 (어제 파이프라인에서 자를 때 썼던 그것)
 ///[헤더] 패킷 ID (2 바이트): 이 패킷이 "이동"인지, "공격"인지 구분하는 번호

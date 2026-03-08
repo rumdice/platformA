@@ -51,9 +51,7 @@ namespace PlatformA.Game.Server
 
                     GameRoom.GlobalRoom.Push(() =>
                     {
-                        //Console.WriteLine($"[C_Move] 클라이언트 이동 요청 -> X: {movePkt.X}, Y: {movePkt.Y}, Z: {movePkt.Z}");
                         Console.WriteLine($"[C_Move] ID({SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
-
 
                         // 내가 움직였음을 남들에게 알리기.
                         // 📡 1. 남들에게 뿌려줄 S_Move 패킷 만들기
