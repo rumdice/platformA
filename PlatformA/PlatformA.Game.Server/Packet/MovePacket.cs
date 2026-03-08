@@ -25,8 +25,6 @@ namespace PlatformA.Game.Server.Packet
 
         // 본문 크기 (float 3개 = 12바이트)
         public const ushort Size = 12;
-
-        
     }
 
     // Server -> Client

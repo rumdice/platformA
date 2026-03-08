@@ -17,8 +17,8 @@ namespace PlatformA.Generator.Lib
 
         public void Execute(GeneratorExecutionContext context)
         {
-            // 1. PacketAttribute 주입 (생략 - 기존 코드 유지)
-            // 1. 앞으로 우리가 구조체에 달아줄 [Packet] 속성 코드를 컴파일 타임에 주입합니다.
+            // 1. PacketAttribute 주입
+            // 앞으로 우리가 구조체에 달아줄 [Packet] 속성 코드를 컴파일 타임에 주입합니다.
             var attributeSource = @"
 using System;
 namespace PlatformA.Game.Server.Packet
