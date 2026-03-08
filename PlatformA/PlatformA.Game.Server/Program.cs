@@ -50,17 +50,22 @@ namespace PlatformA.Game.Server
 
             PacketGenTest();
 
-
+            // 1. 소켓 생성 (IPv4, Stream(TCP), TCP)
             using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
 
+            // 2. 포트 바인딩 (Any: 모든 IP에서 접속 허용)
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
             listener.Bind(endPoint);
+
+            // 3. 리슨 시작 (Backlog: 대기열 100개)
             listener.Listen(100);
 
             Console.WriteLine($"[Server] Listening on {endPoint}...");
 
             while (true)
             {
+                // 4. 클라이언트 접속 대기 (비동기)
+                // AcceptAsync는 새로운 클라이언트와 통신할 'Socket'을 반환합니다.
                 Socket clientSocket = await listener.AcceptAsync();
 
                 // 🔥 프레임워크 사용: 소켓이 연결될 때마다 새 세션을 만들고 Start!
@@ -68,34 +73,7 @@ namespace PlatformA.Game.Server
                 session.Start(clientSocket);
             }
         }
-
-        // 프레임 워크로 개선
-        //static async Task Main(string[] args)
-        //{
-        //    Console.WriteLine("=== 🔥 High Performance Game Server (Level 5) ===");
-
-        //    // 1. 소켓 생성 (IPv4, Stream(TCP), TCP)
-        //    using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-        //    // 2. 포트 바인딩 (Any: 모든 IP에서 접속 허용)
-        //    IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
-        //    listener.Bind(endPoint);
-
-        //    // 3. 리슨 시작 (Backlog: 대기열 100개)
-        //    listener.Listen(100);
-
-        //    Console.WriteLine($"[Server] Listening on {endPoint}...");
-
-        //    while (true)
-        //    {
-        //        // 4. 클라이언트 접속 대기 (비동기)
-        //        // AcceptAsync는 새로운 클라이언트와 통신할 'Socket'을 반환합니다.
-        //        Socket clientSocket = await listener.AcceptAsync();
-
-        //        // 접속된 클라이언트를 별도 Task로 처리 (Fire and Forget)
-        //        _ = HandleClientAsync(clientSocket);
-        //    }
-        //}
+        
 
         //static async Task HandleClientAsync(Socket client)
         //{
