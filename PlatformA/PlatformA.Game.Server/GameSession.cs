@@ -1,13 +1,7 @@
 ﻿using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Packet;
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PlatformA.Game.Server
 {
@@ -29,18 +23,6 @@ namespace PlatformA.Game.Server
             // 🔥 1. SessionManager 대신 방(GameRoom)의 큐에 입장 작업을 던집니다.
             GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Enter(this));
         }
-
-        //protected override void OnRecv(ReadOnlySequence<byte> packet)
-        //{
-        //    // 받은 패킷 처리 (에코)
-        //    string msg = Encoding.UTF8.GetString(packet.ToArray());
-        //    Console.WriteLine($"[Packet Received] {msg}");
-
-        //    // 받은 걸 그대로 다시 돌려보내기 (테스트용)
-        //    // SendAsync도 나중에는 패킷 조립(헤더 2바이트 포함) 로직을 분리해야 하지만 일단 원본 전송
-        //    // _ = SendAsync(packet.ToArray()); 
-        //}
-
 
         /// <summary>
         /// 문자열을 버리고 정의된 구조체 바이너리 패킷으로 수신한다.
