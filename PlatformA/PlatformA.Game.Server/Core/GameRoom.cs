@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PlatformA.Game.Server.Core
+﻿namespace PlatformA.Game.Server.Core
 {
     public class GameRoom
     {
         // 테스트용 단일 글로벌 룸 
-        // TODO: (나중에는 RoomManager가 여러 방을 관리하게 됩니다)
         public static GameRoom GlobalRoom { get; } = new GameRoom();
 
         // 룸에 접속한 유저 목록
@@ -32,7 +25,6 @@ namespace PlatformA.Game.Server.Core
         public void Enter(GameSession session)
         {
             _sessions.Add(session);
-            // session.Room = this; // (나중을 위해 세션에 방 정보를 남겨둘 수도 있습니다)
             Console.WriteLine($"[GameRoom] 유저 입장: {session.SessionId} (현재 인원: {_sessions.Count}명)");
         }
 
@@ -47,10 +39,6 @@ namespace PlatformA.Game.Server.Core
             foreach (var session in _sessions)
             {
                 // 🔥 기존 SessionManager 대신, 이 방에 있는 유저에게만 패킷을 보냅니다.
-                // (Session 부모 클래스에 정의된 Send 함수를 호출한다고 가정합니다)
-                //session.SendAsync(packet);
-
-                // 어색하게 나오는 녹색 경고는 이렇게 처리.
                 // '_' 를 붙여서 컴파일러에게 "이 작업이 끝나는 걸 기다리지 않고 버리겠다"고 명시합니다.
                 // 스레드는 블로킹 없이 100명에게 순식간에 발송 명령만 내리고 루프를 빠져나옵니다.
                 _ = session.SendAsync(packet);

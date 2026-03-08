@@ -17,11 +17,9 @@ namespace PlatformA.Game.DummyClient
                 await client.ConnectAsync("127.0.0.1", 7777);
                 Console.WriteLine("서버 접속 성공!\n");
 
-                // 📡 [추가됨] 서버로부터 데이터를 계속 수신하는 백그라운드 작업 시작 (Fire and Forget)
+                // 서버로부터 데이터를 계속 수신하는 백그라운드 작업 시작 (Fire and Forget)
                 _ = ReceiveLoopAsync(client);
          
-
-                // 5. 브로드케스팅 패킷 송/수신 목적의 테스트
                 // --- 테스트 시나리오 ---
                 Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");
                 Console.WriteLine("종료하려면 'q'를 입력하세요.\n");
@@ -40,8 +38,6 @@ namespace PlatformA.Game.DummyClient
 
                     await SendMovePacketAsync(client, x, y, z);
                 }
-
-
 
                 //// 모든 테스트 종료
                 Console.WriteLine("\n모든 테스트 완료. 종료하려면 엔터를 누르세요.");

@@ -17,9 +17,6 @@ namespace PlatformA.Game.Server
 
             Console.WriteLine($"[GameSession] 유저 입장: {endPoint} (ID: {SessionId})");
 
-            // 📝 명부에 내 이름 적기 세션메니저 등록.
-            //SessionManager.Instance.Add(this);
-
             // 🔥 1. SessionManager 대신 방(GameRoom)의 큐에 입장 작업을 던집니다.
             GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Enter(this));
         }
@@ -64,7 +61,6 @@ namespace PlatformA.Game.Server
                         };
 
                         // 📡 2. 패킷 조립 (헤더 4바이트 + 본문 16바이트 = 총 20바이트)
-                        // ushort resSize = 20;
                         // 패킷 제너레이터로 패킷에 정의해둔 본문 크기 상수 활용
                         ushort resSize = (ushort)(4 + S_MovePacket.Size); // 헤더 4 + 본문 16
                         ushort resId = (ushort)PacketID.S_Move;
@@ -77,9 +73,6 @@ namespace PlatformA.Game.Server
 
                         moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
 
-                        // 📡 3. 매니저를 통해 접속한 "모든 유저"에게 발사!
-                        //SessionManager.Instance.Broadcast(sendBuffer);
-
                         // 세션 매니저의 전체 접속된 모든유저 (통유저) 가 아닌 같은 게임룸의 대상 유저들에게만 브로드케스팅
                         GameRoom.GlobalRoom.Broadcast(sendBuffer);
 
@@ -91,7 +84,6 @@ namespace PlatformA.Game.Server
                     Console.WriteLine($"[Unknown] 알 수 없는 패킷 ID: {packetId}");
                     break;
             }
-
         }
 
 
