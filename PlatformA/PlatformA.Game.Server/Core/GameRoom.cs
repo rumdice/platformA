@@ -4,7 +4,10 @@
     {
         // 테스트용 단일 글로벌 룸 
         // TODO: (나중에는 RoomManager가 여러 방을 관리하게 됩니다)
-        public static GameRoom GlobalRoom { get; } = new GameRoom();
+        //public static GameRoom GlobalRoom { get; } = new GameRoom();
+
+        // 방의 고유 ID
+        public int RoomId { get; set; }
 
         // 룸에 접속한 유저 목록
         private List<GameSession> _sessions = new List<GameSession>();
@@ -26,12 +29,14 @@
         public void Enter(GameSession session)
         {
             _sessions.Add(session);
+            session.Room = this; // 세션에게 "너 이 방에 들어왔어" 라고 알려줌
             Console.WriteLine($"[GameRoom] 유저 입장: {session.SessionId} (현재 인원: {_sessions.Count}명)");
         }
 
         public void Leave(GameSession session)
         {
             _sessions.Remove(session);
+            session.Room = null;
             Console.WriteLine($"[GameRoom] 유저 퇴장: {session.SessionId} (현재 인원: {_sessions.Count}명)");
         }
 

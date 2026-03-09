@@ -45,7 +45,11 @@ namespace PlatformA.Game.Server
             
             // 패킷매니저 초기화
             PlatformA.Game.Server.Packet.PacketManager.Instance.Register(); // 🚀 추가
-            
+
+            // 🚀 서버 시작 시 기본 1번 방 생성
+            PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom();
+            Console.WriteLine("[RoomManager] 기본 1번 방(Lobby) 생성 완료.");
+
             // 패킷 제너레이터 테스트
             PacketGenTest();
 

@@ -1,4 +1,5 @@
-﻿using PlatformA.Game.Server.Core;
+﻿using Microsoft.AspNetCore.Identity;
+using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Packet;
 using System.Buffers;
 using System.Net;
@@ -9,6 +10,7 @@ namespace PlatformA.Game.Server
     {
         // 임시로 부여할 플레이어 ID (실제로는 로그인할 때 DB에서 가져오거나 자동 발급)
         public int SessionId { get; set; }
+        public GameRoom Room { get; set; } // 🚀 내가 속한 방 객체 기억하기
 
         protected override void OnConnected(EndPoint endPoint)
         {
@@ -18,7 +20,14 @@ namespace PlatformA.Game.Server
             Console.WriteLine($"[GameSession] 유저 입장: {endPoint} (ID: {SessionId})");
 
             // 🔥 1. SessionManager 대신 방(GameRoom)의 큐에 입장 작업을 던집니다.
-            GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Enter(this));
+            //GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Enter(this));
+
+            // 🚀 테스트용: 무조건 1번 방을 찾아서 들어갑니다. (나중에는 매칭 서버가 정해준 방으로 갑니다)
+            GameRoom room = GameRoomManager.Instance.FindRoom(1);
+            if (room != null)
+            {
+                room.Push(() => room.Enter(this));
+            }
         }
 
         /// <summary>
@@ -50,7 +59,14 @@ namespace PlatformA.Game.Server
             Console.WriteLine($"[GameSession] 유저 퇴장: {endPoint}");
 
             // 🔥 3. 퇴장 처리도 방(GameRoom)의 큐를 통해 안전하게 진행합니다. (방에서 세션 제거)
-            GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Leave(this));
+            //GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Leave(this));
+
+            // 🚀 내가 속해있던 방에서 안전하게 퇴장합니다.
+            GameRoom room = Room;
+            if (room != null)
+            {
+                room.Push(() => room.Leave(this));
+            }
         }
     }
 }

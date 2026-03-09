@@ -18,7 +18,11 @@ namespace PlatformA.Game.Server.Packet
             C_MovePacket moveReq = new C_MovePacket();
             moveReq.Deserialize(payload); // 패킷 제너레이터로 역직렬화 해제 (패킷 파싱)
 
-            GameRoom.GlobalRoom.Push(() =>
+            // 🚀 유저가 속한 방을 찾습니다. 방이 없으면 무시!
+            GameRoom room = session.Room;
+            if (room == null) return;
+
+            room.Push(() =>
             {
                 Console.WriteLine($"[C_Move] ID({session.SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
 
@@ -46,7 +50,7 @@ namespace PlatformA.Game.Server.Packet
                 moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
 
                 // 세션 매니저의 전체 접속된 모든유저 (통유저) 가 아닌 같은 게임룸의 대상 유저들에게만 브로드케스팅
-                GameRoom.GlobalRoom.Broadcast(sendBuffer);
+                room.Broadcast(sendBuffer);
 
             }); // 🔥 2. 방의 큐에 이동 요청 처리 작업을 던집니다.
 
