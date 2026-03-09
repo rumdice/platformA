@@ -36,11 +36,17 @@ namespace PlatformA.Game.Server
             else
                 Console.WriteLine("=> ❌ 테스트 실패: 데이터가 오염되었습니다.");
 
-            Console.WriteLine("=== 🔥 High Performance Game Server (Level 5) ===");
+            
         }
 
         static async Task Main(string[] args)
         {
+            Console.WriteLine("=== 🔥 High Performance Game Server (Level 6 - step 1) ===");
+            
+            // 패킷매니저 초기화
+            PlatformA.Game.Server.Packet.PacketManager.Instance.Register(); // 🚀 추가
+            
+            // 패킷 제너레이터 테스트
             PacketGenTest();
 
             // 1. 소켓 생성 (IPv4, Stream(TCP), TCP)

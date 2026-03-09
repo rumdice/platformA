@@ -35,55 +35,13 @@ namespace PlatformA.Game.Server
             // 사이즈는 이미 파이프라인에서 검증하고 잘라서 넘겨주었으니 건너뛰고, 패킷 ID만 읽습니다.
             ushort packetId = BitConverter.ToUInt16(span.Slice(2, 2));
 
+            // 본문 잘라내기 (파싱)
+            // 본문은 앞의 헤더(4바이트: 사이즈 2 + ID 2)를 제외한 부분
+            ReadOnlySpan<byte> payload = span.Slice(4);
+
             // 2. 패킷 종류에 따른 라우팅
-            switch ((PacketID)packetId)
-            {
-                case PacketID.C_Move:
-                    // 본문은 앞의 헤더(4바이트: 사이즈 2 + ID 2)를 제외한 부분
-                    ReadOnlySpan<byte> payload = span.Slice(4);
-
-                    // 구조체 생성 및 파싱 (Zero-Allocation!)
-                    C_MovePacket moveReq = new C_MovePacket();
-                    moveReq.Deserialize(payload); // 패킷 제너레이터로 역직렬화 해제 (패킷 파싱)
-
-                    GameRoom.GlobalRoom.Push(() =>
-                    {
-                        Console.WriteLine($"[C_Move] ID({SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
-
-                        // 내가 움직였음을 남들에게 알리기.
-                        // 📡 1. 남들에게 뿌려줄 S_Move 패킷 만들기
-                        S_MovePacket moveRes = new S_MovePacket()
-                        {
-                            PlayerId = this.SessionId,
-                            X = moveReq.X,
-                            Y = moveReq.Y,
-                            Z = moveReq.Z
-                        };
-
-                        // 📡 2. 패킷 조립 (헤더 4바이트 + 본문 16바이트 = 총 20바이트)
-                        // 패킷 제너레이터로 패킷에 정의해둔 본문 크기 상수 활용
-                        ushort resSize = (ushort)(4 + S_MovePacket.Size); // 헤더 4 + 본문 16
-                        ushort resId = (ushort)PacketID.S_Move;
-
-                        byte[] sendBuffer = new byte[resSize];
-                        Span<byte> sendSpan = sendBuffer.AsSpan();
-
-                        BitConverter.TryWriteBytes(sendSpan.Slice(0, 2), resSize);
-                        BitConverter.TryWriteBytes(sendSpan.Slice(2, 2), resId);
-
-                        moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
-
-                        // 세션 매니저의 전체 접속된 모든유저 (통유저) 가 아닌 같은 게임룸의 대상 유저들에게만 브로드케스팅
-                        GameRoom.GlobalRoom.Broadcast(sendBuffer);
-
-                    }); // 🔥 2. 방의 큐에 이동 요청 처리 작업을 던집니다.
-
-                    break;
-
-                default:
-                    Console.WriteLine($"[Unknown] 알 수 없는 패킷 ID: {packetId}");
-                    break;
-            }
+            // 🔥 2. 거대한 switch-case 제거! PacketManager에게 처리를 맡깁니다.
+            PacketManager.Instance.HandlePacket(this, packetId, payload);
         }
 
 
