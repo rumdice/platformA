@@ -1,0 +1,69 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using PlatformA.Auth.API.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace PlatformA.Auth.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")] // 라우팅 주소: /api/auth
+    public class AuthController : ControllerBase
+    {
+        // ⚠️ 게임 서버와 동일한 시크릿 키! (나중엔 appsettings.json에서 불러오게 됩니다)
+        private const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
+
+        // Test Json
+        //
+        //{
+        //    "username": "test",
+        //    "password": "1234"
+        //}
+
+        [HttpPost("login")] // POST 요청: /api/auth/login
+        public IActionResult Login([FromBody] LoginRequest request)
+        {
+            // 1. 간단한 더미 계정 검증 (DB 연동 전)
+            if (request.Username == "test" && request.Password == "1234")
+            {
+                // DB에서 회원 정보를 찾았다고 가정합니다.
+                int playerId = 777;
+
+                // 2. JWT 토큰 생성
+                string token = GenerateJwtToken(playerId);
+
+                // 3. 클라이언트에게 성공(200 OK)과 함께 토큰 반환
+                return Ok(new LoginResponse
+                {
+                    Success = true,
+                    Token = token,
+                    PlayerId = playerId,
+                    Message = "로그인 성공"
+                });
+            }
+
+            // 아이디나 비밀번호가 틀렸을 때 (401 Unauthorized) 반환
+            return Unauthorized(new LoginResponse
+            {
+                Success = false,
+                Message = "아이디 또는 비밀번호가 틀렸습니다."
+            });
+        }
+
+        // JWT 토큰 생성기 (더미 클라이언트에서 쓰던 것과 완전히 동일)
+        private string GenerateJwtToken(int playerId)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(SECRET_KEY);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, playerId.ToString()) }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+    }
+}

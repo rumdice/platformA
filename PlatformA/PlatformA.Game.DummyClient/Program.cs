@@ -1,14 +1,50 @@
-﻿using System.Net.Sockets;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Json;
+using System.Net.Sockets;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 
 namespace PlatformA.Game.DummyClient
 {
+    // todo: 서버 클라 공유화 필요
+    public enum PacketID : ushort
+    {
+        C_Move = 1, // Client -> Server 이동 요청
+        S_Move = 2,  // Server -> Client 이동 결과 (브로드캐스트용)
+        C_Login = 3, // Client -> Server 로그인 요청 (추가됨)
+    }
+
     internal class Program
     {
+        // TODO: 서버 클라 공유화 필요.
+        // 서버와 똑같은 시크릿 키를 사용해야 위조 판별을 통과합니다!
+        private const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
+
+        // 🚀 방금 띄운 Auth.API의 실제 주소 (포트 번호를 Swagger 창에 뜬 번호로 꼭 바꿔주세요!)
+        private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
+
         static async Task Main(string[] args)
         {
             Console.WriteLine("=== 👾 Dummy Client for Pipeline Server ===");
             await Task.Delay(1000); // 서버가 켜질 시간 확보
 
+            // =================================================================
+            // 🌐 [STEP 1] 웹 서버(Auth.API)에 HTTP POST로 로그인 요청하기
+            // =================================================================
+            Console.WriteLine("[Web] Auth.API 에 로그인을 시도합니다...");
+            string realToken = await LoginToAuthServerAsync("test", "1234");
+
+            if (string.IsNullOrEmpty(realToken))
+            {
+                Console.WriteLine("[Web] 로그인 실패! 프로그램을 종료합니다.");
+                return;
+            }
+
+            // =================================================================
+            // 🎮 [STEP 2] 게임 서버(Game Server)에 TCP 소켓으로 접속하기
+            // =================================================================
             using Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
@@ -19,8 +55,27 @@ namespace PlatformA.Game.DummyClient
 
                 // 서버로부터 데이터를 계속 수신하는 백그라운드 작업 시작 (Fire and Forget)
                 _ = ReceiveLoopAsync(client);
-         
+
                 // --- 테스트 시나리오 ---
+
+                // 🚀 1. 로그인 (임시 유저 ID와 토큰 발급 후 전송)
+                //int myPlayerId = new Random().Next(1000, 10000);
+                //string myToken = GenerateTestToken(myPlayerId);
+
+                //Console.WriteLine($"[Client] 로그인 시도 (PlayerID: {myPlayerId})");
+                //Console.WriteLine($"[Client] 생성된 토큰: {myToken.Substring(0, 20)}...");
+
+                //await SendLoginPacketAsync(client, myToken);
+                
+                //// 로그인 패킷 전송 메서드 호출 (비동기)
+                await SendLoginPacketAsync(client, realToken);
+
+                // 서버가 인증을 처리하고 방에 넣어줄 시간을 잠깐 대기
+                await Task.Delay(500);
+
+
+
+                // 2. 이동
                 Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");
                 Console.WriteLine("종료하려면 'q'를 입력하세요.\n");
 
@@ -36,6 +91,7 @@ namespace PlatformA.Game.DummyClient
                     float y = rand.Next(-50, 50);
                     float z = 0f;
 
+                    // 이동 패킷 전송 메서드 호출 (비동기)
                     await SendMovePacketAsync(client, x, y, z);
                 }
 
@@ -69,6 +125,36 @@ namespace PlatformA.Game.DummyClient
             BitConverter.TryWriteBytes(span.Slice(12, 4), z);
 
             return buffer;
+        }
+
+        static byte[] MakeLoginPacket(string token)
+        {
+            byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
+            ushort stringLen = (ushort)tokenBytes.Length;
+
+            // 헤더(4) + 문자열 길이(2) + 문자열 데이터(N)
+            ushort packetSize = (ushort)(4 + 2 + stringLen);
+            ushort packetId = (ushort)PacketID.C_Login;
+
+            byte[] buffer = new byte[packetSize];
+            Span<byte> span = buffer.AsSpan();
+
+            // 1. 헤더 조립
+            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
+            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
+
+            // 2. 본문(Payload) 조립
+            BitConverter.TryWriteBytes(span.Slice(4, 2), stringLen); // 문자열 길이 먼저 씀
+            tokenBytes.CopyTo(span.Slice(6));                        // 실제 문자열 데이터 복사
+
+            return buffer;
+        }
+
+        static async Task SendLoginPacketAsync(Socket client, string token)
+        {
+            byte[] packet = MakeLoginPacket(token);
+            await client.SendAsync(packet, SocketFlags.None);
+            Console.WriteLine($"[Send] C_Login - {packet.Length} bytes 전송");
         }
 
 
@@ -123,6 +209,62 @@ namespace PlatformA.Game.DummyClient
             catch (Exception ex)
             {
                 Console.WriteLine($"수신 에러: {ex.Message}");
+            }
+        }
+
+
+        // =========================================================================
+        // JWT 토큰 생성기 (테스트용)
+        // =========================================================================
+        static string GenerateTestToken(int playerId)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(SECRET_KEY);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                // 토큰 안에 "이 토큰의 주인은 playerId 다" 라고 기록 (Claim)
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, playerId.ToString()) }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        static async Task<string> LoginToAuthServerAsync(string username, string password)
+        {
+            using HttpClient httpClient = new HttpClient();
+            var loginData = new { Username = username, Password = password };
+
+            try
+            {
+                // C# 최신 문법: 클래스 없이도 익명 객체를 바로 JSON으로 쏴줍니다.
+                HttpResponseMessage response = await httpClient.PostAsJsonAsync(AUTH_API_URL, loginData);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    // JSON 데이터 까보기
+                    using JsonDocument doc = JsonDocument.Parse(jsonResponse);
+                    string token = doc.RootElement.GetProperty("token").GetString();
+                    int playerId = doc.RootElement.GetProperty("playerId").GetInt32();
+
+                    Console.WriteLine($"[Web] 로그인 성공! 발급받은 PlayerID: {playerId}");
+                    Console.WriteLine($"[Web] JWT 토큰: {token.Substring(0, 20)}...");
+
+                    return token;
+                }
+                else
+                {
+                    Console.WriteLine($"[Web] 로그인 실패. 상태 코드: {response.StatusCode}");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Web] Auth.API 서버에 연결할 수 없습니다. 켜져 있는지 확인하세요! ({ex.Message})");
+                return null;
             }
         }
 

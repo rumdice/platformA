@@ -15,19 +15,22 @@ namespace PlatformA.Game.Server
         protected override void OnConnected(EndPoint endPoint)
         {
             // 임시 ID 발급 (해시코드 등 사용)
-            SessionId = endPoint.GetHashCode(); // 개선 포인트 : 입장할때마다 ~님이 바뀜.
+            //SessionId = endPoint.GetHashCode(); // 개선 포인트 : 입장할때마다 ~님이 바뀜.
+            //Console.WriteLine($"[GameSession] 유저 입장: {endPoint} (ID: {SessionId})");
 
-            Console.WriteLine($"[GameSession] 유저 입장: {endPoint} (ID: {SessionId})");
+            // Auth 연동. 로그인 절차로 교체
+            SessionId = 0;
+            Console.WriteLine($"[GameSession] 소켓 연결됨 (인증 대기중): {endPoint}");
 
             // 🔥 1. SessionManager 대신 방(GameRoom)의 큐에 입장 작업을 던집니다.
             //GameRoom.GlobalRoom.Push(() => GameRoom.GlobalRoom.Enter(this));
 
             // 🚀 테스트용: 무조건 1번 방을 찾아서 들어갑니다. (나중에는 매칭 서버가 정해준 방으로 갑니다)
-            GameRoom room = GameRoomManager.Instance.FindRoom(1);
-            if (room != null)
-            {
-                room.Push(() => room.Enter(this));
-            }
+            //GameRoom room = GameRoomManager.Instance.FindRoom(1);
+            //if (room != null)
+            //{
+            //    room.Push(() => room.Enter(this));
+            //}
         }
 
         /// <summary>

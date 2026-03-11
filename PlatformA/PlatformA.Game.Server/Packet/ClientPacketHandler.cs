@@ -55,5 +55,42 @@ namespace PlatformA.Game.Server.Packet
             }); // 🔥 2. 방의 큐에 이동 요청 처리 작업을 던집니다.
 
         }
+
+
+
+        // 로그인은 수동 제너레이팅 (문자열이라서)
+        // 🚀 1. 로그인 핸들러 추가
+        [PacketHandler(PacketID.C_Login)]
+        public static void Handle_C_Login(GameSession session, ReadOnlySpan<byte> payload)
+        {
+            try
+            {
+                // 수동 역직렬화
+                C_LoginPacket loginReq = new C_LoginPacket();
+                loginReq.Deserialize(payload);
+
+                // 토큰 검증 시도
+                int playerId = Core.TokenManager.ValidateTokenAndGetUserId(loginReq.JwtToken);
+
+                if (playerId > 0)
+                {
+                    session.SessionId = playerId;
+                    Console.WriteLine($"[Auth] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
+
+                    Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(1);
+                    room?.Push(() => room.Enter(session));
+                }
+                else
+                {
+                    Console.WriteLine($"[Auth] 토큰 인증 실패. 연결을 강제로 끊습니다.");
+                    session.Disconnect();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[C_Login Critical Error] 패킷 처리 중 서버 에러 발생: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+            }
+        }
     }
 }
