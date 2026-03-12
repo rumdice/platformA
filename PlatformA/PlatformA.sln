@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Auth.API", "Platf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Utils.API", "PlatformA.Utils.API\PlatformA.Utils.API.csproj", "{4F15A987-BAA3-4235-ACB3-091930BFFF82}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.MatchingEngine", "PlatformA.MatchingEngine\PlatformA.MatchingEngine.csproj", "{D6BA22BF-7AE4-4B1F-AC19-83E211A54BD7}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Matching.API", "PlatformA.Matching.API\PlatformA.Matching.API.csproj", "{A4BE0ED6-27AF-466F-967C-F71954358293}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Ticketing.API", "PlatformA.Ticketing.API\PlatformA.Ticketing.API.csproj", "{910625FB-C912-4F89-872D-524C732DA36F}"
@@ -41,10 +39,6 @@ Global
 		{4F15A987-BAA3-4235-ACB3-091930BFFF82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F15A987-BAA3-4235-ACB3-091930BFFF82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F15A987-BAA3-4235-ACB3-091930BFFF82}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6BA22BF-7AE4-4B1F-AC19-83E211A54BD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6BA22BF-7AE4-4B1F-AC19-83E211A54BD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6BA22BF-7AE4-4B1F-AC19-83E211A54BD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6BA22BF-7AE4-4B1F-AC19-83E211A54BD7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A4BE0ED6-27AF-466F-967C-F71954358293}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A4BE0ED6-27AF-466F-967C-F71954358293}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4BE0ED6-27AF-466F-967C-F71954358293}.Release|Any CPU.ActiveCfg = Release|Any CPU
