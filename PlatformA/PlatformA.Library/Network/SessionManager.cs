@@ -4,10 +4,10 @@
     /// 누가 누가 접속했는지 접속한 자들 (Session)을 관리하는 매니저
     /// 전체 서버에 오직 하나만 존재해야 하므로 싱글톤
     /// </summary>
-    public class SessionManager
+    public class SessionManager<T> where T : Session
     {
         // 싱글톤 (서버 전체에서 하나의 명부만 공유)
-        public static SessionManager Instance { get; } = new SessionManager();
+        public static SessionManager<T> Instance { get; } = new SessionManager<T>();
 
         // 접속 중인 세션들을 담아둘 리스트
         // 🚨 [주의] 여러 유저가 동시에 접속/종료할 수 있으므로 반드시 동시성 제어(Lock)가 필요합니다!
