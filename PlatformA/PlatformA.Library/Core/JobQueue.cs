@@ -1,4 +1,4 @@
-﻿namespace PlatformA.Game.Server.Core
+﻿namespace PlatformA.Library.Core
 {
     public class JobQueue
     {

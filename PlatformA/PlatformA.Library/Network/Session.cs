@@ -3,7 +3,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 
-namespace PlatformA.Game.Server.Core
+namespace PlatformA.Library.Network
 {
 
     public abstract class Session

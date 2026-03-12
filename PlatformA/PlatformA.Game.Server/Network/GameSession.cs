@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Packet;
+using PlatformA.Library.Network;
 using System.Buffers;
 using System.Net;
 
-namespace PlatformA.Game.Server
+namespace PlatformA.Game.Server.Network
 {
     public class GameSession : Session
     {

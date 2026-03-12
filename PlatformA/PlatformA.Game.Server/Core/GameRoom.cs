@@ -1,4 +1,7 @@
-﻿namespace PlatformA.Game.Server.Core
+﻿using PlatformA.Game.Server.Network;
+using PlatformA.Library.Core;
+
+namespace PlatformA.Game.Server.Core
 {
     public class GameRoom
     {

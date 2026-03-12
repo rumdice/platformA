@@ -1,4 +1,4 @@
-﻿namespace PlatformA.Game.Server.Core
+﻿namespace PlatformA.Library.Network
 {
     /// <summary>
     /// 누가 누가 접속했는지 접속한 자들 (Session)을 관리하는 매니저

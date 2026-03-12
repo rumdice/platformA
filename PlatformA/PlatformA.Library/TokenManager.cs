@@ -7,7 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlatformA.Game.Server.Core
+namespace PlatformA.Library
 {
     public class TokenManager
     {

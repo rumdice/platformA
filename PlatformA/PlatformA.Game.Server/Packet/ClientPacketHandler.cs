@@ -1,4 +1,6 @@
 ﻿using PlatformA.Game.Server.Core;
+using PlatformA.Game.Server.Network;
+using PlatformA.Library;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,7 +72,7 @@ namespace PlatformA.Game.Server.Packet
                 loginReq.Deserialize(payload);
 
                 // 토큰 검증 시도
-                int playerId = Core.TokenManager.ValidateTokenAndGetUserId(loginReq.JwtToken);
+                int playerId = TokenManager.ValidateTokenAndGetUserId(loginReq.JwtToken);
 
                 if (playerId > 0)
                 {
