@@ -1,8 +1,8 @@
 ﻿using StackExchange.Redis;
 using RedLockNet.SERedis; // 추가
 using RedLockNet.SERedis.Configuration;
-using PlatformA.Library;
-using PlatformA.Ticketing.API.Services; // 추가
+using PlatformA.Ticketing.API.Services;
+using PlatformA.Library.Core; // 추가
 
 var builder = WebApplication.CreateBuilder(args);
 

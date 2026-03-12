@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using PlatformA.Library.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Net.Sockets;
@@ -8,20 +9,10 @@ using System.Text.Json;
 
 namespace PlatformA.Game.DummyClient
 {
-    // todo: 서버 클라 공유화 필요
-    public enum PacketID : ushort
-    {
-        C_Move = 1, // Client -> Server 이동 요청
-        S_Move = 2,  // Server -> Client 이동 결과 (브로드캐스트용)
-        C_Login = 3, // Client -> Server 로그인 요청 (추가됨)
-    }
 
     internal class Program
     {
-        // TODO: 서버 클라 공유화 필요.
-        // 서버와 똑같은 시크릿 키를 사용해야 위조 판별을 통과합니다!
-        private const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
-
+        
         // 🚀 방금 띄운 Auth.API의 실제 주소 (포트 번호를 Swagger 창에 뜬 번호로 꼭 바꿔주세요!)
         private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
 
@@ -219,7 +210,7 @@ namespace PlatformA.Game.DummyClient
         static string GenerateTestToken(int playerId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(SECRET_KEY);
+            var key = Encoding.ASCII.GetBytes(Consts.SECRET_KEY);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 // 토큰 안에 "이 토큰의 주인은 playerId 다" 라고 기록 (Claim)

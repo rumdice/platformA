@@ -1,6 +1,6 @@
 ﻿using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
-using PlatformA.Library;
+using PlatformA.Library.Common;
 using PlatformA.Library.Packet;
 
 namespace PlatformA.Game.Server.Packet

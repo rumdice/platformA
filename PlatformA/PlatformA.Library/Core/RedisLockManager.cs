@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlatformA.Library
+namespace PlatformA.Library.Core
 {
     public class RedisLockManager
     {

@@ -7,21 +7,20 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlatformA.Library
+namespace PlatformA.Library.Common
 {
     public class TokenManager
     {
         // ⚠️ 주의: 이 키는 Auth.API 서버에서 토큰을 만들 때 사용한 키와 100% 동일해야 합니다!
         // (실제 상용에서는 appsettings.json이나 환경변수에서 불러옵니다)
-        private const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
-
+        
         /// <summary>
         /// 토큰을 검증하고 위조되지 않았다면 유저 ID(int)를 반환합니다. 실패 시 0 반환.
         /// </summary>
         public static int ValidateTokenAndGetUserId(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(SECRET_KEY);
+            var key = Encoding.ASCII.GetBytes(Consts.SECRET_KEY);
 
             try
             {

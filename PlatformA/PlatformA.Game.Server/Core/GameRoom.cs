@@ -5,10 +5,6 @@ namespace PlatformA.Game.Server.Core
 {
     public class GameRoom
     {
-        // 테스트용 단일 글로벌 룸 
-        // TODO: (나중에는 RoomManager가 여러 방을 관리하게 됩니다)
-        //public static GameRoom GlobalRoom { get; } = new GameRoom();
-
         // 방의 고유 ID
         public int RoomId { get; set; }
 
