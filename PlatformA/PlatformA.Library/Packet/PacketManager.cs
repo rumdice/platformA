@@ -1,34 +1,30 @@
-﻿using PlatformA.Game.Server.Network;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using PlatformA.Library.Network;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PlatformA.Game.Server.Packet
+
+namespace PlatformA.Library.Packet
 {
     // 1. 패킷 처리 함수들을 담을 델리게이트 (ReadOnlySpan을 받기 위해 Action 대신 커스텀 사용)
-    public delegate void PacketHandlerDelegate(GameSession session, ReadOnlySpan<byte> payload);
+    public delegate void PacketHandlerDelegate<T>(T session, ReadOnlySpan<byte> payload) where T : Session;
 
     // 2. 이 함수가 어떤 패킷을 처리하는지 표시해주는 명찰(Attribute)
     [AttributeUsage(AttributeTargets.Method)]
     public class PacketHandlerAttribute : Attribute
     {
-        public PacketID PacketId { get; }
-        public PacketHandlerAttribute(PacketID packetId) { PacketId = packetId; }
+        public ushort PacketId { get; }
+        public PacketHandlerAttribute(ushort packetId) { PacketId = packetId; }
     }
 
-    public class PacketManager
+    public class PacketManager<T> where T : Session
     {
         // 유일한 인스턴스임을 보장함.
-        public static PacketManager Instance { get; } = new PacketManager();
+        public static PacketManager<T> Instance { get; } = new PacketManager<T>();
 
         // 싱글톤이므로 생성자는 private로 막아서 외부에서 생성 불가능하게 
         private PacketManager() { }
 
         // [패킷 ID -> 처리 함수] 를 매핑해두는 사전 (O(1) 속도)
-        private Dictionary<ushort, PacketHandlerDelegate> _handlers = new Dictionary<ushort, PacketHandlerDelegate>();
+        private Dictionary<ushort, PacketHandlerDelegate<T>> _handlers = new Dictionary<ushort, PacketHandlerDelegate<T>>();
 
         // 서버 구동 시 딱 한 번 호출됩니다.
         public void Register()
@@ -52,7 +48,7 @@ namespace PlatformA.Game.Server.Packet
                     {
                         // 🚀 핵심: 리플렉션은 느리지만, 이렇게 구동 시점에 한 번만 Delegate로 변환해두면
                         // 런타임에는 일반 함수 호출과 동일한 빛의 속도로 실행됩니다!
-                        PacketHandlerDelegate handler = (PacketHandlerDelegate)Delegate.CreateDelegate(typeof(PacketHandlerDelegate), method);
+                        PacketHandlerDelegate<T> handler = (PacketHandlerDelegate<T>)Delegate.CreateDelegate(typeof(PacketHandlerDelegate<T>), method);
 
                         _handlers.Add((ushort)attribute.PacketId, handler);
                         Console.WriteLine($"[PacketManager] 라우팅 등록 완료: {attribute.PacketId} -> {method.Name}()");
@@ -62,9 +58,9 @@ namespace PlatformA.Game.Server.Packet
         }
 
         // 수신부에서 switch문 대신 이 함수를 호출합니다.
-        public void HandlePacket(GameSession session, ushort packetId, ReadOnlySpan<byte> payload)
+        public void HandlePacket(T session, ushort packetId, ReadOnlySpan<byte> payload)
         {
-            if (_handlers.TryGetValue(packetId, out PacketHandlerDelegate handler))
+            if (_handlers.TryGetValue(packetId, out PacketHandlerDelegate<T> handler))
             {
                 handler.Invoke(session, payload);
             }

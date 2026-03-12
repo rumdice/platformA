@@ -4,6 +4,7 @@ using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Game.Server.Packet;
 using PlatformA.Library.Network;
+using PlatformA.Library.Packet;
 
 namespace PlatformA.Game.Server
 {
@@ -46,7 +47,7 @@ namespace PlatformA.Game.Server
             Console.WriteLine("=== 🔥 High Performance Game Server (Level 6 - step 1) ===");
             
             // 패킷매니저 초기화
-            PlatformA.Game.Server.Packet.PacketManager.Instance.Register(); // 🚀 추가
+            PacketManager<GameSession>.Instance.Register(); // 🚀 추가
 
             // 🚀 서버 시작 시 기본 1번 방 생성
             PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom();

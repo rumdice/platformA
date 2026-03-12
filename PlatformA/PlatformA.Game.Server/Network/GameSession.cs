@@ -2,6 +2,7 @@
 using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Packet;
 using PlatformA.Library.Network;
+using PlatformA.Library.Packet;
 using System.Buffers;
 using System.Net;
 
@@ -54,7 +55,7 @@ namespace PlatformA.Game.Server.Network
 
             // 2. 패킷 종류에 따른 라우팅
             // 🔥 2. 거대한 switch-case 제거! PacketManager에게 처리를 맡깁니다.
-            PacketManager.Instance.HandlePacket(this, packetId, payload);
+            PacketManager<GameSession>.Instance.HandlePacket(this, packetId, payload);
         }
 
 

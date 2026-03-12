@@ -1,19 +1,15 @@
 ﻿using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PlatformA.Library.Packet;
 
 namespace PlatformA.Game.Server.Packet
 {
-    public class ClientPacketHandler
+    public class PacketHandler
     {
 
         // 🌟 이 명찰만 달아주면, PacketManager가 알아서 이 함수를 C_Move 패킷과 연결해줍니다!
-        [PacketHandler(PacketID.C_Move)]
+        [PacketHandler((ushort)PacketID.C_Login)]
         public static void Handle_C_Move(GameSession session, ReadOnlySpan<byte> payload)
         {
             // 구조체 생성 및 파싱 (Zero-Allocation!)
@@ -62,7 +58,7 @@ namespace PlatformA.Game.Server.Packet
 
         // 로그인은 수동 제너레이팅 (문자열이라서)
         // 🚀 1. 로그인 핸들러 추가
-        [PacketHandler(PacketID.C_Login)]
+        [PacketHandler((ushort)PacketID.C_Login)]
         public static void Handle_C_Login(GameSession session, ReadOnlySpan<byte> payload)
         {
             try
