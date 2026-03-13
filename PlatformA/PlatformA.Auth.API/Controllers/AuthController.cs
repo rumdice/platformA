@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using PlatformA.Auth.API.Models;
+using PlatformA.Library.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -11,9 +12,6 @@ namespace PlatformA.Auth.API.Controllers
     [Route("api/[controller]")] // 라우팅 주소: /api/auth
     public class AuthController : ControllerBase
     {
-        // ⚠️ 게임 서버와 동일한 시크릿 키! (나중엔 appsettings.json에서 불러오게 됩니다)
-        private const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
-
         // Test Json
         //
         //{
@@ -31,7 +29,7 @@ namespace PlatformA.Auth.API.Controllers
                 int playerId = 777;
 
                 // 2. JWT 토큰 생성
-                string token = GenerateJwtToken(playerId);
+                string token = TokenManager.GenerateJwtToken(playerId);
 
                 // 3. 클라이언트에게 성공(200 OK)과 함께 토큰 반환
                 return Ok(new LoginResponse
@@ -51,19 +49,6 @@ namespace PlatformA.Auth.API.Controllers
             });
         }
 
-        // JWT 토큰 생성기 (더미 클라이언트에서 쓰던 것과 완전히 동일)
-        private string GenerateJwtToken(int playerId)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(SECRET_KEY);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, playerId.ToString()) }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
+        
     }
 }

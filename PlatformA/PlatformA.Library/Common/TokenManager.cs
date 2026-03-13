@@ -55,5 +55,22 @@ namespace PlatformA.Library.Common
                 return 0;
             }
         }
+
+
+
+        // JWT 토큰 생성기 (더미 클라이언트에서 쓰던 것과 완전히 동일)
+        public static string GenerateJwtToken(int playerId)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(Consts.SECRET_KEY);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, playerId.ToString()) }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
     }
 }

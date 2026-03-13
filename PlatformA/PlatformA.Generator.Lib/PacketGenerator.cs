@@ -17,6 +17,7 @@ namespace PlatformA.Generator.Lib
 
         public void Execute(GeneratorExecutionContext context)
         {
+            // TODO: 패킷 제너레이터가 GameServer 전용으로 동작함.
             // 1. PacketAttribute 주입
             // 앞으로 우리가 구조체에 달아줄 [Packet] 속성 코드를 컴파일 타임에 주입합니다.
             var attributeSource = @"
