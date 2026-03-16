@@ -2,7 +2,7 @@
 using System.Reflection;
 
 
-namespace PlatformA.Library.Packet
+namespace PlatformA.Library.Packets
 {
     // 1. 패킷 처리 함수들을 담을 델리게이트 (ReadOnlySpan을 받기 위해 Action 대신 커스텀 사용)
     public delegate void PacketHandlerDelegate<T>(T session, ReadOnlySpan<byte> payload) where T : Session;

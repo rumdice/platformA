@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PlatformA.Library.Common
+﻿namespace PlatformA.Library.Packets
 {
+
+    //[AttributeUsage(AttributeTargets.Struct)]
+    //public class PacketAttribute : Attribute
+    //{
+    //}
 
     // TODO: 현재 이 패킷 구조체는 게임서버의 패킷 넘버링만을 의미함.
     public enum PacketID : ushort

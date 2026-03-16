@@ -22,7 +22,7 @@ namespace PlatformA.Generator.Lib
             // 앞으로 우리가 구조체에 달아줄 [Packet] 속성 코드를 컴파일 타임에 주입합니다.
             var attributeSource = @"
 using System;
-namespace PlatformA.Game.Server.Packet
+namespace PlatformA.Library.Packets
 {
     [AttributeUsage(AttributeTargets.Struct)]
     public class PacketAttribute : Attribute { }
@@ -40,7 +40,7 @@ namespace PlatformA.Game.Server.Packet
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("using System;");
                 sb.AppendLine("using System.Buffers.Binary;");
-                sb.AppendLine("namespace PlatformA.Game.Server.Packet {"); // 네임스페이스 통일
+                sb.AppendLine("namespace PlatformA.Library.Packets {"); // 네임스페이스 통일
                 sb.AppendLine($"    public partial struct {structName} {{");
 
                 // --- Serialize 생성 ---

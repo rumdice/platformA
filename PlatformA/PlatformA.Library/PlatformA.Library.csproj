@@ -21,4 +21,8 @@
 		<PackageReference Include="System.IO.Pipelines" Version="10.0.3" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\PlatformA.Generator.Lib\PlatformA.Generator.Lib.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
 </Project>

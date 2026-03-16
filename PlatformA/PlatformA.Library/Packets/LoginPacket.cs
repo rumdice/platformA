@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlatformA.Game.Server.Packet
+namespace PlatformA.Library.Packets
 {
-    // [Packet] 어트리뷰트를 달지 않습니다! (제너레이터 무시, 수동 파싱)
+    // [Packets] 어트리뷰트를 달지 않습니다! (제너레이터 무시, 수동 파싱)
     public struct C_LoginPacket
     {
         public string JwtToken;

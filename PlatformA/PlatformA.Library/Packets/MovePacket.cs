@@ -4,7 +4,7 @@
 ///[헤더] 패킷 ID (2 바이트): 이 패킷이 "이동"인지, "공격"인지 구분하는 번호
 ///[본문] 데이터: 실제 내용(좌표 등)
 
-namespace PlatformA.Game.Server.Packet
+namespace PlatformA.Library.Packets
 {
 
     // Client -> Server

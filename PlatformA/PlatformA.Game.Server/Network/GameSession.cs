@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
-using PlatformA.Game.Server.Core;
-using PlatformA.Game.Server.Packet;
+﻿using PlatformA.Game.Server.Core;
 using PlatformA.Library.Network;
-using PlatformA.Library.Packet;
+using PlatformA.Library.Packets;
 using System.Buffers;
 using System.Net;
 

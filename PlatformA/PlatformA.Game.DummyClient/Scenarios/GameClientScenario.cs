@@ -1,4 +1,4 @@
-﻿using PlatformA.Library.Common;
+﻿using PlatformA.Library.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,22 +111,37 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // 1. [동기 함수] Span을 이용한 패킷 조립 전용 메서드 (await 없음 -> 에러 안 남!)
         static byte[] MakeMovePacket(float x, float y, float z)
         {
+            // 기존코드
+            // C_Move 패킷은 헤더(4) + X,Y,Z(12) = 16바이트로 크기 고정!
             ushort packetSize = 16;
             ushort packetId = 1; // C_Move
 
-            byte[] buffer = new byte[packetSize];
-            Span<byte> span = buffer.AsSpan();
+            //byte[] buffer = new byte[packetSize];
+            //Span<byte> span = buffer.AsSpan();
 
-            // 1. 헤더 조립 (사이즈 2 + ID 2)
-            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
+            //// 1. 헤더 조립 (사이즈 2 + ID 2)
+            //BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
+            //BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
 
-            // 2. 본문(Payload) 조립 (X, Y, Z 각각 4바이트)
-            BitConverter.TryWriteBytes(span.Slice(4, 4), x);
-            BitConverter.TryWriteBytes(span.Slice(8, 4), y);
-            BitConverter.TryWriteBytes(span.Slice(12, 4), z);
+            //// 2. 본문(Payload) 조립 (X, Y, Z 각각 4바이트)
+            //BitConverter.TryWriteBytes(span.Slice(4, 4), x);
+            //BitConverter.TryWriteBytes(span.Slice(8, 4), y);
+            //BitConverter.TryWriteBytes(span.Slice(12, 4), z);
 
-            return buffer;
+
+            C_MovePacket movePacket = new C_MovePacket()
+            {
+                X = x,
+                Y = y,
+                Z = z
+            };
+
+            byte[] sendBuffer = new byte[packetSize];
+
+            // 제너레이터가 만들어준 Write() 또는 Serialize() 메서드 호출
+            movePacket.Serialize(sendBuffer); // (제너레이터 구현체에 따라 함수명이 다를 수 있습니다)
+
+            return sendBuffer;
         }
 
         static byte[] MakeLoginPacket(string token)
@@ -163,9 +178,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // 2. [비동기 함수] 완성된 패킷을 전송만 하는 메서드
         static async Task SendMovePacketAsync(Socket client, float x, float y, float z)
         {
+            // 수정중
             // 조립은 다른 함수에 맡기고 결과물(byte[])만 받아옴
             byte[] packet = MakeMovePacket(x, y, z);
 
+       
             // 여기엔 Span이 없으므로 마음껏 await 가능!
             await client.SendAsync(packet, SocketFlags.None);
             Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - 16 bytes");
