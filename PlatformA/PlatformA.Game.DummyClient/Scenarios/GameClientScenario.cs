@@ -111,23 +111,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // 1. [동기 함수] Span을 이용한 패킷 조립 전용 메서드 (await 없음 -> 에러 안 남!)
         static byte[] MakeMovePacket(float x, float y, float z)
         {
-            // 기존코드
             // C_Move 패킷은 헤더(4) + X,Y,Z(12) = 16바이트로 크기 고정!
             ushort packetSize = 16;
-            ushort packetId = 1; // C_Move
-
-            //byte[] buffer = new byte[packetSize];
-            //Span<byte> span = buffer.AsSpan();
-
-            //// 1. 헤더 조립 (사이즈 2 + ID 2)
-            //BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-            //BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-
-            //// 2. 본문(Payload) 조립 (X, Y, Z 각각 4바이트)
-            //BitConverter.TryWriteBytes(span.Slice(4, 4), x);
-            //BitConverter.TryWriteBytes(span.Slice(8, 4), y);
-            //BitConverter.TryWriteBytes(span.Slice(12, 4), z);
-
+            ushort packetId = (ushort)PacketID.C_Move;
 
             C_MovePacket movePacket = new C_MovePacket()
             {
@@ -137,9 +123,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
             };
 
             byte[] sendBuffer = new byte[packetSize];
+            Span<byte> span = sendBuffer.AsSpan();
 
-            // 제너레이터가 만들어준 Write() 또는 Serialize() 메서드 호출
-            movePacket.Serialize(sendBuffer); // (제너레이터 구현체에 따라 함수명이 다를 수 있습니다)
+            // 🚀 1. 헤더 조립 (0~3번지) : 서버 소켓 엔진이 읽을 수 있도록 직접 기록
+            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
+            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
+
+            // 🚀 2. 본문 조립 (4번지~) : 제너레이터에게 4번지부터 알맹이를 쓰라고 공간(Slice)을 넘겨줌
+            movePacket.Serialize(span.Slice(4));
 
             return sendBuffer;
         }
@@ -156,13 +147,15 @@ namespace PlatformA.Game.DummyClient.Scenarios
             byte[] buffer = new byte[packetSize];
             Span<byte> span = buffer.AsSpan();
 
-            // 1. 헤더 조립
+            // 🚀 1. 헤더 조립 (0~3번지)
             BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
             BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
 
-            // 2. 본문(Payload) 조립
-            BitConverter.TryWriteBytes(span.Slice(4, 2), stringLen); // 문자열 길이 먼저 씀
-            tokenBytes.CopyTo(span.Slice(6));                        // 실제 문자열 데이터 복사
+            // 🚀 2. 본문(Payload) 조립 (4번지~)
+            // 서버 핸들러에서는 앞 4바이트가 잘린 채로 받기 때문에, 
+            // 여기서 4~5번지에 적은 문자열 길이가 서버 입장에서는 0~1번지가 되어 완벽하게 파싱됩니다!
+            BitConverter.TryWriteBytes(span.Slice(4, 2), stringLen); // 4~5번지: 문자열 길이 기록
+            tokenBytes.CopyTo(span.Slice(6));                        // 6번지~ : 실제 문자열 데이터 복사
 
             return buffer;
         }

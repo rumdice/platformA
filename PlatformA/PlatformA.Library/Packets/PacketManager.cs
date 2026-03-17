@@ -32,7 +32,7 @@ namespace PlatformA.Library.Packets
             _handlers.Clear();
 
             // 현재 실행 중인 프로그램의 모든 클래스를 스캔합니다.
-            Assembly asm = Assembly.GetExecutingAssembly();
+            Assembly asm = typeof(T).Assembly;
             Type[] types = asm.GetTypes();
 
             foreach (Type type in types)
@@ -50,8 +50,10 @@ namespace PlatformA.Library.Packets
                         // 런타임에는 일반 함수 호출과 동일한 빛의 속도로 실행됩니다!
                         PacketHandlerDelegate<T> handler = (PacketHandlerDelegate<T>)Delegate.CreateDelegate(typeof(PacketHandlerDelegate<T>), method);
 
-                        _handlers.Add((ushort)attribute.PacketId, handler);
+                        // 🚀 주의: Dictionary에 넣을 때 캐스팅 안전하게 확인
+                        _handlers.Add(attribute.PacketId, handler);
                         Console.WriteLine($"[PacketManager] 라우팅 등록 완료: {attribute.PacketId} -> {method.Name}()");
+                    
                     }
                 }
             }

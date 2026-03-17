@@ -9,7 +9,7 @@ namespace PlatformA.Game.Server.Packet
     {
 
         // 🌟 이 명찰만 달아주면, PacketManager가 알아서 이 함수를 C_Move 패킷과 연결해줍니다!
-        [PacketHandler((ushort)PacketID.C_Login)]
+        [PacketHandler((ushort)PacketID.C_Move)]
         public static void Handle_C_Move(GameSession session, ReadOnlySpan<byte> payload)
         {
             // 구조체 생성 및 파싱 (Zero-Allocation!)
