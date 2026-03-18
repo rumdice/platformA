@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlatformA.Library.Core;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
 using PlatformA.Utils.API.Services;
@@ -16,12 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
 
 // redis 연결
-// TODO: docker run --name my-redis -p 6379:6379 -d redis 로컬 환경에서 설치 필요.
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-{
-    var configuration = ConfigurationOptions.Parse("localhost:6379", true);
-    return ConnectionMultiplexer.Connect(configuration);
-});
+RedisManager.Instance.Init();
 
 // Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
 // 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.

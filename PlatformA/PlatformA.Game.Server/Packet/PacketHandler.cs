@@ -1,6 +1,7 @@
 ﻿using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
+using PlatformA.Library.Core;
 using PlatformA.Library.Packets;
 
 namespace PlatformA.Game.Server.Packet
@@ -59,7 +60,7 @@ namespace PlatformA.Game.Server.Packet
         // 로그인은 수동 제너레이팅 (문자열이라서)
         // 🚀 1. 로그인 핸들러 추가
         [PacketHandler((ushort)PacketID.C_Login)]
-        public static void Handle_C_Login(GameSession session, ReadOnlySpan<byte> payload)
+        public static void Handle_C_LoginAsync(GameSession session, ReadOnlySpan<byte> payload)
         {
             try
             {
@@ -67,27 +68,59 @@ namespace PlatformA.Game.Server.Packet
                 C_LoginPacket loginReq = new C_LoginPacket();
                 loginReq.Deserialize(payload);
 
-                // 토큰 검증 시도
-                int playerId = TokenManager.ValidateTokenAndGetUserId(loginReq.JwtToken);
+                string token = loginReq.JwtToken; // 힙에 올라갈 수 있는 일반 string 변수로 추출!
 
-                if (playerId > 0)
-                {
-                    session.SessionId = playerId;
-                    Console.WriteLine($"[Auth] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
-
-                    Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(1);
-                    room?.Push(() => room.Enter(session));
-                }
-                else
-                {
-                    Console.WriteLine($"[Auth] 토큰 인증 실패. 연결을 강제로 끊습니다.");
-                    session.Disconnect();
-                }
+                _ = ProcessLoginAsync(session, token);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[C_Login Critical Error] 패킷 처리 중 서버 에러 발생: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
+            }
+        }
+
+        private static async Task ProcessLoginAsync(GameSession session, string jwtToken)
+        {
+            // 토큰 검증 시도
+            int playerId = TokenManager.ValidateTokenAndGetUserId(jwtToken);
+
+            if (playerId > 0)
+            {
+                // 🚀 1. Redis 분산 락 획득 시도 (중복 로그인 방어)
+                string lockKey = $"player:login_lock:{playerId}";
+
+                // 만료시간: 1일(혹시 서버가 뻗어도 하루 뒤엔 풀림), 획득 대기: 1초, 재시도 간격: 100ms
+                string lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
+                    lockKey,
+                    TimeSpan.FromDays(1),
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromMilliseconds(100)
+                );
+
+                if (lockValue == null)
+                {
+                    // 락 획득 실패 = 이미 누가 로그인해서 락을 쥐고 있음!
+                    Console.WriteLine($"[Auth Warning] 중복 로그인 차단! ID ({playerId})는 이미 접속 중입니다.");
+
+                    // (선택) 클라이언트에게 S_Login (실패코드) 패킷을 보내주면 더 좋습니다.
+                    session.Disconnect(); // 얄짤없이 소켓 끊기
+                    return;
+                }
+
+                // 🚀 2. 락 획득 성공 시 (로그인 성공)
+                session.LoginLockValue = lockValue; // 나중에 풀기 위해 세션에 기억
+                Console.WriteLine($"[Auth] Redis 락 획득 및 인증 성공! 정식 플레이어 승급: ID ({playerId})");
+
+                session.SessionId = playerId;
+                Console.WriteLine($"[Auth] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
+
+                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(1);
+                room?.Push(() => room.Enter(session));
+            }
+            else
+            {
+                Console.WriteLine($"[Auth] 토큰 인증 실패. 연결을 강제로 끊습니다.");
+                session.Disconnect();
             }
         }
     }

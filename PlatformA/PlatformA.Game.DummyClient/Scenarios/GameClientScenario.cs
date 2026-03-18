@@ -175,7 +175,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 조립은 다른 함수에 맡기고 결과물(byte[])만 받아옴
             byte[] packet = MakeMovePacket(x, y, z);
 
-       
             // 여기엔 Span이 없으므로 마음껏 await 가능!
             await client.SendAsync(packet, SocketFlags.None);
             Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - 16 bytes");

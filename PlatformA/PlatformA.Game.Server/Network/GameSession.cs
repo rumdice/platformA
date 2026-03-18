@@ -1,4 +1,5 @@
 ﻿using PlatformA.Game.Server.Core;
+using PlatformA.Library.Core;
 using PlatformA.Library.Network;
 using PlatformA.Library.Packets;
 using System.Buffers;
@@ -11,6 +12,7 @@ namespace PlatformA.Game.Server.Network
         // 임시로 부여할 플레이어 ID (실제로는 로그인할 때 DB에서 가져오거나 자동 발급)
         public int SessionId { get; set; }
         public GameRoom Room { get; set; } // 🚀 내가 속한 방 객체 기억하기
+        public string LoginLockValue { get; set; } // 내가 획득한 분산락 고유값
 
         protected override void OnConnected(EndPoint endPoint)
         {
@@ -69,6 +71,15 @@ namespace PlatformA.Game.Server.Network
             if (room != null)
             {
                 room.Push(() => room.Leave(this));
+            }
+
+            // 연결이 끊어질 때 Redis 락 해제
+            if (SessionId > 0 && !string.IsNullOrEmpty(LoginLockValue))
+            {
+                string lockKey = $"player:login_lock:{SessionId}";
+                // 비동기로 던져두고 잊기 (Fire and Forget)
+                _ = RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, LoginLockValue);
+                Console.WriteLine($"[Redis] 유저 {SessionId} 연결 종료. 중복 로그인 락 해제 완료.");
             }
         }
     }

@@ -9,12 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 // redis 연결
-// docker run --name my-redis -p 6379:6379 -d redis 로컬 환경에서 설치 필요.
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-{
-    var configuration = ConfigurationOptions.Parse("localhost:6379", true);
-    return ConnectionMultiplexer.Connect(configuration);
-});
+RedisManager.Instance.Init();
 
 // 2. 🔥 [추가] RedLock 팩토리 등록
 builder.Services.AddSingleton<RedLockFactory>(sp =>
