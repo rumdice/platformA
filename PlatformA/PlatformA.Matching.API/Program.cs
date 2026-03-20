@@ -9,6 +9,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // Swagger용
 builder.Services.AddSwaggerGen();           // Swagger용
 
+builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
+
 // redis 연결
 RedisManager.Instance.Init();
 
@@ -21,6 +23,7 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<EngineService>();
 // 2. HostedService로 등록 (서버 켜질 때 ExecuteAsync 실행)
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EngineService>());
+
 
 // 게임 매칭 서비스 등록
 builder.Services.AddSingleton<GameMatchService>();

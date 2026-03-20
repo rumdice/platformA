@@ -1,4 +1,7 @@
-﻿using PlatformA.Library.Common;
+﻿using Microsoft.AspNetCore.SignalR;
+using PlatformA.Library.Common;
+using PlatformA.Library.Core;
+using PlatformA.Matching.API.Hubs;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -7,12 +10,16 @@ namespace PlatformA.Matching.API.Services
     // 클라이언트의 요청을 매칭
     public class GameMatchService
     {
-        private readonly IConnectionMultiplexer _redis;
         private static int _globalRoomIdCounter = 100; // 발급할 방 번호 (100번부터 시작)
 
-        public GameMatchService(IConnectionMultiplexer redis)
+
+        private readonly IHubContext<MatchingHub> _hubContext;
+        private readonly RedisManager _redisManager;
+
+        public GameMatchService(IHubContext<MatchingHub> hubContext, RedisManager redisManager)
         {
-            _redis = redis;
+            _hubContext = hubContext;
+            _redisManager = redisManager;
         }
 
 
@@ -33,12 +40,17 @@ namespace PlatformA.Matching.API.Services
             string jsonMessage = JsonSerializer.Serialize(matchEvent);
 
             // 🚀 3. Redis 확성기로 "channel:match_success" 채널에 소리치기!
-            ISubscriber pub = _redis.GetSubscriber();
+            ISubscriber pub = _redisManager.GetSubscriber();
             await pub.PublishAsync("channel:match_success", jsonMessage);
 
             Console.WriteLine($"[MatchingEngine] 게임 서버에 {newRoomId}번 방 생성 명령 발송 완료!");
 
             // (이후 유저 1, 2 에게 "너희 매칭됐어! 게임서버 IP와 RoomId(newRoomId)로 접속해!" 라고 응답을 내려줌)
+            //await _hubContext.Clients.Client(player1Id).SendAsync("MatchFound", matchEvent);
+            //await _hubContext.Clients.Client(player2Id).SendAsync("MatchFound", matchEvent);
+
+            await _hubContext.Clients.All.SendAsync("Matching Success");
+
         }
     }
 }

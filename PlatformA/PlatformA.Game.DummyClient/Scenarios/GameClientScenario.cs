@@ -1,4 +1,6 @@
-﻿using PlatformA.Library.Packets;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using PlatformA.Library.Common;
+using PlatformA.Library.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +58,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 // 포트번호 7777로 접속
                 await client.ConnectAsync("127.0.0.1", 7777);
-                Console.WriteLine("서버 접속 성공!\n");
+                Console.WriteLine("게임 서버 접속 성공!\n");
 
                 // 서버로부터 데이터를 계속 수신하는 백그라운드 작업 시작 (Fire and Forget)
                 _ = ReceiveLoopAsync(client);
@@ -72,12 +74,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                 //await SendLoginPacketAsync(client, myToken);
 
-                //// 로그인 패킷 전송 메서드 호출 (비동기)
+                //// 게임서버 로그인 패킷 전송 메서드 호출 (비동기)
                 await SendLoginPacketAsync(client, realToken);
 
                 // 서버가 인증을 처리하고 방에 넣어줄 시간을 잠깐 대기
                 await Task.Delay(500);
 
+                // 3. 매칭 시도
+                await StartMatchingAsync(realToken);
 
 
                 // 2. 이동
@@ -269,30 +273,48 @@ namespace PlatformA.Game.DummyClient.Scenarios
         }
 
 
-        // PlatformA.Game.DummyClient/Scenarios/GameClientScenario.cs 내부 (예시)
-
-        static async Task RequestMatchTestAsync(int u1, int u2)
+        static async Task StartMatchingAsync(string jwtToken)
         {
-            using var client = new HttpClient();
-            var requestBody = new { User1Id = u1, User2Id = u2 };
+            Console.WriteLine("[매칭] 매칭 서버(SignalR)에 연결을 시도합니다...");
 
-            
-            var content = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(requestBody),
-                System.Text.Encoding.UTF8,
-                "application/json"
-            );
+            // 1. 매칭 서버의 Hub URL 설정 (포트는 Matching.API 설정에 맞게 수정하세요)
+            string matchingHubUrl = "http://localhost:7007/matchingHub";
 
-            Console.WriteLine($"[DummyClient] Matching.API에 테스트 매칭 요청 중...");
-            var response = await client.PostAsync(url, content);
+            var hubConnection = new HubConnectionBuilder()
+                .WithUrl(matchingHubUrl, options =>
+                {
+                    // SignalR 연결 시 JWT 토큰을 함께 보냅니다 (인증용)
+                    options.AccessTokenProvider = () => Task.FromResult(jwtToken);
+                })
+                .Build();
 
-            if (response.IsSuccessStatusCode)
+            // 🚀 2. 매칭 성사 시 서버가 호출해 줄 콜백 함수 등록 ("MatchFound" 이벤트 대기)
+            hubConnection.On<MatchSuccessEvent>("MatchFound", async (matchInfo) =>
             {
-                Console.WriteLine("[DummyClient] 매칭 요청 성공! 서버 콘솔을 확인하세요.");
+                Console.WriteLine($"\n🎉 [SignalR 수신] 매칭 성공!! 배정받은 방 번호: {matchInfo.RoomId}");
+                Console.WriteLine($"🎉 [SignalR 수신] 함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}");
+
+                // 연결 끊기 (매칭이 끝났으므로)
+                await hubConnection.StopAsync();
+
+                // 🚀 3. 이제 발급받은 RoomId를 들고 실제 TCP 게임 서버로 접속합니다!
+                Console.WriteLine($"[이동] {matchInfo.RoomId}번 방으로 게임 서버 접속을 시작합니다...\n");
+                // await ConnectToGameServerAsync(jwtToken, matchInfo.RoomId); // 이전에 만든 TCP 접속 로직 호출
+            });
+
+            try
+            {
+                // Hub 연결 시작
+                await hubConnection.StartAsync();
+                Console.WriteLine("[매칭] 서버 연결 완료. 대기열에 진입합니다...");
+
+                // 🚀 4. 매칭 서버의 RequestMatch 함수 호출 (큐 진입)
+                // Hub에 정의된 함수명과 파라미터에 맞게 호출해야 합니다.
+                await hubConnection.InvokeAsync("RequestMatch");
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"[DummyClient] 매칭 요청 실패: {response.StatusCode}");
+                Console.WriteLine($"[매칭 에러] {ex.Message}");
             }
         }
 

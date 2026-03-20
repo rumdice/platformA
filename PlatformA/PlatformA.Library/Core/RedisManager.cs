@@ -83,5 +83,12 @@ namespace PlatformA.Library.Core
                 }
             });
         }
+
+
+        public ISubscriber GetSubscriber()
+        {
+            return _subscriber;
+        }
+
     }
 }
