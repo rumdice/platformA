@@ -6,6 +6,8 @@ using System.Threading.Channels;
 
 namespace PlatformA.Matching.API.Services
 {
+    // 기존에 사용하던 주식 매도/매수 매칭 엔진을 백그라운드 서비스로 구현.
+
     public class EngineService : BackgroundService
     {
 

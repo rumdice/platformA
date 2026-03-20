@@ -32,7 +32,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 🌐 [STEP 1] 웹 서버(Auth.API)에 HTTP POST로 로그인 요청하기
             // =================================================================
             Console.WriteLine("[Web] Auth.API 에 로그인을 시도합니다...");
-            string realToken = await LoginToAuthServerAsync("test", "1234");
+
+            var userName = GenerateTestUserName();
+
+            string realToken = await LoginToAuthServerAsync(userName, "1234");
+            //string realToken = await LoginToAuthServerAsync("test", "1234");
 
             if (string.IsNullOrEmpty(realToken))
             {
@@ -259,6 +263,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 Console.WriteLine($"[Web] Auth.API 서버에 연결할 수 없습니다. 켜져 있는지 확인하세요! ({ex.Message})");
                 return null;
             }
+        }
+
+        private static string GenerateTestUserName()
+        {
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            return new string(Enumerable.Repeat(chars, 8)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using PlatformA.Matching.API.Hubs;
+﻿using PlatformA.Library.Core;
+using PlatformA.Matching.API.Hubs;
 using PlatformA.Matching.API.Services;
 
 
@@ -7,6 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // Swagger용
 builder.Services.AddSwaggerGen();           // Swagger용
+
+// redis 연결
+RedisManager.Instance.Init();
+
 
 // 1. SignalR 서비스 등록
 builder.Services.AddSignalR();
@@ -17,6 +22,8 @@ builder.Services.AddSingleton<EngineService>();
 // 2. HostedService로 등록 (서버 켜질 때 ExecuteAsync 실행)
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EngineService>());
 
+// 게임 매칭 서비스 등록
+builder.Services.AddSingleton<GameMatchService>();
 
 // 🔥 [추가] 1. CORS 정책 정의 (문 열어주기)
 builder.Services.AddCors(options =>
