@@ -16,6 +16,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // 🚀 방금 띄운 Auth.API의 실제 주소 (포트 번호를 Swagger 창에 뜬 번호로 꼭 바꿔주세요!)
         private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
 
+        // Matching.API 주소 (포트 확인 필요)
+        private const string MATCH_API_URL = "http://localhost:7007/api/gamematch/test-match";
+
 
         public static async Task RunAsync()
         {
@@ -264,6 +267,35 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 return null;
             }
         }
+
+
+        // PlatformA.Game.DummyClient/Scenarios/GameClientScenario.cs 내부 (예시)
+
+        static async Task RequestMatchTestAsync(int u1, int u2)
+        {
+            using var client = new HttpClient();
+            var requestBody = new { User1Id = u1, User2Id = u2 };
+
+            
+            var content = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(requestBody),
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+
+            Console.WriteLine($"[DummyClient] Matching.API에 테스트 매칭 요청 중...");
+            var response = await client.PostAsync(url, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("[DummyClient] 매칭 요청 성공! 서버 콘솔을 확인하세요.");
+            }
+            else
+            {
+                Console.WriteLine($"[DummyClient] 매칭 요청 실패: {response.StatusCode}");
+            }
+        }
+
 
         private static string GenerateTestUserName()
         {

@@ -12,7 +12,7 @@ namespace PlatformA.Auth.API.Controllers
     [Route("api/[controller]")] // 라우팅 주소: /api/auth
     public class AuthController : ControllerBase
     {
-        private static int playerId = 1;
+        private static int playerId = 0;
 
         // Test Json
         //
@@ -59,9 +59,7 @@ namespace PlatformA.Auth.API.Controllers
             {
 
                 // 2. JWT 토큰 생성
-                string token = TokenManager.GenerateJwtTokenByUserName(request.Username);
-                
-                playerId++;
+                string token = TokenManager.GenerateJwtToken(playerId++);
 
                 // 3. 클라이언트에게 성공(200 OK)과 함께 토큰 반환
                 return Ok(new LoginResponse
