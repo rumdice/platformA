@@ -81,7 +81,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await Task.Delay(500);
 
                 // 3. 매칭 시도
-                await StartMatchingAsync(realToken);
+                //await StartMatchingAsync(realToken);
 
 
                 // 2. 이동
@@ -278,7 +278,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine("[매칭] 매칭 서버(SignalR)에 연결을 시도합니다...");
 
             // 1. 매칭 서버의 Hub URL 설정 (포트는 Matching.API 설정에 맞게 수정하세요)
-            string matchingHubUrl = "http://localhost:7007/matchingHub";
+            string matchingHubUrl = "http://localhost:5189/hubs/matching";
 
             var hubConnection = new HubConnectionBuilder()
                 .WithUrl(matchingHubUrl, options =>

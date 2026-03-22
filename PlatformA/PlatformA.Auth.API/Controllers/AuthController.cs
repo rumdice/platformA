@@ -57,9 +57,10 @@ namespace PlatformA.Auth.API.Controllers
         {
             //if (request.Username == "test" && request.Password == "1234")
             {
-
                 // 2. JWT 토큰 생성
-                string token = TokenManager.GenerateJwtToken(playerId++);
+                var playerId = Interlocked.Increment(ref AuthController.playerId); // playerId 자동 증가
+
+                string token = TokenManager.GenerateJwtToken(playerId);
 
                 // 3. 클라이언트에게 성공(200 OK)과 함께 토큰 반환
                 return Ok(new LoginResponse
@@ -69,8 +70,6 @@ namespace PlatformA.Auth.API.Controllers
                     PlayerId = playerId,
                     Message = "로그인 성공"
                 });
-
-                
             }
 
             // 아이디나 비밀번호가 틀렸을 때 (401 Unauthorized) 반환
