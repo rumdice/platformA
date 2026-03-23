@@ -21,7 +21,7 @@ namespace PlatformA.Matching.API.Controllers
             // 실제 서비스에서는 큐에서 꺼내겠지만, 테스트를 위해 두 유저 ID를 강제로 매칭시킵니다.
             Console.WriteLine($"[TestAPI] 매칭 테스트 요청 수신: User({request.User1Id}) & User({request.User2Id})");
 
-            await _matchService.ProcessMatchingAsync(request.User1Id, request.User2Id);
+            //await _matchService.ProcessMatchingAsync(request.User1Id, request.User2Id);
 
             return Ok(new { Message = "Matching event published to Redis!", RoomId = 101 }); // 임시 방번호 응답
         }

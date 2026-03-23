@@ -44,7 +44,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 var app = builder.Build();
 
 // Swagger 설정 (개발 환경에서만)

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.MatchingEngine;
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 
 namespace PlatformA.Matching.API.Services
@@ -15,6 +16,7 @@ namespace PlatformA.Matching.API.Services
         private readonly Channel<Order> _orderChannel; // 고속 비동기 큐
         private readonly ILogger<EngineService> _logger;
         private readonly IHubContext<MatchingHub> _hubContext; // 방송 장비 추가
+
 
         public EngineService(ILogger<EngineService> logger, IHubContext<MatchingHub> hubContext)
         {
@@ -72,5 +74,7 @@ namespace PlatformA.Matching.API.Services
         // (디버깅용) 현재 호가창 객체 반환
         public OrderBook GetOrderBook() => _orderBook;
 
+
+        
     }
 }

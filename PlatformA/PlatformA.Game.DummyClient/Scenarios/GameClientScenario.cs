@@ -34,14 +34,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
             await Task.Delay(1000); // 서버가 켜질 시간 확보
 
             // =================================================================
-            // 🌐 [STEP 1] 웹 서버(Auth.API)에 HTTP POST로 로그인 요청하기
+            // 🌐 [STEP 1] Auth.API 로그인 (JWT 발급)
             // =================================================================
             Console.WriteLine("[Web] Auth.API 에 로그인을 시도합니다...");
-
             var userName = GenerateTestUserName();
-
             string realToken = await LoginToAuthServerAsync(userName, "1234");
-            //string realToken = await LoginToAuthServerAsync("test", "1234");
 
             if (string.IsNullOrEmpty(realToken))
             {
@@ -50,71 +47,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
             }
 
             // =================================================================
-            // 🎮 [STEP 2] 게임 서버(Game Server)에 TCP 소켓으로 접속하기
+            // 🎮 [STEP 2] 매칭 서버(SignalR) 접속 및 대기
             // =================================================================
-            using Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            try
-            {
-                // 포트번호 7777로 접속
-                await client.ConnectAsync("127.0.0.1", 7777);
-                Console.WriteLine("게임 서버 접속 성공!\n");
-
-                // 서버로부터 데이터를 계속 수신하는 백그라운드 작업 시작 (Fire and Forget)
-                _ = ReceiveLoopAsync(client);
-
-                // --- 테스트 시나리오 ---
-
-                // 🚀 1. 로그인 (임시 유저 ID와 토큰 발급 후 전송)
-                //int myPlayerId = new Random().Next(1000, 10000);
-                //string myToken = GenerateTestToken(myPlayerId);
-
-                //Console.WriteLine($"[Client] 로그인 시도 (PlayerID: {myPlayerId})");
-                //Console.WriteLine($"[Client] 생성된 토큰: {myToken.Substring(0, 20)}...");
-
-                //await SendLoginPacketAsync(client, myToken);
-
-                //// 게임서버 로그인 패킷 전송 메서드 호출 (비동기)
-                await SendLoginPacketAsync(client, realToken);
-
-                // 서버가 인증을 처리하고 방에 넣어줄 시간을 잠깐 대기
-                await Task.Delay(500);
-
-                // 3. 매칭 시도
-                //await StartMatchingAsync(realToken);
+            // 🚨 여기서 게임 서버(TCP) 접속 코드는 일단 지우거나 아래로 내립니다!
+            // 대신 매칭을 먼저 시작합니다.
+            await StartMatchingAsync(realToken);
 
 
-                // 2. 이동
-                Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");
-                Console.WriteLine("종료하려면 'q'를 입력하세요.\n");
-
-                Random rand = new Random();
-
-                while (true)
-                {
-                    string input = Console.ReadLine();
-                    if (input?.ToLower() == "q") break;
-
-                    // 랜덤한 좌표로 이동 패킷 전송
-                    float x = rand.Next(-50, 50);
-                    float y = rand.Next(-50, 50);
-                    float z = 0f;
-
-                    // 이동 패킷 전송 메서드 호출 (비동기)
-                    await SendMovePacketAsync(client, x, y, z);
-                }
-
-                //// 모든 테스트 종료
-                Console.WriteLine("\n모든 테스트 완료. 종료하려면 엔터를 누르세요.");
-                Console.ReadLine();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"접속 실패: {ex.Message}");
-            }
-
-
-            Console.WriteLine("연결이 종료되었습니다. 엔터를 누르면 메뉴로 돌아갑니다.");
+            //Console.WriteLine("연결이 종료되었습니다. 엔터를 누르면 메뉴로 돌아갑니다.");
             Console.ReadLine();
         }
 
@@ -299,7 +239,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                 // 🚀 3. 이제 발급받은 RoomId를 들고 실제 TCP 게임 서버로 접속합니다!
                 Console.WriteLine($"[이동] {matchInfo.RoomId}번 방으로 게임 서버 접속을 시작합니다...\n");
-                // await ConnectToGameServerAsync(jwtToken, matchInfo.RoomId); // 이전에 만든 TCP 접속 로직 호출
+                await ConnectAndPlayGameAsync(jwtToken, matchInfo.RoomId);
             });
 
             try
@@ -318,6 +258,53 @@ namespace PlatformA.Game.DummyClient.Scenarios
             }
         }
 
+        /// <summary>
+        /// 게임서버 접속
+        /// </summary>
+        /// <param name="realToken"></param>
+        /// <param name="roomId"></param>
+        /// <returns></returns>
+        static async Task ConnectAndPlayGameAsync(string realToken, int roomId)
+        {
+            // =================================================================
+            // 🎮 [STEP 2] 게임 서버(Game Server)에 TCP 소켓으로 접속하기
+            // =================================================================
+
+
+            using Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            try
+            {
+                await client.ConnectAsync("127.0.0.1", 7777);
+                Console.WriteLine("게임 서버 접속 성공!\n");
+
+                _ = ReceiveLoopAsync(client);
+
+                // JWT 토큰으로 C_Login 패킷 전송 (게임 서버가 TokenManager로 검증)
+                await SendLoginPacketAsync(client, realToken);
+
+                // *나중에는 C_Login 패킷에 roomId도 같이 담아 보내서 해당 방에 들어가게 해야 합니다!*
+                await Task.Delay(500);
+
+                Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");
+                Random rand = new Random();
+
+                while (true)
+                {
+                    string input = Console.ReadLine();
+                    if (input?.ToLower() == "q") break;
+
+                    float x = rand.Next(-50, 50);
+                    float y = rand.Next(-50, 50);
+                    await SendMovePacketAsync(client, x, y, 0f);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"접속 실패: {ex.Message}");
+            }
+        }
+
 
         private static string GenerateTestUserName()
         {
@@ -326,5 +313,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             return new string(Enumerable.Repeat(chars, 8)
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
     }
+    
 }
