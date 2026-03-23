@@ -74,12 +74,17 @@ namespace PlatformA.Matching.API.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
+
+        /// <summary>
+        /// 매칭 리퀘스트 받는 signalR 메서드 (클라이언트에서 "RequestMatch" 이름으로 호출)
+        /// </summary>
+        /// <returns></returns>
         public async Task RequestMatch()
         {
             if (Context.Items.TryGetValue("PlayerId", out var playerIdObj) && playerIdObj is int playerId)
             {
                 Console.WriteLine($"[매칭] 유저 {playerId} 가 매칭 큐에 진입했습니다.");
-                // _engine.AddPlayerToQueue(playerId, Context.ConnectionId);
+                _gamemMatchService.AddPlayerToQueue(playerId, Context.ConnectionId);
             }
             else
             {
