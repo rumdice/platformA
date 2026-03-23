@@ -69,8 +69,9 @@ namespace PlatformA.Game.Server.Packet
                 loginReq.Deserialize(payload);
 
                 string token = loginReq.JwtToken; // 힙에 올라갈 수 있는 일반 string 변수로 추출!
+                int roomId = loginReq.RoomId; 
 
-                _ = ProcessLoginAsync(session, token);
+                _ = ProcessLoginAsync(session, token, roomId);
             }
             catch (Exception ex)
             {
@@ -79,7 +80,7 @@ namespace PlatformA.Game.Server.Packet
             }
         }
 
-        private static async Task ProcessLoginAsync(GameSession session, string jwtToken)
+        private static async Task ProcessLoginAsync(GameSession session, string jwtToken, int roomId)
         {
             // 토큰 검증 시도
             int playerId = TokenManager.ValidateTokenAndGetUserId(jwtToken);
@@ -87,7 +88,7 @@ namespace PlatformA.Game.Server.Packet
             if (playerId > 0)
             {
                 // 🚀 1. Redis 분산 락 획득 시도 (중복 로그인 방어)
-                string lockKey = $"player:login_lock:{playerId}";
+                string lockKey = $"player:login_lock:{playerId} 방 번호 : {roomId}";
 
                 // 만료시간: 1일(혹시 서버가 뻗어도 하루 뒤엔 풀림), 획득 대기: 1초, 재시도 간격: 100ms
                 string lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
@@ -115,8 +116,18 @@ namespace PlatformA.Game.Server.Packet
                 Console.WriteLine($"[Auth] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
 
                 // 생성된 매칭 서버 방 진입.
-                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(1);
+                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(roomId);
+
+                // 🚀 해당 방에 유저 입장! 이제 session.Room 에 값이 생깁니다!
                 room?.Push(() => room.Enter(session));
+
+                // 만약 매칭서버가 방을 만들라고 지시했는데 아직 안 만들어졌다면 임시로 생성 (또는 방이 있을 때만 진입)
+                //if (room == null)
+                //{
+                //    // 임시 방 생성 로직 (실제로는 Redis Pub/Sub 메시지를 받아 만들어져 있어야 함)
+                //    room = new Core.GameRoom { RoomId = roomId };
+                //    Core.GameRoomManager.Instance.Add(roomId, room);
+                //}
             }
             else
             {
