@@ -114,6 +114,7 @@ namespace PlatformA.Game.Server.Packet
                 session.SessionId = playerId;
                 Console.WriteLine($"[Auth] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
 
+                // 생성된 매칭 서버 방 진입.
                 Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(1);
                 room?.Push(() => room.Enter(session));
             }

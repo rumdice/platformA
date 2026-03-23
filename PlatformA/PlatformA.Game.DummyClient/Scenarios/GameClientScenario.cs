@@ -55,7 +55,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
 
             //Console.WriteLine("연결이 종료되었습니다. 엔터를 누르면 메뉴로 돌아갑니다.");
-            Console.ReadLine();
+            //Console.ReadLine();
         }
 
         // MakeLoginPacket 등 기존 패킷 조립 함수들도 이 클래스 밑에 둡니다.
@@ -251,6 +251,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 // 🚀 4. 매칭 서버의 RequestMatch 함수 호출 (큐 진입)
                 // Hub에 정의된 함수명과 파라미터에 맞게 호출해야 합니다.
                 await hubConnection.InvokeAsync("RequestMatch");
+
+                await Task.Delay(-1);
             }
             catch (Exception ex)
             {
