@@ -11,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 // redis 연결
 RedisManager.Instance.Init();
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(RedisManager.Instance.Connection);
+
 // 2. 🔥 [추가] RedLock 팩토리 등록
 builder.Services.AddSingleton<RedLockFactory>(sp =>
 {
@@ -24,6 +26,7 @@ builder.Services.AddSingleton<RedisLockManager>();
 
 // 대기열 서비스 등록
 builder.Services.AddSingleton<QueueService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

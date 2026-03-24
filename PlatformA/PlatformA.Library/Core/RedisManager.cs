@@ -14,6 +14,9 @@ namespace PlatformA.Library.Core
         public static RedisManager Instance { get; } = new RedisManager();
 
         private ConnectionMultiplexer _redis;
+
+        public IConnectionMultiplexer Connection => _redis;
+
         public RedisLockManager LockManager { get; private set; }
 
         // 🚀 추가: Pub/Sub 메시지를 엿들을 수신기
