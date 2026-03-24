@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-namespace PlatformA.MatchingEngine
+﻿namespace PlatformA.MatchingEngine
 {
+    /// <summary>
+    /// 주식 매도/매수 사용 DTO
+    /// </summary>
     public enum OrderType { Buy, Sell }
 
     public class Order

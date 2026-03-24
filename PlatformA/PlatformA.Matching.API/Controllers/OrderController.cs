@@ -3,9 +3,11 @@ using PlatformA.Matching.API.Services;
 using PlatformA.MatchingEngine;
 
 
-
 namespace PlatformA.Matching.API.Controllers
 {
+    /// <summary>
+    /// 주식 매도/매수 벡엔드 API
+    /// </summary>
     [ApiController]
     [Route("api/orders")]
     public class OrderController : ControllerBase
@@ -20,11 +22,10 @@ namespace PlatformA.Matching.API.Controllers
             _engine = engine;
         }
 
-        // POST api/orders
         [HttpPost]
         public async Task<IActionResult> SubmitOrder([FromBody] OrderRequest request)
         {
-            // ID 채번 (Thread-safe)
+            // ID 채번 (Thread-safe 증가)
             long newId = Interlocked.Increment(ref _idCounter);
 
             var order = new Order(
@@ -34,13 +35,15 @@ namespace PlatformA.Matching.API.Controllers
                 request.Quantity
             );
 
-            // 🚀 큐에 넣기 (비동기)
             await _engine.EnqueueOrderAsync(order);
 
             return Accepted(new { OrderId = newId, Message = "주문이 접수되었습니다." });
         }
 
-        // 디버깅용: 현재 호가창 상태 보기 (간이)
+        /// <summary>
+        /// 디버깅용: 현재 호가창 상태 보기 (간이) 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("book")]
         public IActionResult GetOrderBookInfo()
         {

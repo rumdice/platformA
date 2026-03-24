@@ -15,20 +15,16 @@ builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Lib
 RedisManager.Instance.Init();
 
 
-// 1. SignalR 서비스 등록
 builder.Services.AddSignalR();
 
-// 🔥 [핵심] 매칭 엔진 등록
-// 1. Singleton으로 등록 (전역 유일 인스턴스)
+// 주식 매도 매수 매칭 엔진 등록
 builder.Services.AddSingleton<EngineService>();
-// 2. HostedService로 등록 (서버 켜질 때 ExecuteAsync 실행)
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EngineService>());
 
-
-// 게임 매칭 서비스 등록
+// 게임 매칭 엔진 등록 (백그라운드 서비스 아님(
 builder.Services.AddSingleton<GameMatchService>();
 
-// 🔥 [추가] 1. CORS 정책 정의 (문 열어주기)
+// CORS 정책 정의 (문 열어주기)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLevel1", policy =>
@@ -53,15 +49,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// 🔥 [추가] 2. CORS 정책 적용 (순서 중요! UseRouting과 UseEndpoints 사이, 보통 맨 위쪽)
+// CORS 정책 적용 (순서 중요! UseRouting과 UseEndpoints 사이, 보통 맨 위쪽)
 app.UseCors("AllowLevel1");
 
-// 2. 정적 파일(HTML) 허용
+// 정적 파일(HTML) 허용
 app.UseStaticFiles();
 
 app.MapControllers();
 
-// 3. Hub 주소 연결
+// Hub 주소 연결
 app.MapHub<MatchingHub>("/hubs/matching");
 
 app.Run();

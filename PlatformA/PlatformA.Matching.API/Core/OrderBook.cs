@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using System.Text;
-
-namespace PlatformA.MatchingEngine
+﻿namespace PlatformA.MatchingEngine
 {
+    /// <summary>
+    /// 주식 매도 매수 엔진
+    /// </summary>
     public class OrderBook
     {
         // 매수 대기열 (가격 높은 순) -> 내림차순 정렬기 필요
@@ -26,7 +26,7 @@ namespace PlatformA.MatchingEngine
             }
         }
 
-        // 🔥 [추가] 현재 호가창 상태를 이쁘게 포장해서 반환하는 메서드
+        // 현재 호가창 상태를 이쁘게 포장해서 반환하는 메서드
         public OrderBookSnapshot GetSnapshot()
         {
             return new OrderBookSnapshot

@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Core;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
 using PlatformA.Utils.API.Services;
-using StackExchange.Redis;
-using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +27,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen(); API 서버 문서 비활성화
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

@@ -25,8 +25,7 @@ namespace PlatformA.Utils.API.Services
             {
                 try
                 {
-                    // 1. 5초마다 깨어남 (배치 주기)
-                    await Task.Delay(5000, stoppingToken);
+                    await Task.Delay(5000, stoppingToken); // 5초마다 실행
                     await SyncStatsToDb();
                 }
                 catch (Exception ex)
@@ -36,11 +35,14 @@ namespace PlatformA.Utils.API.Services
             }
         }
 
+        /// <summary>
+        /// write-back 방식으로 Redis에 쌓인 통계 데이터를 DB에 반영하는 메서드
+        /// </summary>
         private async Task SyncStatsToDb()
         {
             var dbRedis = _redis.GetDatabase();
 
-            // 2. "변경된 놈들 명단(dirty_codes)" 가져오기
+            // "변경된 놈들 명단(dirty_codes)" 가져오기
             // SMEMBERS 명령어: Set에 있는 모든 멤버 조회
             var dirtyCodes = await dbRedis.SetMembersAsync("dirty_codes");
 
@@ -48,7 +50,7 @@ namespace PlatformA.Utils.API.Services
 
             _logger.LogInformation($"[Sync] {dirtyCodes.Length}개의 URL 통계 DB 반영 시작...");
 
-            // 3. DB 접속 (BackgroundService는 Singleton이라 Scoped인 DB를 쓰려면 Scope를 직접 만들어야 함)
+            // DB 접속 (BackgroundService는 Singleton이라 Scoped인 DB를 쓰려면 Scope를 직접 만들어야 함)
             using (var scope = _serviceProvider.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -70,12 +72,12 @@ namespace PlatformA.Utils.API.Services
                         }
                     }
 
-                    // 4. 처리 끝난 놈은 명단에서 지우기
+                    // 처리 끝난 놈은 명단에서 지우기
                     // 주의: 전체 삭제(DEL)하지 말고, 처리한 놈만 지워야(SREM) 동시성 이슈가 없음
                     await dbRedis.SetRemoveAsync("dirty_codes", code);
                 }
 
-                // 5. DB에 진짜 저장 (Commit)
+                // DB에 진짜 저장 (Commit)
                 await dbContext.SaveChangesAsync();
             }
 
