@@ -21,8 +21,9 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<EngineService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EngineService>());
 
-// 게임 매칭 엔진 등록 (백그라운드 서비스 아님(
+// 게임 매칭 엔진 등록
 builder.Services.AddSingleton<GameMatchService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<GameMatchService>()); // 백그라운드 워커 등록
 
 // CORS 정책 정의 (문 열어주기)
 builder.Services.AddCors(options =>

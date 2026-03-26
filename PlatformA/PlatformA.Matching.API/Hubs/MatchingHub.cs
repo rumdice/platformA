@@ -50,7 +50,7 @@ namespace PlatformA.Matching.API.Hubs
 
                 if (playerId > 0)
                 {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{playerId}");
+                    await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{playerId}"); // 커넥션ID를 User_1 라는 그룹으로 묶는다.
                     Context.Items["PlayerId"] = playerId;
                     Console.WriteLine($"[SignalR] 유저 {playerId} 접속 및 그룹 등록 완료");
                 }
@@ -87,10 +87,10 @@ namespace PlatformA.Matching.API.Hubs
         {
             if (Context.Items.TryGetValue("PlayerId", out var playerIdObj) && playerIdObj is int playerId)
             {
-                Console.WriteLine($"[매칭] 유저 {playerId} 가 매칭 큐에 진입했습니다.");
+                Console.WriteLine($"[매칭] 유저 {playerId} 매칭 요청 수신.");
 
                 // 매칭엔진 사용 및 매칭 대기열에 추가
-                _gamemMatchService.AddPlayerToQueue(playerId, Context.ConnectionId);
+                await _gamemMatchService.AddPlayerToQueueAsync(playerId);
             }
             else
             {

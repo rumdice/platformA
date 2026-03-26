@@ -10,14 +10,13 @@ namespace PlatformA.Matching.API.Services
     /// <summary>
     /// 게임서버용 매칭 엔진.
     /// </summary>
-    public class GameMatchService
+    public class GameMatchService : BackgroundService
     {
         private static int _globalRoomIdCounter = 100; // 발급할 방 번호 (100번부터 시작)
 
         private readonly IHubContext<MatchingHub> _hubContext;
         private readonly RedisManager _redisManager;
-        private readonly ConcurrentQueue<(int UserId, string ConnectionId)> _waitingQueue = new(); // 매칭 대기열 큐
-
+        private const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
 
         public GameMatchService(IHubContext<MatchingHub> hubContext, RedisManager redisManager)
         {
@@ -27,47 +26,94 @@ namespace PlatformA.Matching.API.Services
 
 
         /// <summary>
-        /// 간단한 1:1 매칭 성사. 들어온 순서대로 매칭이 이루어짐.
+        /// 매칭 큐에 넣는다.
         /// </summary>
-        public void AddPlayerToQueue(int newUserId, string newConnectionId)
+        public async Task AddPlayerToQueueAsync(int userId)
         {
-            Console.WriteLine($"[매칭 엔진] 유저 {newUserId} 큐 진입 시도...");
+            Console.WriteLine($"[매칭 엔진] 유저 {userId} 큐 진입 시도...");
 
-            // 대기열에 누군가 있다면? -> 꺼내서 즉시 매칭!
-            if (_waitingQueue.TryDequeue(out var waitingPlayer))
-            {
-                Console.WriteLine($"[매칭 성사!] 대기자({waitingPlayer.UserId}) vs 신규진입자({newUserId})");
+            var db = _redisManager.Connection.GetDatabase();
+            await db.ListRightPushAsync(MATCH_QUEUE_KEY, userId);
 
-                // 비동기로 매칭 처리 진행 (방 만들고, 알림 쏘고)
-                _ = ProcessMatchingAsync(waitingPlayer.UserId, newUserId, waitingPlayer.ConnectionId, newConnectionId);
-            }
-            else
-            {
-                // 대기열이 비어있다면? -> 내가 대기열에 들어감
-                _waitingQueue.Enqueue((newUserId, newConnectionId));
-                Console.WriteLine($"[매칭 엔진] 유저 {newUserId} 대기열 등록 완료. 상대를 기다립니다...");
-            }
+            Console.WriteLine($"[매칭] 유저 {userId} Redis 대기열 큐 진입 완료.");
         }
 
-        private async Task ProcessMatchingAsync(int player1Id, int player2Id, string conn1, string conn2)
-        {
-            // 1. 방 번호 발급
-            int newRoomId = Interlocked.Increment(ref _globalRoomIdCounter);
 
-            MatchSuccessEvent matchEvent = new MatchSuccessEvent
+        /// <summary>
+        /// 백그라운드 워커 : 매칭 시킨다.
+        /// </summary>
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            var db = _redisManager.Connection.GetDatabase();
+            
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try 
+                {
+                    // Redis List에 대기 중인 유저가 2명 이상인지 확인
+                    long queueLength = await db.ListLengthAsync(MATCH_QUEUE_KEY);
+
+                    if (queueLength >= 2)
+                    {
+                        // 큐의 맨 앞(Left)에서 두 명을 뽑아옵니다 (LPOP)
+                        var user1Val = await db.ListLeftPopAsync(MATCH_QUEUE_KEY);
+                        var user2Val = await db.ListLeftPopAsync(MATCH_QUEUE_KEY);
+
+                        if (user1Val.HasValue && user2Val.HasValue)
+                        {
+                            int player1Id = (int)user1Val;
+                            int player2Id = (int)user2Val;
+
+                            // 매칭 성사 비동기 처리
+                            _ = ProcessMatchingAsync(player1Id, player2Id);
+                        }
+                        else
+                        {
+                            // 대기자가 부족하면 DB 부하를 막기 위해 1초 대기 (Polling 간격)
+                            await Task.Delay(1000, stoppingToken);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[매칭 엔진] 매칭 처리 중 오류 발생: {ex.Message}");
+                    await Task.Delay(2000, stoppingToken);
+                }
+            }
+
+
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// 매칭을 성사 시키는 로직
+        /// </summary>
+        private async Task ProcessMatchingAsync(int player1Id, int player2Id)
+        {
+            // 1. 방 번호 발급 (렌덤 숫자), TODO: Redis INCR 로 발급하여. 스레드 동시성 확보.
+            int newRoomId = new Random().Next(10000, 99999);
+
+            Console.WriteLine($"[매칭 성사!] 방({newRoomId}) : 유저 {player1Id} vs 유저 {player2Id}");
+
+            var matchEvent = new MatchSuccessEvent
             {
                 RoomId = newRoomId,
                 MatchedUserIds = new List<int> { player1Id, player2Id }
             };
 
-            // 2. Redis로 게임 서버에 방 생성 명령 발송 : channel:match_success
+            // 메시지 생성.
             string jsonMessage = JsonSerializer.Serialize(matchEvent);
+            
+            // 2. Redis로 게임 서버에 방 생성 명령 발송 : channel:match_success
             await _redisManager.GetSubscriber().PublishAsync("channel:match_success", jsonMessage);
 
-            // 3. 매칭된 두 유저에게 SignalR로 결과 알림 발송! : MatchFound
-            await _hubContext.Clients.Client(conn1).SendAsync("MatchFound", matchEvent);
-            await _hubContext.Clients.Client(conn2).SendAsync("MatchFound", matchEvent);
+            // 3. 매칭된 두 유저에게 SignalR로 결과 알림 발송! : MatchFound.
+            // ConnectionId를 몰라도 Group 이름을 알고 있음.
+            await _hubContext.Clients.Group($"User_{player1Id}").SendAsync("MatchFound", matchEvent);
+            await _hubContext.Clients.Group($"User_{player2Id}").SendAsync("MatchFound", matchEvent);
         }
 
+        
     }
 }
