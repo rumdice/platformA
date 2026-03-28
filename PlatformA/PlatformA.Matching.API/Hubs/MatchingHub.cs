@@ -80,22 +80,6 @@ namespace PlatformA.Matching.API.Hubs
         }
 
 
-        /// <summary>
-        /// 게임 매칭 리퀘스트 받는 signalR 메서드 (클라이언트에서 "RequestMatch" 이름으로 호출)
-        /// </summary>
-        public async Task RequestMatch()
-        {
-            if (Context.Items.TryGetValue("PlayerId", out var playerIdObj) && playerIdObj is int playerId)
-            {
-                Console.WriteLine($"[매칭] 유저 {playerId} 매칭 요청 수신.");
-
-                // 매칭엔진 사용 및 매칭 대기열에 추가
-                await _gamemMatchService.AddPlayerToQueueAsync(playerId);
-            }
-            else
-            {
-                Console.WriteLine("[매칭] 인증되지 않은 유저의 매칭 요청입니다.");
-            }
-        }
+        
     }
 }

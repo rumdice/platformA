@@ -15,7 +15,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
 
         // Matching.API 주소 (포트 확인 필요)
-        private const string MATCH_API_URL = "http://localhost:7007/api/gamematch/test-match";
+        private const string MATCH_API_URL = "http://localhost:5189/api/GameMatch/RequestMatch";
 
 
         public static async Task RunAsync()
@@ -248,9 +248,25 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await hubConnection.StartAsync();
                 Console.WriteLine("[매칭] 서버 연결 완료. 대기열에 진입합니다...");
 
+                //string matchApiUrl = "http://localhost:5189/api/gamematch/request";
+
                 // 🚀 4. 매칭 서버의 RequestMatch 함수 호출 (큐 진입)
                 // Hub에 정의된 함수명과 파라미터에 맞게 호출해야 합니다.
-                await hubConnection.InvokeAsync("RequestMatch");
+                //await hubConnection.InvokeAsync("RequestMatch");
+
+                // 메칭 요청을 http request 로 처리는 백그라운드로 디커플링
+                using HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+                var response = await client.PostAsync(MATCH_API_URL, null); // 넘길 본문 데이터는 없음(토큰에 다 있음)
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("[매칭] 큐 진입 완료! 상대를 기다립니다...");
+                }
+                else
+                {
+                    Console.WriteLine($"[매칭 에러] HTTP API 요청 실패: {response.StatusCode}");
+                }
 
                 await Task.Delay(-1);
             }
