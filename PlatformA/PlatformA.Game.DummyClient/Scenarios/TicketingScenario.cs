@@ -13,6 +13,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         public int UserId { get; set; }
         public long Rank { get; set; }
         public string Status { get; set; } // "Waiting" or "Active"
+        public int NextPollDelay { get; set; } // 스마트 풀링 지연시간
     }
 
             
@@ -22,7 +23,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
         private const string TICKET_URL = "http://localhost:5282";
-        private const int USER_COUNT = 200; // 200명이 동시에 접속 시도
+        private const int USER_COUNT = 2500; // 2500명이 동시에 접속 시도
 
         public static async Task RunAsync()
         {
@@ -52,6 +53,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 int userId = i; // 캡처
                 //tasks.Add(Task.Run(() => SimulateUserFlow(userId, TICKET_URL)));
                 tasks.Add(Task.Run(() => SimulateUserTicketFlow(userId, TICKET_URL)));
+                await Task.Delay(10); // 포트 고갈 방지용 잠깐 딜레이.
             }
 
             // 모든 유저의 시나리오가 끝날 때까지 대기
@@ -63,10 +65,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
             //int soldOutCount = results.Count(r => r == "SOLDOUT");
             int failCount = results.Count(r => r == "FAIL");
 
-            Console.WriteLine($"\n--- 🏁 최종 결과 리포트 ({sw.Elapsed.TotalSeconds:F1}초) ---");
-            Console.WriteLine($"🎉 구매 성공 (대기열 통과 완료): {successCount}명");
-            //Console.WriteLine($"🎫 매진 퇴장: {soldOutCount}명");
+            Console.WriteLine($"\n--- 🏁 최종 통합 결과 리포트 ({sw.Elapsed.TotalSeconds:F1}초) ---");
+            Console.WriteLine($"🟢 인게임 TCP 접속 성공: {successCount}명");
             Console.WriteLine($"❌ 에러/실패: {failCount}명");
+
+            //Console.WriteLine($"\n--- 🏁 최종 결과 리포트 ({sw.Elapsed.TotalSeconds:F1}초) ---");
+            //Console.WriteLine($"🎉 구매 성공 (대기열 통과 완료): {successCount}명");
+            //Console.WriteLine($"🎫 매진 퇴장: {soldOutCount}명");
+            //Console.WriteLine($"❌ 에러/실패: {failCount}명");
 
 
             Console.WriteLine("테스트가 종료되었습니다. 엔터를 누르면 메뉴로 돌아갑니다.");
@@ -80,10 +86,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             try
             {
-                // 🚀 1. 더미 유저용 JWT 토큰 즉석 발급! (PlatformA.Library 참조)
-                //string jwtToken = TokenManager.GenerateJwtToken(userId);
-                //myClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
-
                 // =================================================================
                 // 🌐 [STEP 1] Auth.API 로그인 (JWT 발급)
                 // =================================================================
@@ -97,24 +99,23 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return "FAIL";
                 }
 
-                // 🚀 2. STEP 1: 대기열 진입
+                // 🚀 2. STEP 2: 대기열 진입
                 var enterRes = await client.PostAsync($"{host}/api/queue/enter", null);
-
                 if (!enterRes.IsSuccessStatusCode)
                 {
                     string errorMsg = await enterRes.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[진입 실패] User_{userId} - Status: {enterRes.StatusCode}, Msg: {errorMsg}");
+                    Console.WriteLine($"[대기열 진입 실패] User_{userId} - Status: {enterRes.StatusCode}, Msg: {errorMsg}");
                     return "FAIL";
                 }
 
-                // 🚀 3. STEP 2: 무한 대기 (Polling)
+                // 🚀 3. STEP 3: 무한 대기 (SmartPolling) : 등수에 따라서 다음 폴링까지 대기시간이 달라짐.
                 while (true)
                 {
                     var statusRes = await client.GetAsync($"{host}/api/queue/status");
-                    if (!statusRes.IsSuccessStatusCode) return "FAIL";
+                    if (!statusRes.IsSuccessStatusCode) 
+                        return "FAIL";
 
                     var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
-
                     if (statusData != null && statusData.Status == "Active")
                     {
                         // 입장 허가! (문지기를 통과함)
@@ -126,11 +127,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         // 내 순번이 너무 많이 출력되면 콘솔이 터지므로, 10단위 유저만 로그를 찍어봅니다.
                         if (userId % 10 == 0)
                         {
-                            Console.WriteLine($"⏳ [User_{userId:D3}] 대기 중... (현재 내 앞에 {statusData?.Rank}명 대기)");
+                            Console.WriteLine($"⏳ [User_{userId:D3}] 대기 중... (앞에 {statusData?.Rank}명 대기 / {statusData?.NextPollDelay}ms 뒤 재확인)");
                         }
 
                         // 1초 뒤에 다시 물어보기 (실무에서는 3~5초 권장)
-                        await Task.Delay(1000);
+                        int delay = statusData?.NextPollDelay ?? 3000;
+                        await Task.Delay(delay);
                     }
                 }
 

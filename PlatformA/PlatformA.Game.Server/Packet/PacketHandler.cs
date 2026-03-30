@@ -101,7 +101,7 @@ namespace PlatformA.Game.Server.Packet
                 if (lockValue == null)
                 {
                     // 락 획득 실패 = 이미 누가 로그인해서 락을 쥐고 있음!
-                    Console.WriteLine($"[Auth Warning] 중복 로그인 차단! ID ({playerId})는 이미 접속 중입니다.");
+                    Console.WriteLine($"[GameServer Warning] 중복 로그인 차단! ID ({playerId})는 이미 접속 중입니다.");
 
                     // (선택) 클라이언트에게 S_Login (실패코드) 패킷을 보내주면 더 좋습니다.
                     session.Disconnect(); // 얄짤없이 소켓 끊기
@@ -110,10 +110,10 @@ namespace PlatformA.Game.Server.Packet
 
                 // 🚀 2. 락 획득 성공 시 (로그인 성공)
                 session.LoginLockValue = lockValue; // 나중에 풀기 위해 세션에 기억
-                Console.WriteLine($"[Auth] Redis 락 획득 및 인증 성공! 정식 플레이어 승급: ID ({playerId})");
+                Console.WriteLine($"[GameServer] Redis 락 획득 및 인증 성공! 정식 플레이어 승급: ID ({playerId})");
 
                 session.SessionId = playerId;
-                Console.WriteLine($"[Auth] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
+                Console.WriteLine($"[GameServer] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
 
                 // 생성된 매칭 서버 방 진입.
                 Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(roomId);
@@ -131,7 +131,7 @@ namespace PlatformA.Game.Server.Packet
             }
             else
             {
-                Console.WriteLine($"[Auth] 토큰 인증 실패. 연결을 강제로 끊습니다.");
+                Console.WriteLine($"[GameServer] JWT 토큰 인증 실패. 연결을 강제로 끊습니다.");
                 session.Disconnect();
             }
         }

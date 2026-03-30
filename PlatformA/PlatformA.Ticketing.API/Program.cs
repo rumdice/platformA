@@ -45,11 +45,11 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // 앱 종료 시 팩토리 정리 (Memory Leak 방지)
-app.Lifetime.ApplicationStopping.Register(() =>
-{
-    var factory = app.Services.GetService<RedLockFactory>();
-    factory?.Dispose();
-});
+//app.Lifetime.ApplicationStopping.Register(() =>
+//{
+//    var factory = app.Services.GetService<RedLockFactory>();
+//    factory?.Dispose();
+//});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

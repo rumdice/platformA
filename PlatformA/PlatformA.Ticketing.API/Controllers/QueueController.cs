@@ -43,14 +43,17 @@ namespace PlatformA.Ticketing.API.Controllers
             bool isActive = await _queueService.IsActiveAsync(userId);
             if (isActive)
             {
-                return Ok(new { UserId = userId, Rank = 0, Status = "Active" });
+                return Ok(new { UserId = userId, Rank = 0, Status = "Active", NextPollDelay = 0 });
             }
 
             // 계속 대기열이라면 대기열 등수를 판단.
             long? rank = await _queueService.GetRankAsync(userId);
             if (rank.HasValue)
             {
-                return Ok(new { UserId = userId, Rank = rank.Value, Status = "Waiting" });
+                // 스마트 풀링 - 기다릴 순번을 계산해서 돌려준다. 클라는 해당 시간 후에 Status를 던진다.
+                int delayMs = CalculateSmartPollDelay(rank.Value);
+
+                return Ok(new { UserId = userId, Rank = rank.Value, Status = "Waiting", NextPollDelay = delayMs });
             }
 
             // 큐에도 없고, Active에도 없으면? (비정상 이탈)
@@ -65,6 +68,23 @@ namespace PlatformA.Ticketing.API.Controllers
 
             string jwtToken = authHeader.Substring(7);
             return TokenManager.ValidateTokenAndGetUserId(jwtToken);
+        }
+
+
+        /// <summary>
+        /// 스마트 풀링 계산.
+        /// </summary>
+        /// <param name="rank"></param>
+        /// <returns></returns>
+        private int CalculateSmartPollDelay(long rank)
+        {
+            // 등수에 따른 지연시간을 계산식으로 변환
+            if (rank > 1000) return 10000; // 1,000등 밖: 10초
+            if (rank > 500) return 5000;  // 500등 밖: 5초
+            if (rank > 100) return 3000;  // 100등 밖: 3초
+
+            // 100등 안: 1초
+            return Math.Max(1000, (int)(10000 / Math.Sqrt(rank + 1)));
         }
     }
 }

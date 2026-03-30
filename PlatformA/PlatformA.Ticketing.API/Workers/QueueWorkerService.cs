@@ -10,7 +10,7 @@ namespace PlatformA.Ticketing.API.Workers
         private readonly RedisManager _redisManager;
        
         // 💡 다이나믹 스로틀링의 핵심: 1초에 몇 명을 통과시킬 것인가?
-        // (실무에서는 이 값을 DB 부하량에 따라 동적으로 바꿉니다)
+        // (실무에서는 이 값을 DB 부하량에 따라 동적으로 바뀌어야 합니다.)
         private const int USERS_PER_SECOND = 50;
 
         public QueueWorkerService(RedisManager redisManager)
