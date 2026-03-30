@@ -301,14 +301,18 @@ namespace PlatformA.Ticketing.API.Controllers
         [HttpPost("buy-final")]
         public async Task<IActionResult> BuyTicketFinal(string _userId)
         {
-            var (isAllowed, _) = await _queueService.GetStatus(_userId);
+            // TODO: 
+            //int tempUserID = 1234;
+            //var (isAllowed, _) = await _queueService.GetRankAsync(tempUserID);
+
+            var isAllowed = false;
 
             if (!isAllowed)
             {
                 return StatusCode(403, "아직 입장 순서가 아닙니다. 대기열 상태를 확인해주세요.");
             }
 
-            var key = "ticket:iu_concert";
+            var key = "ticket:iu_concert"; // TODO: 티켓팅 시스템 바뀜.
 
             // 🔥 Lua Script 작성
             // KEYS[1]: 티켓 키 이름 ("ticket:iu_concert")
@@ -339,13 +343,13 @@ namespace PlatformA.Ticketing.API.Controllers
                 if (remainingStock >= 0)
                 {
                     // 🎉 2. 성공 시 대기열에서 퇴장 (뒷사람에게 자리 양보)
-                    await _queueService.LeaveQueue(_userId);
+                    //await _queueService.LeaveQueue(_userId);
                     return Ok($"예매 성공! 남은 표: {result}");
                 }
                 else
                 {
                     // 매진 시에도 퇴장시켜야 할까? -> 정책 나름이지만 보통 퇴장시킴
-                    await _queueService.LeaveQueue(_userId);
+                    //await _queueService.LeaveQueue(_userId);
                     return BadRequest("매진되었습니다.");
                 }
             }

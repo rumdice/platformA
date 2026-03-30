@@ -30,7 +30,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             client.Timeout = TimeSpan.FromSeconds(300); // 대기 시간 길어질 수 있으므로 타임아웃 늘림
 
             // 1. 초기화 (티켓 100장 발행 + 대기열 초기화는 수동 혹은 API 필요)
-            // (주의: Redis에서 'del queue:iu_concert'로 대기열을 한번 비우고 시작하는 게 좋습니다)
+            // (주의: Redis에서 'del ticket:queue:global'로 대기열을 한번 비우고 시작하는 게 좋습니다)
             Console.WriteLine("🔄 서버 초기화 요청...");
             await client.PostAsync($"{baseUrl}/api/tickets/reset?count=100", null);
             Console.WriteLine("✅ 티켓 100장 세팅 완료.\n");

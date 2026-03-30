@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PlatformA.Library.Common;
 using PlatformA.Ticketing.API.Services;
 
 namespace PlatformA.Ticketing.API.Controllers
@@ -17,30 +18,53 @@ namespace PlatformA.Ticketing.API.Controllers
         // 1. 대기열 진입 (번호표 발급)
         // POST /api/queue/enter?userId=user1
         [HttpPost("enter")]
-        public async Task<IActionResult> EnterQueue(string userId)
+        public async Task<IActionResult> EnterQueue()
         {
-            await _queueService.RegisterQueue(userId);
+            int userId = GetUserIdFromToken();
+            if (userId <= 0) 
+                return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
+
+            // Redis ZSET에 유저 밀어넣기
+            await _queueService.RegisterQueueAsync(userId);
+
             return Ok($"대기열 등록 완료. UserId: {userId}");
         }
 
         // 2. 상태 확인 (폴링 - 클라이언트가 주기적으로 호출)
         // GET /api/queue/status?userId=user1
         [HttpGet("status")]
-        public async Task<IActionResult> GetStatus(string userId)
+        public async Task<IActionResult> GetStatus()
         {
-            var (isAllowed, rank) = await _queueService.GetStatus(userId);
+            int userId = GetUserIdFromToken();
+            if (userId <= 0) 
+                return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
 
-            if (rank == -1)
-                return BadRequest("대기열에 등록되지 않은 유저입니다.");
+            // 대기열에서 입장가능한 상태인지 판단.
+            bool isActive = await _queueService.IsActiveAsync(userId);
+            if (isActive)
+            {
+                return Ok(new { UserId = userId, Rank = 0, Status = "Active" });
+            }
 
-            if (isAllowed)
+            // 계속 대기열이라면 대기열 등수를 판단.
+            long? rank = await _queueService.GetRankAsync(userId);
+            if (rank.HasValue)
             {
-                return Ok(new { status = "Pass", message = "입장하세요! 구매 API를 호출할 수 있습니다." });
+                return Ok(new { UserId = userId, Rank = rank.Value, Status = "Waiting" });
             }
-            else
-            {
-                return Ok(new { status = "Wait", rank = rank, message = $"대기 중입니다. 현재 대기 순번: {rank}등" });
-            }
+
+            // 큐에도 없고, Active에도 없으면? (비정상 이탈)
+            return NotFound(new { Message = "대기열 정보가 없습니다. 다시 진입해주세요." });
+        }
+
+        // 토큰 검증 함수
+        private int GetUserIdFromToken()
+        {
+            string authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ")) return -1;
+
+            string jwtToken = authHeader.Substring(7);
+            return TokenManager.ValidateTokenAndGetUserId(jwtToken);
         }
     }
 }

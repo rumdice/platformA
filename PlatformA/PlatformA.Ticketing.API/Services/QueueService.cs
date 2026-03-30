@@ -1,53 +1,72 @@
-﻿using StackExchange.Redis;
+﻿using PlatformA.Library.Common;
+using PlatformA.Library.Core;
+using StackExchange.Redis;
 
 namespace PlatformA.Ticketing.API.Services
 {
+    /// <summary>
+    /// 게임 입장 대기열 위한 서비스
+    /// </summary>
     public class QueueService
     {
-        private readonly IDatabase _db;
-        private const string QUEUE_KEY = "queue:iu_concert"; // 대기열 키
-        private const int ALLOWED_SIZE = 50; // 한 번에 입장 가능한 인원 (창구 개수)
+        private readonly RedisManager _redisManager;
 
-        public QueueService(IConnectionMultiplexer redis)
+
+        public QueueService(RedisManager redisManager)
         {
-            _db = redis.GetDatabase();
+            _redisManager = redisManager;
         }
 
-        // 1. 대기열 등록 (줄 서기)
-        public async Task RegisterQueue(string userId)
+        /// <summary>
+        /// 대기열 진입(등록). 줄서기
+        /// </summary>
+        public async Task<bool> RegisterQueueAsync(int userId)
         {
-            var score = DateTime.UtcNow.Ticks; // 현재 시간을 점수로 사용 (먼저 온 사람이 1등)
-            await _db.SortedSetAddAsync(QUEUE_KEY, userId, score);
+            var db = _redisManager.Connection.GetDatabase();
+            // 현재 시간을 밀리초 단위 숫자로 변환 (이 숫자가 작을수록 먼저 온 사람)
+            double timestampScore = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            // ZADD: 유저를 큐에 넣음. (이미 큐에 있다면 기존 점수 유지)
+            bool isAdded = await db.SortedSetAddAsync(Consts.QUEUE_KEY, userId, timestampScore);
+
+            if (isAdded)
+            {
+                Console.WriteLine($"[대기열 진입] 유저 {userId} 등록 완료 (Score: {timestampScore})");
+            }
+            return isAdded;
         }
 
-        // 2. 내 순번 및 입장 가능 여부 확인
-        public async Task<(bool IsAllowed, long Rank)> GetStatus(string userId)
+
+        /// <summary>
+        /// 대기 순번 조회 (ZRANK) : 내 순번 및 입장 가능 여부 확인
+        /// </summary>
+        public async Task<long?> GetRankAsync(int userId)
         {
-            // 내 등수 확인 (0등부터 시작)
-            var rank = await _db.SortedSetRankAsync(QUEUE_KEY, userId);
+            var db = _redisManager.Connection.GetDatabase();
 
-            if (rank == null)
+            // ZRANK: Score가 가장 낮은(먼저 온) 사람부터 0번 인덱스를 부여
+            long? rankIndex = await db.SortedSetRankAsync(Consts.QUEUE_KEY, userId);
+
+            // 클라이언트에게 보여줄 때는 1등부터 보여주는 것이 자연스러우므로 +1 처리
+            if (rankIndex.HasValue)
             {
-                // 대기열에 없는 유저
-                return (false, -1);
+                return rankIndex.Value + 1;
             }
 
-            // 내 등수가 허용 인원(50명) 안에 드는지?
-            // 0 ~ 49등까지 입장 가능
-            if (rank < ALLOWED_SIZE)
-            {
-                return (true, rank.Value + 1); // 입장 가능!
-            }
-            else
-            {
-                return (false, rank.Value + 1); // 아직 대기 중
-            }
+            // 대기열에 없으면 null 반환
+            return null;
         }
 
-        // 3. 퇴장 (볼일 다 봄)
-        public async Task LeaveQueue(string userId)
+
+        /// <summary>
+        /// 입장 가능한 유저인지 판별
+        /// </summary>
+        public async Task<bool> IsActiveAsync(int userId)
         {
-            await _db.SortedSetRemoveAsync(QUEUE_KEY, userId);
+            var db = _redisManager.Connection.GetDatabase();
+
+            // 이 유저가 입장 가능(Active) 구역에 있는지 확인
+            return await db.SetContainsAsync("ticket:active:users", userId);
         }
     }
 }
