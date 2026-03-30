@@ -1,18 +1,27 @@
-﻿using System.Diagnostics;
+﻿using PlatformA.Library.Common;
+using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
 
     // 응답 DTO
-    class QueueResponse { 
-        public string Status { get; set; }
-        public long Rank { get; set; } 
+    class QueueResponse
+    {
+        public int UserId { get; set; }
+        public long Rank { get; set; }
+        public string Status { get; set; } // "Waiting" or "Active"
     }
 
+            
 
     public class TicketingScenario
     {
+
+        private const string TICKET_URL = "http://localhost:5282";
+        private const int USER_COUNT = 200; // 200명이 동시에 접속 시도
+
         public static async Task RunAsync()
         {
             Console.Clear();
@@ -21,29 +30,26 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 기존 Ticketing.Test 안의 Main 함수에 있던 
             // HttpClient 생성 및 200명 접속 루프 로직을 여기에 그대로 붙여넣습니다!
 
-            Console.WriteLine("=== 🚦 대기열(Netfunnel) 시스템 시뮬레이터 ===");
-
             // 0. 설정
-            string baseUrl = "http://localhost:5282"; // 포트번호 확인 (사용자 환경: 5282)
-            int totalUserCount = 200; // 접속할 유저 수 (티켓 100장 vs 유저 200명)
-            using var client = new HttpClient();
-            client.Timeout = TimeSpan.FromSeconds(300); // 대기 시간 길어질 수 있으므로 타임아웃 늘림
+            //using var client = new HttpClient();
+            //client.Timeout = TimeSpan.FromSeconds(300); // 대기 시간 길어질 수 있으므로 타임아웃 늘림
 
             // 1. 초기화 (티켓 100장 발행 + 대기열 초기화는 수동 혹은 API 필요)
             // (주의: Redis에서 'del ticket:queue:global'로 대기열을 한번 비우고 시작하는 게 좋습니다)
-            Console.WriteLine("🔄 서버 초기화 요청...");
-            await client.PostAsync($"{baseUrl}/api/tickets/reset?count=100", null);
-            Console.WriteLine("✅ 티켓 100장 세팅 완료.\n");
+            //Console.WriteLine("🔄 서버 초기화 요청...");
+            //await client.PostAsync($"{TICKET_URL}/api/tickets/reset?count=100", null);
+            //Console.WriteLine("✅ 티켓 100장 세팅 완료.\n");
 
-            Console.WriteLine($"🔥 {totalUserCount}명의 유저가 대기열 진입을 시도합니다...");
+            Console.WriteLine($"🔥 {USER_COUNT}명의 유저가 대기열 진입을 시도합니다...");
             var sw = Stopwatch.StartNew();
 
             var tasks = new List<Task<string>>();
 
-            for (int i = 0; i < totalUserCount; i++)
+            for (int i = 1; i < USER_COUNT + 1; i++)
             {
                 int userId = i; // 캡처
-                tasks.Add(Task.Run(() => SimulateUserFlow(userId, baseUrl)));
+                //tasks.Add(Task.Run(() => SimulateUserFlow(userId, TICKET_URL)));
+                tasks.Add(Task.Run(() => SimulateUserTicketFlow(userId, TICKET_URL)));
             }
 
             // 모든 유저의 시나리오가 끝날 때까지 대기
@@ -52,17 +58,73 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             // 결과 집계
             int successCount = results.Count(r => r == "SUCCESS");
-            int soldOutCount = results.Count(r => r == "SOLDOUT");
+            //int soldOutCount = results.Count(r => r == "SOLDOUT");
             int failCount = results.Count(r => r == "FAIL");
 
             Console.WriteLine($"\n--- 🏁 최종 결과 리포트 ({sw.Elapsed.TotalSeconds:F1}초) ---");
-            Console.WriteLine($"🎉 구매 성공: {successCount}명");
-            Console.WriteLine($"🎫 매진 퇴장: {soldOutCount}명");
+            Console.WriteLine($"🎉 구매 성공 (대기열 통과 완료): {successCount}명");
+            //Console.WriteLine($"🎫 매진 퇴장: {soldOutCount}명");
             Console.WriteLine($"❌ 에러/실패: {failCount}명");
 
 
             Console.WriteLine("테스트가 종료되었습니다. 엔터를 누르면 메뉴로 돌아갑니다.");
             Console.ReadLine();
+        }
+
+        // --- [개별 유저 시나리오 함수] ---
+        private static async Task<string> SimulateUserTicketFlow(int userId, string host)
+        {
+            using var myClient = new HttpClient();
+
+            try
+            {
+                // 🚀 1. 더미 유저용 JWT 토큰 즉석 발급! (PlatformA.Library 참조)
+                string jwtToken = TokenManager.GenerateJwtToken(userId);
+                myClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+
+                // 🚀 2. STEP 1: 대기열 진입
+                var enterRes = await myClient.PostAsync($"{host}/api/queue/enter", null);
+                if (!enterRes.IsSuccessStatusCode)
+                {
+                    string errorMsg = await enterRes.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[진입 실패] User_{userId} - Status: {enterRes.StatusCode}, Msg: {errorMsg}");
+                    return "FAIL";
+                }
+
+                // 🚀 3. STEP 2: 무한 대기 (Polling)
+                while (true)
+                {
+                    var statusRes = await myClient.GetAsync($"{host}/api/queue/status");
+                    if (!statusRes.IsSuccessStatusCode) return "FAIL";
+
+                    var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
+
+                    if (statusData != null && statusData.Status == "Active")
+                    {
+                        // 입장 허가! (문지기를 통과함)
+                        Console.WriteLine($"✅ [User_{userId:D3}] 입장 허가 획득! (대기열 통과)");
+                        break;
+                    }
+                    else
+                    {
+                        // 내 순번이 너무 많이 출력되면 콘솔이 터지므로, 10단위 유저만 로그를 찍어봅니다.
+                        if (userId % 10 == 0)
+                        {
+                            Console.WriteLine($"⏳ [User_{userId:D3}] 대기 중... (현재 내 앞에 {statusData?.Rank}명 대기)");
+                        }
+
+                        // 1초 뒤에 다시 물어보기 (실무에서는 3~5초 권장)
+                        await Task.Delay(1000);
+                    }
+                }
+
+                return "SUCCESS";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERR [User_{userId}]: {ex.Message}");
+                return "FAIL";
+            }
         }
 
 
