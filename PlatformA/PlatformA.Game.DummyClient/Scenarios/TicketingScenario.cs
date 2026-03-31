@@ -99,6 +99,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return "FAIL";
                 }
 
+                // 토큰 실어 보내기
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", realToken);
+
+
                 // 🚀 2. STEP 2: 대기열 진입
                 var enterRes = await client.PostAsync($"{host}/api/queue/enter", null);
                 if (!enterRes.IsSuccessStatusCode)

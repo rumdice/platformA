@@ -31,7 +31,8 @@ namespace PlatformA.Library.Common
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
+                    //ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.FromMinutes(5)
                 }, out SecurityToken validatedToken);
 
                 // 🚀 2. principal.FindFirst 를 사용하면 압축된 이름("nameid")을 원래 이름으로 알아서 매핑해 줍니다!

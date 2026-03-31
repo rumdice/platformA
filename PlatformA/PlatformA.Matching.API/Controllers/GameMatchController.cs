@@ -23,7 +23,7 @@ namespace PlatformA.Matching.API.Controllers
         {
             // 1. HTTP 헤더에서 Authorization: Bearer <token> 추출
             string authHeader = Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer"))
             {
                 return Unauthorized(new { Message = "토큰이 없습니다." });
             }

@@ -31,7 +31,7 @@ namespace PlatformA.Matching.API.Hubs
             {
                 // 먼저 HTTP 헤더에서 토큰을 찾기. (C# 더미 클라이언트용)
                 string authHeader = httpContext.Request.Headers["Authorization"].ToString();
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer"))
                 {
                     jwtToken = authHeader.Substring(7); // "Bearer " 이후의 순수 토큰만 추출
                 }

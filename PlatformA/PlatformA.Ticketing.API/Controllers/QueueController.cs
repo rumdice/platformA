@@ -24,6 +24,7 @@ namespace PlatformA.Ticketing.API.Controllers
             if (userId <= 0) 
                 return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
 
+
             // Redis ZSET에 유저 밀어넣기
             await _queueService.RegisterQueueAsync(userId);
 
@@ -64,9 +65,9 @@ namespace PlatformA.Ticketing.API.Controllers
         private int GetUserIdFromToken()
         {
             string authHeader = Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ")) return -1;
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer")) return -1;
 
-            string jwtToken = authHeader.Substring(7);
+            string jwtToken = authHeader.Substring(7).Trim();
             return TokenManager.ValidateTokenAndGetUserId(jwtToken);
         }
 
