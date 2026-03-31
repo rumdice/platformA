@@ -20,15 +20,24 @@ namespace PlatformA.Ticketing.API.Controllers
         [HttpPost("enter")]
         public async Task<IActionResult> EnterQueue()
         {
-            int userId = GetUserIdFromToken();
-            if (userId <= 0) 
-                return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
+            try
+            {
+                int userId = GetUserIdFromToken();
+                if (userId <= 0)
+                {
+                    Console.WriteLine($"UserID::::{userId}");
+                    return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
+                }
 
-
-            // Redis ZSET에 유저 밀어넣기
-            await _queueService.RegisterQueueAsync(userId);
-
-            return Ok($"대기열 등록 완료. UserId: {userId}");
+                // Redis ZSET에 유저 밀어넣기
+                await _queueService.RegisterQueueAsync(userId);
+                return Ok($"대기열 등록 완료. UserId: {userId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Ok($"대기열 등록 완료. UserId: is null");
+            }
         }
 
         // 2. 상태 확인 (폴링 - 클라이언트가 주기적으로 호출)
@@ -65,7 +74,11 @@ namespace PlatformA.Ticketing.API.Controllers
         private int GetUserIdFromToken()
         {
             string authHeader = Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer")) return -1;
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer")) 
+            {
+                Console.WriteLine($"authHeader-----{authHeader}");
+                return -1;
+            } 
 
             string jwtToken = authHeader.Substring(7).Trim();
             return TokenManager.ValidateTokenAndGetUserId(jwtToken);

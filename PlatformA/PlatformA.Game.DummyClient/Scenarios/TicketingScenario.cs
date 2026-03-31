@@ -22,7 +22,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
     {
 
         private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
-        private const string TICKET_URL = "http://localhost:5282";
+        private const string TICKET_URL = "https://localhost:7075";
+
         private const int USER_COUNT = 200; // 2500명이 동시에 접속 시도
 
         public static async Task RunAsync()
