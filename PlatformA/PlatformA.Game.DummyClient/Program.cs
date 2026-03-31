@@ -14,9 +14,10 @@ namespace PlatformA.Game.DummyClient
                 Console.WriteLine("    🚀 PlatformA Integrated Simulator");
                 Console.WriteLine("==================================================");
                 Console.WriteLine(" 1. 게임 서버 직접 접속 (Auth + TCP)");
-                Console.WriteLine(" 2. 대기열(Ticketing) 부하 테스트 (HTTP)");
+                Console.WriteLine(" 2. Auth 인증, 대기열, 인게임 서버 로그인");
                 Console.WriteLine(" 3. [예정] 매칭 서버 연동 테스트 (SignalR)");
-                Console.WriteLine(" 4. 종료");
+                Console.WriteLine(" 4. [예정]");
+                Console.WriteLine(" 5. 종료");
                 Console.WriteLine("==================================================");
                 Console.Write("원하는 테스트 모드의 번호를 입력하세요: ");
 
@@ -35,6 +36,10 @@ namespace PlatformA.Game.DummyClient
                         await Task.Delay(1000);
                         break;
                     case "4":
+                        Console.WriteLine("\n[안내] 아직 준비 중인 기능입니다.");
+                        await Task.Delay(1000);
+                        break;
+                    case "5":
                         return; // 프로그램 종료
                     default:
                         Console.WriteLine("\n[경고] 잘못된 입력입니다.");

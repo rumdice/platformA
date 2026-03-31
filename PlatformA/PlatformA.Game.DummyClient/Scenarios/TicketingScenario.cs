@@ -23,7 +23,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
         private const string TICKET_URL = "http://localhost:5282";
-        private const int USER_COUNT = 2500; // 2500명이 동시에 접속 시도
+        private const int USER_COUNT = 200; // 2500명이 동시에 접속 시도
 
         public static async Task RunAsync()
         {
@@ -135,6 +135,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         await Task.Delay(delay);
                     }
                 }
+
+                // 게임 서버 접속
+                Console.WriteLine($"✅ [User_{userId:D3}] 🚀 인게임 TCP 서버로 접속을 시도합니다!");
+
+                // 🚀 기존에 만들어두신 GameClientScenario의 TCP 연결 로직을 호출하되, jwtToken을 넘겨줍니다.
+                // (프로젝트 구조에 맞게 메서드 파라미터를 수정하세요)
+                await GameClientScenario.ConnectAndLoginAsync(userId, realToken); // TODO...
 
                 return "SUCCESS";
             }

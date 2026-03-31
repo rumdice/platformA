@@ -79,12 +79,12 @@ namespace PlatformA.Ticketing.API.Controllers
         private int CalculateSmartPollDelay(long rank)
         {
             // 등수에 따른 지연시간을 계산식으로 변환
-            if (rank > 1000) return 10000; // 1,000등 밖: 10초
-            if (rank > 500) return 5000;  // 500등 밖: 5초
-            if (rank > 100) return 3000;  // 100등 밖: 3초
+            if (rank > 100) return 10000; // 1,00등 밖: 10초
+            if (rank > 50) return 5000;  // 50등 밖: 5초
+            if (rank > 10) return 3000;  // 10등 밖: 3초
 
-            // 100등 안: 1초
-            return Math.Max(1000, (int)(10000 / Math.Sqrt(rank + 1)));
+            // 10등 안 1초
+            return Math.Max(10, (int)(1000 / Math.Sqrt(rank + 1)));
         }
     }
 }

@@ -52,8 +52,8 @@ namespace PlatformA.Game.Server
             RedisManager.Instance.Init("127.0.0.1:6379");
 
             // 🚀 서버 시작 시 기본 1번 방 생성
-            //PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom();
-            //Console.WriteLine("[RoomManager] 기본 1번 방(Lobby) 생성 완료.");
+            PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom(1);
+            Console.WriteLine("[RoomManager] 기본 1번 방(Lobby) 생성 완료.");
 
             // 🚀 3. Redis 이벤트 구독 (이벤트 주도 아키텍처)
             // 라이브러리에서 매칭 성공 이벤트가 터지면, 서버의 GameRoomManager가 방을 만듭니다!
