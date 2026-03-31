@@ -298,9 +298,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             try
             {
                 await client.ConnectAsync("127.0.0.1", 7777);
-                Console.WriteLine("게임 서버 접속 성공!\n");
-                Console.WriteLine($"✅ [User_{userId:D3}] 게임 서버 접속 성공!\n");
-
+                
                 _ = ReceiveLoopAsync(client);
 
                 // JWT 토큰으로 C_Login 패킷 전송 (게임 서버가 TokenManager로 검증)
@@ -309,7 +307,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 // *나중에는 C_Login 패킷에 roomId도 같이 담아 보내서 해당 방에 들어가게 해야 합니다!*
                 await Task.Delay(500);
 
-                Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");
+                Console.WriteLine($"[UserID : {userId}] 게임 서버 접속 성공 엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다. q로 종료");
                 Random rand = new Random();
 
                 while (true)
