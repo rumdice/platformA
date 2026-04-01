@@ -28,12 +28,23 @@ namespace PlatformA.Ticketing.API.Workers
             {
                 try
                 {
-                    // 1. 대기열(ZSET)에 사람이 있는지 확인
-                    long queueLength = await db.SortedSetLengthAsync(Consts.QUEUE_KEY);
+                    // 🚀 1. 유령 유저 청소 (60초 이상 통신이 끊긴 유저)
+                    double cutoffTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 60000;
+                    var ghostUsers = await db.SortedSetRangeByScoreAsync("ticket:queue:heartbeats", double.NegativeInfinity, cutoffTime);
 
+                    if (ghostUsers.Length > 0)
+                    {
+                        // 실제 큐와 하트비트 큐에서 동시 삭제
+                        await db.SortedSetRemoveAsync(Consts.QUEUE_KEY, ghostUsers);
+                        await db.SortedSetRemoveRangeByScoreAsync("ticket:queue:heartbeats", double.NegativeInfinity, cutoffTime);
+                        Console.WriteLine($"🧹 [청소 완료] 접속 끊긴 유령 유저 {ghostUsers.Length}명 강제 퇴출!");
+                    }
+
+                    // 2. 대기열(ZSET)에 사람이 있는지 확인
+                    long queueLength = await db.SortedSetLengthAsync(Consts.QUEUE_KEY);
                     if (queueLength > 0)
                     {
-                        // 2. ZPOPMIN: 줄의 맨 앞(가장 점수가 낮은)에서 N명을 뽑아(Pop)냅니다!
+                        // ZPOPMIN: 줄의 맨 앞(가장 점수가 낮은)에서 N명을 뽑아(Pop)냅니다!
                         // 뽑아냄과 동시에 ZSET에서는 삭제됩니다.
                         var poppedUsers = await db.SortedSetPopAsync(Consts.QUEUE_KEY, USERS_PER_SECOND);
 
@@ -47,6 +58,9 @@ namespace PlatformA.Ticketing.API.Workers
                             Console.WriteLine($"[입장 허용 🟢] 유저 {userId}님이 대기열을 통과했습니다!");
                         }
                     }
+
+                    // 🚀 3. [핵심 버그 수정] 이 딜레이가 없으면 초당 50명이 아니라 초당 수만 명이 통과됩니다!
+                    await Task.Delay(1000, stoppingToken);
                 }
                 catch (Exception ex)
                 {

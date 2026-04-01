@@ -29,6 +29,9 @@ namespace PlatformA.Ticketing.API.Controllers
                     return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
                 }
 
+                // 클라이언트가 상태를 물어볼 때마다 생존(Heartbeat) 갱신!
+                await _queueService.UpdateHeartbeatAsync(userId);
+
                 // Redis ZSET에 유저 밀어넣기
                 await _queueService.RegisterQueueAsync(userId);
                 return Ok($"대기열 등록 완료. UserId: {userId}");

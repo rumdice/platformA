@@ -68,5 +68,16 @@ namespace PlatformA.Ticketing.API.Services
             // 이 유저가 입장 가능(Active) 구역에 있는지 확인
             return await db.SetContainsAsync("ticket:active:users", userId);
         }
+
+
+        public async Task UpdateHeartbeatAsync(int userId)
+        {
+            var db = _redisManager.Connection.GetDatabase();
+            // 현재 시간을 밀리초로 저장
+            double currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            // 하트비트 전용 ZSET에 생존 시간 갱신
+            await db.SortedSetAddAsync("ticket:queue:heartbeats", userId, currentTimestamp);
+        }
     }
 }
