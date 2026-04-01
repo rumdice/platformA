@@ -14,8 +14,8 @@ namespace PlatformA.Game.DummyClient
                 Console.WriteLine("    🚀 PlatformA Integrated Simulator");
                 Console.WriteLine("==================================================");
                 Console.WriteLine(" 1. 게임 서버 직접 접속 (Auth + TCP)");
-                Console.WriteLine(" 2. Auth 인증, 대기열, 인게임 서버 로그인");
-                Console.WriteLine(" 3. [예정] 매칭 서버 연동 테스트 (SignalR)");
+                Console.WriteLine(" 2. Auth 인증, 대기열, 인게임 서버 로그인. 200유저 부하 테스트");
+                Console.WriteLine(" 3. Auth 인증, 대기열, 인게임 서버 로그인 후 매칭. 한명 유저");
                 Console.WriteLine(" 4. [예정]");
                 Console.WriteLine(" 5. 종료");
                 Console.WriteLine("==================================================");
@@ -32,8 +32,7 @@ namespace PlatformA.Game.DummyClient
                         await TicketingScenario.RunAsync();
                         break;
                     case "3":
-                        Console.WriteLine("\n[안내] 아직 준비 중인 기능입니다.");
-                        await Task.Delay(1000);
+                        await MatchingScenario.RunAsync();
                         break;
                     case "4":
                         Console.WriteLine("\n[안내] 아직 준비 중인 기능입니다.");
