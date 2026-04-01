@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using PlatformA.Library.Common;
+using PlatformA.Ticketing.API.Filters;
 using PlatformA.Ticketing.API.Services;
 
 namespace PlatformA.Ticketing.API.Controllers
@@ -18,7 +18,7 @@ namespace PlatformA.Ticketing.API.Controllers
 
         // 1. 대기열 진입 (번호표 발급)
         // POST /api/queue/enter?userId=user1
-        [EnableRateLimiting("queue")]
+        [RedisRateLimit("queue")]
         [HttpPost("enter")]
         public async Task<IActionResult> EnterQueue()
         {
@@ -34,7 +34,7 @@ namespace PlatformA.Ticketing.API.Controllers
                 // 클라이언트가 상태를 물어볼 때마다 생존(Heartbeat) 갱신!
                 await _queueService.UpdateHeartbeatAsync(userId);
 
-                // Redis ZSET에 유저 밀어넣기
+                // Redis ZSET에 유저 밀어넣기 (내부적으로 원자적 검사+삽입)
                 var res = await _queueService.RegisterQueueAsync(userId);
                 if (res == false)
                 {
@@ -52,12 +52,12 @@ namespace PlatformA.Ticketing.API.Controllers
 
         // 2. 상태 확인 (폴링 - 클라이언트가 주기적으로 호출)
         // GET /api/queue/status?userId=user1
-        [EnableRateLimiting("queue")]
+        [RedisRateLimit("queue")]
         [HttpGet("status")]
         public async Task<IActionResult> GetStatus()
         {
             int userId = GetUserIdFromToken();
-            if (userId <= 0) 
+            if (userId <= 0)
                 return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
 
             // 대기열에서 입장가능한 상태인지 판단.
@@ -85,11 +85,11 @@ namespace PlatformA.Ticketing.API.Controllers
         private int GetUserIdFromToken()
         {
             string authHeader = Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer")) 
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer"))
             {
                 Console.WriteLine($"authHeader-----{authHeader}");
                 return -1;
-            } 
+            }
 
             string jwtToken = authHeader.Substring(7).Trim();
             return TokenManager.ValidateTokenAndGetUserId(jwtToken);
@@ -99,8 +99,6 @@ namespace PlatformA.Ticketing.API.Controllers
         /// <summary>
         /// 스마트 풀링 계산.
         /// </summary>
-        /// <param name="rank"></param>
-        /// <returns></returns>
         private int CalculateSmartPollDelay(long rank)
         {
             // 등수에 따른 지연시간을 계산식으로 변환

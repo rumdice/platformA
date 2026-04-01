@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
+using PlatformA.Auth.API.Filters;
 using PlatformA.Auth.API.Models;
 using PlatformA.Library.Common;
 
@@ -14,8 +14,8 @@ namespace PlatformA.Auth.API.Controllers
         /// <summary>
         /// POST 요청: /api/auth/login (더미 계정 검증 + playerId 자동 증가)
         /// </summary>
-        
-        [EnableRateLimiting("login")]
+
+        [RedisRateLimit("login")]
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {

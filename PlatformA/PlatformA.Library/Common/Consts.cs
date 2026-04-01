@@ -11,8 +11,15 @@ namespace PlatformA.Library.Common
         public const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
         
         public const string QUEUE_KEY = "ticket:queue:global";
-        public const string ACTIVE_KEY = "ticket:active:users"; // 입장 허용된 유저들이 모일 곳
+        public const string ACTIVE_KEY = "ticket:active:users"; // @Deprecated: 개별 키 방식(ACTIVE_USER_KEY_PREFIX)으로 전환됨
+
+        // Active 유저를 개별 키로 관리 (TTL 자동 만료 지원)
+        // 사용법: $"{ACTIVE_USER_KEY_PREFIX}{userId}"
+        public const string ACTIVE_USER_KEY_PREFIX = "ticket:active:user:";
 
         public const int WAIT_QUEUE_MAX_SIZE = 10000; // 대기열 최대 사이즈 (실무에서는 이 값도 DB 부하량에 따라 동적으로 바뀌어야 합니다.)
+
+        // Active 유저 입장권 만료 시간: 이 시간 안에 게임 서버에 접속하지 않으면 입장권이 소멸됩니다.
+        public const int ACTIVE_USER_TTL_SECONDS = 300; // 5분
     }
 }
