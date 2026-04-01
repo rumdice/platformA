@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PlatformA.Library.Common;
 using PlatformA.Ticketing.API.Services;
 
@@ -17,6 +18,7 @@ namespace PlatformA.Ticketing.API.Controllers
 
         // 1. 대기열 진입 (번호표 발급)
         // POST /api/queue/enter?userId=user1
+        [EnableRateLimiting("queue")]
         [HttpPost("enter")]
         public async Task<IActionResult> EnterQueue()
         {
@@ -33,7 +35,12 @@ namespace PlatformA.Ticketing.API.Controllers
                 await _queueService.UpdateHeartbeatAsync(userId);
 
                 // Redis ZSET에 유저 밀어넣기
-                await _queueService.RegisterQueueAsync(userId);
+                var res = await _queueService.RegisterQueueAsync(userId);
+                if (res == false)
+                {
+                    return BadRequest(new { Message = "대기열 큐가 오버했다." });
+                }
+
                 return Ok($"대기열 등록 완료. UserId: {userId}");
             }
             catch (Exception ex)
@@ -45,6 +52,7 @@ namespace PlatformA.Ticketing.API.Controllers
 
         // 2. 상태 확인 (폴링 - 클라이언트가 주기적으로 호출)
         // GET /api/queue/status?userId=user1
+        [EnableRateLimiting("queue")]
         [HttpGet("status")]
         public async Task<IActionResult> GetStatus()
         {

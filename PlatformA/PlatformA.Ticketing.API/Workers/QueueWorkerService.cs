@@ -1,4 +1,4 @@
-﻿
+
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using StackExchange.Redis;
@@ -30,15 +30,33 @@ namespace PlatformA.Ticketing.API.Workers
                 {
                     // 🚀 1. 유령 유저 청소 (60초 이상 통신이 끊긴 유저)
                     double cutoffTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 60000;
-                    var ghostUsers = await db.SortedSetRangeByScoreAsync("ticket:queue:heartbeats", double.NegativeInfinity, cutoffTime);
 
-                    if (ghostUsers.Length > 0)
-                    {
-                        // 실제 큐와 하트비트 큐에서 동시 삭제
-                        await db.SortedSetRemoveAsync(Consts.QUEUE_KEY, ghostUsers);
-                        await db.SortedSetRemoveRangeByScoreAsync("ticket:queue:heartbeats", double.NegativeInfinity, cutoffTime);
-                        Console.WriteLine($"🧹 [청소 완료] 접속 끊긴 유령 유저 {ghostUsers.Length}명 강제 퇴출!");
-                    }
+                    // 실제 큐와 하트비트 큐에서 동시 삭제
+                    var ghostCleanupScript = @"
+                              -- cutoffTime 이하의 ghost 목록 조회
+                              local ghosts = redis.call('ZRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
+                              if #ghosts == 0 then return 0 end
+
+                              -- 대기열(QUEUE_KEY)에서 제거
+                              for _, ghost in ipairs(ghosts) do
+                                  redis.call('ZREM', KEYS[2], ghost)
+                              end
+
+                              -- heartbeat ZSET에서 제거
+                              redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
+
+                              return #ghosts
+                          ";
+
+                    var removed = (int)await db.ScriptEvaluateAsync(
+                        ghostCleanupScript,
+                        new RedisKey[] { "ticket:queue:heartbeats", Consts.QUEUE_KEY },
+                        new RedisValue[] { cutoffTime }
+                    );
+
+                    if (removed > 0)
+                        Console.WriteLine($"🧹 [청소 완료] 유령 유저 {removed}명 강제 퇴출!");
+
 
                     // 2. 대기열(ZSET)에 사람이 있는지 확인
                     long queueLength = await db.SortedSetLengthAsync(Consts.QUEUE_KEY);

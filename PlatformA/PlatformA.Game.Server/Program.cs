@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Core;
@@ -72,8 +72,8 @@ namespace PlatformA.Game.Server
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
             listener.Bind(endPoint);
 
-            // 3. 리슨 시작 (Backlog: 대기열 100개)
-            listener.Listen(100);
+            // 3. 리슨 시작 (Backlog: 대기열 1000개)
+            listener.Listen(1000);
 
             Console.WriteLine($"[Server] Listening on {endPoint}...");
 

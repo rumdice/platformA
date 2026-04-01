@@ -1,4 +1,4 @@
-﻿using PlatformA.Library.Common;
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using StackExchange.Redis;
 
@@ -26,13 +26,22 @@ namespace PlatformA.Ticketing.API.Services
             // 현재 시간을 밀리초 단위 숫자로 변환 (이 숫자가 작을수록 먼저 온 사람)
             double timestampScore = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
+            // 입장전 대기열 큐 맥스 사이즈 측정
+            long waitQueueLength = await db.SortedSetLengthAsync(Consts.QUEUE_KEY);
+            if (waitQueueLength >= Consts.WAIT_QUEUE_MAX_SIZE)
+            {
+                return false;
+            }
+
             // ZADD: 유저를 큐에 넣음. (이미 큐에 있다면 기존 점수 유지)
             bool isAdded = await db.SortedSetAddAsync(Consts.QUEUE_KEY, userId, timestampScore);
-
             if (isAdded)
             {
                 Console.WriteLine($"[대기열 진입] 유저 {userId} 등록 완료 (Score: {timestampScore})");
+                return isAdded;
             }
+
+            
             return isAdded;
         }
 
