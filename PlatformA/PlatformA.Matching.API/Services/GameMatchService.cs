@@ -2,7 +2,6 @@
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
-using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace PlatformA.Matching.API.Services
@@ -12,7 +11,7 @@ namespace PlatformA.Matching.API.Services
     /// </summary>
     public class GameMatchService : BackgroundService
     {
-        private static int _globalRoomIdCounter = 100; // 발급할 방 번호 (100번부터 시작)
+        //private static int _globalRoomIdCounter = 100; // 발급할 방 번호 (100번부터 시작)
 
         private readonly IHubContext<MatchingHub> _hubContext;
         private readonly RedisManager _redisManager;
@@ -73,6 +72,11 @@ namespace PlatformA.Matching.API.Services
                             await Task.Delay(1000, stoppingToken);
                         }
                     }
+                    else
+                    {
+                        // 대기자가 부족하면 DB 부하를 막기 위해 1초 대기 (Polling 간격)
+                        await Task.Delay(1000, stoppingToken);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -80,9 +84,6 @@ namespace PlatformA.Matching.API.Services
                     await Task.Delay(2000, stoppingToken);
                 }
             }
-
-
-            throw new NotImplementedException();
         }
 
 
@@ -91,8 +92,15 @@ namespace PlatformA.Matching.API.Services
         /// </summary>
         private async Task ProcessMatchingAsync(int player1Id, int player2Id)
         {
-            // 1. 방 번호 발급 (렌덤 숫자), TODO: Redis INCR 로 발급하여. 스레드 동시성 확보.
-            int newRoomId = new Random().Next(10000, 99999);
+            // 1. 방 번호 발급 (Redis INCR 사용, 1번 방 제외)
+            var db = _redisManager.Connection.GetDatabase();
+            int newRoomId = (int)await db.StringIncrementAsync("global:room_id");
+
+            // 1번 방은 광장으로 사용하므로 건너뜀
+            if (newRoomId == 1)
+            {
+                newRoomId = (int)await db.StringIncrementAsync("global:room_id");
+            }
 
             Console.WriteLine($"[매칭 성사!] 방({newRoomId}) : 유저 {player1Id} vs 유저 {player2Id}");
 
@@ -104,7 +112,7 @@ namespace PlatformA.Matching.API.Services
 
             // 메시지 생성.
             string jsonMessage = JsonSerializer.Serialize(matchEvent);
-            
+
             // 2. Redis로 게임 서버에 방 생성 명령 발송 : channel:match_success
             await _redisManager.GetSubscriber().PublishAsync("channel:match_success", jsonMessage);
 

@@ -68,8 +68,6 @@ namespace PlatformA.Ticketing.API.Workers
                     await Task.Delay(2000, stoppingToken);
                 }
             }
-
-            throw new NotImplementedException();
         }
     }
 }

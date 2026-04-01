@@ -86,53 +86,66 @@ namespace PlatformA.Game.DummyClient.Scenarios
         {
             HubConnection matchHub = null;
 
-            while (true)
+            try
             {
-                Console.WriteLine("--------------------------------------------------");
-                Console.WriteLine(" [행동 선택] 'm': 매칭 큐 등록 | 'q': 게임 종료");
-                Console.WriteLine("--------------------------------------------------");
-                string input = Console.ReadLine()?.ToLower();
-
-                if (input == "q")
+                while (true)
                 {
-                    Console.WriteLine("게임을 종료합니다.");
-                    break;
-                }
-                else if (input == "m")
-                {
-                    Console.WriteLine("\n⚔️ 매칭 서버(SignalR)에 연결 중...");
+                    Console.WriteLine("--------------------------------------------------");
+                    Console.WriteLine(" [행동 선택] 'm': 매칭 큐 등록 | 'q': 게임 종료");
+                    Console.WriteLine("--------------------------------------------------");
+                    string input = Console.ReadLine()?.ToLower();
 
-                    // 매칭 Hub 연결 (아직 안 되어 있다면)
-                    if (matchHub == null || matchHub.State == HubConnectionState.Disconnected)
+                    if (input == "q")
                     {
-                        matchHub = new HubConnectionBuilder()
-                            .WithUrl(MATCH_HUB_URL, options => { options.AccessTokenProvider = () => Task.FromResult(jwtToken); })
-                            .Build();
+                        Console.WriteLine("게임을 종료합니다.");
+                        break;
+                    }
+                    else if (input == "m")
+                    {
+                        Console.WriteLine("\n⚔️ 매칭 서버(SignalR)에 연결 중...");
 
-                        // 🎉 매칭 성공 이벤트 등록
-                        matchHub.On<MatchSuccessEvent>("MatchFound", (matchInfo) =>
+                        // 매칭 Hub 연결 (아직 안 되어 있다면)
+                        if (matchHub == null || matchHub.State == HubConnectionState.Disconnected)
                         {
-                            Console.WriteLine($"\n🔥🔥 [매칭 성사!] 🔥🔥");
-                            Console.WriteLine($"👉 배정받은 투기장(방) 번호: {matchInfo.RoomId}");
-                            Console.WriteLine($"👉 함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}\n");
-                            // TODO: 나중에는 여기서 새로운 TCP 패킷(C_EnterRoom)을 쏴서 실제 방을 이동해야 합니다!
-                        });
+                            matchHub = new HubConnectionBuilder()
+                                .WithUrl(MATCH_HUB_URL, options => { options.AccessTokenProvider = () => Task.FromResult(jwtToken); })
+                                .Build();
 
-                        await matchHub.StartAsync();
-                    }
+                            // 🎉 매칭 성공 이벤트 등록
+                            matchHub.On<MatchSuccessEvent>("MatchFound", (matchInfo) =>
+                            {
+                                Console.WriteLine($"\n🔥🔥 [매칭 성사!] 🔥🔥");
+                                Console.WriteLine($"👉 배정받은 투기장(방) 번호: {matchInfo.RoomId}");
+                                Console.WriteLine($"👉 함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}\n");
+                                // TODO: 나중에는 여기서 새로운 TCP 패킷(C_EnterRoom)을 쏴서 실제 방을 이동해야 합니다!
+                            });
 
-                    // HTTP API로 매칭 큐 등록 요청
-                    var matchRes = await httpClient.PostAsync(MATCH_API_URL, null);
-                    if (matchRes.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine("⏳ 매칭 큐에 등록되었습니다! 다른 유저를 기다립니다...\n");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"🚨 매칭 요청 실패: {matchRes.StatusCode}");
+                            await matchHub.StartAsync();
+                        }
+
+                        // HTTP API로 매칭 큐 등록 요청
+                        var matchRes = await httpClient.PostAsync(MATCH_API_URL, null);
+                        if (matchRes.IsSuccessStatusCode)
+                        {
+                            Console.WriteLine("⏳ 매칭 큐에 등록되었습니다! 다른 유저를 기다립니다...\n");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"🚨 매칭 요청 실패: {matchRes.StatusCode}");
+                        }
                     }
                 }
             }
+            finally
+            {
+                if (matchHub != null)
+                {
+                    await matchHub.StopAsync();
+                    await matchHub.DisposeAsync();
+                    Console.WriteLine("매칭 허브 연결이 종료되었습니다.");
+                }
+            }
+            
         }
 
         // --- 아래는 기존에 쓰시던 헬퍼 함수들을 그대로 가져옵니다 ---

@@ -39,7 +39,7 @@ namespace PlatformA.Ticketing.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return Ok($"대기열 등록 완료. UserId: is null");
+                return BadRequest(ex.Message);
             }
         }
 

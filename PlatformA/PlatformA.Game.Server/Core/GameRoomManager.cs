@@ -1,10 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 
 namespace PlatformA.Game.Server.Core
 {
@@ -15,14 +9,14 @@ namespace PlatformA.Game.Server.Core
 
     
         // 🚨 [주의] 여러 유저가 동시에 방에 입/퇴장 함. 반드시 동시성 제어(Lock)가 필요합니다!
-        private object _lock = new object();
+        //private object _lock = new object();
         // 기존 방 관리
         //private Dictionary<int, GameRoom> _rooms = new Dictionary<int, GameRoom>();
 
         // 🚀 방 번호(int)를 키로 사용하여 여러 방을 안전하게 관리하는 스레드 세이프 딕셔너리
         private ConcurrentDictionary<int, GameRoom> _rooms = new ConcurrentDictionary<int, GameRoom>();
 
-        private int _roomIdGenerator = 1; // 방 번호 발급기
+        //private int _roomIdGenerator = 1; // 방 번호 발급기
 
 
         // 1. 새로운 방 생성

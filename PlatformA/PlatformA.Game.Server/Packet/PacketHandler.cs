@@ -88,9 +88,8 @@ namespace PlatformA.Game.Server.Packet
             {
                 // 🚀 1. 대기열(Active) 문지기 검증 (새치기 완벽 차단)
                 var db = RedisManager.Instance.Connection.GetDatabase();
-                string ACTIVE_KEY = "ticket:active:users"; // 워커에서 설정한 키와 동일해야 합니다.
 
-                bool isActive = await db.SetContainsAsync(ACTIVE_KEY, playerId);
+                bool isActive = await db.SetContainsAsync(Consts.ACTIVE_KEY, playerId);
                 if (!isActive)
                 {
                     Console.WriteLine($"🚨 [보안 경고] 대기열을 거치지 않은 불법 접속 시도! (User_{playerId})");
@@ -99,7 +98,7 @@ namespace PlatformA.Game.Server.Packet
                 }
 
                 // 🚀 2. 입장권 회수 (티켓 찢기 - 재사용 방지)
-                await db.SetRemoveAsync(ACTIVE_KEY, playerId);
+                await db.SetRemoveAsync(Consts.ACTIVE_KEY, playerId);
                 Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
 
                 // 🚀 3. Redis 분산 락 획득 시도 (중복 로그인 방어)
