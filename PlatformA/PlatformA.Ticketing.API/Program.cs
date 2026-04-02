@@ -1,26 +1,27 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
 using PlatformA.Ticketing.API.Services;
 using PlatformA.Ticketing.API.Workers;
-using RedLockNet.SERedis;
-using RedLockNet.SERedis.Configuration;
-using StackExchange.Redis;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ── Logging ───────────────────────────────────────────────────
+builder.Logging.ClearProviders();
+builder.Logging.AddLog4Net("log4net.config");
 
-// Redis 공용 서비스 연결
-builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
-
-// redis 연결
+// ── Services ──────────────────────────────────────────────────
+// Redis 연결
 RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
+builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
 
 // 대기열 서비스 등록
 builder.Services.AddSingleton<QueueService>();
 
-// 대기열 서비스 워커 등록
+// 대기열 워커 등록
 builder.Services.AddSingleton<QueueWorkerService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<QueueWorkerService>());
 
@@ -28,19 +29,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Redis 기반 분산 Rate Limiter 등록
-// ASP.NET Core 내장 RateLimiter(인스턴스별 메모리)를 대체합니다.
+// Redis 기반 분산 Rate Limiter
 builder.Services.AddSingleton<RedisRateLimiterService>(sp =>
 {
     var svc = new RedisRateLimiterService(RedisManager.Instance);
-    // 대기열 API: IP당 1초에 5번
     svc.AddPolicy("queue", permitLimit: 5, window: TimeSpan.FromSeconds(1));
     return svc;
 });
 
+// ── Health Checks ─────────────────────────────────────────────
+builder.Services.AddHealthChecks()
+    .AddRedis(
+        Consts.REDIS_CONNECTION_STRING,
+        name: "redis",
+        tags: ["readiness"]);
+
+// ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -48,9 +54,37 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/readyz", new HealthCheckOptions
+{
+    Predicate = h => h.Tags.Contains("readiness"),
+    ResponseWriter = WriteJsonResponse
+});
+
 app.Run();
+
+static Task WriteJsonResponse(HttpContext ctx, HealthReport report)
+{
+    ctx.Response.ContentType = "application/json; charset=utf-8";
+    var result = JsonSerializer.Serialize(new
+    {
+        status = report.Status.ToString(),
+        duration = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.ToDictionary(
+            e => e.Key,
+            e => new
+            {
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds
+            })
+    }, new JsonSerializerOptions { WriteIndented = true });
+    return ctx.Response.WriteAsync(result);
+}

@@ -1,65 +1,96 @@
-﻿using PlatformA.Library.Common;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.Matching.API.Services;
-
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Logging ───────────────────────────────────────────────────
+builder.Logging.ClearProviders();
+builder.Logging.AddLog4Net("log4net.config");
+
+// ── Services ──────────────────────────────────────────────────
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer(); // Swagger용
-builder.Services.AddSwaggerGen();           // Swagger용
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
-
-// redis 연결
 RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
-
 
 builder.Services.AddSignalR();
 
-// 주식 매도 매수 매칭 엔진 등록
 builder.Services.AddSingleton<EngineService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EngineService>());
 
-// 게임 매칭 엔진 등록
 builder.Services.AddSingleton<GameMatchService>();
-builder.Services.AddHostedService(provider => provider.GetRequiredService<GameMatchService>()); // 백그라운드 워커 등록
+builder.Services.AddHostedService(provider => provider.GetRequiredService<GameMatchService>());
 
-// CORS 정책 정의 (문 열어주기)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLevel1", policy =>
     {
         policy.WithOrigins(
-                "http://127.0.0.1:5500", // VS Code Live Server 주소 (보통 이거)
-                "http://localhost:5500", // 혹시 이걸로 뜰 수도 있음
-                "http://localhost:8080"  // 다른 포트라면 그것도 추가
-               )
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://localhost:8080")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // SignalR은 이게 필수입니다! (쿠키/인증 정보)
+              .AllowCredentials();
     });
 });
 
+// ── Health Checks ─────────────────────────────────────────────
+builder.Services.AddHealthChecks()
+    .AddRedis(
+        Consts.REDIS_CONNECTION_STRING,
+        name: "redis",
+        tags: ["readiness"]);
+
+// ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
-// Swagger 설정 (개발 환경에서만)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// CORS 정책 적용 (순서 중요! UseRouting과 UseEndpoints 사이, 보통 맨 위쪽)
 app.UseCors("AllowLevel1");
-
-// 정적 파일(HTML) 허용
 app.UseStaticFiles();
-
 app.MapControllers();
-
-// Hub 주소 연결
 app.MapHub<MatchingHub>("/hubs/matching");
 
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/readyz", new HealthCheckOptions
+{
+    Predicate = h => h.Tags.Contains("readiness"),
+    ResponseWriter = WriteJsonResponse
+});
+
 app.Run();
+
+static Task WriteJsonResponse(HttpContext ctx, HealthReport report)
+{
+    ctx.Response.ContentType = "application/json; charset=utf-8";
+    var result = JsonSerializer.Serialize(new
+    {
+        status = report.Status.ToString(),
+        duration = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.ToDictionary(
+            e => e.Key,
+            e => new
+            {
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds
+            })
+    }, new JsonSerializerOptions { WriteIndented = true });
+    return ctx.Response.WriteAsync(result);
+}

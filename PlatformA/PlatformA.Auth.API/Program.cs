@@ -1,13 +1,23 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using PlatformA.Auth.API.HealthChecks;
 using PlatformA.Auth.API.Services;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
 using PlatformA.MySqlDB.Lib.DBWebApp;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ── Logging ──────────────────────────────────────────────────
+// 기본 콘솔 프로바이더를 제거하고 log4net으로 단일화합니다.
+// 로그는 logs/{date}.log 파일에도 함께 기록됩니다.
+builder.Logging.ClearProviders();
+builder.Logging.AddLog4Net("log4net.config");
+
+// ── Services ─────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -32,16 +42,27 @@ builder.Services.AddSingleton<RefreshTokenService>();
 // DB 기반 플레이어 인증 서비스
 builder.Services.AddScoped<PlayerService>();
 
-// Redis 기반 분산 Rate Limiter 등록
-// ASP.NET Core 내장 RateLimiter(인스턴스별 메모리)를 대체합니다.
+// Redis 기반 분산 Rate Limiter
 builder.Services.AddSingleton<RedisRateLimiterService>(sp =>
 {
     var svc = new RedisRateLimiterService(RedisManager.Instance);
-    // 로그인: IP당 1분에 10번
     svc.AddPolicy("login", permitLimit: 10, window: TimeSpan.FromMinutes(1));
     return svc;
 });
 
+// ── Health Checks ─────────────────────────────────────────────
+// /healthz  : Liveness  — 프로세스가 살아있는지 (외부 의존성 체크 없음)
+// /readyz   : Readiness — Redis + MariaDB 연결 가능한지 (트래픽 수용 가능 여부)
+builder.Services.AddHealthChecks()
+    .AddRedis(
+        Consts.REDIS_CONNECTION_STRING,
+        name: "redis",
+        tags: ["readiness"])
+    .AddCheck<DbWebAppHealthCheck>(
+        "mysql-webapp",
+        tags: ["readiness"]);
+
+// ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
 // DB 자동 마이그레이션 (개발 편의용 — 운영에서는 스크립트로 직접 적용)
@@ -51,7 +72,6 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -59,9 +79,40 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
+// Liveness: 외부 의존성 없이 프로세스 생존만 확인
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    Predicate = _ => false // 모든 체크 제외 → 항상 200 Healthy
+});
+
+// Readiness: Redis + DB 연결 상태 포함한 JSON 응답
+app.MapHealthChecks("/readyz", new HealthCheckOptions
+{
+    Predicate = h => h.Tags.Contains("readiness"),
+    ResponseWriter = WriteJsonResponse
+});
+
 app.Run();
+
+// ── Health Check JSON 응답 포맷 ───────────────────────────────
+static Task WriteJsonResponse(HttpContext ctx, HealthReport report)
+{
+    ctx.Response.ContentType = "application/json; charset=utf-8";
+    var result = JsonSerializer.Serialize(new
+    {
+        status = report.Status.ToString(),
+        duration = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.ToDictionary(
+            e => e.Key,
+            e => new
+            {
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds
+            })
+    }, new JsonSerializerOptions { WriteIndented = true });
+    return ctx.Response.WriteAsync(result);
+}

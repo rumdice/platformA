@@ -7,10 +7,14 @@ namespace PlatformA.Auth.API.Services
     public class PlayerService
     {
         private readonly IDbContextFactory<DbWebAppContext> _contextFactory;
+        private readonly ILogger<PlayerService> _logger;
 
-        public PlayerService(IDbContextFactory<DbWebAppContext> contextFactory)
+        public PlayerService(
+            IDbContextFactory<DbWebAppContext> contextFactory,
+            ILogger<PlayerService> logger)
         {
             _contextFactory = contextFactory;
+            _logger = logger;
         }
 
         /// <summary>
@@ -27,7 +31,6 @@ namespace PlatformA.Auth.API.Services
 
             if (player == null)
             {
-                // 신규 유저 자동 등록
                 var newPlayer = new Player
                 {
                     Username = username,
@@ -36,13 +39,20 @@ namespace PlatformA.Auth.API.Services
                 };
                 db.Players.Add(newPlayer);
                 await db.SaveChangesAsync();
+
+                _logger.LogInformation("[PlayerService] 신규 플레이어 등록. Username: {Username}, PlayerId: {PlayerId}",
+                    username, newPlayer.Id);
                 return newPlayer.Id;
             }
 
-            // 기존 유저 비밀번호 검증
             if (!BCrypt.Net.BCrypt.Verify(password, player.PasswordHash))
+            {
+                _logger.LogWarning("[PlayerService] 비밀번호 불일치. Username: {Username}", username);
                 return null;
+            }
 
+            _logger.LogInformation("[PlayerService] 기존 플레이어 인증 성공. Username: {Username}, PlayerId: {PlayerId}",
+                username, player.Id);
             return player.Id;
         }
     }

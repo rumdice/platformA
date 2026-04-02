@@ -5,20 +5,21 @@ using StackExchange.Redis;
 namespace PlatformA.Ticketing.API.Services
 {
     /// <summary>
-    /// 게임 입장 대기열 위한 서비스
+    /// 게임 입장 대기열 서비스
     /// </summary>
     public class QueueService
     {
         private readonly RedisManager _redisManager;
+        private readonly ILogger<QueueService> _logger;
 
-        public QueueService(RedisManager redisManager)
+        public QueueService(RedisManager redisManager, ILogger<QueueService> logger)
         {
             _redisManager = redisManager;
+            _logger = logger;
         }
 
         /// <summary>
-        /// 대기열 진입(등록). 줄서기.
-        /// ZCARD 체크 + ZADD를 Lua 스크립트로 원자화하여 Race Condition을 제거합니다.
+        /// 대기열 진입(등록). ZCARD 체크 + ZADD를 Lua로 원자화하여 Race Condition 제거.
         /// </summary>
         /// <returns>true: 등록 성공, false: 대기열 초과 또는 이미 등록됨</returns>
         public async Task<bool> RegisterQueueAsync(int userId)
@@ -26,16 +27,12 @@ namespace PlatformA.Ticketing.API.Services
             var db = _redisManager.Connection.GetDatabase();
             double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            // [핵심] ZCARD 체크 → ZADD를 두 번의 Redis 호출로 나누면
-            // 동시 요청 시 둘 다 체크를 통과해 MAX_SIZE를 초과할 수 있습니다.
-            // Lua 스크립트로 원자적으로 처리합니다.
             var script = @"
                 local size = redis.call('ZCARD', KEYS[1])
                 if size >= tonumber(ARGV[3]) then return -1 end
                 local added = redis.call('ZADD', KEYS[1], 'NX', ARGV[2], ARGV[1])
                 return added";
 
-            // Returns: -1 = 대기열 초과, 1 = 신규 등록, 0 = 이미 등록된 유저
             var result = (int)await db.ScriptEvaluateAsync(
                 script,
                 new RedisKey[] { Consts.QUEUE_KEY },
@@ -44,46 +41,30 @@ namespace PlatformA.Ticketing.API.Services
 
             if (result == -1)
             {
-                Console.WriteLine($"[대기열 초과] 유저 {userId} 진입 거절 (현재 큐 {Consts.WAIT_QUEUE_MAX_SIZE}명 도달)");
+                _logger.LogWarning("[Queue] 대기열 초과 — UserId: {UserId}, 최대: {Max}", userId, Consts.WAIT_QUEUE_MAX_SIZE);
                 return false;
             }
 
             if (result == 1)
-                Console.WriteLine($"[대기열 진입] 유저 {userId} 등록 완료 (Score: {score})");
+                _logger.LogInformation("[Queue] 대기열 진입 — UserId: {UserId}, Score: {Score}", userId, score);
 
             return result == 1;
         }
 
-
-        /// <summary>
-        /// 대기 순번 조회 (ZRANK) : 내 순번 및 입장 가능 여부 확인
-        /// </summary>
+        /// <summary>대기 순번 조회 (1-based)</summary>
         public async Task<long?> GetRankAsync(int userId)
         {
             var db = _redisManager.Connection.GetDatabase();
-
-            // ZRANK: Score가 가장 낮은(먼저 온) 사람부터 0번 인덱스를 부여
             long? rankIndex = await db.SortedSetRankAsync(Consts.QUEUE_KEY, userId);
-
-            // 클라이언트에게 보여줄 때는 1등부터 보여주는 것이 자연스러우므로 +1 처리
-            if (rankIndex.HasValue)
-                return rankIndex.Value + 1;
-
-            return null;
+            return rankIndex.HasValue ? rankIndex.Value + 1 : null;
         }
 
-
         /// <summary>
-        /// 대기열 명시적 이탈.
-        /// 대기열(QUEUE_KEY) + 하트비트를 Lua로 원자적 동시 제거합니다.
+        /// 대기열 명시적 이탈. QUEUE_KEY + heartbeats를 Lua로 원자적 동시 제거.
         /// </summary>
-        /// <returns>true: 대기열에 있었고 제거됨, false: 대기열에 없었음</returns>
         public async Task<bool> LeaveQueueAsync(int userId)
         {
             var db = _redisManager.Connection.GetDatabase();
-
-            // ZREM은 제거된 원소 수(0 또는 1)를 반환합니다.
-            // 두 ZSET을 한 번의 Lua 호출로 원자적으로 처리합니다.
             var script = @"
 local removed = redis.call('ZREM', KEYS[1], ARGV[1])
 redis.call('ZREM', KEYS[2], ARGV[1])
@@ -96,29 +77,22 @@ return removed";
             );
 
             if (result == 1)
-                Console.WriteLine($"[대기열 이탈] 유저 {userId} 명시적 이탈 완료");
+                _logger.LogInformation("[Queue] 명시적 이탈 — UserId: {UserId}", userId);
 
             return result == 1;
         }
 
-
-        /// <summary>
-        /// 입장 가능한 유저인지 판별.
-        /// 개별 Redis 키(TTL 포함)로 관리하므로 시간이 지나면 자동 만료됩니다.
-        /// </summary>
+        /// <summary>Active 유저 여부 확인 (개별 키 TTL 방식)</summary>
         public async Task<bool> IsActiveAsync(int userId)
         {
             var db = _redisManager.Connection.GetDatabase();
             return await db.KeyExistsAsync($"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}");
         }
 
-
         public async Task UpdateHeartbeatAsync(int userId)
         {
             var db = _redisManager.Connection.GetDatabase();
             double currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-            // 하트비트 전용 ZSET에 생존 시간 갱신
             await db.SortedSetAddAsync("ticket:queue:heartbeats", userId, currentTimestamp);
         }
     }
