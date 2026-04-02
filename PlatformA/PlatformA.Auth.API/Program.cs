@@ -1,4 +1,5 @@
 using PlatformA.Auth.API.Filters;
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
 
@@ -10,7 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Redis 연결 (분산 Rate Limiting용)
-RedisManager.Instance.Init();
+RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 builder.Services.AddSingleton(RedisManager.Instance);
 
 // Redis 기반 분산 Rate Limiter 등록

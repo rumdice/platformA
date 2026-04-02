@@ -81,6 +81,38 @@ namespace PlatformA.Ticketing.API.Controllers
             return NotFound(new { Message = "대기열 정보가 없습니다. 다시 진입해주세요." });
         }
 
+        // 3. 대기열 명시적 이탈
+        // POST /api/queue/leave
+        [RedisRateLimit("queue")]
+        [HttpPost("leave")]
+        public async Task<IActionResult> LeaveQueue()
+        {
+            try
+            {
+                int userId = GetUserIdFromToken();
+                if (userId <= 0)
+                    return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
+
+                // 대기열에서 제거 시도 (QUEUE_KEY + heartbeats 원자적 제거)
+                bool wasInQueue = await _queueService.LeaveQueueAsync(userId);
+                if (wasInQueue)
+                    return Ok(new { Message = $"대기열 이탈 완료. UserId: {userId}" });
+
+                // 큐에 없는 경우 — Active 상태인지 추가 확인
+                bool isActive = await _queueService.IsActiveAsync(userId);
+                if (isActive)
+                    return BadRequest(new { Message = "이미 입장권이 발급된 상태입니다. 게임 서버에 접속하거나 입장권 만료를 기다려주세요." });
+
+                // 큐에도 없고 Active도 아님
+                return NotFound(new { Message = "대기열에 없는 유저입니다." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         // 토큰 검증 함수
         private int GetUserIdFromToken()
         {

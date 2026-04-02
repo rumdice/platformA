@@ -1,3 +1,4 @@
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
 using PlatformA.Ticketing.API.Services;
@@ -14,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
 
 // redis 연결
-RedisManager.Instance.Init();
+RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 
 // 대기열 서비스 등록
 builder.Services.AddSingleton<QueueService>();
