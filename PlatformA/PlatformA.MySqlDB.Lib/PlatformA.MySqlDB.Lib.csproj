@@ -13,6 +13,8 @@
   <ItemGroup>
     <!-- MariaDB/MySQL EF Core 드라이버 -->
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
+    <!-- snake_case 테이블·컬럼 이름 자동 변환 (MariaDB 표준 명명 규칙) -->
+    <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
     <!-- 마이그레이션 CLI 도구 (빌드 결과물에 포함되지 않음) -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>

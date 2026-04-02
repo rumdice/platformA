@@ -17,11 +17,14 @@ RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 builder.Services.AddSingleton(RedisManager.Instance);
 
 // MySQL (db_WebApp) — 멀티스레드 안전을 위해 IDbContextFactory 사용
+// UseSnakeCaseNamingConventions: PascalCase 프로퍼티 → snake_case 컬럼명 자동 변환
 builder.Services.AddDbContextFactory<DbWebAppContext>(options =>
+{
     options.UseMySql(
         Consts.MYSQL_WEBAPP_CONNECTION,
-        ServerVersion.AutoDetect(Consts.MYSQL_WEBAPP_CONNECTION)
-    ));
+        ServerVersion.AutoDetect(Consts.MYSQL_WEBAPP_CONNECTION));
+    options.UseSnakeCaseNamingConventions();
+});
 
 // Refresh Token 관리 서비스 등록
 builder.Services.AddSingleton<RefreshTokenService>();
