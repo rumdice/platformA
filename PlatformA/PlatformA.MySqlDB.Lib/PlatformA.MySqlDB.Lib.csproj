@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>PlatformA.MySqlDB.Lib</RootNamespace>
+    <AssemblyName>PlatformA.MySqlDB.Lib</AssemblyName>
+    <!-- SDK-style 프로젝트는 AssemblyInfo를 자동 생성하므로 기존 파일과 충돌 방지 -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MariaDB/MySQL EF Core 드라이버 -->
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
+    <!-- 마이그레이션 CLI 도구 (빌드 결과물에 포함되지 않음) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Batch\*.bat" />
+    <None Include="Shell\*.sh" />
+    <None Include="DeployDll.bat" />
+    <None Include="DeployDll.sh" />
+  </ItemGroup>
+
+</Project>

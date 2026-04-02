@@ -10,38 +10,40 @@ namespace PlatformA.Auth.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private static int playerId = 0; // TODO: static 이라 서버 재시작 하면 0부터 시작. playerId 겹침. DB 도입 작업 후 제거.
-
         private readonly RefreshTokenService _refreshTokenService;
+        private readonly PlayerService _playerService;
 
-        public AuthController(RefreshTokenService refreshTokenService)
+        public AuthController(RefreshTokenService refreshTokenService, PlayerService playerService)
         {
             _refreshTokenService = refreshTokenService;
+            _playerService = playerService;
         }
 
         /// <summary>
         /// POST /api/auth/login
+        /// 신규 유저는 자동 등록, 기존 유저는 비밀번호 검증 후
         /// Access Token(15분) + Refresh Token(7일)을 함께 발급합니다.
         /// </summary>
         [RedisRateLimit("login")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // TODO: DB 검증 등 절차가 필요
-            var newPlayerId = Interlocked.Increment(ref playerId);
+            int? playerId = await _playerService.LoginAsync(request.Username, request.Password);
+            if (playerId == null)
+                return Unauthorized(new { Message = "비밀번호가 올바르지 않습니다." });
 
-            string accessToken = TokenManager.GenerateJwtToken(newPlayerId);
+            string accessToken = TokenManager.GenerateJwtToken(playerId.Value);
             string refreshToken = TokenManager.GenerateRefreshToken();
 
             // Refresh Token을 Redis에 저장 (TTL: 7일)
-            await _refreshTokenService.SaveAsync(refreshToken, newPlayerId);
+            await _refreshTokenService.SaveAsync(refreshToken, playerId.Value);
 
             return Ok(new LoginResponse
             {
                 Success = true,
                 Token = accessToken,
                 RefreshToken = refreshToken,
-                PlayerId = newPlayerId,
+                PlayerId = playerId.Value,
                 Message = "로그인 성공"
             });
         }
