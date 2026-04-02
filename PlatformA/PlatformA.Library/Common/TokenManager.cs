@@ -29,9 +29,10 @@ namespace PlatformA.Library.Common
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    //ClockSkew = TimeSpan.Zero
+                    ValidateIssuer = true,
+                    ValidIssuer = Consts.JWT_ISSUER,
+                    ValidateAudience = true,
+                    ValidAudience = Consts.JWT_AUDIENCE,
                     ClockSkew = TimeSpan.FromMinutes(5)
                 }, out SecurityToken validatedToken);
 
@@ -59,7 +60,7 @@ namespace PlatformA.Library.Common
 
 
 
-        // JWT 토큰 생성기 (더미 클라이언트에서 쓰던 것과 완전히 동일)
+        // JWT 토큰 생성기
         public static string GenerateJwtToken(int playerId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -68,6 +69,8 @@ namespace PlatformA.Library.Common
             {
                 Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, playerId.ToString()) }),
                 Expires = DateTime.UtcNow.AddHours(1),
+                Issuer = Consts.JWT_ISSUER,
+                Audience = Consts.JWT_AUDIENCE,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

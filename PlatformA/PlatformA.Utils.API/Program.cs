@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
@@ -14,7 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
 
 // redis 연결
-RedisManager.Instance.Init();
+RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 
 // Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
 // 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.

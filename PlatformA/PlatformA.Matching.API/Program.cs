@@ -1,4 +1,5 @@
-﻿using PlatformA.Library.Core;
+﻿using PlatformA.Library.Common;
+using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.Matching.API.Services;
 
@@ -12,7 +13,7 @@ builder.Services.AddSwaggerGen();           // Swagger용
 builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
 
 // redis 연결
-RedisManager.Instance.Init();
+RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 
 
 builder.Services.AddSignalR();

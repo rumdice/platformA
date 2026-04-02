@@ -9,6 +9,10 @@ namespace PlatformA.Library.Common
     public static class Consts
     {
         public const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
+
+        // JWT Issuer/Audience: 타 서비스에서 발급한 토큰을 이 서버가 수락하지 않도록 검증합니다.
+        public const string JWT_ISSUER = "PlatformA.Auth.API";
+        public const string JWT_AUDIENCE = "PlatformA.Services";
         
         public const string QUEUE_KEY = "ticket:queue:global";
         public const string ACTIVE_KEY = "ticket:active:users"; // @Deprecated: 개별 키 방식(ACTIVE_USER_KEY_PREFIX)으로 전환됨
