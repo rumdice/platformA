@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
 using PlatformA.Game.Server.Network;
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.Network;
 using PlatformA.Library.Packets;
@@ -49,7 +51,7 @@ namespace PlatformA.Game.Server
             PacketManager<GameSession>.Instance.Register(); // 🚀 추가
 
             // Redis 초기화
-            RedisManager.Instance.Init("127.0.0.1:6379");
+            RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 
             // 🚀 서버 시작 시 기본 1번 방 생성
             PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom(1);

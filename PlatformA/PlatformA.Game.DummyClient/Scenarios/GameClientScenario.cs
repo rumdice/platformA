@@ -11,12 +11,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
     public class GameClientScenario
     {
-        // 🚀 방금 띄운 Auth.API의 실제 주소 (포트 번호를 Swagger 창에 뜬 번호로 꼭 바꿔주세요!)
-        private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
-
-        // Matching.API 주소 (포트 확인 필요)
-        private const string MATCH_API_URL = "http://localhost:5189/api/GameMatch/RequestMatch";
-
+        
 
         public static async Task RunAsync()
         {
@@ -190,7 +185,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             try
             {
                 // C# 최신 문법: 클래스 없이도 익명 객체를 바로 JSON으로 쏴줍니다.
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync(AUTH_API_URL, loginData);
+                HttpResponseMessage response = await httpClient.PostAsJsonAsync(Consts.AUTH_API_URL, loginData);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -225,10 +220,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine("[매칭] 매칭 서버(SignalR)에 연결을 시도합니다...");
 
             // 1. 매칭 서버의 Hub URL 설정 (포트는 Matching.API 설정에 맞게 수정하세요)
-            string matchingHubUrl = "http://localhost:5189/hubs/matching";
-
+          
             var hubConnection = new HubConnectionBuilder()
-                .WithUrl(matchingHubUrl, options =>
+                .WithUrl(Consts.MATCH_HUB_URL, options =>
                 {
                     // SignalR 연결 시 JWT 토큰을 함께 보냅니다 (인증용)
                     options.AccessTokenProvider = () => Task.FromResult(jwtToken);
@@ -255,16 +249,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await hubConnection.StartAsync();
                 Console.WriteLine("[매칭] 서버 연결 완료. 대기열에 진입합니다...");
 
-                //string matchApiUrl = "http://localhost:5189/api/gamematch/request";
-
-                // 🚀 4. 매칭 서버의 RequestMatch 함수 호출 (큐 진입)
-                // Hub에 정의된 함수명과 파라미터에 맞게 호출해야 합니다.
-                //await hubConnection.InvokeAsync("RequestMatch");
-
                 // 메칭 요청을 http request 로 처리는 백그라운드로 디커플링
                 using HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-                var response = await client.PostAsync(MATCH_API_URL, null); // 넘길 본문 데이터는 없음(토큰에 다 있음)
+                var response = await client.PostAsync(Consts.MATCH_API_URL, null); // 넘길 본문 데이터는 없음(토큰에 다 있음)
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -297,7 +285,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             try
             {
-                await client.ConnectAsync("127.0.0.1", 7777);
+                await client.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
                 
                 _ = ReceiveLoopAsync(client);
 
@@ -341,7 +329,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             try
             {
-                await client.ConnectAsync("127.0.0.1", 7777);
+                await client.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
                 Console.WriteLine("게임 서버 접속 성공!\n");
 
                 _ = ReceiveLoopAsync(client);

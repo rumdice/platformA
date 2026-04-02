@@ -11,13 +11,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
     public class MatchingScenario
     {
         // 🚀 서버 주소 세팅 (포트 번호를 현재 환경에 맞게 꼭 확인하세요!)
-        private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
-        private const string TICKET_URL = "https://localhost:7075";
-        private const string MATCH_HUB_URL = "http://localhost:5189/hubs/matching";
-        private const string MATCH_API_URL = "http://localhost:5189/api/GameMatch/RequestMatch";
-        private const string GAME_SERVER_IP = "127.0.0.1";
-        private const int GAME_SERVER_PORT = 7777;
-
+        
         public static async Task RunAsync()
         {
             Console.Clear();
@@ -42,7 +36,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             // 2️⃣ [대기열 진입] Ticketing.API
             Console.WriteLine("\n[2. 대기열] Ticketing 서버에 진입합니다...");
-            var enterRes = await httpClient.PostAsync($"{TICKET_URL}/api/queue/enter", null);
+            var enterRes = await httpClient.PostAsync($"{Consts.TICKET_API_URL}/api/queue/enter", null);
             if (!enterRes.IsSuccessStatusCode)
             {
                 Console.WriteLine("🚨 대기열 진입 실패!"); return;
@@ -51,7 +45,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 3️⃣ [스마트 폴링] 대기열 대기 (루프)
             while (true)
             {
-                var statusRes = await httpClient.GetAsync($"{TICKET_URL}/api/queue/status");
+                var statusRes = await httpClient.GetAsync($"{Consts.TICKET_API_URL}/api/queue/status");
                 if (!statusRes.IsSuccessStatusCode) return;
 
                 var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
@@ -68,7 +62,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 4️⃣ [게임 서버 접속] TCP 로비(1번 방) 연결
             Console.WriteLine("[3. 로비 입장] 게임 서버(TCP) 광장에 접속합니다...");
             using Socket tcpClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            await tcpClient.ConnectAsync(GAME_SERVER_IP, GAME_SERVER_PORT);
+            await tcpClient.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
             // 수신 루프 백그라운드 실행
             _ = ReceiveLoopAsync(tcpClient);
@@ -108,7 +102,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         if (matchHub == null || matchHub.State == HubConnectionState.Disconnected)
                         {
                             matchHub = new HubConnectionBuilder()
-                                .WithUrl(MATCH_HUB_URL, options => { options.AccessTokenProvider = () => Task.FromResult(jwtToken); })
+                                .WithUrl(Consts.MATCH_HUB_URL, options => { options.AccessTokenProvider = () => Task.FromResult(jwtToken); })
                                 .Build();
 
                             // 🎉 매칭 성공 이벤트 등록
@@ -124,7 +118,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         }
 
                         // HTTP API로 매칭 큐 등록 요청
-                        var matchRes = await httpClient.PostAsync(MATCH_API_URL, null);
+                        var matchRes = await httpClient.PostAsync(Consts.MATCH_API_URL, null);
                         if (matchRes.IsSuccessStatusCode)
                         {
                             Console.WriteLine("⏳ 매칭 큐에 등록되었습니다! 다른 유저를 기다립니다...\n");
@@ -152,7 +146,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         static async Task<string> LoginToAuthServerAsync(HttpClient client, string username, string password)
         {
             var loginData = new { Username = username, Password = password };
-            var response = await client.PostAsJsonAsync(AUTH_API_URL, loginData);
+            var response = await client.PostAsJsonAsync(Consts.AUTH_API_URL, loginData);
             if (response.IsSuccessStatusCode)
             {
                 string jsonResponse = await response.Content.ReadAsStringAsync();

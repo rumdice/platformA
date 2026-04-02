@@ -27,7 +27,7 @@ namespace PlatformA.Library.Core
 
         private RedisManager() { }
 
-        public void Init(string connectionString = "127.0.0.1:6379")
+        public void Init(string connectionString)
         {
             // TODO: local only
             // docker run --name my-redis -p 6379:6379 -d redis 로컬 환경에서 설치 필요.

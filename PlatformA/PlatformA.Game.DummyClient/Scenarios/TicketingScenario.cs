@@ -20,10 +20,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
     public class TicketingScenario
     {
-
-        private const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
-        private const string TICKET_URL = "https://localhost:7075";
-
         private const int USER_COUNT = 200; // 2500명이 동시에 접속 시도
 
         public static async Task RunAsync()
@@ -53,7 +49,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 int userId = i; // 캡처
                 //tasks.Add(Task.Run(() => SimulateUserFlow(userId, TICKET_URL)));
-                tasks.Add(Task.Run(() => SimulateUserTicketFlow(userId, TICKET_URL)));
+                tasks.Add(Task.Run(() => SimulateUserTicketFlow(userId, Consts.TICKET_API_URL)));
                 await Task.Delay(10); // 포트 고갈 방지용 잠깐 딜레이.
             }
 
@@ -241,7 +237,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             try
             {
                 // C# 최신 문법: 클래스 없이도 익명 객체를 바로 JSON으로 쏴줍니다.
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync(AUTH_API_URL, loginData);
+                HttpResponseMessage response = await httpClient.PostAsJsonAsync(Consts.AUTH_API_URL, loginData);
 
                 if (response.IsSuccessStatusCode)
                 {
