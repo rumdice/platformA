@@ -8,12 +8,17 @@ namespace PlatformA.Ticketing.API.Workers
     {
         private readonly RedisManager _redisManager;
 
-        // 💡 다이나믹 스로틀링의 핵심: 1초에 몇 명을 통과시킬 것인가?
-        // (실무에서는 이 값을 DB 부하량에 따라 동적으로 바뀌어야 합니다.)
+        // 초당 입장 인원 (실무에서는 DB 부하량에 따라 동적으로 조절)
         private const int USERS_PER_SECOND = 50;
 
-        // 분산 락 키: 여러 인스턴스 중 하나만 Worker 역할을 수행하게 합니다.
+        // 분산 락 설정
         private const string WORKER_LEADER_LOCK = "lock:queue:worker:leader";
+
+        // 락 TTL: ProcessQueueAsync 처리 중 만료되지 않을 만큼 충분히 크게 설정
+        private static readonly TimeSpan LOCK_EXPIRY = TimeSpan.FromSeconds(10);
+
+        // 갱신 주기: TTL의 1/3 수준으로 설정해 네트워크 지연 발생 시에도 3번의 기회 확보
+        private static readonly TimeSpan LOCK_RENEW_INTERVAL = TimeSpan.FromSeconds(3);
 
         public QueueWorkerService(RedisManager redisManager)
         {
@@ -29,22 +34,26 @@ namespace PlatformA.Ticketing.API.Workers
             {
                 try
                 {
-                    // [핵심] 분산 락: 여러 Ticketing.API 인스턴스가 동시에 실행될 때
-                    // 각 인스턴스가 독립적으로 ZPOPMIN을 실행하면 초당 N*50명이 통과됩니다.
-                    // 락을 획득한 인스턴스만 실제 처리를 수행합니다.
+                    // 분산 락: 리더 인스턴스만 큐 처리 수행
                     string? leaderLock = await _redisManager.LockManager.AcquireLockAsync(
                         WORKER_LEADER_LOCK,
-                        expiry: TimeSpan.FromSeconds(3),      // 락 자동 만료 (처리 중 크래시 대비)
-                        waitTime: TimeSpan.FromMilliseconds(50),   // 리더가 아니면 빠르게 포기
+                        expiry: LOCK_EXPIRY,
+                        waitTime: TimeSpan.FromMilliseconds(50),
                         retryTime: TimeSpan.FromMilliseconds(10)
                     );
 
                     if (leaderLock == null)
                     {
-                        // 다른 인스턴스가 리더, 이번 주기는 스킵
                         await Task.Delay(1000, stoppingToken);
                         continue;
                     }
+
+                    // [Lock Heartbeat]
+                    // ProcessQueueAsync 실행 중 락이 만료되지 않도록
+                    // 별도 태스크가 LOCK_RENEW_INTERVAL 마다 TTL을 갱신합니다.
+                    using var renewCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+
+                    var renewTask = RenewLockPeriodicallyAsync(leaderLock, renewCts.Token);
 
                     try
                     {
@@ -52,10 +61,12 @@ namespace PlatformA.Ticketing.API.Workers
                     }
                     finally
                     {
+                        // 처리 완료 → 갱신 태스크 중단 후 락 즉시 해제
+                        await renewCts.CancelAsync();
+                        await renewTask;
                         await _redisManager.LockManager.ReleaseLockAsync(WORKER_LEADER_LOCK, leaderLock);
                     }
 
-                    // 🚀 이 딜레이가 없으면 초당 50명이 아니라 초당 수만 명이 통과됩니다!
                     await Task.Delay(1000, stoppingToken);
                 }
                 catch (Exception ex)
@@ -63,6 +74,36 @@ namespace PlatformA.Ticketing.API.Workers
                     Console.WriteLine($"[QueueWorker] 에러 발생: {ex.Message}");
                     await Task.Delay(2000, stoppingToken);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 락 갱신 태스크. 취소될 때까지 LOCK_RENEW_INTERVAL 주기로 TTL을 연장합니다.
+        /// 갱신 실패(락을 잃었을 경우)는 경고 로그만 남기고 종료합니다.
+        /// </summary>
+        private async Task RenewLockPeriodicallyAsync(string lockValue, CancellationToken ct)
+        {
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await Task.Delay(LOCK_RENEW_INTERVAL, ct);
+
+                    bool renewed = await _redisManager.LockManager.RenewLockAsync(
+                        WORKER_LEADER_LOCK, lockValue, LOCK_EXPIRY
+                    );
+
+                    if (!renewed)
+                    {
+                        // 락 TTL이 이미 만료되어 타 인스턴스에 넘어간 상태
+                        Console.WriteLine("[QueueWorker] ⚠️ 락 갱신 실패 — 처리 시간이 LOCK_EXPIRY를 초과했습니다.");
+                        break;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 정상 취소 — 조용히 종료
             }
         }
 
@@ -102,8 +143,7 @@ return #ghosts";
             {
                 int userId = (int)user.Element;
 
-                // 3. Active 상태를 개별 키 + TTL로 저장
-                // TTL이 지나면 자동으로 만료되어 Redis 메모리 누수를 방지합니다.
+                // Active 상태를 개별 키 + TTL로 저장 (TTL 만료 시 자동 정리)
                 await db.StringSetAsync(
                     $"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}",
                     "1",

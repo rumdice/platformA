@@ -59,5 +59,26 @@ namespace PlatformA.Library.Core
                 new RedisValue[] { lockValue }
             );
         }
+
+        // 3. 락 TTL 갱신 (Lock Heartbeat)
+        // 처리 도중 락이 만료되지 않도록 주기적으로 TTL을 연장합니다.
+        // 내 lockValue인 경우에만 갱신하여 이미 만료된 락을 실수로 연장하지 않습니다.
+        // Returns: true = 갱신 성공, false = 락을 이미 잃음 (만료 후 타 인스턴스가 획득)
+        public async Task<bool> RenewLockAsync(string lockKey, string lockValue, TimeSpan expiry)
+        {
+            var script = @"
+                if redis.call('get', KEYS[1]) == ARGV[1] then
+                    return redis.call('expire', KEYS[1], ARGV[2])
+                else
+                    return 0
+                end";
+
+            var result = (int)await _db.ScriptEvaluateAsync(script,
+                new RedisKey[] { lockKey },
+                new RedisValue[] { lockValue, (int)expiry.TotalSeconds }
+            );
+
+            return result == 1;
+        }
     }
 }
