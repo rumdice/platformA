@@ -1,4 +1,5 @@
 using PlatformA.Auth.API.Filters;
+using PlatformA.Auth.API.Services;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
@@ -13,6 +14,9 @@ builder.Services.AddSwaggerGen();
 // Redis 연결 (분산 Rate Limiting용)
 RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
 builder.Services.AddSingleton(RedisManager.Instance);
+
+// Refresh Token 관리 서비스 등록
+builder.Services.AddSingleton<RefreshTokenService>();
 
 // Redis 기반 분산 Rate Limiter 등록
 // ASP.NET Core 내장 RateLimiter(인스턴스별 메모리)를 대체합니다.

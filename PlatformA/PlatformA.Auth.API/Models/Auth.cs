@@ -23,8 +23,23 @@ namespace PlatformA.Auth.API.Models
     public class LoginResponse
     {
         public bool Success { get; set; }
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;         // Access Token (15분)
+        public string RefreshToken { get; set; } = string.Empty;  // Refresh Token (7일, Redis 관리)
         public int PlayerId { get; set; }
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    // Refresh Token으로 새 Access Token 요청
+    public class RefreshRequest
+    {
+        [Required(ErrorMessage = "RefreshToken은 필수입니다.")]
+        public string RefreshToken { get; set; } = string.Empty;
+    }
+
+    // Refresh / Logout 요청 시 RefreshToken 전달
+    public class LogoutRequest
+    {
+        [Required(ErrorMessage = "RefreshToken은 필수입니다.")]
+        public string RefreshToken { get; set; } = string.Empty;
     }
 }

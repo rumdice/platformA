@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -60,21 +61,32 @@ namespace PlatformA.Library.Common
 
 
 
-        // JWT 토큰 생성기
-        public static string GenerateJwtToken(int playerId)
+        /// <summary>
+        /// Access Token 생성. 기본 만료: ACCESS_TOKEN_EXPIRY_MINUTES (15분).
+        /// </summary>
+        public static string GenerateJwtToken(int playerId, int expiryMinutes = Consts.ACCESS_TOKEN_EXPIRY_MINUTES)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(Consts.SECRET_KEY);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, playerId.ToString()) }),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddMinutes(expiryMinutes),
                 Issuer = Consts.JWT_ISSUER,
                 Audience = Consts.JWT_AUDIENCE,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        /// <summary>
+        /// Refresh Token 생성. 암호학적으로 안전한 64바이트 랜덤 문자열.
+        /// JWT가 아닌 불투명 토큰(Opaque Token)으로, Redis에서만 유효성을 검증합니다.
+        /// </summary>
+        public static string GenerateRefreshToken()
+        {
+            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
 
 

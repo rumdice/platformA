@@ -13,6 +13,12 @@ namespace PlatformA.Library.Common
         // JWT Issuer/Audience: 타 서비스에서 발급한 토큰을 이 서버가 수락하지 않도록 검증합니다.
         public const string JWT_ISSUER = "PlatformA.Auth.API";
         public const string JWT_AUDIENCE = "PlatformA.Services";
+
+        // Access Token: 짧은 만료로 탈취 피해 최소화
+        // Refresh Token: 장기 유지, Redis에서 서버 측 관리 (강제 무효화 가능)
+        public const int ACCESS_TOKEN_EXPIRY_MINUTES = 15;
+        public const int REFRESH_TOKEN_EXPIRY_DAYS = 7;
+        public const string REFRESH_TOKEN_KEY_PREFIX = "refresh:";
         
         public const string QUEUE_KEY = "ticket:queue:global";
         public const string ACTIVE_KEY = "ticket:active:users"; // @Deprecated: 개별 키 방식(ACTIVE_USER_KEY_PREFIX)으로 전환됨
