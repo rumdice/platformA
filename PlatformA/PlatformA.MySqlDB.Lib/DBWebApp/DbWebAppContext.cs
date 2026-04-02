@@ -103,7 +103,7 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp
             const string conn = "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
             var optionsBuilder = new DbContextOptionsBuilder<DbWebAppContext>();
             optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn));
-            optionsBuilder.UseSnakeCaseNamingConventions(); // 런타임과 동일한 옵션 필수
+            optionsBuilder.UseSnakeCaseNamingConvention(); // 런타임과 동일한 옵션 필수
             return new DbWebAppContext(optionsBuilder.Options);
         }
     }

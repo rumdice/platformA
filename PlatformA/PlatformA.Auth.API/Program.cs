@@ -23,7 +23,7 @@ builder.Services.AddDbContextFactory<DbWebAppContext>(options =>
     options.UseMySql(
         Consts.MYSQL_WEBAPP_CONNECTION,
         ServerVersion.AutoDetect(Consts.MYSQL_WEBAPP_CONNECTION));
-    options.UseSnakeCaseNamingConventions();
+    options.UseSnakeCaseNamingConvention();
 });
 
 // Refresh Token 관리 서비스 등록
