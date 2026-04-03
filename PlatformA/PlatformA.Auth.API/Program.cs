@@ -65,6 +65,9 @@ builder.Services.AddHealthChecks()
 // ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
+// RedisManager에 DI 로거 주입 (Init 이후에 호출해야 Polly 이벤트 로그가 동작)
+RedisManager.Instance.SetLogger(app.Services.GetRequiredService<ILogger<RedisManager>>());
+
 // DB 자동 마이그레이션 (개발 편의용 — 운영에서는 스크립트로 직접 적용)
 using (var scope = app.Services.CreateScope())
 {

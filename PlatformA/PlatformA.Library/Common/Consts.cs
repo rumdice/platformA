@@ -20,7 +20,11 @@ namespace PlatformA.Library.Common
         public const int REFRESH_TOKEN_EXPIRY_DAYS = 7;
         public const string REFRESH_TOKEN_KEY_PREFIX = "refresh:";
         
-        public const string QUEUE_KEY = "ticket:queue:global";
+        // Redis Cluster 환경에서 멀티키 Lua 스크립트(LeaveQueue, GhostCleanup)가 동일 슬롯에
+        // 위치하도록 해시태그 {ticket:queue} 를 사용합니다.
+        // CRC16("{ticket:queue}") → 동일 슬롯 보장.
+        public const string QUEUE_KEY           = "{ticket:queue}:global";
+        public const string QUEUE_HEARTBEATS_KEY = "{ticket:queue}:heartbeats";
         public const string ACTIVE_KEY = "ticket:active:users"; // @Deprecated: 개별 키 방식(ACTIVE_USER_KEY_PREFIX)으로 전환됨
 
         // Active 유저를 개별 키로 관리 (TTL 자동 만료 지원)
@@ -36,7 +40,9 @@ namespace PlatformA.Library.Common
         public const string GAME_SERVER_IP = "127.0.0.1";
         public const int GAME_SERVER_PORT = 7777;
 
-        public const string REDIS_CONNECTION_STRING = "127.0.0.1:6379";
+        // Redis Cluster 노드 목록 (Master 3개 — StackExchange.Redis가 Slave를 자동 감지)
+        public const string REDIS_CONNECTION_STRING =
+            "127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373";
 
         // TODO: 차후 환경변수 또는 AWS KMS로 이동
         public const string MYSQL_WEBAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";

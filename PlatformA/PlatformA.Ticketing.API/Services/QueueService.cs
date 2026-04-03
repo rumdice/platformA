@@ -1,3 +1,4 @@
+using Polly.CircuitBreaker;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using StackExchange.Redis;
@@ -5,7 +6,8 @@ using StackExchange.Redis;
 namespace PlatformA.Ticketing.API.Services
 {
     /// <summary>
-    /// 게임 입장 대기열 서비스
+    /// 게임 입장 대기열 서비스.
+    /// 모든 Redis 명령은 RedisManager.ExecuteAsync를 통해 Polly 파이프라인이 적용됩니다.
     /// </summary>
     public class QueueService
     {
@@ -19,62 +21,70 @@ namespace PlatformA.Ticketing.API.Services
         }
 
         /// <summary>
-        /// 대기열 진입(등록). ZCARD 체크 + ZADD를 Lua로 원자화하여 Race Condition 제거.
+        /// 대기열 진입. ZCARD 체크 + ZADD를 Lua로 원자화 (Race Condition 제거).
+        /// QUEUE_KEY / QUEUE_HEARTBEATS_KEY 는 동일 해시태그 {ticket:queue} → 같은 클러스터 슬롯.
         /// </summary>
-        /// <returns>true: 등록 성공, false: 대기열 초과 또는 이미 등록됨</returns>
         public async Task<bool> RegisterQueueAsync(int userId)
         {
-            var db = _redisManager.Connection.GetDatabase();
             double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
             var script = @"
                 local size = redis.call('ZCARD', KEYS[1])
                 if size >= tonumber(ARGV[3]) then return -1 end
                 local added = redis.call('ZADD', KEYS[1], 'NX', ARGV[2], ARGV[1])
                 return added";
 
-            var result = (int)await db.ScriptEvaluateAsync(
-                script,
-                new RedisKey[] { Consts.QUEUE_KEY },
-                new RedisValue[] { userId.ToString(), score, Consts.WAIT_QUEUE_MAX_SIZE }
-            );
-
-            if (result == -1)
+            try
             {
-                _logger.LogWarning("[Queue] 대기열 초과 — UserId: {UserId}, 최대: {Max}", userId, Consts.WAIT_QUEUE_MAX_SIZE);
-                return false;
+                var result = (int)await _redisManager.ExecuteAsync(db =>
+                    db.ScriptEvaluateAsync(
+                        script,
+                        new RedisKey[] { Consts.QUEUE_KEY },
+                        new RedisValue[] { userId.ToString(), score, Consts.WAIT_QUEUE_MAX_SIZE }
+                    ));
+
+                if (result == -1)
+                {
+                    _logger.LogWarning("[Queue] 대기열 초과 — UserId: {UserId}, 최대: {Max}",
+                        userId, Consts.WAIT_QUEUE_MAX_SIZE);
+                    return false;
+                }
+                if (result == 1)
+                    _logger.LogInformation("[Queue] 대기열 진입 — UserId: {UserId}", userId);
+
+                return result == 1;
             }
-
-            if (result == 1)
-                _logger.LogInformation("[Queue] 대기열 진입 — UserId: {UserId}, Score: {Score}", userId, score);
-
-            return result == 1;
+            catch (BrokenCircuitException)
+            {
+                _logger.LogError("[Queue] 회로차단기 개방 — 대기열 진입 불가 (Redis 장애)");
+                throw; // 컨트롤러가 503으로 처리
+            }
         }
 
         /// <summary>대기 순번 조회 (1-based)</summary>
         public async Task<long?> GetRankAsync(int userId)
         {
-            var db = _redisManager.Connection.GetDatabase();
-            long? rankIndex = await db.SortedSetRankAsync(Consts.QUEUE_KEY, userId);
+            long? rankIndex = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetRankAsync(Consts.QUEUE_KEY, userId));
             return rankIndex.HasValue ? rankIndex.Value + 1 : null;
         }
 
         /// <summary>
-        /// 대기열 명시적 이탈. QUEUE_KEY + heartbeats를 Lua로 원자적 동시 제거.
+        /// 명시적 이탈. QUEUE_KEY + QUEUE_HEARTBEATS_KEY 를 Lua로 원자 제거.
+        /// 두 키 모두 {ticket:queue} 해시태그 → 같은 슬롯 보장.
         /// </summary>
         public async Task<bool> LeaveQueueAsync(int userId)
         {
-            var db = _redisManager.Connection.GetDatabase();
             var script = @"
 local removed = redis.call('ZREM', KEYS[1], ARGV[1])
 redis.call('ZREM', KEYS[2], ARGV[1])
 return removed";
 
-            var result = (int)await db.ScriptEvaluateAsync(
-                script,
-                new RedisKey[] { Consts.QUEUE_KEY, "ticket:queue:heartbeats" },
-                new RedisValue[] { userId.ToString() }
-            );
+            var result = (int)await _redisManager.ExecuteAsync(db =>
+                db.ScriptEvaluateAsync(
+                    script,
+                    new RedisKey[] { Consts.QUEUE_KEY, Consts.QUEUE_HEARTBEATS_KEY },
+                    new RedisValue[] { userId.ToString() }
+                ));
 
             if (result == 1)
                 _logger.LogInformation("[Queue] 명시적 이탈 — UserId: {UserId}", userId);
@@ -85,15 +95,15 @@ return removed";
         /// <summary>Active 유저 여부 확인 (개별 키 TTL 방식)</summary>
         public async Task<bool> IsActiveAsync(int userId)
         {
-            var db = _redisManager.Connection.GetDatabase();
-            return await db.KeyExistsAsync($"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}");
+            return await _redisManager.ExecuteAsync(db =>
+                db.KeyExistsAsync($"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}"));
         }
 
         public async Task UpdateHeartbeatAsync(int userId)
         {
-            var db = _redisManager.Connection.GetDatabase();
-            double currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            await db.SortedSetAddAsync("ticket:queue:heartbeats", userId, currentTimestamp);
+            double ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            await _redisManager.ExecuteAsync(db =>
+                db.SortedSetAddAsync(Consts.QUEUE_HEARTBEATS_KEY, userId, ts));
         }
     }
 }

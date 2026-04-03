@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Polly.CircuitBreaker;
 using PlatformA.Library.Core;
 using StackExchange.Redis;
 
@@ -11,57 +14,34 @@ namespace PlatformA.Library.RateLimit
 
     /// <summary>
     /// Redis 기반 분산 Sliding-Window Rate Limiter.
-    ///
-    /// [Fixed-Window 대비 개선점]
-    /// Fixed-Window는 창 경계(예: 분 0:59 → 분 1:00)에서 limit의 2배 요청이
-    /// 순간적으로 허용되는 burst 취약점이 있습니다.
-    /// Sliding-Window는 "현재 시각 기준 과거 N초 이내의 실제 요청 수"를
-    /// ZSET으로 정확히 계산하므로 경계 burst가 발생하지 않습니다.
-    ///
-    /// [구조]
-    /// Key    : rl:{policyName}:{clientIp}  (ZSET, 버킷 없음)
-    /// Member : Redis TIME 기반 마이크로초 고유 ID
-    /// Score  : 요청 시각 (milliseconds)
+    /// RedisManager.ExecuteAsync를 통해 Polly 회로차단기가 적용됩니다.
+    /// Redis 장애 시 fail-open(허용) 처리하여 서비스 가용성을 유지합니다.
     /// </summary>
     public class RedisRateLimiterService
     {
-        private readonly IDatabase? _db;
+        private readonly RedisManager _redisManager;
+        private readonly ILogger<RedisRateLimiterService> _logger;
         private readonly Dictionary<string, RateLimitPolicy> _policies = new();
 
-        // Sliding-Window Lua 스크립트
-        // KEYS[1] = rate limit ZSET 키
-        // ARGV[1] = permit limit
-        // ARGV[2] = window 초 (seconds)
-        // ARGV[3] = 현재 시각 (milliseconds, 애플리케이션에서 전달)
-        // Returns: 1 = 허용, 0 = 거절
         private const string _lua = @"
 local now_ms    = tonumber(ARGV[3])
 local window_ms = tonumber(ARGV[2]) * 1000
 local limit     = tonumber(ARGV[1])
-
--- 1. 슬라이딩 윈도우 밖 만료 항목 제거
 redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, now_ms - window_ms)
-
--- 2. 현재 윈도우 내 요청 수 확인
 local count = redis.call('ZCARD', KEYS[1])
-if count >= limit then
-    return 0
-end
-
--- 3. 현재 요청 기록
---    Redis TIME 명령으로 마이크로초 고유 ID 생성 → 동일 밀리초에 여러 요청이 와도 중복 없음
+if count >= limit then return 0 end
 local t = redis.call('TIME')
 local unique_id = t[1] .. t[2]
 redis.call('ZADD', KEYS[1], now_ms, unique_id)
-
--- 4. 키 TTL 갱신 (윈도우 경과 후 자동 정리)
 redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]) + 1)
-
 return 1";
 
-        public RedisRateLimiterService(RedisManager redisManager)
+        public RedisRateLimiterService(
+            RedisManager redisManager,
+            ILogger<RedisRateLimiterService>? logger = null)
         {
-            _db = redisManager.Connection?.GetDatabase();
+            _redisManager = redisManager;
+            _logger = logger ?? NullLogger<RedisRateLimiterService>.Instance;
         }
 
         public void AddPolicy(string name, int permitLimit, TimeSpan window)
@@ -70,34 +50,37 @@ return 1";
         }
 
         /// <summary>
-        /// 요청을 허용할지 여부를 Redis에서 원자적으로 검사합니다.
-        /// Redis 장애 시에는 fail-open (허용) 처리합니다.
+        /// 요청 허용 여부를 Redis에서 원자적으로 검사합니다.
+        /// BrokenCircuitException(회로차단기 개방) 또는 기타 Redis 오류 시 fail-open 처리합니다.
         /// </summary>
         public async Task<bool> IsAllowedAsync(string policyName, string clientIp)
         {
-            if (_db == null) return true;
-
             if (!_policies.TryGetValue(policyName, out var policy))
                 return true;
 
             try
             {
                 long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                // Fixed-Window와 달리 버킷 분할 없음 — 단일 키로 슬라이딩 윈도우 유지
                 string key = $"rl:{policyName}:{clientIp}";
 
-                var result = (int)await _db.ScriptEvaluateAsync(
-                    _lua,
-                    new RedisKey[] { key },
-                    new RedisValue[] { policy.PermitLimit, (long)policy.Window.TotalSeconds, nowMs }
-                );
+                var result = (int)await _redisManager.ExecuteAsync(db =>
+                    db.ScriptEvaluateAsync(
+                        _lua,
+                        new RedisKey[] { key },
+                        new RedisValue[] { policy.PermitLimit, (long)policy.Window.TotalSeconds, nowMs }
+                    ));
 
                 return result == 1;
             }
+            catch (BrokenCircuitException)
+            {
+                // 회로차단기 개방 중 — fail-open: 차단하지 않음
+                _logger.LogWarning("[RateLimit] 회로차단기 개방 중 — rate limit 우회 (fail-open)");
+                return true;
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"[RateLimit] Redis 오류, rate limit 우회: {ex.Message}");
+                _logger.LogError(ex, "[RateLimit] Redis 오류 — rate limit 우회 (fail-open)");
                 return true;
             }
         }

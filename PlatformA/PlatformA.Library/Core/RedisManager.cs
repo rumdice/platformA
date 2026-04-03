@@ -1,11 +1,11 @@
-﻿using PlatformA.Library.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using PlatformA.Library.Common;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PlatformA.Library.Core
 {
@@ -13,37 +13,105 @@ namespace PlatformA.Library.Core
     {
         public static RedisManager Instance { get; } = new RedisManager();
 
-        private ConnectionMultiplexer _redis;
+        private ConnectionMultiplexer _redis = null!;
+        private ResiliencePipeline _pipeline = ResiliencePipeline.Empty;
+
+        // DI 컨테이너 구성 완료 후 SetLogger()로 주입됩니다.
+        // 그 전(Init 시점)에는 NullLogger가 사용됩니다.
+        private ILogger<RedisManager> _logger = NullLogger<RedisManager>.Instance;
 
         public IConnectionMultiplexer Connection => _redis;
+        public RedisLockManager LockManager { get; private set; } = null!;
 
-        public RedisLockManager LockManager { get; private set; }
-
-        // 🚀 추가: Pub/Sub 메시지를 엿들을 수신기
-        private ISubscriber _subscriber;
-
-        // 🚀 핵심: 매칭 성공 메시지가 도착했을 때 외부(서버)로 알려줄 이벤트!
-        public event Action<MatchSuccessEvent> OnMatchSuccessReceived;
+        private ISubscriber _subscriber = null!;
+        public event Action<MatchSuccessEvent>? OnMatchSuccessReceived;
 
         private RedisManager() { }
 
+        /// <summary>
+        /// DI 구성 후 app.Services에서 주입합니다.
+        /// Init() 이후에 호출해야 Polly 이벤트 로그가 정상 동작합니다.
+        /// </summary>
+        public void SetLogger(ILogger<RedisManager> logger)
+        {
+            _logger = logger;
+        }
+
         public void Init(string connectionString)
         {
-            // TODO: local only
-            // docker run --name my-redis -p 6379:6379 -d redis 로컬 환경에서 설치 필요.
             try
             {
-                // Redis 서버 연결
-                _redis = ConnectionMultiplexer.Connect(connectionString);
+                // ── Redis Cluster 연결 설정 ────────────────────���────────────
+                var options = ConfigurationOptions.Parse(connectionString);
+                options.AbortOnConnectFail   = false;  // 시작 시 연결 실패해도 앱 중단 안 함
+                options.ConnectTimeout       = 5000;   // 연결 타임아웃 (ms)
+                options.SyncTimeout          = 3000;   // 동기 명령 타임아웃 (ms)
+                options.AsyncTimeout         = 3000;   // 비동기 명령 타임아웃 (ms)
+                // 클러스터 재연결: 500ms → 최대 10초 지수 백오프
+                options.ReconnectRetryPolicy = new ExponentialRetry(500, 10_000);
 
-                // 개발자님이 만들어두신 RedisLockManager 연동
+                _redis = ConnectionMultiplexer.Connect(options);
                 LockManager = new RedisLockManager(_redis);
-                
-                // 🚀 추가: 수신기를 할당받고, 특정 채널 구독 시작!
-                _subscriber = _redis.GetSubscriber();
+                _subscriber  = _redis.GetSubscriber();
+
+                // ── Polly 회로차단기 + 재시도 파이프라인 ───────────────────
+                // 실행 순서(안쪽 → 바깥쪽): Retry → CircuitBreaker
+                //   1. 명령이 실패하면 Retry가 최대 3번 재시도
+                //   2. 30초 윈도우 내 5회 이상 호출 중 50%가 실패하면 회로 개방
+                //   3. 회로 개방 중에는 BrokenCircuitException을 즉시 던져 Redis 부하 차단
+                _pipeline = new ResiliencePipelineBuilder()
+                    .AddRetry(new RetryStrategyOptions
+                    {
+                        MaxRetryAttempts = 3,
+                        Delay            = TimeSpan.FromMilliseconds(300),
+                        BackoffType      = DelayBackoffType.Exponential,
+                        UseJitter        = true,
+                        ShouldHandle     = new PredicateBuilder()
+                            .Handle<RedisException>()
+                            .Handle<RedisTimeoutException>()
+                            .Handle<RedisConnectionException>(),
+                        OnRetry = args =>
+                        {
+                            _logger.LogWarning(
+                                "[Redis] 재시도 {Attempt}회 — {Exception}",
+                                args.AttemptNumber + 1,
+                                args.Outcome.Exception?.Message);
+                            return ValueTask.CompletedTask;
+                        }
+                    })
+                    .AddCircuitBreaker(new CircuitBreakerStrategyOptions
+                    {
+                        FailureRatio      = 0.5,
+                        SamplingDuration  = TimeSpan.FromSeconds(30),
+                        MinimumThroughput = 5,
+                        BreakDuration     = TimeSpan.FromSeconds(60),
+                        ShouldHandle      = new PredicateBuilder()
+                            .Handle<RedisException>()
+                            .Handle<RedisTimeoutException>()
+                            .Handle<RedisConnectionException>(),
+                        OnOpened = args =>
+                        {
+                            _logger.LogError(
+                                "[Redis] 회로차단기 OPEN — Redis 응답 불가. {Duration}초간 요청 차단",
+                                args.BreakDuration.TotalSeconds);
+                            return ValueTask.CompletedTask;
+                        },
+                        OnClosed = _ =>
+                        {
+                            _logger.LogInformation("[Redis] 회로차단기 CLOSED — Redis 복구 확인됨");
+                            return ValueTask.CompletedTask;
+                        },
+                        OnHalfOpened = _ =>
+                        {
+                            _logger.LogWarning("[Redis] 회로차단기 HALF-OPEN — 복구 탐침 중");
+                            return ValueTask.CompletedTask;
+                        }
+                    })
+                    .Build();
+
                 SubscribeToMatchingEvents();
 
-                Console.WriteLine($"[RedisManager] Redis 연결 및 LockManager 초기화 성공! ({connectionString})");
+                Console.WriteLine($"[RedisManager] Redis 클러스터 연결 성공! ({connectionString})");
             }
             catch (Exception ex)
             {
@@ -51,47 +119,50 @@ namespace PlatformA.Library.Core
             }
         }
 
+        // ── Polly 래퍼 ────────────────────────────────────────────────────
 
-        // 🚀 매칭 채널 구독 로직
+        /// <summary>
+        /// Redis 명령을 Polly(재시도 + 회로차단기) 파이프라인으로 실행합니다.
+        /// BrokenCircuitException 발생 시 호출 측에서 적절히 처리(fail-open 등)하세요.
+        /// </summary>
+        public async Task<T> ExecuteAsync<T>(Func<IDatabase, Task<T>> action)
+        {
+            return await _pipeline.ExecuteAsync<T>(async _ =>
+                await action(Connection.GetDatabase()));
+        }
+
+        /// <summary>반환값 없는 Redis 명령용 오버로드</summary>
+        public async Task ExecuteAsync(Func<IDatabase, Task> action)
+        {
+            await _pipeline.ExecuteAsync(async _ =>
+                await action(Connection.GetDatabase()));
+        }
+
+        // ── Pub/Sub ─────────────────────────────────���─────────────────────
+
         private void SubscribeToMatchingEvents()
         {
-            // 채널 이름 (발행하는 쪽과 글자가 완벽히 똑같아야 함)
-            string channelName = "channel:match_success";
-
-            _subscriber.Subscribe(channelName, (channel, message) =>
+            _subscriber.Subscribe(RedisChannel.Literal("channel:match_success"), (_, message) =>
             {
-                // 메시지가 도착하면 백그라운드 스레드에서 이 콜백이 실행됩니다.
                 try
                 {
-                    // 1. 편지(JSON)를 뜯어서 우리가 아는 DTO로 변환
-                    var matchEvent = JsonSerializer.Deserialize<MatchSuccessEvent>(message);
-
+                    var matchEvent = JsonSerializer.Deserialize<MatchSuccessEvent>(message!);
                     if (matchEvent != null)
                     {
-                        Console.WriteLine($"\n[Redis PubSub] 📡 매칭 성사 수신! -> 지시받은 방 번호: {matchEvent.RoomId}");
-                        Console.WriteLine($"[Redis PubSub] 📡 입장 예정 유저들: {string.Join(", ", matchEvent.MatchedUserIds)}");
-
-                        // 2. 명령대로 즉시 빈 방을 파놓고 대기!
-                        // TODO: GameRoomManager를 사용 할 수 없음
-                        //GameRoomManager.Instance.CreateRoom(matchEvent.RoomId);
-
-                        // 🚀 하위 라이브러리는 방을 어떻게 만드는지 모릅니다.
-                        // 그저 "메시지 왔어요!" 하고 이벤트를 발생(Invoke)시킬 뿐입니다.
+                        _logger.LogInformation(
+                            "[Redis PubSub] 매칭 성사 수신 — 방: {RoomId}, 유저: [{Users}]",
+                            matchEvent.RoomId,
+                            string.Join(", ", matchEvent.MatchedUserIds));
                         OnMatchSuccessReceived?.Invoke(matchEvent);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Redis PubSub Error] 메시지 처리 실패: {ex.Message}");
+                    _logger.LogError(ex, "[Redis PubSub] 메시지 처리 실패");
                 }
             });
         }
 
-
-        public ISubscriber GetSubscriber()
-        {
-            return _subscriber;
-        }
-
+        public ISubscriber GetSubscriber() => _subscriber;
     }
 }

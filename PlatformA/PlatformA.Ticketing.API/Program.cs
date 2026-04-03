@@ -47,6 +47,9 @@ builder.Services.AddHealthChecks()
 // ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
+// RedisManager에 DI 로거 주입
+RedisManager.Instance.SetLogger(app.Services.GetRequiredService<ILogger<RedisManager>>());
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
