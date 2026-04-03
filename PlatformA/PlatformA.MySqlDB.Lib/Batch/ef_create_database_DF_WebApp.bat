@@ -18,7 +18,7 @@ echo [WebApp DF] DB에서 엔티티 역방향 생성 (Database-First)...
 dotnet ef dbcontext scaffold ^
   "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234" ^
   Pomelo.EntityFrameworkCore.MySql ^
-  --output-dir DBWebApp ^
+  --output-dir DBWebApp/Entities
   --force ^
   --context DbWebAppContext ^
   --use-database-names ^
@@ -31,3 +31,5 @@ echo [WebApp DF] 빌드 확인...
 dotnet build
 
 echo [WebApp DF] 완료.
+
+pause

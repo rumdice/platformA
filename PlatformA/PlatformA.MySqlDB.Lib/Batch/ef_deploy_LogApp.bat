@@ -27,6 +27,7 @@ set DB_PASS=pass1234
 set LOGAPP_DB_CONNECTION=Server=%DB_SERVER%;Port=%DB_PORT%;Database=%DB_NAME%;User=%DB_USER%;Password=%DB_PASS%
 
 cd /d "%~dp0.."
+chcp 65001 >nul
 
 :: Migrations 폴더 존재 확인
 if not exist "Migrations\LogApp" (

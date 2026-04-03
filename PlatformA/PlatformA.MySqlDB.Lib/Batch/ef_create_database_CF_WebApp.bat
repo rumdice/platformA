@@ -32,3 +32,5 @@ echo [WebApp CF] 빌드 확인...
 dotnet build
 
 echo [WebApp CF] 완료.
+
+pause

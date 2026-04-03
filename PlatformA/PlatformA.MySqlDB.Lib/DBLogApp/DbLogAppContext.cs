@@ -27,7 +27,6 @@ namespace PlatformA.MySqlDB.Lib.DBLogApp
 
     /// <summary>
     /// EF Core CLI 도구가 라이브러리 단독으로 실행될 수 있도록 design-time factory를 제공합니다.
-    /// LogApp은 별도 포트(3306)의 DB 인스턴스를 사용합니다.
     /// </summary>
     public class DbLogAppContextFactory : IDesignTimeDbContextFactory<DbLogAppContext>
     {

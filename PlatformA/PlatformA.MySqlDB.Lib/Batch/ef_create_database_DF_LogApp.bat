@@ -8,6 +8,7 @@
 :: ============================================================
 
 cd /d "%~dp0.."
+chcp 65001 >nul
 
 echo [LogApp DF] DB에서 엔티티 역방향 생성 (Database-First)...
 dotnet ef dbcontext scaffold ^
