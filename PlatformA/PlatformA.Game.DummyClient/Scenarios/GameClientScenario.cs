@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
 using System.Net.Http.Json;
@@ -77,47 +77,41 @@ namespace PlatformA.Game.DummyClient.Scenarios
             return sendBuffer;
         }
 
-        static byte[] MakeLoginPacket(string token)
+        // payload 포맷: roomId(4) + stringLen(2) + token(N)
+        // roomId == 1 : 광장(plaza), roomId > 1 : 매칭 서버가 발급한 실제 방
+        static byte[] MakeLoginPacket(string token, int roomId)
         {
             byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
             ushort stringLen = (ushort)tokenBytes.Length;
 
-            // 헤더(4) + 문자열 길이(2) + 문자열 데이터(N)
-            // 헤더(4) + 문자열 길이(2) + 문자열 데이터(N)
-            ushort packetSize = (ushort)(4 + 2 + stringLen);
+            // 헤더(4) + roomId(4) + 문자열 길이(2) + 문자열 데이터(N)
+            ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
             ushort packetId = (ushort)PacketID.C_Login;
 
             byte[] buffer = new byte[packetSize];
             Span<byte> span = buffer.AsSpan();
 
-            // 🚀 1. 헤더 조립 (0~3번지)
+            // 1. 헤더 조립 (0~3번지)
             BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
             BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
 
-            //// 🚀 2. RoomId 기록 (4~7)
-            //BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
+            // 2. RoomId 기록 (4~7번지)
+            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
 
-            //// 3. 문자열 길이 기록 (8~9번지)
-            //BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
+            // 3. 문자열 길이 기록 (8~9번지)
+            BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
 
             // 4. 토큰 데이터 기록 (10번지~)
-            //tokenBytes.CopyTo(span.Slice(10));
-
-
-            // 🚀 문자열 길이 기록 (4~5번지)
-            BitConverter.TryWriteBytes(span.Slice(4, 2), stringLen);
-
-            // 🚀 토큰 데이터 기록 (6번지~)
-            tokenBytes.CopyTo(span.Slice(6));
+            tokenBytes.CopyTo(span.Slice(10));
 
             return buffer;
         }
 
-        static async Task SendLoginPacketAsync(Socket client, string token)
+        static async Task SendLoginPacketAsync(Socket client, string token, int roomId)
         {
-            byte[] packet = MakeLoginPacket(token);
+            byte[] packet = MakeLoginPacket(token, roomId);
             await client.SendAsync(packet, SocketFlags.None);
-            Console.WriteLine($"[Send] C_Login - {packet.Length} bytes 전송");
+            Console.WriteLine($"[Send] C_Login (RoomId:{roomId}) - {packet.Length} bytes 전송");
         }
 
 
@@ -289,10 +283,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 
                 _ = ReceiveLoopAsync(client);
 
-                // JWT 토큰으로 C_Login 패킷 전송 (게임 서버가 TokenManager로 검증)
-                await SendLoginPacketAsync(client, realToken);
-
-                // *나중에는 C_Login 패킷에 roomId도 같이 담아 보내서 해당 방에 들어가게 해야 합니다!*
+                // 1번 방(광장)으로 C_Login 패킷 전송
+                await SendLoginPacketAsync(client, realToken, roomId: 1);
                 await Task.Delay(500);
 
                 Console.WriteLine($"[UserID : {userId}] 게임 서버 접속 성공 엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다. q로 종료");
@@ -334,10 +326,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                 _ = ReceiveLoopAsync(client);
 
-                // JWT 토큰으로 C_Login 패킷 전송 (게임 서버가 TokenManager로 검증)
-                await SendLoginPacketAsync(client, realToken);
-
-                // *나중에는 C_Login 패킷에 roomId도 같이 담아 보내서 해당 방에 들어가게 해야 합니다!*
+                // 매칭 서버가 발급한 roomId로 C_Login 패킷 전송
+                await SendLoginPacketAsync(client, realToken, roomId);
                 await Task.Delay(500);
 
                 Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");

@@ -1,0 +1,88 @@
+ ---
+  PlatformA 아키텍처 설명
+  전체 구조: 마이크로서비스 + 고성능 TCP 서버 혼합형
+  프로젝트는 REST/WebSocket 기반 마이크로서비스와 Raw TCP 게임 서버를 Redis를 허브로 연결하는 구조입니다.
+
+  클라이언트는 3가지 프로토콜로 서버와 통신합니다:
+    HTTP/S   → Auth, Ticketing, Matching (REST API)
+    WebSocket → Matching (SignalR 실시간 알림)
+    Raw TCP  → Game.Server (바이너리 패킷, 저지연)
+
+  ---
+  서비스별 역할
+
+  ┌───────────────┬──────┬─────────────────────────────────────────────────┐
+  │    서비스     │ 포트 │                      역할                       │
+  ├───────────────┼──────┼─────────────────────────────────────────────────┤
+  │ Auth.API      │ 7088 │ JWT 로그인/갱신, BCrypt 비밀번호, Refresh Token │
+  ├───────────────┼──────┼─────────────────────────────────────────────────┤
+  │ Ticketing.API │ 7075 │ Redis Sorted Set 기반 입장 대기열 관리          │
+  ├───────────────┼──────┼─────────────────────────────────────────────────┤
+  │ Matching.API  │ 5189 │ SignalR + Redis List 기반 1v1 매칭 엔진         │
+  ├───────────────┼──────┼─────────────────────────────────────────────────┤
+  │ Game.Server   │ 7777 │ System.IO.Pipelines TCP 서버, 실제 게임 처리    │
+  ├───────────────┼──────┼─────────────────────────────────────────────────┤
+  │ Utils.API     │ -    │ Snowflake ID 생성, 플레이어 통계 동기화         │
+  └───────────────┴──────┴─────────────────────────────────────────────────┘
+
+  ---
+  핵심 데이터 흐름
+
+  ① 로그인 흐름
+  Client → Auth.API → MySQL (유저 조회/생성)
+                    → Redis (Refresh Token 저장, 7일 TTL)
+         ← JWT Access Token (15분) + Refresh Token
+
+  ② 대기열 흐름 (Ticketing)
+  Client → Ticketing.API → Redis Sorted Set (score=timestamp)
+                         ← 현재 순위 반환
+         (하트비트로 고스트 유저 자동 제거)
+
+  ③ 매칭 → 게임 입장 흐름 (핵심)
+  Client ──SignalR 연결──→ Matching.API
+  Client ──매칭 요청──────→ POST /api/GameMatch/RequestMatch
+                            └→ Redis List "queue:gamematch:1v1" 에 Push
+
+  [백그라운드 워커 GameMatchService - 1초 폴링]
+  Redis List 에 2명 쌓이면 →
+    1. global:room_id Increment → 새 방 번호 발급
+    2. Redis Pub/Sub "channel:match_success" 에 Publish
+    3. SignalR로 두 플레이어에게 "MatchFound" 이벤트 전송
+
+  Game.Server ──구독 중── Redis Pub/Sub
+    수신 시 → GameRoomManager.CreateRoom(roomId)
+
+  Client ──MatchFound 수신──→ TCP로 Game.Server(:7777) 접속
+
+  ④ TCP 게임 세션 흐름
+  Client TCP 연결 → GameSession 생성
+  패킷 수신 → System.IO.Pipelines (헤더 파싱: 2B size + 2B id)
+            → PacketManager<GameSession>.HandlePacket()
+            → [PacketHandler] 어트리뷰트로 등록된 핸들러 실행
+            → GameRoom.Push(작업) → JobQueue (단일 스레드 처리)
+            → GameRoom.Broadcast() → 모든 세션에 S_패킷 전송
+			
+			
+
+
+아키텍처 핵심 설계 포인트
+
+  1. Zero-Lock 게임 룸
+  - 멀티스레드 환경에서 룸 내 상태를 JobQueue로 단일화
+  - 락 없이도 스레드 안전 보장
+
+  2. 이벤트 드리븐 서비스 연결
+  - Matching.API ↔ Game.Server는 직접 HTTP 호출이 아닌 Redis Pub/Sub으로 연결
+  - 서비스 간 결합도를 낮춤
+
+  3. System.IO.Pipelines
+  - 일반 NetworkStream 대비 제로카피, 버퍼 재사용
+  - ArrayPool 기반으로 GC 부하 최소화
+
+  4. Roslyn 소스 제너레이터
+  - [Packet] 어트리뷰트만 붙이면 컴파일 타임에 직렬화 코드 자동 생성
+  - 런타임 리플렉션 없이 struct 바이너리 직렬화
+
+  5. Polly 회로차단기
+  - Redis 장애 시 재시도(3회, 지수 백오프) → 실패율 50% 초과 시 60초 차단
+  - 장애 전파 방지

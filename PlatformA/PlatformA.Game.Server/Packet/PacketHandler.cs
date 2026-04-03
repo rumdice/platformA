@@ -1,4 +1,4 @@
-﻿using Polly.CircuitBreaker;
+using Polly.CircuitBreaker;
 using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
@@ -70,8 +70,9 @@ namespace PlatformA.Game.Server.Packet
                 loginReq.Deserialize(payload);
 
                 string token = loginReq.JwtToken; // 힙에 올라갈 수 있는 일반 string 변수로 추출!
+                int roomId = loginReq.RoomId;
 
-                _ = ProcessLoginAsync(session, token);
+                _ = ProcessLoginAsync(session, token, roomId);
             }
             catch (Exception ex)
             {
@@ -80,7 +81,7 @@ namespace PlatformA.Game.Server.Packet
             }
         }
 
-        private static async Task ProcessLoginAsync(GameSession session, string jwtToken)
+        private static async Task ProcessLoginAsync(GameSession session, string jwtToken, int roomId)
         {
             // 토큰 검증 시도
             int playerId = TokenManager.ValidateTokenAndGetUserId(jwtToken);
@@ -142,16 +143,20 @@ namespace PlatformA.Game.Server.Packet
                 session.SessionId = playerId;
                 Console.WriteLine($"[GameServer] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
 
-                // 생성된 매칭 서버 방 진입.
-                //Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(roomId);
+                // 클라이언트가 요청한 방으로 입장
+                // roomId == 1 : 광장(plaza, 서버 시작 시 항상 열려있음)
+                // roomId > 1  : 매칭 서버가 발급한 실제 게임 방
+                int targetRoomId = roomId > 0 ? roomId : 1;
+                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(targetRoomId);
 
-                // 🚀 해당 방에 유저 입장! 이제 session.Room 에 값이 생깁니다!
-                //room?.Push(() => room.Enter(session));
-             
-                // 🚀 방 번호가 없으므로, 모든 유저를 '1번 방(글로벌 광장)'에 강제로 집어넣습니다.
-                int roomId = 1;
-                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(roomId);
-                // 방에 유저 입장! (이제 C_Move를 쏘면 1번 방에 있는 모두에게 브로드캐스트 됨)
+                if (room == null)
+                {
+                    // 매칭 이벤트보다 클라이언트가 먼저 도착한 경우 (타이밍 경쟁)
+                    Console.WriteLine($"[GameServer Warning] 방({targetRoomId})이 아직 생성되지 않았습니다. 연결을 끊습니다. (User_{playerId})");
+                    session.Disconnect();
+                    return;
+                }
+
                 room.Push(() => room.Enter(session));
             }
             else
