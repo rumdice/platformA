@@ -25,7 +25,7 @@ namespace PlatformA.Matching.API.Hubs
         public override async Task OnConnectedAsync()
         {
             var httpContext = Context.GetHttpContext();
-            string jwtToken = null;
+            string? jwtToken = null;
 
             if (httpContext != null)
             {
@@ -39,7 +39,7 @@ namespace PlatformA.Matching.API.Hubs
                 // 헤더에 없다면 쿼리스트링에서 찾아봅니다. (웹 브라우저 클라이언트용)
                 if (string.IsNullOrEmpty(jwtToken))
                 {
-                    jwtToken = httpContext.Request.Query["access_token"];
+                    jwtToken = httpContext.Request.Query["access_token"].ToString();
                 }
             }
 

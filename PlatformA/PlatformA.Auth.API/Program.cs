@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using PlatformA.Auth.API.HealthChecks;
@@ -20,7 +21,28 @@ builder.Logging.AddLog4Net("log4net.config");
 // ── Services ─────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Access Token을 입력하세요. 예: eyJhbGci..."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Redis 연결 (분산 Rate Limiting용)
 RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
@@ -67,13 +89,6 @@ var app = builder.Build();
 
 // RedisManager에 DI 로거 주입 (Init 이후에 호출해야 Polly 이벤트 로그가 동작)
 RedisManager.Instance.SetLogger(app.Services.GetRequiredService<ILogger<RedisManager>>());
-
-// DB 자동 마이그레이션 (개발 편의용 — 운영에서는 스크립트로 직접 적용)
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<DbWebAppContext>();
-    await db.Database.MigrateAsync();
-}
 
 if (app.Environment.IsDevelopment())
 {

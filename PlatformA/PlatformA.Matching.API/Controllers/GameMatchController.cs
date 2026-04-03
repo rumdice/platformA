@@ -48,7 +48,7 @@ namespace PlatformA.Matching.API.Controllers
         /// 테스트 API (안쓰임): 실제로 매칭 로직은 API Request 가 아니라 SignalR Hub에서 하는 방식으로 개선.
         /// </summary>
         [HttpPost("test-match")]
-        public async Task<IActionResult> TestMatch([FromBody] MatchTestRequest request)
+        public IActionResult TestMatch([FromBody] MatchTestRequest request)
         {
             Console.WriteLine($"[TestAPI] 매칭 테스트 요청 수신: User({request.User1Id}) & User({request.User2Id})");
 

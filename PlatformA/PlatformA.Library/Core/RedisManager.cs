@@ -51,7 +51,7 @@ namespace PlatformA.Library.Core
                 options.ReconnectRetryPolicy = new ExponentialRetry(500, 10_000);
 
                 _redis = ConnectionMultiplexer.Connect(options);
-                LockManager = new RedisLockManager(_redis);
+                LockManager = new RedisLockManager(this);
                 _subscriber  = _redis.GetSubscriber();
 
                 // ── Polly 회로차단기 + 재시도 파이프라인 ───────────────────

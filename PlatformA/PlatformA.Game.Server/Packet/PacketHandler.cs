@@ -1,4 +1,5 @@
-﻿using PlatformA.Game.Server.Core;
+﻿using Polly.CircuitBreaker;
+using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
@@ -87,10 +88,20 @@ namespace PlatformA.Game.Server.Packet
             if (playerId > 0)
             {
                 // 🚀 1. 대기열(Active) 문지기 검증 (새치기 완벽 차단)
-                var db = RedisManager.Instance.Connection.GetDatabase();
                 string activeKey = $"{Consts.ACTIVE_USER_KEY_PREFIX}{playerId}";
 
-                bool isActive = await db.KeyExistsAsync(activeKey);
+                bool isActive;
+                try
+                {
+                    isActive = await RedisManager.Instance.ExecuteAsync(db => db.KeyExistsAsync(activeKey));
+                }
+                catch (BrokenCircuitException)
+                {
+                    Console.WriteLine($"🚨 [Redis 장애] 회로차단기 OPEN — 입장권 검증 불가. 접속 거부 (User_{playerId})");
+                    session.Disconnect();
+                    return;
+                }
+
                 if (!isActive)
                 {
                     Console.WriteLine($"🚨 [보안 경고] 대기열을 거치지 않은 불법 접속 시도! (User_{playerId})");
@@ -99,7 +110,7 @@ namespace PlatformA.Game.Server.Packet
                 }
 
                 // 🚀 2. 입장권 회수 (티켓 찢기 - 재사용 방지, TTL 도달 전에 즉시 삭제)
-                await db.KeyDeleteAsync(activeKey);
+                await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(activeKey));
                 Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
 
                 // 🚀 3. Redis 분산 락 획득 시도 (중복 로그인 방어)

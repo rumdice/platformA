@@ -1,41 +1,40 @@
-﻿using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
+using Polly.CircuitBreaker;
+using StackExchange.Redis;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PlatformA.Library.Core
 {
     public class RedisLockManager
     {
-        private readonly IDatabase _db;
+        private readonly RedisManager _redisManager;
 
-        public RedisLockManager(IConnectionMultiplexer redis)
+        public RedisLockManager(RedisManager redisManager)
         {
-            _db = redis.GetDatabase();
+            _redisManager = redisManager;
         }
 
         // 1. 락 획득 시도 (SpinLock 방식)
         public async Task<string?> AcquireLockAsync(string lockKey, TimeSpan expiry, TimeSpan waitTime, TimeSpan retryTime)
         {
-            // 나만의 고유한 락 키값 (나중에 풀 때 내 것인지 확인하기 위함)
             string lockValue = Guid.NewGuid().ToString();
             var sw = Stopwatch.StartNew();
 
             while (sw.Elapsed < waitTime)
             {
-                // 🔥 핵심: SET NX 명령어 (StackExchange.Redis에서는 When.NotExists로 구현)
-                // 키가 없으면 만들고 true 반환, 있으면 false 반환 (원자적 연산)
-                bool acquired = await _db.StringSetAsync(lockKey, lockValue, expiry, When.NotExists);
-
-                if (acquired)
+                try
                 {
-                    return lockValue; // 락 획득 성공! 내 고유 ID를 반환
+                    // 🔥 핵심: SET NX 명령어 (StackExchange.Redis에서는 When.NotExists로 구현)
+                    // 키가 없으면 만들고 true 반환, 있으면 false 반환 (원자적 연산)
+                    bool acquired = await _redisManager.ExecuteAsync(
+                        db => db.StringSetAsync(lockKey, lockValue, expiry, When.NotExists));
+
+                    if (acquired) return lockValue; // 락 획득 성공! 내 고유 ID를 반환
+                }
+                catch (BrokenCircuitException)
+                {
+                    return null; // 회로차단기 OPEN — Redis 응답 불가, 락 획득 불가
                 }
 
-                // 락 획득 실패 시 잠시 대기 후 재시도 (Spin 방지)
                 await Task.Delay(retryTime);
             }
 
@@ -54,10 +53,16 @@ namespace PlatformA.Library.Core
                     return 0
                 end";
 
-            await _db.ScriptEvaluateAsync(script,
-                new RedisKey[] { lockKey },
-                new RedisValue[] { lockValue }
-            );
+            try
+            {
+                await _redisManager.ExecuteAsync(db => db.ScriptEvaluateAsync(script,
+                    new RedisKey[] { lockKey },
+                    new RedisValue[] { lockValue }));
+            }
+            catch (BrokenCircuitException)
+            {
+                // 회로차단기 OPEN — 해제 실패. TTL 만료 후 자동 해제됨
+            }
         }
 
         // 3. 락 TTL 갱신 (Lock Heartbeat)
@@ -73,12 +78,18 @@ namespace PlatformA.Library.Core
                     return 0
                 end";
 
-            var result = (int)await _db.ScriptEvaluateAsync(script,
-                new RedisKey[] { lockKey },
-                new RedisValue[] { lockValue, (int)expiry.TotalSeconds }
-            );
+            try
+            {
+                var result = (int)await _redisManager.ExecuteAsync(db => db.ScriptEvaluateAsync(script,
+                    new RedisKey[] { lockKey },
+                    new RedisValue[] { lockValue, (int)expiry.TotalSeconds }));
 
-            return result == 1;
+                return result == 1;
+            }
+            catch (BrokenCircuitException)
+            {
+                return false; // 회로차단기 OPEN — 갱신 실패로 처리 (락을 잃은 것으로 간주)
+            }
         }
     }
 }
