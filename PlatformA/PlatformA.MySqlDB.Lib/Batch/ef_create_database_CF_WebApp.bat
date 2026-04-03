@@ -11,6 +11,7 @@
 :: ============================================================
 
 cd /d "%~dp0.."
+chcp 65001 >nul
 
 echo [WebApp CF] 기존 마이그레이션 폴더 삭제...
 if exist "Migrations\WebApp" rmdir /s /q "Migrations\WebApp"
