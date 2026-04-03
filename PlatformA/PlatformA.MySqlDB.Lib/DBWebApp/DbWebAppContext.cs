@@ -100,7 +100,10 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp
     {
         public DbWebAppContext CreateDbContext(string[] args)
         {
-            const string conn = "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
+            // 환경변수 WEBAPP_DB_CONNECTION 이 설정되어 있으면 우선 사용합니다.
+            // 배포 스크립트(ef_deploy_WebApp.bat / .sh)에서 이 변수를 주입합니다.
+            string conn = Environment.GetEnvironmentVariable("WEBAPP_DB_CONNECTION")
+                ?? "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
             var optionsBuilder = new DbContextOptionsBuilder<DbWebAppContext>();
             optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn));
             optionsBuilder.UseSnakeCaseNamingConvention(); // 런타임과 동일한 옵션 필수

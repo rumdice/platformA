@@ -44,6 +44,36 @@ namespace PlatformA.Auth.API.Services
             }
         }
 
+        /// <summary>
+        /// 토큰 검증과 폐기를 원자적으로 수행합니다 (Lua GET+DEL).
+        /// 동시 요청에서 동일 Refresh Token이 두 번 사용되는 경쟁 조건을 방지합니다.
+        /// </summary>
+        public async Task<int?> GetAndRevokeAsync(string refreshToken)
+        {
+            string key = Consts.REFRESH_TOKEN_KEY_PREFIX + refreshToken;
+            // GET + DEL 을 하나의 Lua 트랜잭션으로 처리 — 두 스레드가 동시에 접근해도
+            // 둘 중 하나만 값을 얻고, 나머지는 nil을 받습니다.
+            const string script = @"
+                local val = redis.call('get', KEYS[1])
+                if val then
+                    redis.call('del', KEYS[1])
+                    return val
+                end
+                return nil";
+            try
+            {
+                var result = await _redisManager.ExecuteAsync(db =>
+                    db.ScriptEvaluateAsync(script, new StackExchange.Redis.RedisKey[] { key }));
+                if (result.IsNull) return null;
+                return int.Parse(result.ToString()!);
+            }
+            catch (BrokenCircuitException)
+            {
+                _logger.LogWarning("[RefreshToken] 회로차단기 개방 — 원자적 토큰 검증 불가");
+                return null;
+            }
+        }
+
         public async Task RevokeAsync(string refreshToken)
         {
             string key = Consts.REFRESH_TOKEN_KEY_PREFIX + refreshToken;

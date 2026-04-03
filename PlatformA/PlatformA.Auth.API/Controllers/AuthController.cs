@@ -64,14 +64,13 @@ namespace PlatformA.Auth.API.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
-            int? userId = await _refreshTokenService.GetUserIdAsync(request.RefreshToken);
+            // 원자적 GET+DEL: 동시 요청에서 동일 토큰이 두 번 사용되는 경쟁 조건 방지
+            int? userId = await _refreshTokenService.GetAndRevokeAsync(request.RefreshToken);
             if (userId == null)
             {
-                _logger.LogWarning("[Auth] Refresh Token 검증 실패 — 유효하지 않거나 만료됨");
+                _logger.LogWarning("[Auth] Refresh Token 검증 실패 — 유효하지 않거나 만료됨 (또는 이미 사용됨)");
                 return Unauthorized(new { Message = "유효하지 않거나 만료된 Refresh Token입니다." });
             }
-
-            await _refreshTokenService.RevokeAsync(request.RefreshToken);
 
             string newAccessToken = TokenManager.GenerateJwtToken(userId.Value);
             string newRefreshToken = TokenManager.GenerateRefreshToken();
@@ -93,14 +92,13 @@ namespace PlatformA.Auth.API.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
-            int? userId = await _refreshTokenService.GetUserIdAsync(request.RefreshToken);
+            // 원자적 GET+DEL: 검증과 폐기를 동시에 처리
+            int? userId = await _refreshTokenService.GetAndRevokeAsync(request.RefreshToken);
             if (userId == null)
             {
                 _logger.LogWarning("[Auth] 로그아웃 실패 — 유효하지 않거나 이미 만료된 Refresh Token");
                 return Unauthorized(new { Message = "유효하지 않거나 이미 만료된 Refresh Token입니다." });
             }
-
-            await _refreshTokenService.RevokeAsync(request.RefreshToken);
 
             _logger.LogInformation("[Auth] 로그아웃 완료. Refresh Token 폐기. UserId: {UserId}", userId.Value);
             return Ok(new { Message = "로그아웃 완료." });

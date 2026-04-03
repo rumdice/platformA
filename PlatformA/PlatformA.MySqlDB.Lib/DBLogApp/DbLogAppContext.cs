@@ -33,7 +33,10 @@ namespace PlatformA.MySqlDB.Lib.DBLogApp
     {
         public DbLogAppContext CreateDbContext(string[] args)
         {
-            const string conn = "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
+            // 환경변수 LOGAPP_DB_CONNECTION 이 설정되어 있으면 우선 사용합니다.
+            // 배포 스크립트(ef_deploy_LogApp.bat / .sh)에서 이 변수를 주입합니다.
+            string conn = Environment.GetEnvironmentVariable("LOGAPP_DB_CONNECTION")
+                ?? "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
             var optionsBuilder = new DbContextOptionsBuilder<DbLogAppContext>();
             optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn));
             return new DbLogAppContext(optionsBuilder.Options);
