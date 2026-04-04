@@ -1,4 +1,5 @@
 using PlatformA.Library.Common;
+using System;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -140,11 +141,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 Interlocked.Increment(ref _loginOk);
                 return token;
             }
-            catch
+            catch (Exception ex)
             {
+                // 🚨 네트워크 단절, 연결 거부, SSL 인증서 오류 등 확인
+                Console.WriteLine($"[Network/Exception Error] {username}: {ex.Message}");
                 Interlocked.Increment(ref _loginFail);
                 return null;
             }
+
         }
 
         // ── STEP 2: 대기열 진입 ───────────────────────────────────
@@ -163,8 +167,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 Interlocked.Increment(ref _queueFail);
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[EnterQueueAsync Error]: {ex.Message}");
                 Interlocked.Increment(ref _queueFail);
                 return false;
             }
@@ -196,8 +201,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     await Task.Delay(delay, timeout.Token);
                 }
             }
-            catch (OperationCanceledException) { }
-            catch { /* 연결 오류 */ }
+            catch (OperationCanceledException ex) 
+            {
+                Console.WriteLine($"[PollUntilActiveAsync OperationCanceledException Error]: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PollUntilActiveAsync Error]: {ex.Message}");
+            }
 
             return false;
         }
@@ -219,7 +230,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         $"입장:{_activeOk,4}✓");
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException ex)
+            {
+                Console.WriteLine($"[LiveProgressAsync OperationCanceledException Error]: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LiveProgressAsync Error]: {ex.Message}");
+            }
         }
 
         // ── 최종 리포트 ───────────────────────────────────────────
