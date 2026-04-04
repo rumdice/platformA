@@ -47,9 +47,13 @@ namespace PlatformA.Library.Core
                 options.ConnectTimeout       = 5000;   // 연결 타임아웃 (ms)
                 options.SyncTimeout          = 3000;   // 동기 명령 타임아웃 (ms)
                 options.AsyncTimeout         = 3000;   // 비동기 명령 타임아웃 (ms)
-
+                
                 // 추가 옵션 클러스터 환경에서 구성 변경 시 자동 반영 및 DNS 풀이 강화
                 options.ResolveDns = true;
+                options.AllowAdmin = true;
+                options.ConnectRetry = 3;
+                options.KeepAlive = 10;
+
                 options.CommandMap = CommandMap.Create(new HashSet<string>
                 {
                     // 특정 명령어 제한이 필요하다면 여기서 설정 (기본값은 전체 허용)

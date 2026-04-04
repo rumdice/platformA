@@ -1,115 +1,120 @@
 version: '3.8'
+
+networks:
+  redis-cluster-net:
+    driver: bridge
+
 services:
   redis-1:
-    image: redis:latest
+    image: redis:7
     container_name: redis-1
+    networks:
+      - redis-cluster-net
     command: >
       redis-server
+      --port 6371
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
       --appendonly yes
-      --cluster-announce-hostname host.docker.internal
+      --cluster-announce-ip 127.0.0.1
       --cluster-announce-port 6371
       --cluster-announce-bus-port 16371
-      --cluster-preferred-endpoint-type hostname
     ports:
-      - "6371:6379"
-      - "16371:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "6371:6371"
+      - "16371:16371"
 
   redis-2:
-    image: redis:latest
+    image: redis:7
     container_name: redis-2
+    networks:
+      - redis-cluster-net
     command: >
       redis-server
+      --port 6372
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
       --appendonly yes
-      --cluster-announce-hostname host.docker.internal
+      --cluster-announce-ip 127.0.0.1
       --cluster-announce-port 6372
       --cluster-announce-bus-port 16372
-      --cluster-preferred-endpoint-type hostname
     ports:
-      - "6372:6379"
-      - "16372:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "6372:6372"
+      - "16372:16372"
 
   redis-3:
-    image: redis:latest
+    image: redis:7
     container_name: redis-3
+    networks:
+      - redis-cluster-net
     command: >
       redis-server
+      --port 6373
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
       --appendonly yes
-      --cluster-announce-hostname host.docker.internal
+      --cluster-announce-ip 127.0.0.1
       --cluster-announce-port 6373
       --cluster-announce-bus-port 16373
-      --cluster-preferred-endpoint-type hostname
     ports:
-      - "6373:6379"
-      - "16373:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "6373:6373"
+      - "16373:16373"
 
   redis-4:
-    image: redis:latest
+    image: redis:7
     container_name: redis-4
+    networks:
+      - redis-cluster-net
     command: >
       redis-server
+      --port 6374
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
       --appendonly yes
-      --cluster-announce-hostname host.docker.internal
+      --cluster-announce-ip 127.0.0.1
       --cluster-announce-port 6374
       --cluster-announce-bus-port 16374
-      --cluster-preferred-endpoint-type hostname
     ports:
-      - "6374:6379"
-      - "16374:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "6374:6374"
+      - "16374:16374"
 
   redis-5:
-    image: redis:latest
+    image: redis:7
     container_name: redis-5
+    networks:
+      - redis-cluster-net
     command: >
       redis-server
+      --port 6375
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
       --appendonly yes
-      --cluster-announce-hostname host.docker.internal
+      --cluster-announce-ip 127.0.0.1
       --cluster-announce-port 6375
       --cluster-announce-bus-port 16375
-      --cluster-preferred-endpoint-type hostname
     ports:
-      - "6375:6379"
-      - "16375:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "6375:6375"
+      - "16375:16375"
 
   redis-6:
-    image: redis:latest
+    image: redis:7
     container_name: redis-6
+    networks:
+      - redis-cluster-net
     command: >
       redis-server
+      --port 6376
       --cluster-enabled yes
       --cluster-config-file nodes.conf
       --cluster-node-timeout 5000
       --appendonly yes
-      --cluster-announce-hostname host.docker.internal
+      --cluster-announce-ip 127.0.0.1
       --cluster-announce-port 6376
       --cluster-announce-bus-port 16376
-      --cluster-preferred-endpoint-type hostname
     ports:
-      - "6376:6379"
-      - "16376:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "6376:6376"
+      - "16376:16376"
