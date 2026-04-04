@@ -24,36 +24,48 @@ namespace PlatformA.Auth.API.Services
         /// </summary>
         public async Task<int?> LoginAsync(string username, string password)
         {
-            await using var db = await _contextFactory.CreateDbContextAsync();
-
-            var player = await db.Players
-                .FirstOrDefaultAsync(p => p.Username == username);
-
-            if (player == null)
+            try
             {
-                var newPlayer = new Player
+                await using var db = await _contextFactory.CreateDbContextAsync();
+
+
+                var player = await db.Players
+                    .FirstOrDefaultAsync(p => p.Username == username);
+
+
+                if (player == null)
                 {
-                    Username = username,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                    CreatedAt = DateTime.UtcNow
-                };
-                db.Players.Add(newPlayer);
-                await db.SaveChangesAsync();
+                    Console.WriteLine("[PlayerService] 신규 플레이어 등록");
+                    var newPlayer = new Player
+                    {
+                        Username = username,
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    db.Players.Add(newPlayer);
+                    await db.SaveChangesAsync();
 
-                _logger.LogInformation("[PlayerService] 신규 플레이어 등록. Username: {Username}, PlayerId: {PlayerId}",
-                    username, newPlayer.Id);
-                return newPlayer.Id;
+                    _logger.LogInformation("[PlayerService] 신규 플레이어 등록. Username: {Username}, PlayerId: {PlayerId}",
+                        username, newPlayer.Id);
+                    return newPlayer.Id;
+                }
+
+                if (!BCrypt.Net.BCrypt.Verify(password, player.PasswordHash))
+                {
+                    _logger.LogWarning("[PlayerService] 비밀번호 불일치. Username: {Username}", username);
+                    return null;
+                }
+
+                _logger.LogInformation("[PlayerService] 기존 플레이어 인증 성공. Username: {Username}, PlayerId: {PlayerId}",
+                    username, player.Id);
+                return player.Id;
             }
-
-            if (!BCrypt.Net.BCrypt.Verify(password, player.PasswordHash))
+            catch (Exception ex)
             {
-                _logger.LogWarning("[PlayerService] 비밀번호 불일치. Username: {Username}", username);
-                return null;
+                Console.WriteLine($"[PlayerService] 로그인 처리 중 오류: {ex.Message}");
             }
-
-            _logger.LogInformation("[PlayerService] 기존 플레이어 인증 성공. Username: {Username}, PlayerId: {PlayerId}",
-                username, player.Id);
-            return player.Id;
+            return 0;
+            
         }
     }
 }

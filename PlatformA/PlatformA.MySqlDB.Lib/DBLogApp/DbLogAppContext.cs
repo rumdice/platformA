@@ -37,7 +37,8 @@ namespace PlatformA.MySqlDB.Lib.DBLogApp
             string conn = Environment.GetEnvironmentVariable("LOGAPP_DB_CONNECTION")
                 ?? "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
             var optionsBuilder = new DbContextOptionsBuilder<DbLogAppContext>();
-            optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn));
+            optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn))
+                          .UseSnakeCaseNamingConvention();
             return new DbLogAppContext(optionsBuilder.Options);
         }
     }

@@ -47,7 +47,8 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                         .HasColumnType("bigint(20)")
                         .HasColumnName("uid");
 
-                    b.HasIndex(new[] { "Pid" }, "pk");
+                    b.HasIndex(new[] { "Pid" }, "pk")
+                        .HasDatabaseName("ix_item_pid");
 
                     b.ToTable("item", (string)null);
                 });
@@ -56,42 +57,54 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
                     b.Property<DateTime?>("EndedAt")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("ended_at");
 
                     b.Property<int>("Player1Id")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("player1id");
 
                     b.Property<int>("Player2Id")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("player2id");
 
                     b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("started_at");
 
                     b.Property<byte>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint unsigned")
-                        .HasDefaultValue((byte)0);
+                        .HasDefaultValue((byte)0)
+                        .HasColumnName("status");
 
                     b.Property<int?>("WinnerId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("winner_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_match_records");
 
-                    b.HasIndex("Player1Id");
+                    b.HasIndex("Player1Id")
+                        .HasDatabaseName("ix_match_records_player1id");
 
-                    b.HasIndex("Player2Id");
+                    b.HasIndex("Player2Id")
+                        .HasDatabaseName("ix_match_records_player2id");
 
-                    b.HasIndex("WinnerId");
+                    b.HasIndex("WinnerId")
+                        .HasDatabaseName("ix_match_records_winner_id");
 
                     b.ToTable("match_records", (string)null);
                 });
@@ -100,29 +113,35 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("password_hash");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("username");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_players");
 
                     b.HasIndex("Username")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_players_username");
 
                     b.ToTable("players", (string)null);
                 });
@@ -131,37 +150,45 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("Losses")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasDefaultValue(0)
+                        .HasColumnName("losses");
 
                     b.Property<int>("PlayerId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("player_id");
 
                     b.Property<int>("TotalGames")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_games");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
                     b.Property<int>("Wins")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasDefaultValue(0)
+                        .HasColumnName("wins");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_player_stats");
 
                     b.HasIndex("PlayerId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_player_stats_player_id");
 
                     b.ToTable("player_stats", (string)null);
                 });
@@ -185,7 +212,8 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                         .HasColumnType("bigint(20)")
                         .HasColumnName("uid");
 
-                    b.HasIndex(new[] { "Pid" }, "pk");
+                    b.HasIndex(new[] { "Pid" }, "pk")
+                        .HasDatabaseName("ix_shop_pid");
 
                     b.ToTable("shop", (string)null);
                 });
@@ -209,7 +237,8 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                         .HasColumnType("bigint(20)")
                         .HasColumnName("uid");
 
-                    b.HasIndex(new[] { "Pid" }, "pk");
+                    b.HasIndex(new[] { "Pid" }, "pk")
+                        .HasDatabaseName("ix_user_pid");
 
                     b.ToTable("user", (string)null);
                 });
@@ -220,18 +249,21 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                         .WithMany("MatchesAsPlayer1")
                         .HasForeignKey("Player1Id")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_match_records_players_player1id");
 
                     b.HasOne("PlatformA.MySqlDB.Lib.DBWebApp.Entities.Player", "Player2")
                         .WithMany("MatchesAsPlayer2")
                         .HasForeignKey("Player2Id")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_match_records_players_player2id");
 
                     b.HasOne("PlatformA.MySqlDB.Lib.DBWebApp.Entities.Player", "Winner")
                         .WithMany()
                         .HasForeignKey("WinnerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_match_records_players_winner_id");
 
                     b.Navigation("Player1");
 
@@ -246,7 +278,8 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                         .WithOne("Stat")
                         .HasForeignKey("PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerStat", "PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_player_stats_players_player_id");
 
                     b.Navigation("Player");
                 });

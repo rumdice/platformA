@@ -36,17 +36,17 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 name: "players",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Username = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false, collation: "utf8mb4_uca1400_ai_ci")
+                    username = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false, collation: "utf8mb4_uca1400_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PasswordHash = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, collation: "utf8mb4_uca1400_ai_ci")
+                    password_hash = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, collation: "utf8mb4_uca1400_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)")
+                    created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_players", x => x.Id);
+                    table.PrimaryKey("pk_players", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .Annotation("Relational:Collation", "utf8mb4_uca1400_ai_ci");
@@ -87,36 +87,36 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 name: "match_records",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Player1Id = table.Column<int>(type: "int", nullable: false),
-                    Player2Id = table.Column<int>(type: "int", nullable: false),
-                    WinnerId = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<byte>(type: "tinyint unsigned", nullable: false, defaultValue: (byte)0),
-                    StartedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    EndedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)")
+                    player1id = table.Column<int>(type: "int", nullable: false),
+                    player2id = table.Column<int>(type: "int", nullable: false),
+                    winner_id = table.Column<int>(type: "int", nullable: true),
+                    status = table.Column<byte>(type: "tinyint unsigned", nullable: false, defaultValue: (byte)0),
+                    started_at = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ended_at = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    created_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_match_records", x => x.Id);
+                    table.PrimaryKey("pk_match_records", x => x.id);
                     table.ForeignKey(
-                        name: "FK_match_records_players_Player1Id",
-                        column: x => x.Player1Id,
+                        name: "fk_match_records_players_player1id",
+                        column: x => x.player1id,
                         principalTable: "players",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_match_records_players_Player2Id",
-                        column: x => x.Player2Id,
+                        name: "fk_match_records_players_player2id",
+                        column: x => x.player2id,
                         principalTable: "players",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_match_records_players_WinnerId",
-                        column: x => x.WinnerId,
+                        name: "fk_match_records_players_winner_id",
+                        column: x => x.winner_id,
                         principalTable: "players",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
@@ -126,66 +126,66 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 name: "player_stats",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    PlayerId = table.Column<int>(type: "int", nullable: false),
-                    TotalGames = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Wins = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Losses = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)")
+                    player_id = table.Column<int>(type: "int", nullable: false),
+                    total_games = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    wins = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    losses = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    updated_at = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_player_stats", x => x.Id);
+                    table.PrimaryKey("pk_player_stats", x => x.id);
                     table.ForeignKey(
-                        name: "FK_player_stats_players_PlayerId",
-                        column: x => x.PlayerId,
+                        name: "fk_player_stats_players_player_id",
+                        column: x => x.player_id,
                         principalTable: "players",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .Annotation("Relational:Collation", "utf8mb4_uca1400_ai_ci");
 
             migrationBuilder.CreateIndex(
-                name: "pk",
+                name: "ix_item_pid",
                 table: "item",
                 column: "pid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_match_records_Player1Id",
+                name: "ix_match_records_player1id",
                 table: "match_records",
-                column: "Player1Id");
+                column: "player1id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_match_records_Player2Id",
+                name: "ix_match_records_player2id",
                 table: "match_records",
-                column: "Player2Id");
+                column: "player2id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_match_records_WinnerId",
+                name: "ix_match_records_winner_id",
                 table: "match_records",
-                column: "WinnerId");
+                column: "winner_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_player_stats_PlayerId",
+                name: "ix_player_stats_player_id",
                 table: "player_stats",
-                column: "PlayerId",
+                column: "player_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_players_Username",
+                name: "ix_players_username",
                 table: "players",
-                column: "Username",
+                column: "username",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "pk",
+                name: "ix_shop_pid",
                 table: "shop",
                 column: "pid");
 
             migrationBuilder.CreateIndex(
-                name: "pk",
+                name: "ix_user_pid",
                 table: "user",
                 column: "pid");
         }

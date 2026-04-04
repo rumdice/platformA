@@ -26,7 +26,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         private const int    SPAWN_RATE_PER_SEC  = 50;
         private const int    SPAWN_INTERVAL_MS   = 1000 / SPAWN_RATE_PER_SEC; // 20ms
         private const string USERNAME_PREFIX     = "lt_";   // lt_0001 ~ lt_1000
-        private const string PASSWORD            = "1234";
+        private const string PASSWORD            = "123456";
         private const int    HTTP_TIMEOUT_SEC    = 120;
         // ─────────────────────────────────────────────────────────
 
@@ -130,7 +130,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 }
                 if (!resp.IsSuccessStatusCode)
                 {
-                    Interlocked.Increment(ref _loginFail);
+                    int n = Interlocked.Increment(ref _loginFail);
+                    if (n <= 3)
+                    {
+                        string body2 = await resp.Content.ReadAsStringAsync();
+                        Console.WriteLine($"  [LoginFail] {username} → HTTP {(int)resp.StatusCode}: {body2[..Math.Min(120, body2.Length)]}");
+                    }
                     return null;
                 }
 
@@ -140,9 +145,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 Interlocked.Increment(ref _loginOk);
                 return token;
             }
-            catch
+            catch (Exception ex)
             {
-                Interlocked.Increment(ref _loginFail);
+                int n = Interlocked.Increment(ref _loginFail);
+                if (n <= 3)
+                    Console.WriteLine($"  [LoginFail] {username} → {ex.GetType().Name}: {ex.Message}");
                 return null;
             }
         }
@@ -185,6 +192,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         $"{Consts.TICKET_API_URL}/api/queue/status",
                         timeout.Token);
 
+                    // 404: 워커가 큐에서 꺼낸 직후 Active 키 미설정 타이밍 → 재시도
+                    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        await Task.Delay(2000, timeout.Token);
+                        continue;
+                    }
                     if (!resp.IsSuccessStatusCode) return false;
 
                     var data = await resp.Content.ReadFromJsonAsync<QueueStatusDto>(

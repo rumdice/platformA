@@ -60,6 +60,9 @@ namespace PlatformA.Ticketing.API.Controllers
             if (isActive)
                 return Ok(new { UserId = userId, Rank = 0, Status = "Active", NextPollDelay = 0 });
 
+            // 폴링 중인 유저의 하트비트 갱신 — Ghost 오탐 방지
+            await _queueService.UpdateHeartbeatAsync(userId);
+
             long? rank = await _queueService.GetRankAsync(userId);
             if (rank.HasValue)
             {

@@ -120,14 +120,32 @@ return #ghosts";
             foreach (var user in poppedUsers)
             {
                 int userId = (int)user.Element;
-                await _redisManager.ExecuteAsync(db =>
-                    db.StringSetAsync(
-                        $"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}",
-                        "1",
-                        TimeSpan.FromSeconds(Consts.ACTIVE_USER_TTL_SECONDS)
-                    ));
-                _logger.LogInformation("[QueueWorker] 입장 허용 — UserId: {UserId} (유효: {TTL}초)",
-                    userId, Consts.ACTIVE_USER_TTL_SECONDS);
+                try
+                {
+                    await _redisManager.ExecuteAsync(db =>
+                        db.StringSetAsync(
+                            $"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}",
+                            "1",
+                            TimeSpan.FromSeconds(Consts.ACTIVE_USER_TTL_SECONDS)
+                        ));
+                    _logger.LogInformation("[QueueWorker] 입장 허용 — UserId: {UserId} (유효: {TTL}초)",
+                        userId, Consts.ACTIVE_USER_TTL_SECONDS);
+                }
+                catch (Exception ex)
+                {
+                    // Active 키 설정 실패 → 큐에서 꺼냈지만 처리 못한 유저를 재큐잉
+                    _logger.LogError(ex, "[QueueWorker] Active 키 설정 실패 — UserId: {UserId}, 재큐잉", userId);
+                    try
+                    {
+                        double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                        await _redisManager.ExecuteAsync(db =>
+                            db.SortedSetAddAsync(Consts.QUEUE_KEY, userId, score));
+                    }
+                    catch (Exception reEnqueueEx)
+                    {
+                        _logger.LogError(reEnqueueEx, "[QueueWorker] 재큐잉도 실패 — UserId: {UserId} 유실", userId);
+                    }
+                }
             }
         }
     }

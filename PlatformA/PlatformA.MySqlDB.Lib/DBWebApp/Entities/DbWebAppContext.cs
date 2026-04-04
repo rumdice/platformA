@@ -139,7 +139,8 @@ public partial class DbWebAppContext : DbContext
             string conn = Environment.GetEnvironmentVariable("WEBAPP_DB_CONNECTION")
                 ?? "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
             var optionsBuilder = new DbContextOptionsBuilder<DbWebAppContext>();
-            optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn));
+            optionsBuilder.UseMySql(conn, ServerVersion.AutoDetect(conn))
+                          .UseSnakeCaseNamingConvention();
             return new DbWebAppContext(optionsBuilder.Options);
         }
     }
