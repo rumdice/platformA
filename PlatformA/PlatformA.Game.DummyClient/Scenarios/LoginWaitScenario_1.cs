@@ -227,9 +227,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     int done = _completed;
                     Console.WriteLine(
                         $"  [진행] 완료:{done,4}/{USER_COUNT} │ " +
-                        $"로그인:{_loginOk,4}✓ {_loginFail + _loginRateLimit,3}✗ │ " +
-                        $"대기열:{_queueOk,4}✓ │ " +
-                        $"입장:{_activeOk,4}✓");
+                        $"로그인:{_loginOk,4} 성공 {_loginFail + _loginRateLimit,3} 실패 │ " +
+                        $"대기열:{_queueOk,4} 대기중 │ " +
+                        $"입장:{_activeOk,4} 입장");
                 }
             }
             catch (OperationCanceledException) { }
