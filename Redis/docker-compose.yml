@@ -1,115 +1,73 @@
 version: '3.8'
+
 services:
-  redis-1:
+  # Base Node: 이 노드가 포트를 개방하고 네트워크 네임스페이스의 기준이 됩니다.
+  redis-master-1:
     image: redis:latest
-    container_name: redis-1
-    command: >
-      redis-server
-      --cluster-enabled yes
-      --cluster-config-file nodes.conf
-      --cluster-node-timeout 5000
-      --appendonly yes
-      --cluster-announce-hostname host.docker.internal
-      --cluster-announce-port 6371
-      --cluster-announce-bus-port 16371
-      --cluster-preferred-endpoint-type hostname
+    container_name: redis-master-1
+    command: redis-server --port 6371 --cluster-enabled yes --cluster-config-file nodes-6371.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6371 --cluster-announce-bus-port 16371
     ports:
-      - "6371:6379"
-      - "16371:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      # 호스트의 6371~6376 포트를 컨테이너로 연결
+      - "6371-6376:6371-6376"
+      # 클러스터 노드 간 통신을 위한 버스 포트 (포트번호 + 10000)
+      - "16371-16376:16371-16376"
 
-  redis-2:
+  redis-master-2:
     image: redis:latest
-    container_name: redis-2
-    command: >
-      redis-server
-      --cluster-enabled yes
-      --cluster-config-file nodes.conf
-      --cluster-node-timeout 5000
-      --appendonly yes
-      --cluster-announce-hostname host.docker.internal
-      --cluster-announce-port 6372
-      --cluster-announce-bus-port 16372
-      --cluster-preferred-endpoint-type hostname
-    ports:
-      - "6372:6379"
-      - "16372:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    container_name: redis-master-2
+    network_mode: "service:redis-master-1" # 마스터 1번의 네트워크를 공유
+    command: redis-server --port 6372 --cluster-enabled yes --cluster-config-file nodes-6372.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6372 --cluster-announce-bus-port 16372
+    depends_on:
+      - redis-master-1
 
-  redis-3:
+  redis-master-3:
     image: redis:latest
-    container_name: redis-3
-    command: >
-      redis-server
-      --cluster-enabled yes
-      --cluster-config-file nodes.conf
-      --cluster-node-timeout 5000
-      --appendonly yes
-      --cluster-announce-hostname host.docker.internal
-      --cluster-announce-port 6373
-      --cluster-announce-bus-port 16373
-      --cluster-preferred-endpoint-type hostname
-    ports:
-      - "6373:6379"
-      - "16373:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    container_name: redis-master-3
+    network_mode: "service:redis-master-1"
+    command: redis-server --port 6373 --cluster-enabled yes --cluster-config-file nodes-6373.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6373 --cluster-announce-bus-port 16373
+    depends_on:
+      - redis-master-1
 
-  redis-4:
+  redis-slave-1:
     image: redis:latest
-    container_name: redis-4
-    command: >
-      redis-server
-      --cluster-enabled yes
-      --cluster-config-file nodes.conf
-      --cluster-node-timeout 5000
-      --appendonly yes
-      --cluster-announce-hostname host.docker.internal
-      --cluster-announce-port 6374
-      --cluster-announce-bus-port 16374
-      --cluster-preferred-endpoint-type hostname
-    ports:
-      - "6374:6379"
-      - "16374:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    container_name: redis-slave-1
+    network_mode: "service:redis-master-1"
+    command: redis-server --port 6374 --cluster-enabled yes --cluster-config-file nodes-6374.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6374 --cluster-announce-bus-port 16374
+    depends_on:
+      - redis-master-1
 
-  redis-5:
+  redis-slave-2:
     image: redis:latest
-    container_name: redis-5
-    command: >
-      redis-server
-      --cluster-enabled yes
-      --cluster-config-file nodes.conf
-      --cluster-node-timeout 5000
-      --appendonly yes
-      --cluster-announce-hostname host.docker.internal
-      --cluster-announce-port 6375
-      --cluster-announce-bus-port 16375
-      --cluster-preferred-endpoint-type hostname
-    ports:
-      - "6375:6379"
-      - "16375:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    container_name: redis-slave-2
+    network_mode: "service:redis-master-1"
+    command: redis-server --port 6375 --cluster-enabled yes --cluster-config-file nodes-6375.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6375 --cluster-announce-bus-port 16375
+    depends_on:
+      - redis-master-1
 
-  redis-6:
+  redis-slave-3:
     image: redis:latest
-    container_name: redis-6
+    container_name: redis-slave-3
+    network_mode: "service:redis-master-1"
+    command: redis-server --port 6376 --cluster-enabled yes --cluster-config-file nodes-6376.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6376 --cluster-announce-bus-port 16376
+    depends_on:
+      - redis-master-1
+
+  # 로컬에 redis-cli가 없는 사용자를 위해 클러스터 구성을 대신 실행해 주는 1회용 컨테이너
+  redis-cluster-init:
+    image: redis:latest
+    container_name: redis-cluster-init
+    network_mode: "service:redis-master-1"
+    depends_on:
+      - redis-master-1
+      - redis-master-2
+      - redis-master-3
+      - redis-slave-1
+      - redis-slave-2
+      - redis-slave-3
+    # 6개의 노드가 모두 뜰 때까지 3초 대기 후 클러스터 결속 (앞의 3개가 Master, 뒤의 3개가 Slave로 자동 할당됨)
     command: >
-      redis-server
-      --cluster-enabled yes
-      --cluster-config-file nodes.conf
-      --cluster-node-timeout 5000
-      --appendonly yes
-      --cluster-announce-hostname host.docker.internal
-      --cluster-announce-port 6376
-      --cluster-announce-bus-port 16376
-      --cluster-preferred-endpoint-type hostname
-    ports:
-      - "6376:6379"
-      - "16376:16379"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      sh -c "
+        echo 'Waiting for Redis nodes to be ready...' &&
+        sleep 3 &&
+        echo 'yes' | redis-cli --cluster create 127.0.0.1:6371 127.0.0.1:6372 127.0.0.1:6373 127.0.0.1:6374 127.0.0.1:6375 127.0.0.1:6376 --cluster-replicas 1
+      "
