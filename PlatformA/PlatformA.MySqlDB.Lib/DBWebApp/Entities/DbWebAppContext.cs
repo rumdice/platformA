@@ -15,9 +15,9 @@ public partial class DbWebAppContext : DbContext
     }
 
     // ── DbSet 선언 (Scaffold 엔티티 포함) ──
-    public virtual DbSet<UserEntity> UserEntities { get; set; }
-    public virtual DbSet<ItemEntity> ItemEntities { get; set; }
-    public virtual DbSet<ShopEntity> ShopEntities { get; set; }
+    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Item> Items { get; set; }
+    public virtual DbSet<Shop> Shops { get; set; }
 
     public virtual DbSet<Player> Players { get; set; }
     public virtual DbSet<PlayerStat> PlayerStats { get; set; }
@@ -93,9 +93,9 @@ public partial class DbWebAppContext : DbContext
         //  DF 엔티티 Fluent API 매핑
         // ════════════════════════════════════════════
 
-        modelBuilder.Entity<ItemEntity>(entity =>
+        modelBuilder.Entity<Item>(entity =>
         {
-            entity.HasNoKey().ToTable("ItemEntity");
+            entity.HasNoKey().ToTable("item");
             entity.HasIndex(e => e.Pid, "pk");
             entity.Property(e => e.Grade).HasColumnType("int(11)").HasColumnName("grade");
             entity.Property(e => e.Name).HasMaxLength(50).HasColumnName("name");
@@ -104,9 +104,9 @@ public partial class DbWebAppContext : DbContext
             entity.Property(e => e.Uid).HasColumnType("bigint(20)").HasColumnName("uid");
         });
 
-        modelBuilder.Entity<ShopEntity>(entity =>
+        modelBuilder.Entity<Shop>(entity =>
         {
-            entity.HasNoKey().ToTable("ShopEntity");
+            entity.HasNoKey().ToTable("shop");
             entity.HasIndex(e => e.Pid, "pk");
             entity.Property(e => e.Name).HasMaxLength(50).HasColumnName("name");
             entity.Property(e => e.Pid).HasColumnType("bigint(20)").HasColumnName("pid");
@@ -114,9 +114,9 @@ public partial class DbWebAppContext : DbContext
             entity.Property(e => e.Uid).HasColumnType("bigint(20)").HasColumnName("uid");
         });
 
-        modelBuilder.Entity<UserEntity>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
-            entity.HasNoKey().ToTable("UserEntity");
+            entity.HasNoKey().ToTable("user");
             entity.HasIndex(e => e.Pid, "pk");
             entity.Property(e => e.Level).HasColumnType("int(11)").HasColumnName("level");
             entity.Property(e => e.Name).HasMaxLength(50).HasColumnName("name");

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PlatformA.MySqlDB.Lib.DBWebApp.Entities;
 
-public partial class ItemEntity
+public partial class Item
 {
     public long? Pid { get; set; }
 
