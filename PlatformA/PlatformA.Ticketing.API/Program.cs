@@ -15,9 +15,13 @@ builder.Logging.ClearProviders();
 builder.Logging.AddLog4Net("log4net.config");
 
 // ── Services ──────────────────────────────────────────────────
-// Redis 연결
-RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
-builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
+// Redis — DI 팩토리
+builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<PlatformA.Library.Core.RedisManager>>();
+    PlatformA.Library.Core.RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING, logger);
+    return PlatformA.Library.Core.RedisManager.Instance;
+});
 
 // 대기열 서비스 등록
 builder.Services.AddSingleton<QueueService>();
@@ -54,7 +58,7 @@ builder.Services.AddSwaggerGen(options =>
 // Redis 기반 분산 Rate Limiter
 builder.Services.AddSingleton<RedisRateLimiterService>(sp =>
 {
-    var svc = new RedisRateLimiterService(RedisManager.Instance);
+    var svc = new RedisRateLimiterService(sp.GetRequiredService<RedisManager>());
     svc.AddPolicy("queue", permitLimit: 5, window: TimeSpan.FromSeconds(1));
     return svc;
 });
@@ -69,8 +73,8 @@ builder.Services.AddHealthChecks()
 // ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
-// RedisManager에 DI 로거 주입
-RedisManager.Instance.SetLogger(app.Services.GetRequiredService<ILogger<RedisManager>>());
+// RedisManager는 DI 팩토리에서 Init + 로거 주입이 함께 처리됨
+_ = app.Services.GetRequiredService<RedisManager>();
 
 if (app.Environment.IsDevelopment())
 {

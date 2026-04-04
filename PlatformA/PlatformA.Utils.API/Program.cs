@@ -14,8 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
 
-// redis 연결
-RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
+// Redis — DI 팩토리
+builder.Services.AddSingleton<RedisManager>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<RedisManager>>();
+    RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING, logger);
+    return RedisManager.Instance;
+});
 
 // Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
 // 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
@@ -40,6 +45,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+_ = app.Services.GetRequiredService<RedisManager>(); // 앱 시작 시 즉시 초기화
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

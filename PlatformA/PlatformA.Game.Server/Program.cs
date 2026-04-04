@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection.Metadata;
@@ -50,8 +51,11 @@ namespace PlatformA.Game.Server
             // 패킷매니저 초기화
             PacketManager<GameSession>.Instance.Register(); // 🚀 추가
 
-            // Redis 초기화
-            RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
+            // Redis 초기화 (콘솔 로거를 통해 Polly 이벤트가 시작부터 기록됨)
+            using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
+            RedisManager.Instance.Init(
+                Consts.REDIS_CONNECTION_STRING,
+                loggerFactory.CreateLogger<RedisManager>());
 
             // 🚀 서버 시작 시 기본 1번 방 생성
             PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom(1);

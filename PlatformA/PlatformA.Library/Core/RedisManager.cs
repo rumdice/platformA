@@ -37,8 +37,9 @@ namespace PlatformA.Library.Core
             _logger = logger;
         }
 
-        public void Init(string connectionString)
+        public void Init(string connectionString, ILogger<RedisManager>? logger = null)
         {
+            if (logger != null) _logger = logger;
             try
             {
                 // ── Redis Cluster 연결 설정 ────────────────────���────────────

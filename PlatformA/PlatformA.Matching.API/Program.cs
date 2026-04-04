@@ -41,8 +41,13 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
-RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
+// Redis — DI 팩토리
+builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<PlatformA.Library.Core.RedisManager>>();
+    PlatformA.Library.Core.RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING, logger);
+    return PlatformA.Library.Core.RedisManager.Instance;
+});
 
 // MySQL (db_WebApp) — 매칭 성사 시 MatchRecord 기록용
 builder.Services.AddDbContextFactory<DbWebAppContext>(options =>
@@ -85,8 +90,8 @@ builder.Services.AddHealthChecks()
 // ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
-// RedisManager에 DI 로거 주입
-RedisManager.Instance.SetLogger(app.Services.GetRequiredService<ILogger<RedisManager>>());
+// RedisManager는 DI 팩토리에서 Init + 로거 주입이 함께 처리됨
+_ = app.Services.GetRequiredService<RedisManager>();
 
 if (app.Environment.IsDevelopment())
 {

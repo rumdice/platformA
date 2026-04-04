@@ -44,9 +44,13 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Redis 연결 (분산 Rate Limiting용)
-RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
-builder.Services.AddSingleton(RedisManager.Instance);
+// Redis — DI 팩토리: 로거 주입 후 Init (Polly 이벤트가 시작부터 정상 로깅됨)
+builder.Services.AddSingleton<RedisManager>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<RedisManager>>();
+    RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING, logger);
+    return RedisManager.Instance;
+});
 
 // MySQL (db_WebApp) — 멀티스레드 안전을 위해 IDbContextFactory 사용
 // UseSnakeCaseNamingConventions: PascalCase 프로퍼티 → snake_case 컬럼명 자동 변환
@@ -67,7 +71,7 @@ builder.Services.AddScoped<PlayerService>();
 // Redis 기반 분산 Rate Limiter
 builder.Services.AddSingleton<RedisRateLimiterService>(sp =>
 {
-    var svc = new RedisRateLimiterService(RedisManager.Instance);
+    var svc = new RedisRateLimiterService(sp.GetRequiredService<RedisManager>());
     svc.AddPolicy("login", permitLimit: 10, window: TimeSpan.FromMinutes(1));
     return svc;
 });
@@ -87,8 +91,8 @@ builder.Services.AddHealthChecks()
 // ── App Pipeline ──────────────────────────────────────────────
 var app = builder.Build();
 
-// RedisManager에 DI 로거 주입 (Init 이후에 호출해야 Polly 이벤트 로그가 동작)
-RedisManager.Instance.SetLogger(app.Services.GetRequiredService<ILogger<RedisManager>>());
+// RedisManager는 DI 팩토리에서 Init + 로거 주입이 함께 처리됨 — 별도 SetLogger 불필요
+_ = app.Services.GetRequiredService<RedisManager>(); // 앱 시작 시 즉시 초기화
 
 if (app.Environment.IsDevelopment())
 {
