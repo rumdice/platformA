@@ -41,8 +41,7 @@ namespace PlatformA.Library.Common
         public const int GAME_SERVER_PORT = 7777;
 
         // Redis Cluster 노드 목록 (Master 3개 — StackExchange.Redis가 Slave를 자동 감지)
-        public const string REDIS_CONNECTION_STRING =
-            "127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373";
+        public const string REDIS_CONNECTION_STRING = "host.docker.internal:6371,host.docker.internal:6372,host.docker.internal:6373";
 
         // TODO: 차후 환경변수 또는 AWS KMS로 이동
         public const string MYSQL_WEBAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
