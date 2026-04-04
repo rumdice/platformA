@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.Matching.API.Services;
+using PlatformA.MySqlDB.Lib.DBWebApp;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +43,15 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddSingleton<PlatformA.Library.Core.RedisManager>(PlatformA.Library.Core.RedisManager.Instance);
 RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING);
+
+// MySQL (db_WebApp) — 매칭 성사 시 MatchRecord 기록용
+builder.Services.AddDbContextFactory<DbWebAppContext>(options =>
+{
+    options.UseMySql(
+        Consts.MYSQL_WEBAPP_CONNECTION,
+        ServerVersion.AutoDetect(Consts.MYSQL_WEBAPP_CONNECTION));
+    options.UseSnakeCaseNamingConvention();
+});
 
 builder.Services.AddSignalR();
 

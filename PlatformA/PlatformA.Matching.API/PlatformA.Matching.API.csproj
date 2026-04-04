@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\PlatformA.Library\PlatformA.Library.csproj" />
+		<ProjectReference Include="..\PlatformA.MySqlDB.Lib\PlatformA.MySqlDB.Lib.csproj" />
 	</ItemGroup>
 
 </Project>
