@@ -1,0 +1,91 @@
+graph TB
+
+    Client([🎮 유저 클라이언트])
+    ALB["🌐 AWS ALB (L7)<br/>Path Routing"]
+
+    subgraph "Stateless API Layer (Scale-Out)"
+        direction LR
+        Auth["🔐 Auth API (1..N)"]
+        Ticket["🎟️ Ticket API (1..N)<br/>QueueHub · SignalR"]
+        Match["⚔️ Match API (1..N)<br/>MatchingHub · SignalR"]
+    end
+
+    subgraph "Stateful Game Layer"
+        Game["🎮 Game Server (1..N)<br/>TCP Socket · Zero-Lock JobQueue"]
+    end
+
+    %% ==========================================
+    %% Redis 기능 박스
+    %% ==========================================
+    Act_Auth_R["Rate Limit [ZSet · Lua Sliding-Window]<br/>Refresh Token [String · Lua
+  GET+DEL]"]
+    Act_Ticket_R["대기열 순번 [ZSet]<br/>Leader 선출 락 [String NX · TTL]<br/>Active 티켓 발급<br/>[String TTL]"]
+    Act_Match_R["매칭 큐 [List LPOP/RPUSH]<br/>방ID 카운터 [String INCR]<br/>매칭 완료 이벤트<br/>발행 [Pub/Sub]"]
+    Act_Game_R["Active 티켓 검증·회수 [String]<br/>중복 로그인 락 [String NX]<br/>매칭 이벤트<br/>구독 [Pub/Sub]"]
+
+    %% ==========================================
+    %% DB 기능 박스
+    %% ==========================================
+    Act_Auth_DB["유저 계정 데이터<br/>(Source of Truth)"]
+    Act_Match_DB["MatchRecord 기록<br/>(InProgress → Finished)"]
+    Act_Game_DB["게임 결과 트랜잭션<br/>접속/감사 로그 적재"]
+
+    subgraph "Data & State Layer"
+        direction LR
+        subgraph "🟥 Redis Cluster (In-Memory State)"
+            Redis[("Master 1 ↔ Master 2 ↔ Master 3<br/>(16384 Hash Slots)<br/>Polly: Retry × 3
+  + CircuitBreaker")]
+        end
+        subgraph "🐬 MySQL (Persistent Data)"
+            DB[("db_WebApp (유저 / 매칭 / 전적)<br/>db_LogApp (접속 / 감사 로그)")]
+        end
+    end
+
+    %% ==========================================
+    %% 외부 연결
+    %% ==========================================
+    Client -->|"① HTTP REST / SignalR WS"| ALB
+    Client -->|"② TCP Socket (패킷 직접 통신)"| Game
+
+    %% 로드밸런서 라우팅
+    ALB --> Auth
+    ALB --> Ticket
+    ALB --> Match
+
+    %% API → Redis 기능 → Redis
+    Auth  --> Act_Auth_R  --> Redis
+    Ticket --> Act_Ticket_R --> Redis
+    Match --> Act_Match_R --> Redis
+    Game  --> Act_Game_R  --> Redis
+
+    %% Pub/Sub 흐름 명시 (Match 발행 → Redis → Game 구독)
+    Redis -.->|"channel:match_success 구독"| Act_Game_R
+
+    %% API → DB 기능 → DB
+    Auth  --> Act_Auth_DB  --> DB
+    Match --> Act_Match_DB --> DB
+    Game  --> Act_Game_DB  --> DB
+
+    %% ==========================================
+    %% 스타일
+    %% ==========================================
+    classDef api   fill:#2563eb,stroke:#1d4ed8,color:#fff,stroke-width:2px
+    classDef game  fill:#d97706,stroke:#b45309,color:#fff,stroke-width:2px
+    classDef mysql fill:#059669,stroke:#047857,color:#fff,stroke-width:2px
+    classDef redis fill:#dc2626,stroke:#b91c1c,color:#fff,stroke-width:2px
+    classDef client fill:#475569,stroke:#334155,color:#fff,stroke-width:2px
+    classDef lb    fill:#7c3aed,stroke:#6d28d9,color:#fff,stroke-width:2px
+    classDef act_redis fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
+    classDef act_mysql fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class Auth,Ticket,Match api
+    class Game game
+    class DB mysql
+    class Redis redis
+    class Client client
+    class ALB lb
+    class Act_Auth_R,Act_Ticket_R,Act_Match_R,Act_Game_R act_redis
+    class Act_Auth_DB,Act_Match_DB,Act_Game_DB act_mysql
+
+    linkStyle 5,6,7,8,9,10,11,12 stroke:red,stroke-width:2px
+    linkStyle 14,15,16,17 stroke:green,stroke-width:2px
