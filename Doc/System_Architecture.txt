@@ -18,6 +18,9 @@ graph TB
     Act_Ticket_R("대기열 순번 관리 : ZSet<br/>워커 중복 실행 방지 : SET NX (TTL 자동 만료)<br/>입장권 발급 : SET TTL")
     Act_Match_R("매칭 대기 큐 : List (RPUSH/LPOP)<br/>게임 방 번호 발급 : INCR<br/>매칭 성사 알림 발행 : Pub/Sub")
     Act_Game_R("입장권 검증·회수 : EXISTS -> DEL<br/>중복 로그인 차단 : SET NX<br/>방 생성 이벤트 수신 : Pub/Sub")
+    
+    %% 새롭게 추가된 Pub/Sub 독립 박스
+    Act_PubSub("channel:match_success")
 
     Act_Auth_DB("유저 계정 데이터 조회,갱신<br/>")
     Act_Match_DB("MatchRecord 기록<br/>(작업중)")
@@ -26,31 +29,37 @@ graph TB
     subgraph "Data & State Layer"
         direction LR
         subgraph "🟥 Redis Cluster </br>"
-            Redis[("3 Master / 3 Slave <br/>━━━━━━━━━━━━━━━━<br/>🗂 데이터 : 16,384 슬롯 자동 분산<br/>🔄 일시 장애 : 최대 3회 자동 재시도<br/>🚨 연속 장애 : 60초 회로차단 (서비스 보호)")]
+            Redis[("3 Master / 3 Slave <br/>━━━━━━━━━━━━━━━━<br/>🗂 데이터 : 16,384 슬롯 자동 분산<br/>🔄 일시 장애 : 최대 3회 자동 재시도<br/>🚨 연속 장애 : 60초 회로차단")]
         end
         subgraph "🐬 MySQL </br>"
             DB[("db_WebApp (유저,컨텐츠)<br/>db_LogApp (로그)")]
         end
     end
 
+    %% 외부 통신 [0, 1]
     Client -->|"① HTTP REST / SignalR WS"| ALB
     Client -->|"② TCP Socket "| Game
 
+    %% 로드밸런서 [2, 3, 4]
     ALB --> Auth
     ALB --> Ticket
     ALB --> Match
 
+    %% Redis 방향 [5 ~ 12]
     Auth   --> Act_Auth_R   --> Redis
     Ticket --> Act_Ticket_R --> Redis
     Match  --> Act_Match_R  --> Redis
     Game   --> Act_Game_R   --> Redis
 
-    Redis -.->|"channel:match_success"| Act_Game_R
+    %% Pub/Sub 메시지 흐름 [13, 14] - 텍스트 대신 박스를 거쳐가도록 수정!
+    Redis -.-> Act_PubSub -.-> Act_Game_R
 
+    %% MySQL 방향 [15 ~ 20]
     Auth  --> Act_Auth_DB  --> DB
     Match --> Act_Match_DB --> DB
     Game  --> Act_Game_DB  --> DB
 
+    %% 스타일 정의
     classDef api        fill:#2563eb,stroke:#1d4ed8,color:#fff,stroke-width:2px
     classDef game       fill:#d97706,stroke:#b45309,color:#fff,stroke-width:2px
     classDef mysql      fill:#059669,stroke:#047857,color:#fff,stroke-width:2px
@@ -60,14 +69,16 @@ graph TB
     classDef act_redis  fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
     classDef act_mysql  fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
 
+    %% 클래스 맵핑 (Act_PubSub에도 동일한 act_redis 적용)
     class Auth,Ticket,Match api
     class Game game
     class DB mysql
     class Redis redis
     class Client client
     class ALB lb
-    class Act_Auth_R,Act_Ticket_R,Act_Match_R,Act_Game_R act_redis
+    class Act_Auth_R,Act_Ticket_R,Act_Match_R,Act_Game_R,Act_PubSub act_redis
     class Act_Auth_DB,Act_Match_DB,Act_Game_DB act_mysql
 
-    linkStyle 5,6,7,8,9,10,11,12,13 stroke:red,stroke-width:2px
-    linkStyle 14,15,16,17,18,19 stroke:green,stroke-width:2px
+    %% 선 스타일링 (텍스트 속성 제거, 오직 붉은 선/초록 선으로만 깔끔하게 유지)
+    linkStyle 5,6,7,8,9,10,11,12,13,14 stroke:red,stroke-width:2px
+    linkStyle 15,16,17,18,19,20 stroke:green,stroke-width:2px
