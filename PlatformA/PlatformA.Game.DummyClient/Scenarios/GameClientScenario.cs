@@ -127,8 +127,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - 16 bytes");
         }
 
-        // 🎧 [추가됨] 서버가 보내는 패킷을 계속 듣는 루프
-        static async Task ReceiveLoopAsync(Socket client)
+        // 서버가 보내는 패킷을 계속 듣는 루프
+        // loginTcs: S_Login 수신 시 결과를 알려줄 TCS (로그인 대기용)
+        static async Task ReceiveLoopAsync(Socket client, TaskCompletionSource<S_LoginPacket>? loginTcs = null)
         {
             byte[] buffer = new byte[1024];
 
@@ -140,26 +141,27 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     if (received == 0)
                     {
                         Console.WriteLine("서버와 연결이 끊어졌습니다.");
+                        loginTcs?.TrySetCanceled();
                         break;
                     }
 
-                    // 1. 헤더 파싱 (사이즈 2, ID 2)
-                    // (주의: 완벽하게 하려면 클라이언트도 Pipeline을 써야 하지만, 더미 테스트용이므로 단순화함)
                     if (received >= 4)
                     {
-                        ushort size = BitConverter.ToUInt16(buffer, 0);
                         ushort packetId = BitConverter.ToUInt16(buffer, 2);
 
-                        // 2. 패킷 ID가 2 (S_Move) 인지 확인
-                        if (packetId == 2) // PacketID.S_Move
+                        if (packetId == (ushort)PacketID.S_Move)
                         {
-                            // 3. 본문 파싱 (PlayerId, X, Y, Z)
                             int playerId = BitConverter.ToInt32(buffer, 4);
                             float x = BitConverter.ToSingle(buffer, 8);
                             float y = BitConverter.ToSingle(buffer, 12);
                             float z = BitConverter.ToSingle(buffer, 16);
-
-                            Console.WriteLine($"\n  [Broadcast 📡] 플레이어 {playerId} 이동 -> X:{x}, Y:{y}, Z:{z}");
+                            Console.WriteLine($"\n  [Broadcast] 플레이어 {playerId} 이동 -> X:{x}, Y:{y}, Z:{z}");
+                        }
+                        else if (packetId == (ushort)PacketID.S_Login && received >= 12)
+                        {
+                            var pkt = new S_LoginPacket();
+                            pkt.Deserialize(buffer.AsSpan(4, S_LoginPacket.Size));
+                            loginTcs?.TrySetResult(pkt);
                         }
                     }
                 }
@@ -167,6 +169,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             catch (Exception ex)
             {
                 Console.WriteLine($"수신 에러: {ex.Message}");
+                loginTcs?.TrySetCanceled();
             }
         }
 
@@ -267,34 +270,55 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
 
         /// <summary>
-        /// 게임서버 접속
+        /// 게임서버 접속 (광장 Room 1, 인터랙티브)
         /// </summary>
         public static async Task ConnectAndLoginAsync(int userId, string realToken)
         {
-            // =================================================================
-            // 🎮 [STEP 2] 게임 서버(Game Server)에 TCP 소켓으로 접속하기
-            // =================================================================
-
             using Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
                 await client.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
-                
-                _ = ReceiveLoopAsync(client);
 
-                // 1번 방(광장)으로 C_Login 패킷 전송
+                var loginTcs = new TaskCompletionSource<S_LoginPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _ = ReceiveLoopAsync(client, loginTcs);
+
                 await SendLoginPacketAsync(client, realToken, roomId: 1);
-                await Task.Delay(500);
 
-                Console.WriteLine($"[UserID : {userId}] 게임 서버 접속 성공 엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다. q로 종료");
+                // S_Login 수신 대기 (최대 10초)
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                cts.Token.Register(() => loginTcs.TrySetCanceled());
+
+                S_LoginPacket result;
+                try { result = await loginTcs.Task; }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("[GameServer] 로그인 응답 타임아웃. 서버 상태를 확인하세요.");
+                    return;
+                }
+
+                if (result.ResultCode != S_LoginPacket.ResultSuccess)
+                {
+                    string reason = result.ResultCode switch
+                    {
+                        S_LoginPacket.ResultInvalidToken  => "JWT 토큰이 유효하지 않습니다.",
+                        S_LoginPacket.ResultNotInQueue    => "대기열을 통과하지 않은 접속입니다.",
+                        S_LoginPacket.ResultDuplicate     => "이미 다른 기기에서 접속 중입니다.",
+                        S_LoginPacket.ResultRoomNotFound  => "입장할 방이 아직 준비되지 않았습니다.",
+                        _                                 => $"알 수 없는 오류 (코드: {result.ResultCode})"
+                    };
+                    Console.WriteLine($"[GameServer] 로그인 실패: {reason}");
+                    return;
+                }
+
+                Console.WriteLine($"[GameServer] 게임 서버 로그인 성공! PlayerID: {result.PlayerId}");
+                Console.WriteLine($"[UserID: {userId}] 엔터를 누를 때마다 이동 패킷(C_Move)을 전송합니다. q로 종료");
+
                 Random rand = new Random();
-
                 while (true)
                 {
                     string input = Console.ReadLine();
                     if (input?.ToLower() == "q") break;
-
                     float x = rand.Next(-50, 50);
                     float y = rand.Next(-50, 50);
                     await SendMovePacketAsync(client, x, y, 0f);
@@ -308,36 +332,54 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
 
         /// <summary>
-        /// 게임서버 접속 (매칭룸 정보 포함)
+        /// 게임서버 접속 (매칭룸 정보 포함, 인터랙티브)
         /// </summary>
         static async Task ConnectAndPlayGameAsync(string realToken, int roomId)
         {
-            // =================================================================
-            // 🎮 [STEP 2] 게임 서버(Game Server)에 TCP 소켓으로 접속하기
-            // =================================================================
-
-
             using Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
                 await client.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
-                Console.WriteLine("게임 서버 접속 성공!\n");
 
-                _ = ReceiveLoopAsync(client);
+                var loginTcs = new TaskCompletionSource<S_LoginPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _ = ReceiveLoopAsync(client, loginTcs);
 
-                // 매칭 서버가 발급한 roomId로 C_Login 패킷 전송
                 await SendLoginPacketAsync(client, realToken, roomId);
-                await Task.Delay(500);
 
-                Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다.");
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                cts.Token.Register(() => loginTcs.TrySetCanceled());
+
+                S_LoginPacket result;
+                try { result = await loginTcs.Task; }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("[GameServer] 로그인 응답 타임아웃.");
+                    return;
+                }
+
+                if (result.ResultCode != S_LoginPacket.ResultSuccess)
+                {
+                    string reason = result.ResultCode switch
+                    {
+                        S_LoginPacket.ResultInvalidToken  => "JWT 토큰이 유효하지 않습니다.",
+                        S_LoginPacket.ResultNotInQueue    => "대기열을 통과하지 않은 접속입니다.",
+                        S_LoginPacket.ResultDuplicate     => "이미 다른 기기에서 접속 중입니다.",
+                        S_LoginPacket.ResultRoomNotFound  => "배틀룸이 아직 준비되지 않았습니다.",
+                        _                                 => $"알 수 없는 오류 (코드: {result.ResultCode})"
+                    };
+                    Console.WriteLine($"[GameServer] 로그인 실패: {reason}");
+                    return;
+                }
+
+                Console.WriteLine($"[GameServer] {roomId}번 방 입장 성공! PlayerID: {result.PlayerId}");
+                Console.WriteLine("엔터를 누를 때마다 이동 패킷(C_Move)을 서버로 전송합니다. q로 종료");
+
                 Random rand = new Random();
-
                 while (true)
                 {
                     string input = Console.ReadLine();
                     if (input?.ToLower() == "q") break;
-
                     float x = rand.Next(-50, 50);
                     float y = rand.Next(-50, 50);
                     await SendMovePacketAsync(client, x, y, 0f);

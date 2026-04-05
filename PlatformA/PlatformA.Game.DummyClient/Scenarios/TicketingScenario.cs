@@ -88,7 +88,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 // =================================================================
                 Console.WriteLine("[Web] Auth.API 에 로그인을 시도합니다...");
                 var userName = GenerateTestUserName();
-                string realToken = await LoginToAuthServerAsync(userName, "1234");
+                string realToken = await LoginToAuthServerAsync(userName, "123456");
 
                 if (string.IsNullOrEmpty(realToken))
                 {

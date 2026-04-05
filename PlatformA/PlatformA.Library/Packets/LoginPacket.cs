@@ -6,6 +6,34 @@ using System.Threading.Tasks;
 
 namespace PlatformA.Library.Packets
 {
+    // Server → Client 로그인 결과 패킷
+    // payload 포맷: ResultCode(4) + PlayerId(4) = 8 bytes
+    public struct S_LoginPacket
+    {
+        public const int ResultSuccess      = 0; // 로그인 성공
+        public const int ResultInvalidToken = 1; // JWT 유효하지 않음
+        public const int ResultNotInQueue   = 2; // 대기열 미통과 (Active 키 없음)
+        public const int ResultDuplicate    = 3; // 중복 로그인
+        public const int ResultRoomNotFound = 4; // 방 없음
+
+        public int ResultCode;
+        public int PlayerId;
+
+        public const int Size = 8;
+
+        public void Serialize(Span<byte> span)
+        {
+            System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), ResultCode);
+            System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(span.Slice(4, 4), PlayerId);
+        }
+
+        public void Deserialize(ReadOnlySpan<byte> span)
+        {
+            ResultCode = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(0, 4));
+            PlayerId   = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4, 4));
+        }
+    }
+
     // [Packets] 어트리뷰트를 달지 않습니다! (제너레이터 무시, 수동 파싱)
     // payload 포맷: RoomId(4) + stringLen(2) + token(N)
     // RoomId == 1 : 광장(plaza), 항상 열려있는 기본 방

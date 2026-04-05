@@ -81,89 +81,98 @@ namespace PlatformA.Game.Server.Packet
             }
         }
 
+        // S_Login 패킷 조립 헬퍼
+        private static byte[] BuildS_LoginPacket(int resultCode, int playerId)
+        {
+            ushort totalSize = (ushort)(4 + S_LoginPacket.Size); // header(4) + body(8) = 12
+            byte[] buffer = new byte[totalSize];
+            Span<byte> span = buffer.AsSpan();
+            BitConverter.TryWriteBytes(span.Slice(0, 2), totalSize);
+            BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.S_Login);
+            new S_LoginPacket { ResultCode = resultCode, PlayerId = playerId }.Serialize(span.Slice(4));
+            return buffer;
+        }
+
         private static async Task ProcessLoginAsync(GameSession session, string jwtToken, int roomId)
         {
-            // 토큰 검증 시도
+            // 1. JWT 토큰 검증
             int playerId = TokenManager.ValidateTokenAndGetUserId(jwtToken);
 
-            if (playerId > 0)
-            {
-                // 🚀 1. 대기열(Active) 문지기 검증 (새치기 완벽 차단)
-                string activeKey = $"{Consts.ACTIVE_USER_KEY_PREFIX}{playerId}";
-
-                bool isActive;
-                try
-                {
-                    isActive = await RedisManager.Instance.ExecuteAsync(db => db.KeyExistsAsync(activeKey));
-                }
-                catch (BrokenCircuitException)
-                {
-                    Console.WriteLine($"🚨 [Redis 장애] 회로차단기 OPEN — 입장권 검증 불가. 접속 거부 (User_{playerId})");
-                    session.Disconnect();
-                    return;
-                }
-
-                if (!isActive)
-                {
-                    Console.WriteLine($"🚨 [보안 경고] 대기열을 거치지 않은 불법 접속 시도! (User_{playerId})");
-                    session.Disconnect();
-                    return;
-                }
-
-                // 🚀 2. 입장권 회수 (티켓 찢기 - 재사용 방지, TTL 도달 전에 즉시 삭제)
-                await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(activeKey));
-                Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
-
-                // 🚀 3. Redis 분산 락 획득 시도 (중복 로그인 방어)
-                string lockKey = $"player:login_lock:{playerId}";
-
-
-                // 만료시간: 1일(혹시 서버가 뻗어도 하루 뒤엔 풀림), 획득 대기: 1초, 재시도 간격: 100ms
-                string lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
-                    lockKey,
-                    TimeSpan.FromDays(1),
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromMilliseconds(100)
-                );
-
-                if (lockValue == null)
-                {
-                    // 락 획득 실패 = 이미 누가 로그인해서 락을 쥐고 있음!
-                    Console.WriteLine($"[GameServer Warning] 중복 로그인 차단! ID ({playerId})는 이미 접속 중입니다.");
-
-                    // (선택) 클라이언트에게 S_Login (실패코드) 패킷을 보내주면 더 좋습니다.
-                    session.Disconnect(); // 얄짤없이 소켓 끊기
-                    return;
-                }
-
-                // 🚀 2. 락 획득 성공 시 (로그인 성공)
-                session.LoginLockValue = lockValue; // 나중에 풀기 위해 세션에 기억
-                Console.WriteLine($"[GameServer] Redis 락 획득 및 인증 성공! 정식 플레이어 승급: ID ({playerId})");
-
-                session.SessionId = playerId;
-                Console.WriteLine($"[GameServer] 토큰 인증 성공! 정식 플레이어 승급: ID ({playerId})");
-
-                // 클라이언트가 요청한 방으로 입장
-                // roomId == 1 : 광장(plaza, 서버 시작 시 항상 열려있음)
-                // roomId > 1  : 매칭 서버가 발급한 실제 게임 방
-                int targetRoomId = roomId > 0 ? roomId : 1;
-                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(targetRoomId);
-
-                if (room == null)
-                {
-                    // 매칭 이벤트보다 클라이언트가 먼저 도착한 경우 (타이밍 경쟁)
-                    Console.WriteLine($"[GameServer Warning] 방({targetRoomId})이 아직 생성되지 않았습니다. 연결을 끊습니다. (User_{playerId})");
-                    session.Disconnect();
-                    return;
-                }
-
-                room.Push(() => room.Enter(session));
-            }
-            else
+            if (playerId <= 0)
             {
                 Console.WriteLine($"[GameServer] JWT 토큰 인증 실패. 연결을 강제로 끊습니다.");
+                await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultInvalidToken, 0));
                 session.Disconnect();
+                return;
             }
+
+            // 2. 대기열(Active) 문지기 검증
+            string activeKey = $"{Consts.ACTIVE_USER_KEY_PREFIX}{playerId}";
+            bool isActive;
+            try
+            {
+                isActive = await RedisManager.Instance.ExecuteAsync(db => db.KeyExistsAsync(activeKey));
+            }
+            catch (BrokenCircuitException)
+            {
+                Console.WriteLine($"🚨 [Redis 장애] 회로차단기 OPEN — 입장권 검증 불가. 접속 거부 (User_{playerId})");
+                await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultNotInQueue, 0));
+                session.Disconnect();
+                return;
+            }
+
+            if (!isActive)
+            {
+                Console.WriteLine($"🚨 [보안 경고] 대기열을 거치지 않은 불법 접속 시도! (User_{playerId})");
+                await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultNotInQueue, 0));
+                session.Disconnect();
+                return;
+            }
+
+            // 3. 입장권 회수
+            await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(activeKey));
+            Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
+
+            // 4. 중복 로그인 방어 (분산 락)
+            string lockKey = $"player:login_lock:{playerId}";
+            string lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
+                lockKey,
+                TimeSpan.FromDays(1),
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromMilliseconds(100)
+            );
+
+            if (lockValue == null)
+            {
+                Console.WriteLine($"[GameServer Warning] 중복 로그인 차단! ID ({playerId})는 이미 접속 중입니다.");
+                await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultDuplicate, 0));
+                session.Disconnect();
+                return;
+            }
+
+            // 5. 방 찾기
+            int targetRoomId = roomId > 0 ? roomId : 1;
+            Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(targetRoomId);
+
+            if (room == null)
+            {
+                Console.WriteLine($"[GameServer Warning] 방({targetRoomId})이 아직 생성되지 않았습니다. (User_{playerId})");
+                await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultRoomNotFound, 0));
+                await RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, lockValue);
+                session.Disconnect();
+                return;
+            }
+
+            // 6. 로그인 성공 — 입장 후 S_Login 전송 (레이스 컨디션 방지)
+            session.LoginLockValue = lockValue;
+            session.SessionId = playerId;
+            Console.WriteLine($"[GameServer] 인증 성공! 정식 플레이어 승급: ID ({playerId})");
+
+            room.Push(() =>
+            {
+                room.Enter(session);
+                _ = session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultSuccess, playerId));
+            });
         }
     }
 }
