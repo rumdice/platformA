@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
 using System.Diagnostics;
@@ -102,8 +103,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             bool entered = await EnterQueueAsync(http, userId);
             if (!entered) { Interlocked.Increment(ref _completed); return; }
 
-            // ── STEP 3: Active 상태 폴링 ──────────────────────────
-            bool activated = await PollUntilActiveAsync(http, userId);
+            // ── STEP 3: Active 상태 대기 (SignalR push + fallback 폴링) ──
+            bool activated = await WaitUntilActiveAsync(http, token);
 
             if (activated)
             {
@@ -188,17 +189,46 @@ namespace PlatformA.Game.DummyClient.Scenarios
             }
         }
 
-        // ── STEP 3: Active 폴링 ───────────────────────────────────
+        // ── STEP 3: Active 대기 (SignalR push + fallback 폴링) ────
 
-        private static async Task<bool> PollUntilActiveAsync(HttpClient http, int userId)
+        private static async Task<bool> WaitUntilActiveAsync(HttpClient http, string token)
         {
-            // 최대 대기 시간: 대기열이 모두 소진될 때까지 여유 있게 설정
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(300));
+
+            // SignalR 연결 시도
+            var hub = new HubConnectionBuilder()
+                .WithUrl($"{Consts.TICKET_API_URL}/hubs/queue", options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                    options.HttpMessageHandlerFactory = _ =>
+                        new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, _, _, _) => true };
+                })
+                .Build();
+
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            hub.On("QueueActivated", () => tcs.TrySetResult(true));
+
+            bool signalRConnected = false;
+            try
+            {
+                await hub.StartAsync(timeout.Token);
+                signalRConnected = true;
+            }
+            catch { /* SignalR 연결 실패 → fallback 폴링으로 진행 */ }
 
             try
             {
                 while (!timeout.IsCancellationRequested)
                 {
+                    // SignalR push 수신 대기 (최대 폴링 간격만큼)
+                    if (signalRConnected)
+                    {
+                        var pollDelay = Task.Delay(10_000, timeout.Token); // 최대 10초 대기
+                        var completed = await Task.WhenAny(tcs.Task, pollDelay);
+                        if (completed == tcs.Task) return true;
+                        // 10초 내 push 없음 → 폴링으로 상태 확인 (네트워크 유실 보완)
+                    }
+
                     var resp = await http.GetAsync(
                         $"{Consts.TICKET_API_URL}/api/queue/status",
                         timeout.Token);
@@ -216,12 +246,20 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                     if (data?.Status == "Active") return true;
 
-                    int delay = data?.NextPollDelay ?? 3000;
-                    await Task.Delay(delay, timeout.Token);
+                    // SignalR 없을 때만 스마트 폴링 간격 적용
+                    if (!signalRConnected)
+                    {
+                        int delay = data?.NextPollDelay ?? 3000;
+                        await Task.Delay(delay, timeout.Token);
+                    }
                 }
             }
             catch (OperationCanceledException) { }
             catch { /* 연결 오류 */ }
+            finally
+            {
+                await hub.DisposeAsync();
+            }
 
             return false;
         }

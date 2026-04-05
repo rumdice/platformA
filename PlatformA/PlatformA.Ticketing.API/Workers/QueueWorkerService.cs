@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.SignalR;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
+using PlatformA.Ticketing.API.Hubs;
 using StackExchange.Redis;
 
 namespace PlatformA.Ticketing.API.Workers
@@ -7,6 +9,7 @@ namespace PlatformA.Ticketing.API.Workers
     public class QueueWorkerService : BackgroundService
     {
         private readonly RedisManager _redisManager;
+        private readonly IHubContext<QueueHub> _hubContext;
         private readonly ILogger<QueueWorkerService> _logger;
 
         private const int USERS_PER_SECOND = 50;
@@ -14,10 +17,11 @@ namespace PlatformA.Ticketing.API.Workers
         private static readonly TimeSpan LOCK_EXPIRY        = TimeSpan.FromSeconds(10);
         private static readonly TimeSpan LOCK_RENEW_INTERVAL = TimeSpan.FromSeconds(3);
 
-        public QueueWorkerService(RedisManager redisManager, ILogger<QueueWorkerService> logger)
+        public QueueWorkerService(RedisManager redisManager, IHubContext<QueueHub> hubContext, ILogger<QueueWorkerService> logger)
         {
             _redisManager = redisManager;
-            _logger = logger;
+            _hubContext   = hubContext;
+            _logger       = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -130,6 +134,11 @@ return #ghosts";
                         ));
                     _logger.LogInformation("[QueueWorker] 입장 허용 — UserId: {UserId} (유효: {TTL}초)",
                         userId, Consts.ACTIVE_USER_TTL_SECONDS);
+
+                    // SignalR push: 연결 중인 클라이언트에게 즉시 알림
+                    await _hubContext.Clients
+                        .Group($"User_{userId}")
+                        .SendAsync("QueueActivated");
                 }
                 catch (Exception ex)
                 {

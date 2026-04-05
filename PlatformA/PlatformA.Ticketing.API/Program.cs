@@ -4,6 +4,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
+using PlatformA.Ticketing.API.Hubs;
 using PlatformA.Ticketing.API.Services;
 using PlatformA.Ticketing.API.Workers;
 using System.Text.Json;
@@ -30,6 +31,7 @@ builder.Services.AddSingleton<QueueService>();
 builder.Services.AddSingleton<QueueWorkerService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<QueueWorkerService>());
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -85,6 +87,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<QueueHub>("/hubs/queue");
 
 app.MapHealthChecks("/healthz", new HealthCheckOptions
 {
