@@ -67,8 +67,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 수신 루프 백그라운드 실행
             _ = ReceiveLoopAsync(tcpClient);
 
-            // 로그인 패킷(토큰) 전송 -> 서버에서 1번 방(광장)으로 넣어줌
-            await SendLoginPacketAsync(tcpClient, jwtToken);
+            // 로그인 패킷(토큰) 전송 → roomId=1(광장)으로 입장
+            await SendLoginPacketAsync(tcpClient, jwtToken, roomId: 1);
             Console.WriteLine("🟢 게임 서버 로비에 성공적으로 입장했습니다!\n");
 
             // 5️⃣ [인터랙티브 조작] 매칭 시스템 연동
@@ -106,12 +106,16 @@ namespace PlatformA.Game.DummyClient.Scenarios
                                 .Build();
 
                             // 🎉 매칭 성공 이벤트 등록
-                            matchHub.On<MatchSuccessEvent>("MatchFound", (matchInfo) =>
+                            matchHub.On<MatchSuccessEvent>("MatchFound", async (matchInfo) =>
                             {
                                 Console.WriteLine($"\n🔥🔥 [매칭 성사!] 🔥🔥");
                                 Console.WriteLine($"👉 배정받은 투기장(방) 번호: {matchInfo.RoomId}");
                                 Console.WriteLine($"👉 함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}\n");
-                                // TODO: 나중에는 여기서 새로운 TCP 패킷(C_EnterRoom)을 쏴서 실제 방을 이동해야 합니다!
+
+                                // C_EnterRoom 패킷으로 게임방 이동
+                                Console.WriteLine($"[방 이동] Game Server에 C_EnterRoom 전송 → 방 번호: {matchInfo.RoomId}");
+                                byte[] enterPacket = MakeEnterRoomPacket(matchInfo.RoomId);
+                                await tcpClient.SendAsync(enterPacket, SocketFlags.None);
                             });
 
                             await matchHub.StartAsync();
@@ -159,25 +163,41 @@ namespace PlatformA.Game.DummyClient.Scenarios
             return null;
         }
 
-        static byte[] MakeLoginPacket(string token)
+        // payload 포맷: RoomId(4) + stringLen(2) + token(N)
+        static byte[] MakeLoginPacket(string token, int roomId = 1)
         {
             byte[] tokenBytes = System.Text.Encoding.UTF8.GetBytes(token);
-            ushort stringLen = (ushort)tokenBytes.Length;
-            ushort packetSize = (ushort)(4 + 2 + stringLen);
-            ushort packetId = (ushort)PacketID.C_Login;
+            ushort stringLen  = (ushort)tokenBytes.Length;
+            ushort packetSize = (ushort)(4 + 4 + 2 + stringLen); // header(4) + roomId(4) + stringLen(2) + token
+            ushort packetId   = (ushort)PacketID.C_Login;
 
             byte[] buffer = new byte[packetSize];
             Span<byte> span = buffer.AsSpan();
             BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
             BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-            BitConverter.TryWriteBytes(span.Slice(4, 2), stringLen);
-            tokenBytes.CopyTo(span.Slice(6));
+            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);    // RoomId
+            BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen); // stringLen
+            tokenBytes.CopyTo(span.Slice(10));                       // token
             return buffer;
         }
 
-        static async Task SendLoginPacketAsync(Socket client, string token)
+        // payload 포맷: RoomId(4)
+        static byte[] MakeEnterRoomPacket(int roomId)
         {
-            byte[] packet = MakeLoginPacket(token);
+            ushort packetSize = (ushort)(4 + C_EnterRoomPacket.Size); // header(4) + roomId(4)
+            ushort packetId   = (ushort)PacketID.C_EnterRoom;
+
+            byte[] buffer = new byte[packetSize];
+            Span<byte> span = buffer.AsSpan();
+            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
+            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
+            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
+            return buffer;
+        }
+
+        static async Task SendLoginPacketAsync(Socket client, string token, int roomId = 1)
+        {
+            byte[] packet = MakeLoginPacket(token, roomId);
             await client.SendAsync(packet, SocketFlags.None);
         }
 
@@ -190,7 +210,34 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 {
                     int received = await client.ReceiveAsync(buffer, SocketFlags.None);
                     if (received == 0) break;
-                    // (TCP 브로드캐스팅 수신 로직은 필요에 따라 추가하세요)
+                    if (received < 4) continue;
+
+                    ushort packetId = BitConverter.ToUInt16(buffer, 2);
+
+                    if (packetId == (ushort)PacketID.S_Login && received >= 4 + S_LoginPacket.Size)
+                    {
+                        var resp = new S_LoginPacket();
+                        resp.Deserialize(buffer.AsSpan(4));
+                        string resultText = resp.ResultCode == S_LoginPacket.ResultSuccess
+                            ? $"✅ [TCP 로그인 성공] PlayerId: {resp.PlayerId}"
+                            : $"🚨 [TCP 로그인 실패] ResultCode: {resp.ResultCode}";
+                        Console.WriteLine(resultText);
+                    }
+                    else if (packetId == (ushort)PacketID.S_EnterRoom && received >= 4 + S_EnterRoomPacket.Size)
+                    {
+                        var resp = new S_EnterRoomPacket();
+                        resp.Deserialize(buffer.AsSpan(4));
+                        if (resp.ResultCode == S_EnterRoomPacket.ResultSuccess)
+                            Console.WriteLine($"✅ [방 이동 성공] {resp.RoomId}번 게임방에 입장했습니다!");
+                        else
+                            Console.WriteLine($"🚨 [방 이동 실패] ResultCode: {resp.ResultCode}, RoomId: {resp.RoomId}");
+                    }
+                    else if (packetId == (ushort)PacketID.S_Move && received >= 4 + S_MovePacket.Size)
+                    {
+                        var move = new S_MovePacket();
+                        move.Deserialize(buffer.AsSpan(4));
+                        Console.WriteLine($"[S_Move] Player {move.PlayerId} → ({move.X:F1}, {move.Y:F1}, {move.Z:F1})");
+                    }
                 }
             }
             catch { /* 정상 종료 무시 */ }

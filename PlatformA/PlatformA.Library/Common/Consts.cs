@@ -25,7 +25,6 @@ namespace PlatformA.Library.Common
         // CRC16("{ticket:queue}") → 동일 슬롯 보장.
         public const string QUEUE_KEY           = "{ticket:queue}:global";
         public const string QUEUE_HEARTBEATS_KEY = "{ticket:queue}:heartbeats";
-        public const string ACTIVE_KEY = "ticket:active:users"; // @Deprecated: 개별 키 방식(ACTIVE_USER_KEY_PREFIX)으로 전환됨
 
         // Active 유저를 개별 키로 관리 (TTL 자동 만료 지원)
         // 사용법: $"{ACTIVE_USER_KEY_PREFIX}{userId}"
@@ -41,8 +40,6 @@ namespace PlatformA.Library.Common
         public const int GAME_SERVER_PORT = 7777;
 
         // Redis Cluster 노드 목록 (Master 3개 — StackExchange.Redis가 Slave를 자동 감지)
-        //public const string REDIS_CONNECTION_STRING = "host.docker.internal:6371,host.docker.internal:6372,host.docker.internal:6373";
-        // Master만 명시, Slave는 자동 감지가 되는지 맞나?
         public const string REDIS_CONNECTION_STRING = "127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373";
 
 

@@ -58,6 +58,65 @@ namespace PlatformA.Game.Server.Packet
 
 
 
+        [PacketHandler((ushort)PacketID.C_EnterRoom)]
+        public static void Handle_C_EnterRoom(GameSession session, ReadOnlySpan<byte> payload)
+        {
+            // 인증 전 세션은 무시
+            if (session.SessionId <= 0) return;
+
+            C_EnterRoomPacket req = new C_EnterRoomPacket();
+            req.Deserialize(payload);
+
+            ProcessEnterRoom(session, req.RoomId);
+        }
+
+        // S_EnterRoom 패킷 조립 헬퍼
+        private static byte[] BuildS_EnterRoomPacket(int resultCode, int roomId)
+        {
+            ushort totalSize = (ushort)(4 + S_EnterRoomPacket.Size); // header(4) + body(8)
+            byte[] buffer = new byte[totalSize];
+            Span<byte> span = buffer.AsSpan();
+            BitConverter.TryWriteBytes(span.Slice(0, 2), totalSize);
+            BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.S_EnterRoom);
+            new S_EnterRoomPacket { ResultCode = resultCode, RoomId = roomId }.Serialize(span.Slice(4));
+            return buffer;
+        }
+
+        private static void ProcessEnterRoom(GameSession session, int roomId)
+        {
+            GameRoom newRoom = GameRoomManager.Instance.FindRoom(roomId);
+            if (newRoom == null)
+            {
+                Console.WriteLine($"[C_EnterRoom] 방({roomId})이 존재하지 않습니다. (User_{session.SessionId})");
+                _ = session.SendAsync(BuildS_EnterRoomPacket(S_EnterRoomPacket.ResultRoomNotFound, roomId));
+                return;
+            }
+
+            GameRoom currentRoom = session.Room;
+            if (currentRoom != null)
+            {
+                // 현재 방 큐에서 Leave 완료 후 새 방에 Enter
+                // (중첩 Push로 순서 보장: Leave → Enter)
+                currentRoom.Push(() =>
+                {
+                    currentRoom.Leave(session);
+                    newRoom.Push(() =>
+                    {
+                        newRoom.Enter(session);
+                        _ = session.SendAsync(BuildS_EnterRoomPacket(S_EnterRoomPacket.ResultSuccess, roomId));
+                    });
+                });
+            }
+            else
+            {
+                newRoom.Push(() =>
+                {
+                    newRoom.Enter(session);
+                    _ = session.SendAsync(BuildS_EnterRoomPacket(S_EnterRoomPacket.ResultSuccess, roomId));
+                });
+            }
+        }
+
         // 로그인은 수동 제너레이팅 (문자열이라서)
         // 🚀 1. 로그인 핸들러 추가
         [PacketHandler((ushort)PacketID.C_Login)]

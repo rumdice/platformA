@@ -34,6 +34,48 @@ namespace PlatformA.Library.Packets
         }
     }
 
+    // ── 방 이동 패킷 ────────────────────────────────────────────────────
+
+    // Client -> Server: 매칭 성사 후 로비에서 게임방으로 이동 요청
+    // payload 포맷: RoomId(4)
+    public struct C_EnterRoomPacket
+    {
+        public int RoomId;
+        public const int Size = 4;
+
+        public void Deserialize(ReadOnlySpan<byte> span)
+        {
+            RoomId = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(0, 4));
+        }
+    }
+
+    // Server -> Client: 방 이동 결과
+    // payload 포맷: ResultCode(4) + RoomId(4)
+    public struct S_EnterRoomPacket
+    {
+        public const int ResultSuccess      = 0;
+        public const int ResultRoomNotFound = 1;
+
+        public int ResultCode;
+        public int RoomId;
+
+        public const int Size = 8;
+
+        public void Serialize(Span<byte> span)
+        {
+            System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), ResultCode);
+            System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(span.Slice(4, 4), RoomId);
+        }
+
+        public void Deserialize(ReadOnlySpan<byte> span)
+        {
+            ResultCode = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(0, 4));
+            RoomId     = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4, 4));
+        }
+    }
+
+    // ── 로그인 패킷 ─────────────────────────────────────────────────────
+
     // [Packets] 어트리뷰트를 달지 않습니다! (제너레이터 무시, 수동 파싱)
     // payload 포맷: RoomId(4) + stringLen(2) + token(N)
     // RoomId == 1 : 광장(plaza), 항상 열려있는 기본 방

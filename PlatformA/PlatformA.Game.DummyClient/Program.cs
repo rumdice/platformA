@@ -17,8 +17,8 @@ namespace PlatformA.Game.DummyClient
                 Console.WriteLine("==================================================");
                 Console.WriteLine(" 1. 게임 서버 직접 접속 (Auth + TCP)");
                 Console.WriteLine(" 2. Auth 인증, 대기열, 인게임 서버 로그인. 200유저 부하 테스트");
-                Console.WriteLine(" 3. Auth 인증, 대기열, 인게임 서버 로그인 후 매칭. 한명 유저");
-                Console.WriteLine(" 4. [시나리오 1] 1000명 로그인 + 대기열 통과 부하 테스트");
+                Console.WriteLine(" 3. [시나리오 3] 한명의 유저가 로그인 후 매칭 신청. 2개 실행.");
+                Console.WriteLine(" 4. [시나리오 4] 1000명 로그인 + 대기열 통과 부하 테스트");
                 Console.WriteLine(" 5. 종료");
                 Console.WriteLine("==================================================");
                 Console.Write("원하는 테스트 모드의 번호를 입력하세요: ");
