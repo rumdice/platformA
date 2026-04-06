@@ -12,7 +12,7 @@
 
       Note over Client, DB: [ Phase 1 ] 로그인 및 인증
 
-      Client->>Auth: 로그인 요청 (HTTP POST)
+      Client->>Auth: 로그인 요청 (HTTP POST : auth/login)
       Auth->>DB: 유저 정보 검증
       DB-->>Auth: 유저 레코드 반환
       Auth->>Redis: Refresh Token 저장 (7일 TTL)
@@ -20,20 +20,20 @@
 
       Note over Client, Redis: [ Phase 2 ] 대기열 처리
 
-      Client->>Ticket: 대기열 진입 요청 (HTTP POST)
+      Client->>Ticket: 대기열 진입 요청 + Heartbeat갱신 (HTTP POST : queue/enter)
       Ticket->>Redis: 큐(Sorted Set)에 유저 등록
-      Ticket-->>Client: 대기 티켓 응답
+      Ticket-->>Client: 대기열 대기 티켓 응답
 
-      alt SignalR 연결 성공 (실시간 Push)
-          Client->>Ticket: SignalR 웹소켓 연결 (/hubs/queue)
-          loop 1초 주기 (분산 락 적용)
-              Worker->>Redis: Ghost 유저 정리 / 상위 N명 Active 전환 (대기열에서 뺀다)
+      alt SignalR 연결 성공시 (실시간 Push)
+          Client->>Ticket: 대기열 통과 응답 수신 (SignalR : /hubs/queue)
+          loop 1초 주기 (분산 락 적용 : SET NX)
+              Worker->>Redis: Ghost 유저 정리(60초) / 상위 N명 Active 전환 (대기열에서 뺀다)
           end
-          Worker-->>Client: Active 된 유저는 QueueActivated push (게임서버 진입)
+          Worker-->>Client: Active 된 유저 Server push (event : QueueActivated) -> 게임서버 로그인
       else SignalR 실패 (Fallback 스마트 폴링)
           loop 대기열 순위 기반 응답시간 조절
-              Client->>Ticket: 대기 순위 확인 + Heartbeat (HTTP GET)
-              Ticket-->>Client: 순위 / NextPollDelay 응답 (Active 시 탈출 후 게임서버 진입)
+              Client->>Ticket: 대기 순위 확인 + Heartbeat갱신 (HTTP GET : queue/status)
+              Ticket-->>Client: 순위/상태(Active || wait)/NextPollDelay -> Active시 탈출 게임서버 진입
           end
       end
 
