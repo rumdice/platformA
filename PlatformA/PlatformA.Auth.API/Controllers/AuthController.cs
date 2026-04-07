@@ -41,7 +41,7 @@ namespace PlatformA.Auth.API.Controllers
             }
 
             string accessToken = TokenManager.GenerateJwtToken(playerId.Value);
-            string refreshToken = TokenManager.GenerateRefreshToken();
+            string refreshToken = TokenManager.GenerateRefreshToken(playerId.Value);
 
             await _refreshTokenService.SaveAsync(refreshToken, playerId.Value);
 
@@ -73,7 +73,7 @@ namespace PlatformA.Auth.API.Controllers
             }
 
             string newAccessToken = TokenManager.GenerateJwtToken(userId.Value);
-            string newRefreshToken = TokenManager.GenerateRefreshToken();
+            string newRefreshToken = TokenManager.GenerateRefreshToken(userId.Value);
             await _refreshTokenService.SaveAsync(newRefreshToken, userId.Value);
 
             _logger.LogInformation("[Auth] Token 갱신 완료. UserId: {UserId}", userId.Value);

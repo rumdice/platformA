@@ -47,7 +47,8 @@ namespace PlatformA.Library.Common
         public const string MYSQL_WEBAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
         public const string MYSQL_LOGAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
 
-        public const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
+        public const string AUTH_API_URL         = "https://localhost:7088/api/Auth/login";
+        public const string AUTH_API_REFRESH_URL = "https://localhost:7088/api/Auth/refresh";
 
         public const string TICKET_API_URL = "https://localhost:7075";
         

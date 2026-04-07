@@ -81,12 +81,26 @@ namespace PlatformA.Library.Common
         }
 
         /// <summary>
-        /// Refresh Token 생성. 암호학적으로 안전한 64바이트 랜덤 문자열.
-        /// JWT가 아닌 불투명 토큰(Opaque Token)으로, Redis에서만 유효성을 검증합니다.
+        /// Refresh Token 생성. 포맷: "{playerId}:{64바이트 랜덤 Base64}"
+        /// playerId를 앞에 내장하여 Redis 키(refresh:{playerId})를 직접 계산할 수 있습니다.
+        /// 이를 통해 역방향 인덱스 없이 재로그인 시 기존 토큰을 자동 덮어씁니다.
         /// </summary>
-        public static string GenerateRefreshToken()
+        public static string GenerateRefreshToken(int playerId)
         {
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            string random = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            return $"{playerId}:{random}";
+        }
+
+        /// <summary>
+        /// Refresh Token에서 playerId를 파싱합니다. 포맷이 올바르지 않으면 null 반환.
+        /// </summary>
+        public static int? ParsePlayerIdFromRefreshToken(string refreshToken)
+        {
+            int colonIndex = refreshToken.IndexOf(':');
+            if (colonIndex <= 0) return null;
+            if (int.TryParse(refreshToken[..colonIndex], out int playerId))
+                return playerId;
+            return null;
         }
 
 

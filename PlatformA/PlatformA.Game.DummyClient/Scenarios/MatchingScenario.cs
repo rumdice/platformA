@@ -1,84 +1,94 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
-using System.Net.Http.Headers;
+using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
-using System.Text.Json;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
     public class MatchingScenario
     {
-        // 🚀 서버 주소 세팅 (포트 번호를 현재 환경에 맞게 꼭 확인하세요!)
-        
         public static async Task RunAsync()
         {
             Console.Clear();
             Console.WriteLine("==================================================");
-            Console.WriteLine("   🎮 PlatformA 인터랙티브 게임 클라이언트 🎮");
+            Console.WriteLine("   PlatformA 인터랙티브 게임 클라이언트");
             Console.WriteLine("==================================================\n");
 
             using var httpClient = new HttpClient();
 
-            // 1️⃣ [수동 로그인] 유저 정보 입력받기
-            Console.Write("👉 아이디(닉네임)를 입력하세요: ");
-            string username = Console.ReadLine();
-            Console.Write("👉 비밀번호를 입력하세요: ");
-            string password = Console.ReadLine();
+            // 1. [로그인] 유저 정보 입력
+            Console.Write("아이디(닉네임)를 입력하세요: ");
+            string username = Console.ReadLine() ?? "";
+            Console.Write("비밀번호를 입력하세요: ");
+            string password = Console.ReadLine() ?? "";
 
             Console.WriteLine("\n[1. 인증] Auth.API 에 로그인을 시도합니다...");
-            string jwtToken = await LoginToAuthServerAsync(httpClient, username, password);
-            if (string.IsNullOrEmpty(jwtToken)) return;
+            var session = await AuthHelper.LoginAsync(httpClient, username, password);
+            if (session == null)
+            {
+                Console.WriteLine("로그인 실패. 서버 상태를 확인하세요.");
+                return;
+            }
+            Console.WriteLine($"로그인 성공! (PlayerID: {session.PlayerId})");
+            AuthHelper.ApplyToken(httpClient, session);
 
-            // HttpClient 헤더에 토큰 장착
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
-
-            // 2️⃣ [대기열 진입] Ticketing.API
+            // 2. [대기열 진입] Ticketing.API
             Console.WriteLine("\n[2. 대기열] Ticketing 서버에 진입합니다...");
             var enterRes = await httpClient.PostAsync($"{Consts.TICKET_API_URL}/api/queue/enter", null);
+            if (enterRes.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                session = await TryRefreshOrExitAsync(httpClient, session);
+                if (session == null) return;
+                enterRes = await httpClient.PostAsync($"{Consts.TICKET_API_URL}/api/queue/enter", null);
+            }
             if (!enterRes.IsSuccessStatusCode)
             {
-                Console.WriteLine("🚨 대기열 진입 실패!"); return;
+                Console.WriteLine("대기열 진입 실패!"); return;
             }
 
-            // 3️⃣ [스마트 폴링] 대기열 대기 (루프)
+            // 3. [스마트 폴링] 대기열 대기
             while (true)
             {
                 var statusRes = await httpClient.GetAsync($"{Consts.TICKET_API_URL}/api/queue/status");
+                if (statusRes.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    session = await TryRefreshOrExitAsync(httpClient, session);
+                    if (session == null) return;
+                    statusRes = await httpClient.GetAsync($"{Consts.TICKET_API_URL}/api/queue/status");
+                }
                 if (!statusRes.IsSuccessStatusCode) return;
 
                 var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
-                if (statusData != null && statusData.Status == "Active")
+                if (statusData?.Status == "Active")
                 {
-                    Console.WriteLine("✅ [통과] 대기열을 통과하여 입장 허가를 받았습니다!\n");
-                    break; // 통과! 루프 탈출
+                    Console.WriteLine("[통과] 대기열을 통과하여 입장 허가를 받았습니다!\n");
+                    break;
                 }
-
-                Console.WriteLine($"⏳ 대기 중... (앞에 {statusData?.Rank}명 대기 / {statusData?.NextPollDelay}ms 뒤 재확인)");
+                Console.WriteLine($"대기 중... (앞에 {statusData?.Rank}명 대기 / {statusData?.NextPollDelay}ms 뒤 재확인)");
                 await Task.Delay(statusData?.NextPollDelay ?? 3000);
             }
 
-            // 4️⃣ [게임 서버 접속] TCP 로비(1번 방) 연결
+            // 4. [게임 서버 접속] TCP 로비(1번 방) 연결
             Console.WriteLine("[3. 로비 입장] 게임 서버(TCP) 광장에 접속합니다...");
             using Socket tcpClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             await tcpClient.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
-
-            // 수신 루프 백그라운드 실행
             _ = ReceiveLoopAsync(tcpClient);
+            await SendLoginPacketAsync(tcpClient, session.AccessToken, roomId: 1);
+            Console.WriteLine("게임 서버 로비에 성공적으로 입장했습니다!\n");
 
-            // 로그인 패킷(토큰) 전송 → roomId=1(광장)으로 입장
-            await SendLoginPacketAsync(tcpClient, jwtToken, roomId: 1);
-            Console.WriteLine("🟢 게임 서버 로비에 성공적으로 입장했습니다!\n");
-
-            // 5️⃣ [인터랙티브 조작] 매칭 시스템 연동
-            await HandleUserInputAsync(httpClient, tcpClient, jwtToken);
+            // 5. [인터랙티브 조작] 매칭 시스템 연동
+            await HandleUserInputAsync(httpClient, tcpClient, session);
         }
 
         // --- 유저 키보드 입력 핸들러 ---
-        private static async Task HandleUserInputAsync(HttpClient httpClient, Socket tcpClient, string jwtToken)
+        private static async Task HandleUserInputAsync(
+            HttpClient httpClient, Socket tcpClient, TokenSession initialSession)
         {
-            HubConnection matchHub = null;
+            // session을 로컬 변수로 유지 — 람다가 변수를 캡처하므로 갱신 시 SignalR에도 반영됨
+            var session = initialSession;
+            HubConnection? matchHub = null;
 
             try
             {
@@ -87,33 +97,33 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     Console.WriteLine("--------------------------------------------------");
                     Console.WriteLine(" [행동 선택] 'm': 매칭 큐 등록 | 'q': 게임 종료");
                     Console.WriteLine("--------------------------------------------------");
-                    string input = Console.ReadLine()?.ToLower();
+                    string input = Console.ReadLine()?.ToLower() ?? "";
 
                     if (input == "q")
                     {
                         Console.WriteLine("게임을 종료합니다.");
                         break;
                     }
-                    else if (input == "m")
-                    {
-                        Console.WriteLine("\n⚔️ 매칭 서버(SignalR)에 연결 중...");
 
-                        // 매칭 Hub 연결 (아직 안 되어 있다면)
+                    if (input == "m")
+                    {
+                        Console.WriteLine("\n매칭 서버(SignalR)에 연결 중...");
+
                         if (matchHub == null || matchHub.State == HubConnectionState.Disconnected)
                         {
                             matchHub = new HubConnectionBuilder()
-                                .WithUrl(Consts.MATCH_HUB_URL, options => { options.AccessTokenProvider = () => Task.FromResult(jwtToken); })
+                                .WithUrl(Consts.MATCH_HUB_URL, options =>
+                                {
+                                    // session 변수를 캡처 — 갱신 후에도 최신 AccessToken 사용
+                                    options.AccessTokenProvider = () => Task.FromResult<string?>(session.AccessToken);
+                                })
                                 .Build();
 
-                            // 🎉 매칭 성공 이벤트 등록
                             matchHub.On<MatchSuccessEvent>("MatchFound", async (matchInfo) =>
                             {
-                                Console.WriteLine($"\n🔥🔥 [매칭 성사!] 🔥🔥");
-                                Console.WriteLine($"👉 배정받은 투기장(방) 번호: {matchInfo.RoomId}");
-                                Console.WriteLine($"👉 함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}\n");
+                                Console.WriteLine($"\n[매칭 성사!] 배정 방 번호: {matchInfo.RoomId}");
+                                Console.WriteLine($"함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}\n");
 
-                                // C_EnterRoom 패킷으로 게임방 이동
-                                Console.WriteLine($"[방 이동] Game Server에 C_EnterRoom 전송 → 방 번호: {matchInfo.RoomId}");
                                 byte[] enterPacket = MakeEnterRoomPacket(matchInfo.RoomId);
                                 await tcpClient.SendAsync(enterPacket, SocketFlags.None);
                             });
@@ -121,16 +131,20 @@ namespace PlatformA.Game.DummyClient.Scenarios
                             await matchHub.StartAsync();
                         }
 
-                        // HTTP API로 매칭 큐 등록 요청
+                        // 매칭 큐 등록
                         var matchRes = await httpClient.PostAsync(Consts.MATCH_API_URL, null);
+                        if (matchRes.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            var newSession = await TryRefreshOrExitAsync(httpClient, session);
+                            if (newSession == null) break;
+                            session = newSession;
+                            matchRes = await httpClient.PostAsync(Consts.MATCH_API_URL, null);
+                        }
+
                         if (matchRes.IsSuccessStatusCode)
-                        {
-                            Console.WriteLine("⏳ 매칭 큐에 등록되었습니다! 다른 유저를 기다립니다...\n");
-                        }
+                            Console.WriteLine("매칭 큐에 등록되었습니다! 다른 유저를 기다립니다...\n");
                         else
-                        {
-                            Console.WriteLine($"🚨 매칭 요청 실패: {matchRes.StatusCode}");
-                        }
+                            Console.WriteLine($"매칭 요청 실패: {matchRes.StatusCode}");
                     }
                 }
             }
@@ -143,48 +157,45 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     Console.WriteLine("매칭 허브 연결이 종료되었습니다.");
                 }
             }
-            
         }
 
-        // --- 아래는 기존에 쓰시던 헬퍼 함수들을 그대로 가져옵니다 ---
-        static async Task<string> LoginToAuthServerAsync(HttpClient client, string username, string password)
+        // 401 수신 시 refresh 시도. 실패 시 메시지 출력 후 null 반환.
+        private static async Task<TokenSession?> TryRefreshOrExitAsync(HttpClient http, TokenSession session)
         {
-            var loginData = new { Username = username, Password = password };
-            var response = await client.PostAsJsonAsync(Consts.AUTH_API_URL, loginData);
-            if (response.IsSuccessStatusCode)
+            Console.WriteLine("[401] Access Token 만료 → Refresh 시도...");
+            var newSession = await AuthHelper.TryRefreshAsync(http, session);
+            if (newSession == null)
             {
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-                using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                int playerId = doc.RootElement.GetProperty("playerId").GetInt32();
-                string token = doc.RootElement.GetProperty("token").GetString();
-                Console.WriteLine($"✅ 로그인 성공! (PlayerID: {playerId})");
-                return token;
+                Console.WriteLine("세션이 만료되었습니다. 재로그인이 필요합니다.");
+                return null;
             }
-            return null;
+            AuthHelper.ApplyToken(http, newSession);
+            Console.WriteLine("[OK] 토큰 갱신 완료.");
+            return newSession;
         }
 
-        // payload 포맷: RoomId(4) + stringLen(2) + token(N)
+        // --- 헬퍼 함수 ---
+
         static byte[] MakeLoginPacket(string token, int roomId = 1)
         {
             byte[] tokenBytes = System.Text.Encoding.UTF8.GetBytes(token);
             ushort stringLen  = (ushort)tokenBytes.Length;
-            ushort packetSize = (ushort)(4 + 4 + 2 + stringLen); // header(4) + roomId(4) + stringLen(2) + token
+            ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
             ushort packetId   = (ushort)PacketID.C_Login;
 
             byte[] buffer = new byte[packetSize];
             Span<byte> span = buffer.AsSpan();
             BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
             BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);    // RoomId
-            BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen); // stringLen
-            tokenBytes.CopyTo(span.Slice(10));                       // token
+            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
+            BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
+            tokenBytes.CopyTo(span.Slice(10));
             return buffer;
         }
 
-        // payload 포맷: RoomId(4)
         static byte[] MakeEnterRoomPacket(int roomId)
         {
-            ushort packetSize = (ushort)(4 + C_EnterRoomPacket.Size); // header(4) + roomId(4)
+            ushort packetSize = (ushort)(4 + C_EnterRoomPacket.Size);
             ushort packetId   = (ushort)PacketID.C_EnterRoom;
 
             byte[] buffer = new byte[packetSize];
@@ -218,19 +229,17 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     {
                         var resp = new S_LoginPacket();
                         resp.Deserialize(buffer.AsSpan(4));
-                        string resultText = resp.ResultCode == S_LoginPacket.ResultSuccess
-                            ? $"✅ [TCP 로그인 성공] PlayerId: {resp.PlayerId}"
-                            : $"🚨 [TCP 로그인 실패] ResultCode: {resp.ResultCode}";
-                        Console.WriteLine(resultText);
+                        Console.WriteLine(resp.ResultCode == S_LoginPacket.ResultSuccess
+                            ? $"[TCP 로그인 성공] PlayerId: {resp.PlayerId}"
+                            : $"[TCP 로그인 실패] ResultCode: {resp.ResultCode}");
                     }
                     else if (packetId == (ushort)PacketID.S_EnterRoom && received >= 4 + S_EnterRoomPacket.Size)
                     {
                         var resp = new S_EnterRoomPacket();
                         resp.Deserialize(buffer.AsSpan(4));
-                        if (resp.ResultCode == S_EnterRoomPacket.ResultSuccess)
-                            Console.WriteLine($"✅ [방 이동 성공] {resp.RoomId}번 게임방에 입장했습니다!");
-                        else
-                            Console.WriteLine($"🚨 [방 이동 실패] ResultCode: {resp.ResultCode}, RoomId: {resp.RoomId}");
+                        Console.WriteLine(resp.ResultCode == S_EnterRoomPacket.ResultSuccess
+                            ? $"[방 이동 성공] {resp.RoomId}번 게임방에 입장했습니다!"
+                            : $"[방 이동 실패] ResultCode: {resp.ResultCode}");
                     }
                     else if (packetId == (ushort)PacketID.S_Move && received >= 4 + S_MovePacket.Size)
                     {

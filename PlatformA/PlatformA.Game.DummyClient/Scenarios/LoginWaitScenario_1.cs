@@ -2,21 +2,23 @@ using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
     /// <summary>
-    /// 시나리오 1: 1000명 로그인 + 대기열 통과 부하 테스트
+    /// 시나리오 4: 1000명 로그인 + 대기열 통과 부하 테스트
     ///
     /// 흐름:
-    ///   1. Auth.API 로그인 (계정 없으면 자동 생성, 패스워드 "1234")
+    ///   1. Auth.API 로그인 → TokenSession (AccessToken + RefreshToken) 획득
     ///   2. Ticketing.API 대기열 진입
-    ///   3. 스마트 폴링으로 Active 상태 대기
+    ///   3. SignalR push + fallback 폴링으로 Active 상태 대기
+    ///      └─ 대기 중 401 수신 시 Refresh Token으로 자동 갱신 후 재시도
+    ///   4. 게임 서버 TCP 로그인
     ///
     /// 설정:
     ///   - 유저 수       : USER_COUNT (기본 1000)
@@ -42,10 +44,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
         private static int  _queueFail;
         private static int  _activeOk;
         private static int  _activeFail;
-        private static int  _gameLoginOk;        // TCP 게임서버 로그인 성공
-        private static int  _gameLoginFail;      // TCP 게임서버 로그인 실패
+        private static int  _tokenRefreshCount;  // 대기 중 Access Token 갱신 횟수
+        private static int  _gameLoginOk;
+        private static int  _gameLoginFail;
         private static int  _completed;
-        private static long _totalWaitMs;        // Active 획득까지 총 대기 시간(ms)
+        private static long _totalWaitMs;
         // ─────────────────────────────────────────────────────────
 
         public static async Task RunAsync()
@@ -56,11 +59,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
             ResetCounters();
             var sw = Stopwatch.StartNew();
 
-            // 진행 상황 라이브 표시 (2초 주기)
             using var displayCts = new CancellationTokenSource();
             var displayTask = LiveProgressAsync(displayCts.Token);
 
-            // 유저 태스크 생성 (SPAWN_RATE_PER_SEC명/초로 분산 투입)
             var tasks = new List<Task>(USER_COUNT);
             for (int i = 1; i <= USER_COUNT; i++)
             {
@@ -69,11 +70,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await Task.Delay(SPAWN_INTERVAL_MS);
             }
 
-            // 모든 유저 완료 대기
             await Task.WhenAll(tasks);
             sw.Stop();
 
-            // 진행 표시 종료
             displayCts.Cancel();
             try { await displayTask; } catch (OperationCanceledException) { }
 
@@ -84,7 +83,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private static async Task SimulateUserAsync(int userId)
         {
-            // 유저별 가상 IP → 각자 독립적인 Rate Limit 버킷 사용
             string fakeIp = $"10.{userId / 256}.{userId % 256}.1";
 
             using var http = new HttpClient();
@@ -95,16 +93,16 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             // ── STEP 1: 로그인 ────────────────────────────────────
             string username = $"{USERNAME_PREFIX}{userId:D4}";
-            string? token = await LoginAsync(http, username);
-            if (token == null) { Interlocked.Increment(ref _completed); return; }
+            var session = await LoginAsync(http, username);
+            if (session == null) { Interlocked.Increment(ref _completed); return; }
 
             // ── STEP 2: 대기열 진입 ───────────────────────────────
-            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            AuthHelper.ApplyToken(http, session);
             bool entered = await EnterQueueAsync(http, userId);
             if (!entered) { Interlocked.Increment(ref _completed); return; }
 
-            // ── STEP 3: Active 상태 대기 (SignalR push + fallback 폴링) ──
-            bool activated = await WaitUntilActiveAsync(http, token);
+            // ── STEP 3: Active 상태 대기 ──────────────────────────
+            var (activated, finalSession) = await WaitUntilActiveAsync(http, session);
 
             if (activated)
             {
@@ -112,11 +110,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 Interlocked.Add(ref _totalWaitMs, userSw.ElapsedMilliseconds);
 
                 // ── STEP 4: 게임 서버 TCP 로그인 ──────────────────
-                bool gameLoginOk = await ConnectToGameServerAsync(token);
-                if (gameLoginOk)
-                    Interlocked.Increment(ref _gameLoginOk);
-                else
-                    Interlocked.Increment(ref _gameLoginFail);
+                bool gameLoginOk = await ConnectToGameServerAsync(finalSession.AccessToken);
+                if (gameLoginOk) Interlocked.Increment(ref _gameLoginOk);
+                else             Interlocked.Increment(ref _gameLoginFail);
             }
             else
             {
@@ -128,34 +124,23 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         // ── STEP 1: Auth.API 로그인 ───────────────────────────────
 
-        private static async Task<string?> LoginAsync(HttpClient http, string username)
+        private static async Task<TokenSession?> LoginAsync(HttpClient http, string username)
         {
             try
             {
-                var body = new { Username = username, Password = PASSWORD };
-                var resp = await http.PostAsJsonAsync(Consts.AUTH_API_URL, body);
-
-                if (resp.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                var session = await AuthHelper.LoginAsync(http, username, PASSWORD);
+                if (session != null)
                 {
-                    Interlocked.Increment(ref _loginRateLimit);
-                    return null;
-                }
-                if (!resp.IsSuccessStatusCode)
-                {
-                    int n = Interlocked.Increment(ref _loginFail);
-                    if (n <= 3)
-                    {
-                        string body2 = await resp.Content.ReadAsStringAsync();
-                        Console.WriteLine($"  [LoginFail] {username} → HTTP {(int)resp.StatusCode}: {body2[..Math.Min(120, body2.Length)]}");
-                    }
-                    return null;
+                    Interlocked.Increment(ref _loginOk);
+                    return session;
                 }
 
-                string json = await resp.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                string token = doc.RootElement.GetProperty("token").GetString()!;
-                Interlocked.Increment(ref _loginOk);
-                return token;
+                // 429 여부는 직접 확인이 필요하므로 fallback으로 statusCode 조회
+                // (AuthHelper는 단순 null 반환이므로 여기서는 loginFail로 집계)
+                int n = Interlocked.Increment(ref _loginFail);
+                if (n <= 3)
+                    Console.WriteLine($"  [LoginFail] {username}");
+                return null;
             }
             catch (Exception ex)
             {
@@ -178,7 +163,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     Interlocked.Increment(ref _queueOk);
                     return true;
                 }
-
                 Interlocked.Increment(ref _queueFail);
                 return false;
             }
@@ -190,16 +174,18 @@ namespace PlatformA.Game.DummyClient.Scenarios
         }
 
         // ── STEP 3: Active 대기 (SignalR push + fallback 폴링) ────
+        // 대기 중 401 수신 시 Refresh Token으로 자동 갱신 후 재시도합니다.
+        // 갱신된 session을 반환하여 이후 게임 서버 로그인에 최신 토큰이 사용됩니다.
 
-        private static async Task<bool> WaitUntilActiveAsync(HttpClient http, string token)
+        private static async Task<(bool activated, TokenSession session)> WaitUntilActiveAsync(
+            HttpClient http, TokenSession session)
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(300));
 
-            // SignalR 연결 시도
             var hub = new HubConnectionBuilder()
                 .WithUrl($"{Consts.TICKET_API_URL}/hubs/queue", options =>
                 {
-                    options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(session.AccessToken);
                     options.HttpMessageHandlerFactory = _ =>
                         new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, _, _, _) => true };
                 })
@@ -220,33 +206,40 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 while (!timeout.IsCancellationRequested)
                 {
-                    // SignalR push 수신 대기 (최대 폴링 간격만큼)
                     if (signalRConnected)
                     {
-                        var pollDelay = Task.Delay(10_000, timeout.Token); // 최대 10초 대기
+                        var pollDelay = Task.Delay(10_000, timeout.Token);
                         var completed = await Task.WhenAny(tcs.Task, pollDelay);
-                        if (completed == tcs.Task) return true;
-                        // 10초 내 push 없음 → 폴링으로 상태 확인 (네트워크 유실 보완)
+                        if (completed == tcs.Task) return (true, session);
                     }
 
                     var resp = await http.GetAsync(
                         $"{Consts.TICKET_API_URL}/api/queue/status",
                         timeout.Token);
 
-                    // 404: 워커가 큐에서 꺼낸 직후 Active 키 미설정 타이밍 → 재시도
-                    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    // 401: Access Token 만료 → Refresh Token으로 갱신
+                    if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        var newSession = await AuthHelper.TryRefreshAsync(http, session);
+                        if (newSession == null) return (false, session); // 세션 완전 만료
+                        session = newSession;
+                        AuthHelper.ApplyToken(http, session);
+                        Interlocked.Increment(ref _tokenRefreshCount);
+                        continue;
+                    }
+
+                    if (resp.StatusCode == HttpStatusCode.NotFound)
                     {
                         await Task.Delay(2000, timeout.Token);
                         continue;
                     }
-                    if (!resp.IsSuccessStatusCode) return false;
+                    if (!resp.IsSuccessStatusCode) return (false, session);
 
                     var data = await resp.Content.ReadFromJsonAsync<QueueStatusDto>(
                         cancellationToken: timeout.Token);
 
-                    if (data?.Status == "Active") return true;
+                    if (data?.Status == "Active") return (true, session);
 
-                    // SignalR 없을 때만 스마트 폴링 간격 적용
                     if (!signalRConnected)
                     {
                         int delay = data?.NextPollDelay ?? 3000;
@@ -261,7 +254,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await hub.DisposeAsync();
             }
 
-            return false;
+            return (false, session);
         }
 
         // ── 진행 상황 실시간 출력 ─────────────────────────────────
@@ -280,7 +273,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         $"Auth 로그인 : {_loginOk} 성공  {_loginFail + _loginRateLimit} 실패 │" +
                         $"대기열 : {queueActive} 대기중 │" +
                         $"입장 : {_activeOk} 성공  {_activeFail} 실패 │" +
-                        $"게임서버 로그인 : {_gameLoginOk} 성공  {_gameLoginFail} 실패");
+                        $"토큰갱신 : {_tokenRefreshCount}회 │" +
+                        $"게임서버 : {_gameLoginOk} 성공  {_gameLoginFail} 실패");
                 }
             }
             catch (OperationCanceledException) { }
@@ -292,7 +286,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         {
             Console.WriteLine();
             Console.WriteLine("══════════════════════════════════════════════════════");
-            Console.WriteLine("  📊 최종 결과 리포트");
+            Console.WriteLine("  최종 결과 리포트");
             Console.WriteLine("══════════════════════════════════════════════════════");
             Console.WriteLine($"  총 소요 시간      : {elapsed.TotalSeconds:F1}초");
             Console.WriteLine($"  스폰 속도         : {SPAWN_RATE_PER_SEC}명/초  ({USER_COUNT}명 스폰 완료)");
@@ -309,6 +303,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine($"  [입장권(Active) 획득]");
             Console.WriteLine($"    획득 성공       : {_activeOk,5}명");
             Console.WriteLine($"    획득 실패/타임아웃: {_activeFail,5}명");
+            Console.WriteLine($"    대기 중 토큰 갱신 : {_tokenRefreshCount,5}회");
             Console.WriteLine();
             Console.WriteLine($"  [게임 서버 TCP 로그인]");
             Console.WriteLine($"    로그인 성공     : {_gameLoginOk,5}명");
@@ -336,47 +331,50 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine($"  [병목 분석]");
 
             if (_loginRateLimit > 0)
-                Console.WriteLine($"    ⚠️  Rate Limit 초과 {_loginRateLimit}건: X-Forwarded-For 헤더가 전달되지 않거나 IP별 버킷 설정 확인 필요");
+                Console.WriteLine($"    ⚠  Rate Limit 초과 {_loginRateLimit}건: X-Forwarded-For 헤더 또는 IP별 버킷 설정 확인 필요");
 
             if (_loginFail > 10)
-                Console.WriteLine($"    ⚠️  로그인 실패 {_loginFail}건: Auth.API BCrypt 연산 부하 또는 DB 연결 확인 필요");
+                Console.WriteLine($"    ⚠  로그인 실패 {_loginFail}건: Auth.API BCrypt 연산 부하 또는 DB 연결 확인 필요");
 
             if (_queueFail > 0)
-                Console.WriteLine($"    ⚠️  대기열 진입 실패 {_queueFail}건: Ticketing.API 또는 Redis 상태 확인 필요");
+                Console.WriteLine($"    ⚠  대기열 진입 실패 {_queueFail}건: Ticketing.API 또는 Redis 상태 확인 필요");
 
             if (_activeFail > 10)
-                Console.WriteLine($"    ⚠️  Active 획득 실패 {_activeFail}건: QueueWorkerService 처리 속도 또는 Ghost 정리 로직 확인 필요");
+                Console.WriteLine($"    ⚠  Active 획득 실패 {_activeFail}건: QueueWorkerService 처리 속도 또는 Ghost 정리 로직 확인 필요");
+
+            if (_tokenRefreshCount > 0)
+                Console.WriteLine($"    ⚠  토큰 갱신 {_tokenRefreshCount}회: 대기 시간이 15분을 초과한 유저 존재 — 대기열 처리 속도 확인 필요");
 
             if (_gameLoginFail > 0)
-                Console.WriteLine($"    ⚠️  게임서버 로그인 실패 {_gameLoginFail}건: Game.Server 상태 또는 Active 키 타이밍 확인 필요");
+                Console.WriteLine($"    ⚠  게임서버 로그인 실패 {_gameLoginFail}건: Game.Server 상태 또는 Active 키 타이밍 확인 필요");
 
             int successRate = USER_COUNT > 0 ? (_gameLoginOk * 100 / USER_COUNT) : 0;
             if (successRate >= 95)
-                Console.WriteLine($"    ✅  성공률 {successRate}% — 안정적. 유저 수 증가 테스트 권장 (2000명, 5000명)");
+                Console.WriteLine($"    OK  성공률 {successRate}% — 안정적. 유저 수 증가 테스트 권장 (2000명, 5000명)");
             else if (successRate >= 80)
-                Console.WriteLine($"    🔶  성공률 {successRate}% — 일부 실패. 서비스 튜닝 후 재테스트 권장");
+                Console.WriteLine($"    --  성공률 {successRate}% — 일부 실패. 서비스 튜닝 후 재테스트 권장");
             else
-                Console.WriteLine($"    ❌  성공률 {successRate}% — 병목 해소 필요. 로그 확인 요망");
+                Console.WriteLine($"    NG  성공률 {successRate}% — 병목 해소 필요. 로그 확인 요망");
         }
 
         private static void PrintHeader()
         {
             Console.WriteLine("══════════════════════════════════════════════════════");
-            Console.WriteLine("   🚦 LoginWait Scenario 1 — 1000명 대기열 부하 테스트");
+            Console.WriteLine("   [Scenario 4] 1000명 대기열 부하 테스트");
             Console.WriteLine("══════════════════════════════════════════════════════");
             Console.WriteLine($"  유저 수: {USER_COUNT}명  │  스폰 속도: {SPAWN_RATE_PER_SEC}명/초");
             Console.WriteLine($"  계정명: {USERNAME_PREFIX}0001 ~ {USERNAME_PREFIX}{USER_COUNT:D4}  │  대기열 처리: 50명/초");
             Console.WriteLine();
-            Console.WriteLine("  ※ 서버 실행 여부 확인:");
+            Console.WriteLine("  서버 실행 여부 확인:");
             Console.WriteLine($"    - Auth.API      : {Consts.AUTH_API_URL}");
             Console.WriteLine($"    - Ticketing.API : {Consts.TICKET_API_URL}/api/queue/enter");
-            Console.WriteLine("  ※ DB는 CF 스크립트로 미리 생성되어 있어야 합니다.");
+            Console.WriteLine("  DB는 CF 스크립트로 미리 생성되어 있어야 합니다.");
             Console.WriteLine();
             Console.WriteLine("  테스트 시작 중...");
             Console.WriteLine("──────────────────────────────────────────────────────");
         }
 
-        // ── STEP 4: 게임 서버 TCP 로그인 (부하 테스트용, 비대화형) ──
+        // ── STEP 4: 게임 서버 TCP 로그인 (부하 테스트용) ─────────
 
         private static async Task<bool> ConnectToGameServerAsync(string token)
         {
@@ -385,7 +383,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                // C_Login 패킷 조립 (roomId=1 광장)
                 byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
                 ushort stringLen  = (ushort)tokenBytes.Length;
                 ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
@@ -398,14 +395,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 tokenBytes.CopyTo(span.Slice(10));
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
-                // S_Login 수신 대기 (최대 10초)
-                byte[] recvBuf  = new byte[64];
-                var recvTask    = socket.ReceiveAsync(recvBuf, SocketFlags.None);
+                byte[] recvBuf = new byte[64];
+                var recvTask   = socket.ReceiveAsync(recvBuf, SocketFlags.None);
                 if (await Task.WhenAny(recvTask, Task.Delay(10_000)) != recvTask)
-                    return false; // 타임아웃
+                    return false;
 
                 int received = await recvTask;
-                if (received < 12) return false; // header(4) + body(8)
+                if (received < 12) return false;
 
                 ushort respId = BitConverter.ToUInt16(recvBuf, 2);
                 if (respId != (ushort)PacketID.S_Login) return false;
@@ -421,6 +417,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             _loginOk = _loginFail = _loginRateLimit = 0;
             _queueOk = _queueFail = 0;
             _activeOk = _activeFail = 0;
+            _tokenRefreshCount = 0;
             _gameLoginOk = _gameLoginFail = 0;
             _completed = 0;
             _totalWaitMs = 0;
