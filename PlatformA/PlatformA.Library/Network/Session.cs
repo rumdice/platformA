@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
@@ -115,7 +116,25 @@ namespace PlatformA.Library.Network
 
             // 2. 패킷 전체 길이 파악 (BitConverter 사용)
             var lengthBuffer = buffer.Slice(0, 2);
-            ushort packetLength = BitConverter.ToUInt16(lengthBuffer.ToArray(), 0);
+            //ushort packetLength = BitConverter.ToUInt16(lengthBuffer.ToArray(), 0);
+
+            // REVIEW:딥다이브 리뷰 1-1
+            //2. 패킷 전체 길이 파악(zero-allocate)
+            ushort packetLength;
+
+            if (lengthBuffer.IsSingleSegment)
+            {
+                // 조각나지 않았다면 직접 Span으로 읽음 (가장 빠른 경로)
+                packetLength = BinaryPrimitives.ReadUInt16LittleEndian(lengthBuffer.FirstSpan);
+            }
+            else
+            {
+                // 조각났다면 스택 메모리에 임시 복사 후 읽음 (힙 할당 없음)
+                Span<byte> tempSpan = stackalloc byte[2];
+                lengthBuffer.CopyTo(tempSpan);
+                packetLength = BinaryPrimitives.ReadUInt16LittleEndian(tempSpan);
+            }
+
 
             // 3. 🚨 [수정됨] 패킷이 "전체 길이(packetLength)"만큼 다 안 왔으면 대기
             if (buffer.Length < packetLength)
