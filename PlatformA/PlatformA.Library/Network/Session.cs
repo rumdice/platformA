@@ -25,12 +25,18 @@ namespace PlatformA.Library.Network
             _socket = socket;
             OnConnected(_socket.RemoteEndPoint);
 
-            var pipe = new Pipe();
-
             // 백그라운드에서 읽기/쓰기 파이프라인 가동 (Fire and Forget)
-            Task.Run(() => FillPipeAsync(pipe.Writer));
-            Task.Run(() => ReadPipeAsync(pipe.Reader));
+            var pipe = new Pipe();
+            Task.Run(() => RunPipelineAsync(pipe));
         }
+
+        private async Task RunPipelineAsync(Pipe pipe)
+        {
+            var fillTask = FillPipeAsync(pipe.Writer);
+            var readTask = ReadPipeAsync(pipe.Reader);
+            await Task.WhenAll(fillTask, readTask);
+        }
+
 
         // 데이터 전송 (프레임워크 사용자가 호출할 메서드)
         public async Task SendAsync(byte[] sendBuff)
@@ -73,8 +79,9 @@ namespace PlatformA.Library.Network
 
                     writer.Advance(bytesRead);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"FillPipeAsync Error {ex.ToString()}");
                     break; // 에러 종료
                 }
 
@@ -88,21 +95,32 @@ namespace PlatformA.Library.Network
 
         private async Task ReadPipeAsync(PipeReader reader)
         {
-            while (true)
+            try
             {
-                ReadResult result = await reader.ReadAsync();
-                ReadOnlySequence<byte> buffer = result.Buffer;
-
-                while (TryReadPacket(ref buffer, out ReadOnlySequence<byte> packet))
+                while (true)
                 {
-                    // 🔥 핵심: 패킷이 완성되면 하위 클래스의 OnRecv로 토스!
-                    OnRecv(packet);
-                }
+                    ReadResult result = await reader.ReadAsync();
+                    ReadOnlySequence<byte> buffer = result.Buffer;
 
-                reader.AdvanceTo(buffer.Start, buffer.End);
-                if (result.IsCompleted) break;
+                    while (TryReadPacket(ref buffer, out ReadOnlySequence<byte> packet))
+                    {
+                        // 🔥 핵심: 패킷이 완성되면 하위 클래스의 OnRecv로 토스!
+                        OnRecv(packet);
+                    }
+
+                    reader.AdvanceTo(buffer.Start, buffer.End);
+                    if (result.IsCompleted) break;
+                }
             }
-            await reader.CompleteAsync();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ReadPipeAsync Error {ex.ToString()}");
+            }
+            finally
+            {
+                await reader.CompleteAsync();
+                Disconnect();
+            }
         }
 
         private bool TryReadPacket(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> packet)

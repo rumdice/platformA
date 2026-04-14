@@ -3,6 +3,7 @@ using PlatformA.Library.Core;
 using PlatformA.Library.Network;
 using PlatformA.Library.Packets;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Net;
 
 namespace PlatformA.Game.Server.Network
@@ -47,7 +48,10 @@ namespace PlatformA.Game.Server.Network
 
             // 1. 헤더 파싱 (사이즈 2바이트 + 패킷 ID 2바이트)
             // 사이즈는 이미 파이프라인에서 검증하고 잘라서 넘겨주었으니 건너뛰고, 패킷 ID만 읽습니다.
-            ushort packetId = BitConverter.ToUInt16(span.Slice(2, 2));
+            //ushort packetId = BitConverter.ToUInt16(span.Slice(2, 2));
+
+            // review : 엔디안 방식 명시하기.
+            ushort packetId = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(2));
 
             // 본문 잘라내기 (파싱)
             // 본문은 앞의 헤더(4바이트: 사이즈 2 + ID 2)를 제외한 부분
