@@ -56,7 +56,14 @@
                 }
 
                 // 락(lock)을 푼 상태에서 일을 실행! (다른 스레드가 Push할 수 있게 끔)
-                action.Invoke();
+                try
+                {
+                    action.Invoke(); // lock 바깥 예외처리로 _isExecuting 플래그(false) 보장. 탈출.
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[JobQueue] 작업 실행 중 예외 발생: {ex}");
+                }
             }
         }
     }

@@ -171,8 +171,8 @@ namespace PlatformA.Game.Server.Packet
 
         private static async Task ProcessLoginAsync(GameSession session, string jwtToken, int roomId)
         {
-            string lockKey = string.Empty;
-            string lockValue = string.Empty;
+            string lockKey = null;
+            string lockValue = null;
 
             try
             {
@@ -260,8 +260,9 @@ namespace PlatformA.Game.Server.Packet
                 Console.WriteLine($"ProcessLoginAsync Error {ex.Message}");
 
                 if (lockValue != null)
-                    await
-                RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, lockValue);
+                {
+                    await RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, lockValue);
+                }
 
                 session.Disconnect();
             }
