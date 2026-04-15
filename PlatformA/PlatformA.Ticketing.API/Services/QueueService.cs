@@ -44,14 +44,20 @@ namespace PlatformA.Ticketing.API.Services
 
                 if (result == -1)
                 {
-                    _logger.LogWarning("[Queue] 대기열 초과 — UserId: {UserId}, 최대: {Max}",
-                        userId, Consts.WAIT_QUEUE_MAX_SIZE);
+                    _logger.LogWarning("[Queue] 대기열 초과 — UserId: {UserId}, 최대: {Max}", userId, Consts.WAIT_QUEUE_MAX_SIZE);
                     return false;
                 }
-                if (result == 1)
-                    _logger.LogInformation("[Queue] 대기열 진입 — UserId: {UserId}", userId);
 
-                return result == 1;
+                if (result == 1)
+                {
+                    _logger.LogInformation("[Queue] 대기열 진입 — UserId: {UserId}", userId);
+                }
+                else // result == 0
+                {
+                    _logger.LogInformation("[Queue] 이미 대기열에 있음 — UserId: {UserId}", userId);
+                }
+
+                return true;
             }
             catch (BrokenCircuitException)
             {
