@@ -14,14 +14,14 @@ namespace PlatformA.Ticketing.API.Workers
 
         private const int USERS_PER_SECOND = 50;
         private const string WORKER_LEADER_LOCK = "lock:queue:worker:leader";
-        private static readonly TimeSpan LOCK_EXPIRY        = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan LOCK_EXPIRY = TimeSpan.FromSeconds(10);
         private static readonly TimeSpan LOCK_RENEW_INTERVAL = TimeSpan.FromSeconds(3);
 
         public QueueWorkerService(RedisManager redisManager, IHubContext<QueueHub> hubContext, ILogger<QueueWorkerService> logger)
         {
             _redisManager = redisManager;
-            _hubContext   = hubContext;
-            _logger       = logger;
+            _hubContext = hubContext;
+            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -121,7 +121,45 @@ return #ghosts";
             var poppedUsers = await _redisManager.ExecuteAsync(db =>
                 db.SortedSetPopAsync(Consts.QUEUE_KEY, USERS_PER_SECOND));
 
-            foreach (var user in poppedUsers)
+
+            // REVIEW: 딥다이브 리뷰 2-2 개선 포인트. (대기열을 초당 50명이 아니라 1000명으로 늘어난다면?)
+            //foreach (var user in poppedUsers)
+            //{
+            //    int userId = (int)user.Element;
+            //    try
+            //    {
+            //        await _redisManager.ExecuteAsync(db =>
+            //            db.StringSetAsync(
+            //                $"{Consts.ACTIVE_USER_KEY_PREFIX}{userId}",
+            //                "1",
+            //                TimeSpan.FromSeconds(Consts.ACTIVE_USER_TTL_SECONDS)
+            //            ));
+            //        _logger.LogInformation("[QueueWorker] 입장 허용 — UserId: {UserId} (유효: {TTL}초)",
+            //            userId, Consts.ACTIVE_USER_TTL_SECONDS);
+
+            //        // SignalR push: 연결 중인 클라이언트에게 즉시 알림
+            //        await _hubContext.Clients
+            //            .Group($"User_{userId}")
+            //            .SendAsync("QueueActivated");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        // Active 키 설정 실패 → 큐에서 꺼냈지만 처리 못한 유저를 재큐잉
+            //        _logger.LogError(ex, "[QueueWorker] Active 키 설정 실패 — UserId: {UserId}, 재큐잉", userId);
+            //        try
+            //        {
+            //            double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            //            await _redisManager.ExecuteAsync(db =>
+            //                db.SortedSetAddAsync(Consts.QUEUE_KEY, userId, score));
+            //        }
+            //        catch (Exception reEnqueueEx)
+            //        {
+            //            _logger.LogError(reEnqueueEx, "[QueueWorker] 재큐잉도 실패 — UserId: {UserId} 유실", userId);
+            //        }
+            //    }
+            //}
+
+            var activeTasks = poppedUsers.Select(async user =>
             {
                 int userId = (int)user.Element;
                 try
@@ -132,29 +170,55 @@ return #ghosts";
                             "1",
                             TimeSpan.FromSeconds(Consts.ACTIVE_USER_TTL_SECONDS)
                         ));
+
                     _logger.LogInformation("[QueueWorker] 입장 허용 — UserId: {UserId} (유효: {TTL}초)",
                         userId, Consts.ACTIVE_USER_TTL_SECONDS);
 
-                    // SignalR push: 연결 중인 클라이언트에게 즉시 알림
-                    await _hubContext.Clients
-                        .Group($"User_{userId}")
-                        .SendAsync("QueueActivated");
+                    return (userId, success: true);
                 }
                 catch (Exception ex)
                 {
-                    // Active 키 설정 실패 → 큐에서 꺼냈지만 처리 못한 유저를 재큐잉
                     _logger.LogError(ex, "[QueueWorker] Active 키 설정 실패 — UserId: {UserId}, 재큐잉", userId);
+
+                    return (userId, success: false);
+                }
+            }).ToList();
+
+            // Task.WhenAll은 절대 throw하지 않음 (각 Task가 예외를 내부 처리)
+            var results = await Task.WhenAll(activeTasks);
+
+            // 성공 실패 분리 처리
+            var succeeded = results.Where(r => r.success).ToList();
+            var failed = results.Where(r => !r.success).ToList();
+
+            // 성공 유저 SignalR 알림
+            if (succeeded.Any())
+            {
+                var groupNames = succeeded.Select(r =>
+                    $"User_{r.userId}").ToList();
+                await _hubContext.Clients.Groups(groupNames).SendAsync("QueueActivated");
+            }
+
+            // Active 키 설정 실패 → 큐에서 꺼냈지만 처리 못한 유저를 재큐잉
+            if (failed.Any())
+            {
+                var reQueueTasks = failed.Select(async r =>
+                {
                     try
                     {
                         double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                         await _redisManager.ExecuteAsync(db =>
-                            db.SortedSetAddAsync(Consts.QUEUE_KEY, userId, score));
+                            db.SortedSetAddAsync(Consts.QUEUE_KEY, r.userId, score));
+
+                        _logger.LogInformation("[QueueWorker] 재큐잉 성공 — UserId: {UserId} (유효: {TTL}초)",
+                            r.userId, Consts.ACTIVE_USER_TTL_SECONDS);
                     }
                     catch (Exception reEnqueueEx)
                     {
-                        _logger.LogError(reEnqueueEx, "[QueueWorker] 재큐잉도 실패 — UserId: {UserId} 유실", userId);
+                        _logger.LogError(reEnqueueEx, "[QueueWorker] 재큐잉도 실패 — UserId: {UserId} 유실", r.userId);
                     }
-                }
+                });
+                await Task.WhenAll(reQueueTasks);
             }
         }
     }
