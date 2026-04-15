@@ -78,15 +78,15 @@ namespace PlatformA.Library.Network
                     if (bytesRead == 0) break; // 정상 종료
 
                     writer.Advance(bytesRead);
+
+                    FlushResult result = await writer.FlushAsync();
+                    if (result.IsCompleted) break;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"FillPipeAsync Error {ex.ToString()}");
                     break; // 에러 종료
                 }
-
-                FlushResult result = await writer.FlushAsync();
-                if (result.IsCompleted) break;
             }
 
             await writer.CompleteAsync();
