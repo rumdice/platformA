@@ -111,5 +111,31 @@ return removed";
             await _redisManager.ExecuteAsync(db =>
                 db.SortedSetAddAsync(Consts.QUEUE_HEARTBEATS_KEY, userId, ts));
         }
+
+
+        public async Task<long?> UpdateHeartbeatAndGetRankAsync(int userId)
+        {
+            double ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            var script = @"
+redis.call('ZADD', KEYS[1],tonumber(ARGV[2]), ARGV[1])
+local rank = redis.call('ZRANK', KEYS[2],ARGV[1])
+if rank == false then return -1 end
+return rank + 1";
+
+            var result = (long)await _redisManager.ExecuteAsync(db =>
+            db.ScriptEvaluateAsync(
+                script,
+                new RedisKey[]{ 
+                    Consts.QUEUE_HEARTBEATS_KEY,
+                    Consts.QUEUE_KEY 
+                }, 
+                new RedisValue[] { 
+                    userId.ToString(),
+                    ts 
+                }));
+
+            return result == -1 ? null : result;
+        }
     }
 }
