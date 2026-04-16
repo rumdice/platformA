@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using PlatformA.MySqlDB.Lib.DBLogApp;
@@ -14,7 +12,7 @@ public partial class DbWebAppContext : DbContext
     {
     }
 
-    // ── DbSet 선언 (Scaffold 엔티티 포함) ──
+    // ── DbSet 선언 ──
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Item> Items { get; set; }
     public virtual DbSet<Shop> Shops { get; set; }
@@ -89,39 +87,25 @@ public partial class DbWebAppContext : DbContext
                   .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // ════════════════════════════════════════════
-        //  DF 엔티티 Fluent API 매핑
-        // ════════════════════════════════════════════
-
         modelBuilder.Entity<Item>(entity =>
         {
-            entity.HasNoKey().ToTable("item");
-            entity.HasIndex(e => e.Pid, "pk");
-            entity.Property(e => e.Grade).HasColumnType("int(11)").HasColumnName("grade");
-            entity.Property(e => e.Name).HasMaxLength(50).HasColumnName("name");
-            entity.Property(e => e.Pid).HasColumnType("bigint(20)").HasColumnName("pid");
-            entity.Property(e => e.Tid).HasColumnType("bigint(20)").HasColumnName("tid");
-            entity.Property(e => e.Uid).HasColumnType("bigint(20)").HasColumnName("uid");
+            entity.ToTable("item");
+            entity.HasKey(e => e.Pid);
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Shop>(entity =>
         {
-            entity.HasNoKey().ToTable("shop");
-            entity.HasIndex(e => e.Pid, "pk");
-            entity.Property(e => e.Name).HasMaxLength(50).HasColumnName("name");
-            entity.Property(e => e.Pid).HasColumnType("bigint(20)").HasColumnName("pid");
-            entity.Property(e => e.Tid).HasColumnType("bigint(20)").HasColumnName("tid");
-            entity.Property(e => e.Uid).HasColumnType("bigint(20)").HasColumnName("uid");
+            entity.ToTable("shop");
+            entity.HasKey(e => e.Pid);
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasNoKey().ToTable("user");
-            entity.HasIndex(e => e.Pid, "pk");
-            entity.Property(e => e.Level).HasColumnType("int(11)").HasColumnName("level");
-            entity.Property(e => e.Name).HasMaxLength(50).HasColumnName("name");
-            entity.Property(e => e.Pid).HasColumnType("bigint(20)").HasColumnName("pid");
-            entity.Property(e => e.Uid).HasColumnType("bigint(20)").HasColumnName("uid");
+            entity.ToTable("user");
+            entity.HasKey(e => e.Pid);
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);
