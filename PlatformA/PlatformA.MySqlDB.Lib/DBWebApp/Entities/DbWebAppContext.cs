@@ -66,6 +66,8 @@ public partial class DbWebAppContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).HasDefaultValue(MatchStatus.Pending);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+            entity.HasIndex(e => new { e.Player1Id, e.CreatedAt }).IsDescending(false, true);
+            entity.HasIndex(e => new { e.Player2Id, e.CreatedAt }).IsDescending(false, true);
 
             // Player1 (필수) — MatchRecord.Player1Id → Player.MatchesAsPlayer1
             entity.HasOne(e => e.Player1)
