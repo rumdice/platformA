@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using PlatformA.MySqlDB.Lib.DBWebApp;
 using PlatformA.MySqlDB.Lib.DBWebApp.Entities;
 
@@ -24,48 +25,51 @@ namespace PlatformA.Auth.API.Services
         /// </summary>
         public async Task<int?> LoginAsync(string username, string password)
         {
-            try
+            await using var db = await _contextFactory.CreateDbContextAsync();
+
+            var player = await db.Players.FirstOrDefaultAsync(p => p.Username == username);
+            if (player == null)
             {
-                await using var db = await _contextFactory.CreateDbContextAsync();
-
-
-                var player = await db.Players
-                    .FirstOrDefaultAsync(p => p.Username == username);
-
-
-                if (player == null)
+                _logger.LogInformation("[PlayerService] 신규 플레이어 등록. Username: {Username}", username);
+                var newPlayer = new Player
                 {
-                    Console.WriteLine("[PlayerService] 신규 플레이어 등록");
-                    var newPlayer = new Player
-                    {
-                        Username = username,
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    db.Players.Add(newPlayer);
+                    Username = username,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                    CreatedAt = DateTime.UtcNow
+                };
+                db.Players.Add(newPlayer);
+
+                try
+                {
                     await db.SaveChangesAsync();
-
-                    _logger.LogInformation("[PlayerService] 신규 플레이어 등록. Username: {Username}, PlayerId: {PlayerId}",
-                        username, newPlayer.Id);
-                    return newPlayer.Id;
                 }
-
-                if (!BCrypt.Net.BCrypt.Verify(password, player.PasswordHash))
+                catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 })
                 {
-                    _logger.LogWarning("[PlayerService] 비밀번호 불일치. Username: {Username}", username);
-                    return null;
+                    // 동시 가입 요청으로 다른 요청이 먼저 insert 성공한 경우
+                    _logger.LogInformation("[PlayerService] 동시 가입 감지. 기존 계정 재조회. Username: {Username}", username);
+                    var existing = await db.Players.FirstOrDefaultAsync(p => p.Username == username);
+                    if (existing == null || !BCrypt.Net.BCrypt.Verify(password, existing.PasswordHash))
+                    {
+                        _logger.LogWarning("[PlayerService] 비밀번호 불일치 (race condition). Username: {Username}", username);
+                        return null;
+                    }
+                    return existing.Id;
                 }
 
-                _logger.LogInformation("[PlayerService] 기존 플레이어 인증 성공. Username: {Username}, PlayerId: {PlayerId}",
-                    username, player.Id);
-                return player.Id;
+                _logger.LogInformation("[PlayerService] 신규 플레이어 등록 완료. Username: {Username}, PlayerId: {PlayerId}",
+                    username, newPlayer.Id);
+                return newPlayer.Id;
             }
-            catch (Exception ex)
+
+            if (!BCrypt.Net.BCrypt.Verify(password, player.PasswordHash))
             {
-                Console.WriteLine($"[PlayerService] 로그인 처리 중 오류: {ex.Message}");
+                _logger.LogWarning("[PlayerService] 비밀번호 불일치. Username: {Username}", username);
+                return null;
             }
-            return 0;
-            
+
+            _logger.LogInformation("[PlayerService] 기존 플레이어 인증 성공. Username: {Username}, PlayerId: {PlayerId}",
+                username, player.Id);
+            return player.Id;
         }
     }
 }
