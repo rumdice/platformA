@@ -14,16 +14,29 @@ namespace PlatformA.Library.Helper
         // 숫자(Long) -> 문자열(Base62)
         public static string Encode(long id)
         {
-            if (id == 0) return "0";
+            //if (id == 0) return "0";
 
+            //var sb = new StringBuilder();
+            //while (id > 0)
+            //{
+            //    int remainder = (int)(id % 62);
+            //    sb.Insert(0, Base62Chars[remainder]);
+            //    id /= 62;
+            //}
+            //return sb.ToString();
+
+            // 간단하고 성능 좋은 개선법
             var sb = new StringBuilder();
             while (id > 0)
             {
                 int remainder = (int)(id % 62);
-                sb.Insert(0, Base62Chars[remainder]);
+                sb.Append(Base62Chars[remainder]); // O(1) 뒤로 붙이기
                 id /= 62;
             }
-            return sb.ToString();
+            // 결과물을 뒤집어서 반환
+            char[] chars = sb.ToString().ToCharArray();
+            Array.Reverse(chars);
+            return new string(chars);
         }
 
         // 문자열(Base62) -> 숫자(Long) 

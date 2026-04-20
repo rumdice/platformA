@@ -85,13 +85,22 @@ namespace PlatformA.Game.Server
 
             while (true)
             {
-                // 4. 클라이언트 접속 대기 (비동기)
-                // AcceptAsync는 새로운 클라이언트와 통신할 'Socket'을 반환합니다.
-                Socket clientSocket = await listener.AcceptAsync();
+                try
+                {
+                    // 4. 클라이언트 접속 대기 (비동기)
+                    // AcceptAsync는 새로운 클라이언트와 통신할 'Socket'을 반환합니다.
+                    Socket clientSocket = await listener.AcceptAsync();
 
-                // 🔥 프레임워크 사용: 소켓이 연결될 때마다 새 세션을 만들고 Start!
-                Session session = new GameSession();
-                session.Start(clientSocket);
+                    // 🔥 프레임워크 사용: 소켓이 연결될 때마다 새 세션을 만들고 Start!
+                    Session session = new GameSession();
+                    session.Start(clientSocket);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Server Error] Accept 중 예외 발생 (무시하고 계속 진행): {ex.Message}");
+                    // 잠시 대기하여 CPU 폭주(무한 루프 에러) 방지
+                    await Task.Delay(100);
+                }
             }
         }
         

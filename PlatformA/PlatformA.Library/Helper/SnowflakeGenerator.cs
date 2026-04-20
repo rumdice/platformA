@@ -55,8 +55,25 @@ namespace PlatformA.Library.Helper
             {
                 var timestamp = TimeGen();
 
+                //if (timestamp < _lastTimestamp)
+                //    throw new Exception("Clock moved backwards. Refusing to generate id");
+
                 if (timestamp < _lastTimestamp)
-                    throw new Exception("Clock moved backwards. Refusing to generate id");
+                {
+                    long offset = _lastTimestamp - timestamp;
+                    if (offset <= 5)
+                    {
+                        // aws ec2 환경의 미세한 time diff 부분.
+                        // 5ms 이하의 역행이라면, 시간이 원래대로 돌아올 때까지 스레드를 잠재움
+                        Thread.Sleep((int)offset);
+                        timestamp = TimeGen();
+                    }
+                    else
+                    {
+                        // 심각한 시간 역행 (서버 시간이 크게 변경됨)
+                        throw new Exception($"Clock moved backwards by {offset}ms. Refusing to generate id");
+                    }
+                }
 
                 if (_lastTimestamp == timestamp)
                 {

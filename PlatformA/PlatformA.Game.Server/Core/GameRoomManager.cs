@@ -37,17 +37,24 @@ namespace PlatformA.Game.Server.Core
         /// </summary>
         public GameRoom CreateRoom(int _roomId)
         {
-            GameRoom room = new GameRoom();
-            room.RoomId = _roomId; ;
+            //GameRoom room = new GameRoom();
+            //room.RoomId = _roomId; ;
 
-            if (_rooms.TryAdd(_roomId, room))
+            //if (_rooms.TryAdd(_roomId, room))
+            //{
+            //    Console.WriteLine($"[RoomManager] 🏠 {_roomId}번 게임 룸이 동적으로 생성되었습니다.");
+            //    return room;
+            //}
+
+            //// 이미 동일한 번호의 방이 있다면 기존 방을 리턴
+            //return _rooms[_roomId];
+
+            //이미 동일한 번호의 방이 있다면 기존 방을 리턴
+            return _rooms.GetOrAdd(_roomId, id =>
             {
-                Console.WriteLine($"[RoomManager] 🏠 {_roomId}번 게임 룸이 동적으로 생성되었습니다.");
-                return room;
-            }
-
-            // 이미 동일한 번호의 방이 있다면 기존 방을 리턴
-            return _rooms[_roomId];
+                Console.WriteLine($"[RoomManager] 🏠 {id}번 게임 룸이 동적으로 생성되었습니다.");
+                return new GameRoom { RoomId = id };
+            });
         }
 
 
