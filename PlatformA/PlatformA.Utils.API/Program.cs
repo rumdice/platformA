@@ -4,6 +4,7 @@ using PlatformA.Library.Core;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
 using PlatformA.Utils.API.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
