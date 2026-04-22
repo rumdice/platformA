@@ -83,11 +83,30 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 
 모든 태스크는 아래 조건을 충족해야 완료로 간주:
 
-- [ ] `dotnet build PlatformA.sln` 빌드 오류 없음
+- [ ] `dotnet build PlatformA.sln` 빌드 오류 없음 ← **push 전 반드시 통과**
+- [ ] `dotnet test` 전체 통과 ← **빌드 통과 후 실행**
 - [ ] 해당 기능을 DummyClient 시나리오로 검증 가능한 경우 검증
 - [ ] `docs/SPRINT.md` 해당 항목 체크
 - [ ] 관련 API 변경 시 `docs/API_CONTRACTS.md` 업데이트
 - [ ] git commit + push (브랜치: `claude/analyze-project-structure-oWGle`)
+
+## Push 전 필수 빌드 검증 절차
+
+**코드 변경이 포함된 모든 커밋은 push 전 아래 순서를 반드시 실행한다:**
+
+```bash
+# 1. 전체 솔루션 빌드 — 오류 0개 확인
+cd /home/user/platformA/PlatformA
+dotnet build PlatformA.sln
+
+# 2. 전체 테스트 실행 — 실패 0개 확인
+dotnet test PlatformA.sln
+
+# 3. 둘 다 통과한 경우에만 push
+git push -u origin claude/analyze-project-structure-oWGle
+```
+
+> 빌드 또는 테스트 실패 시 push 금지. 오류를 수정한 뒤 재실행.
 
 ---
 
@@ -112,6 +131,7 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 - 테스트/검증 없이 배포 명령 실행
 - 이미 ADR로 결정된 사항을 사용자 승인 없이 변경
 - `--no-verify` 플래그로 git hook 우회
+- **빌드(`dotnet build`) 또는 테스트(`dotnet test`) 실패 상태로 push**
 
 ---
 

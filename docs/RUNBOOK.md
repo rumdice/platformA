@@ -199,9 +199,20 @@ git checkout claude/analyze-project-structure-oWGle
 git add <파일>
 git commit -m "feat: 설명"
 
-# 원격에 푸시
+# ─── push 전 필수 검증 ───────────────────────────────
+# Step 1: 전체 솔루션 빌드 (오류 0개 확인)
+cd /home/user/platformA/PlatformA
+dotnet build PlatformA.sln
+
+# Step 2: 전체 테스트 실행 (실패 0개 확인)
+dotnet test PlatformA.sln
+
+# Step 3: 둘 다 통과한 경우에만 push
+# ────────────────────────────────────────────────────
 git push -u origin claude/analyze-project-structure-oWGle
 ```
+
+> **빌드 또는 테스트 실패 시 push 금지** — 오류 수정 후 Step 1부터 재실행
 
 ---
 
