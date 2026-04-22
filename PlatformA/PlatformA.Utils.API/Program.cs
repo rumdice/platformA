@@ -21,6 +21,9 @@ builder.Services.AddSingleton<RedisManager>(sp =>
     RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING, logger);
     return RedisManager.Instance;
 });
+// IConnectionMultiplexer — 컨트롤러 및 StatSyncsService DI 해결
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    sp.GetRequiredService<RedisManager>().Connection);
 
 // Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
 // 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
@@ -63,3 +66,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

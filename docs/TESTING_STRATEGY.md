@@ -135,6 +135,83 @@ PlatformA.Auth.API.Tests/
 
 ---
 
+---
+
+## Utils.API 유닛 테스트 명세 (스프린트 #2)
+
+### 프로젝트: `PlatformA.Tests.Utils.API`
+
+**테스트 프레임워크**: xUnit + Moq + Microsoft.AspNetCore.Mvc.Testing
+**대상 프로젝트**: `PlatformA.Utils.API`, `PlatformA.Library`
+
+---
+
+### 발견된 버그 (테스트 작성 전 수정 필요)
+
+| # | 위치 | 문제 | 수정 방법 |
+|---|------|------|---------|
+| B-1 | `FactAttribute.cs` | xUnit의 `[Fact]`를 로컬 빈 클래스로 섀도잉 → 테스트 미실행 | 파일 삭제 |
+| B-2 | `Program.cs` | `IConnectionMultiplexer` DI 미등록 → 컨트롤러 DI 오류 | `RedisManager.Connection` 추가 등록 |
+
+---
+
+### 테스트 클래스 목록
+
+#### 1. `Base62ConverterTests` — 순수 단위 테스트
+
+| 테스트 메서드 | 검증 내용 | 입력 | 기대값 |
+|-------------|---------|------|--------|
+| `Encode_KnownValue_ReturnsCorrectString` | 알려진 값 인코딩 | `62L` | `"10"` |
+| `Encode_One_ReturnsOne` | 1 인코딩 | `1L` | `"1"` |
+| `Encode_LargeValue_ReturnsString` | 큰 값도 처리 | `9999999999L` | 비어있지 않음 |
+| `Decode_EncodedValue_RoundTrip` | 왕복 일치 | 임의의 long | `Decode(Encode(n)) == n` |
+| `Encode_Decode_MultipleValues_AreConsistent` | 다수 값 왕복 | 1,62,3844,100000 | 모두 일치 |
+
+#### 2. `SnowflakeGeneratorTests` — 순수 단위 테스트
+
+| 테스트 메서드 | 검증 내용 |
+|-------------|---------|
+| `Constructor_InvalidWorkerId_ThrowsException` | workerId > 31 → `ArgumentException` |
+| `Constructor_InvalidDatacenterId_ThrowsException` | datacenterId > 31 → `ArgumentException` |
+| `Constructor_NegativeWorkerId_ThrowsException` | workerId < 0 → `ArgumentException` |
+| `NextId_ReturnsPositiveNumber` | 생성 ID > 0 |
+| `NextId_MultipleCallsAreUnique` | 1000개 ID 모두 유니크 |
+| `NextId_MultipleCallsAreMonotonicallyIncreasing` | 순차 ID 단조 증가 |
+| `NextId_ConcurrentCalls_AreUnique` | 100 스레드 × 10회 = 1000개 유니크 |
+
+#### 3. `UtilControllerTests` — 통합 테스트 (WebApplicationFactory)
+
+**테스트 픽스처 설정:**
+- SQLite 인메모리 DB (`Data Source=:memory:`)
+- `IConnectionMultiplexer` Moq 목업
+- `StatSyncsService` 비활성화 (Redis 실제 접속 차단)
+
+| 테스트 메서드 | HTTP | 경로 | 기대 결과 |
+|-------------|------|------|---------|
+| `GetMyIp_Returns200_WithIpFields` | GET | `/util/myip` | 200, `ip` 필드 존재 |
+| `ShortenUrl_ValidUrl_Returns200_WithShortUrl` | POST | `/util/shorten` | 200, `shortUrl` + `code` 반환 |
+| `ShortenUrl_InvalidUrl_Returns400` | POST | `/util/shorten` | 400 |
+| `ShortenUrl_EmptyUrl_Returns400` | POST | `/util/shorten` | 400 |
+| `RedirectUrl_KnownCode_Returns302` | GET | `/go/{code}` | 302 리다이렉트 |
+| `RedirectUrl_UnknownCode_Returns404` | GET | `/go/notexist` | 404 |
+| `GetStats_KnownCode_Returns200_WithClickCount` | GET | `/util/stats/{code}` | 200, `clickCount` 필드 |
+| `GetStats_UnknownCode_Returns404` | GET | `/util/stats/notexist` | 404 |
+
+---
+
+### 실행 명령
+
+```bash
+cd /home/user/platformA/PlatformA
+dotnet test PlatformA.Tests.Utils.API/PlatformA.Tests.Utils.API.csproj -v normal
+
+# 커버리지 포함
+dotnet test PlatformA.Tests.Utils.API/PlatformA.Tests.Utils.API.csproj \
+  --collect:"XPlat Code Coverage"
+```
+
+---
+
 ## 커버리지 기준 (미래)
 
 | 영역 | 최소 목표 |

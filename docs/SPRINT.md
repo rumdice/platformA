@@ -37,3 +37,17 @@
 
 - [ ] `dotnet build PlatformA.sln` 빌드 오류 없음 최종 검증
 - [ ] BACKLOG 항목 중 우선순위 합의 (#BACK-001 ~ #BACK-006)
+
+---
+
+## 스프린트 #2 (2026-04-22 ~)
+**목표**: Utils.API 유닛 테스트 자동화 구축 및 검증
+
+### 진행 중
+
+- [ ] Utils.API 유닛 테스트 명세 작성 (`docs/TESTING_STRATEGY.md` 업데이트)
+- [ ] 테스트 프로젝트 설정 수정 (FactAttribute 버그 제거, 패키지 추가)
+- [ ] `Base62ConverterTests` 작성 및 통과
+- [ ] `SnowflakeGeneratorTests` 작성 및 통과
+- [ ] `UtilControllerTests` (통합) 작성 및 통과
+- [ ] `dotnet test` 전체 통과 확인
