@@ -162,7 +162,7 @@ builder.Services.AddHostedService<ExampleWorkerService>();
 ```
 
 ### API 추가 전 필수
-`docs/API_CONTRACTS.md` 먼저 업데이트 → 구현 → PR
+`AI/API_CONTRACTS.md` 먼저 업데이트 → 구현 → PR
 
 ---
 
