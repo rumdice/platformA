@@ -212,6 +212,75 @@ dotnet test PlatformA.Tests.Utils.API/PlatformA.Tests.Utils.API.csproj \
 
 ---
 
+---
+
+## Auth.API 테스트 명세 (스프린트 #3)
+
+### 프로젝트: `PlatformA.Tests.Auth.API`
+
+**테스트 프레임워크**: xUnit + Moq + Microsoft.AspNetCore.Mvc.Testing  
+**대상 프로젝트**: `PlatformA.Auth.API`, `PlatformA.Library`
+
+---
+
+### Mock 전략
+
+| 의존성 | 처리 방법 | 이유 |
+|--------|---------|------|
+| `RedisManager` | Reflection으로 `_redis`(Mock IConnectionMultiplexer), `_pipeline`(Empty) 주입 | private 생성자 + Singleton 패턴 |
+| `IDbContextFactory<DbWebAppContext>` | InMemory 데이터베이스로 교체 | MySQL 특화 DDL(CURRENT_TIMESTAMP(6) 등) 회피 |
+| `RedisRateLimiterService` | 상한값 1000으로 재등록 (ScriptEvaluateAsync Mock → 1L 반환) | 테스트에서 Rate Limit 차단 방지 |
+| `ScriptEvaluateAsync` (기본) | `RedisResult.Create(1L)` 반환 | Rate Limit 허용 + RefreshToken 유효 시뮬레이션 |
+
+---
+
+### 테스트 클래스 목록
+
+#### 1. `AuthControllerTests` — 통합 테스트 (WebApplicationFactory)
+
+**픽스처**: `IClassFixture<AuthTestWebAppFactory>`
+
+| 테스트 메서드 | HTTP | 경로 | 기대 결과 |
+|-------------|------|------|---------|
+| `Login_NewUser_ValidCredentials_Returns200_WithTokens` | POST | `/api/auth/login` | 200, `token` + `refreshToken` 필드 존재 |
+| `Login_ExistingUser_WrongPassword_Returns401` | POST | `/api/auth/login` | 401 (자동 가입 후 잘못된 비밀번호) |
+| `Login_ShortUsername_Returns400` | POST | `/api/auth/login` | 400 (2자 username → DataAnnotation 위반) |
+| `Login_ShortPassword_Returns400` | POST | `/api/auth/login` | 400 (5자 password → DataAnnotation 위반) |
+| `Refresh_ValidToken_Returns200_WithNewTokens` | POST | `/api/auth/refresh` | 200, `token` + `refreshToken` 필드 존재 |
+| `Refresh_MalformedToken_Returns401` | POST | `/api/auth/refresh` | 401 (정수 prefix 없는 토큰 → ParsePlayerId 실패) |
+| `Logout_ValidToken_Returns200` | POST | `/api/auth/logout` | 200 |
+| `Logout_MalformedToken_Returns401` | POST | `/api/auth/logout` | 401 |
+
+#### 2. `AuthModelValidationTests` — DTO 유닛 테스트 (순수 C#)
+
+`Validator.TryValidateObject()` 사용, HTTP 레이어 없음.
+
+| 테스트 메서드 | 검증 내용 |
+|-------------|---------|
+| `LoginRequest_ValidData_PassesValidation` | 정상 입력 → 유효성 오류 없음 |
+| `LoginRequest_ShortUsername_FailsValidation` | username 2자 → MinLength(3) 위반 |
+| `LoginRequest_LongUsername_FailsValidation` | username 21자 → MaxLength(20) 위반 |
+| `LoginRequest_InvalidChars_FailsValidation` | username에 공백 포함 → RegularExpression 위반 |
+| `LoginRequest_EmptyUsername_FailsValidation` | username 빈 문자열 → Required 위반 |
+| `LoginRequest_ShortPassword_FailsValidation` | password 5자 → MinLength(6) 위반 |
+| `LoginRequest_EmptyPassword_FailsValidation` | password 빈 문자열 → Required 위반 |
+| `RefreshRequest_EmptyToken_FailsValidation` | refreshToken 빈 문자열 → Required 위반 |
+| `LogoutRequest_EmptyToken_FailsValidation` | refreshToken 빈 문자열 → Required 위반 |
+
+---
+
+### 실행 명령
+
+```bash
+cd /home/user/platformA/PlatformA
+dotnet test PlatformA.Tests.Auth.API/PlatformA.Tests.Auth.API.csproj -v normal
+
+# 전체 솔루션 테스트
+dotnet test PlatformA.sln
+```
+
+---
+
 ## 커버리지 기준 (미래)
 
 | 영역 | 최소 목표 |

@@ -13,7 +13,7 @@ namespace PlatformA.Library.Core
     {
         public static RedisManager Instance { get; } = new RedisManager();
 
-        private ConnectionMultiplexer _redis = null!;
+        private IConnectionMultiplexer _redis = null!;
         private ResiliencePipeline _pipeline = ResiliencePipeline.Empty;
 
         // DI 컨테이너 구성 완료 후 SetLogger()로 주입됩니다.
