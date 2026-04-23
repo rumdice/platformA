@@ -4,6 +4,7 @@ using PlatformA.Tests.Auth.API.Helpers;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Xunit;
 
 namespace PlatformA.Tests.Auth.API;
 

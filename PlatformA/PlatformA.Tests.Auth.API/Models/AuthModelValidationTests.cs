@@ -1,5 +1,6 @@
 using PlatformA.Auth.API.Models;
 using System.ComponentModel.DataAnnotations;
+using Xunit;
 
 namespace PlatformA.Tests.Auth.API.Models;
 
