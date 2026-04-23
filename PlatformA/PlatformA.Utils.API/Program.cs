@@ -49,7 +49,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-_ = app.Services.GetRequiredService<RedisManager>(); // 앱 시작 시 즉시 초기화
+_ = app.Services.GetService<RedisManager>(); // 앱 시작 시 즉시 초기화 (테스트 환경에서는 null)
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

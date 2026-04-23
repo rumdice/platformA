@@ -78,4 +78,13 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
 
         builder.UseEnvironment("Testing");
     }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var host = base.CreateHost(builder);
+        using var scope = host.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.EnsureCreated();
+        return host;
+    }
 }
