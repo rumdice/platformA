@@ -131,7 +131,7 @@ dotnet build PlatformA.sln
 ### Matching API에 Dockerfile 없음
 - Matching API(`PlatformA.Matching.API`)는 Docker 이미지 없음
 - 로컬에서만 `dotnet run`으로 실행 가능
-- 해결: `docs/BACKLOG.md` 참조 (#BACK-003)
+- 해결: `AI/BACKLOG.md` 참조 (#BACK-003)
 
 ### 설정값 하드코딩
 - 모든 시크릿이 Consts.cs에 평문 저장 (ADR-003)

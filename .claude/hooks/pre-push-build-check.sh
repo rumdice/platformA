@@ -1,0 +1,43 @@
+#!/bin/bash
+# PreToolUse hook: git push 전 dotnet build 통과 여부 검증
+# Claude Code가 Bash 도구 실행 전 이 스크립트를 호출합니다.
+# stdin: 도구 호출 정보 (JSON)
+# 출력: {"decision": "block", "reason": "..."} → 차단 / 출력 없음 → 허용
+
+INPUT=$(cat)
+
+# 실행하려는 명령어 추출
+COMMAND=$(echo "$INPUT" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data.get('tool_input', {}).get('command', ''))
+except:
+    print('')
+" 2>/dev/null)
+
+# git push 명령인지 확인
+if ! echo "$COMMAND" | grep -qE "git push"; then
+    exit 0
+fi
+
+# dotnet 사용 가능 여부 확인
+DOTNET=$(which dotnet 2>/dev/null)
+if [ -z "$DOTNET" ]; then
+    # dotnet 없는 환경 → 경고만 출력, 차단하지 않음
+    echo '{"decision": "warn", "message": "[경고] dotnet을 찾을 수 없어 빌드 검증을 건너뜁니다."}' >&2
+    exit 0
+fi
+
+# 전체 솔루션 빌드 실행
+cd /home/user/platformA/PlatformA
+BUILD_OUTPUT=$(dotnet build PlatformA.sln -q 2>&1)
+BUILD_EXIT=$?
+
+if [ $BUILD_EXIT -ne 0 ]; then
+    echo "{\"decision\": \"block\", \"reason\": \"빌드 실패: git push가 차단됩니다.\\n\\n${BUILD_OUTPUT}\\n\\ndotnet build PlatformA.sln 오류를 수정한 뒤 다시 push하십시오.\"}"
+    exit 0
+fi
+
+# 빌드 성공 → push 허용
+exit 0
