@@ -52,14 +52,14 @@ public class AuthTestWebAppFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             // 1. IDbContextFactory<DbWebAppContext> → InMemory 교체
-            //    CURRENT_TIMESTAMP(6) 등 MySQL 전용 DDL 회피
-            var dbFactoryDesc = services.SingleOrDefault(
-                d => d.ServiceType == typeof(IDbContextFactory<DbWebAppContext>));
-            if (dbFactoryDesc != null) services.Remove(dbFactoryDesc);
-
-            var dbContextDesc = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbWebAppContext));
-            if (dbContextDesc != null) services.Remove(dbContextDesc);
+            //    AddDbContextFactory 내부에서 DbContextOptions<T>를 TryAddSingleton으로 등록하므로
+            //    기존 MySQL Options를 먼저 제거하지 않으면 InMemory로 교체되지 않음
+            var toRemove = services
+                .Where(d => d.ServiceType == typeof(IDbContextFactory<DbWebAppContext>)
+                         || d.ServiceType == typeof(DbWebAppContext)
+                         || d.ServiceType == typeof(DbContextOptions<DbWebAppContext>))
+                .ToList();
+            foreach (var d in toRemove) services.Remove(d);
 
             var dbName = $"auth_test_{Guid.NewGuid():N}";
             services.AddDbContextFactory<DbWebAppContext>(options =>
