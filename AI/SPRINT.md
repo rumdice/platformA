@@ -43,11 +43,30 @@
 ## 스프린트 #2 (2026-04-22 ~)
 **목표**: Utils.API 유닛 테스트 자동화 구축 및 검증
 
+### 완료
+
+- [x] Utils.API 유닛 테스트 명세 작성 (`AI/TESTING_STRATEGY.md` 업데이트)
+- [x] 테스트 프로젝트 설정 수정 (FactAttribute 버그 제거, 패키지 추가)
+- [x] `Base62ConverterTests` 작성 및 통과
+- [x] `SnowflakeGeneratorTests` 작성 및 통과
+- [x] `UtilControllerTests` (통합) 작성 및 통과
+- [x] `dotnet test` 전체 통과 확인
+- [x] GitHub Actions CI 파이프라인 구축 (빌드+테스트 자동 검증)
+- [x] CI 트리거 범위 확장 (모든 PR 대상)
+- [x] SessionStart 훅 추가 (세션 시작 시 SPRINT 현황 + 빌드 상태 자동 출력)
+
+---
+
+## 스프린트 #3 (2026-04-23 ~)
+**목표**: Auth.API 유닛/통합 테스트 프로젝트 구축 및 CI 반영
+
 ### 진행 중
 
-- [ ] Utils.API 유닛 테스트 명세 작성 (`docs/TESTING_STRATEGY.md` 업데이트)
-- [ ] 테스트 프로젝트 설정 수정 (FactAttribute 버그 제거, 패키지 추가)
-- [ ] `Base62ConverterTests` 작성 및 통과
-- [ ] `SnowflakeGeneratorTests` 작성 및 통과
-- [ ] `UtilControllerTests` (통합) 작성 및 통과
-- [ ] `dotnet test` 전체 통과 확인
+- [ ] `AI/TESTING_STRATEGY.md` — Auth.API 테스트 명세 추가
+- [ ] `PlatformA.Tests.Auth.API` 프로젝트 생성 (csproj + 솔루션 등록)
+- [ ] `AuthTestWebAppFactory` 구현 (Redis Mock + InMemory DB + 고한도 Rate Limit)
+- [ ] `AuthControllerTests` 구현 (Login · Refresh · Logout 통합 테스트)
+- [ ] `AuthModelValidationTests` 구현 (DTO DataAnnotation 유닛 테스트)
+- [ ] `dotnet build PlatformA.sln` 오류 0개 확인
+- [ ] `dotnet test PlatformA.sln` 실패 0개 확인
+- [ ] push + PR + CI 통과
