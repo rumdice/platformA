@@ -12,7 +12,11 @@
       "Bash(mkdir -p /c/Users/rumdi/OneDrive/Desktop/workspace/platformA/.claude/skills/plan)",
       "Bash(mkdir -p /c/Users/rumdi/OneDrive/Desktop/workspace/platformA/.claude/skills/done)",
       "Edit(/.claude/skills/plan/**)",
-      "Edit(/.claude/skills/done/**)"
+      "Edit(/.claude/skills/done/**)",
+      "PowerShell(& \"$env:LOCALAPPDATA\\\\Microsoft\\\\OneDrive\\\\OneDrive.exe\" /pause)",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
+      "PowerShell(winget install GitHub.cli --accept-package-agreements --accept-source-agreements)",
+      "PowerShell(gh auth status 2>&1)"
     ]
   }
 }
