@@ -1,6 +1,5 @@
 #!/bin/bash
 # PreToolUse hook: git push 전 dotnet build 통과 여부 검증
-# Claude Code가 Bash 도구 실행 전 이 스크립트를 호출합니다.
 # stdin: 도구 호출 정보 (JSON)
 # 출력: {"decision": "block", "reason": "..."} → 차단 / 출력 없음 → 허용
 
@@ -22,15 +21,23 @@ if ! echo "$COMMAND" | grep -qE "git push"; then
 fi
 
 # dotnet 사용 가능 여부 확인
-DOTNET=$(which dotnet 2>/dev/null)
-if [ -z "$DOTNET" ]; then
-    # dotnet 없는 환경 → 경고만 출력, 차단하지 않음
-    echo '{"decision": "warn", "message": "[경고] dotnet을 찾을 수 없어 빌드 검증을 건너뜁니다."}' >&2
+if ! command -v dotnet &>/dev/null; then
+    exit 0
+fi
+
+# 프로젝트 루트를 git 기반으로 탐색 (환경 무관)
+PROJECT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$PROJECT_DIR" ]; then
+    exit 0
+fi
+
+SLN_DIR="$PROJECT_DIR/PlatformA"
+if [ ! -d "$SLN_DIR" ]; then
     exit 0
 fi
 
 # 전체 솔루션 빌드 실행
-cd /home/user/platformA/PlatformA
+cd "$SLN_DIR" || exit 0
 BUILD_OUTPUT=$(dotnet build PlatformA.sln -q 2>&1)
 BUILD_EXIT=$?
 

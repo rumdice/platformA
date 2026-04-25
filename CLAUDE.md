@@ -11,8 +11,34 @@
 
 - **언어/런타임**: C# / .NET 8.0 (Matching.API만 .NET 9.0)
 - **솔루션 파일**: `PlatformA/PlatformA.sln`
-- **개발 브랜치**: `claude/analyze-project-structure-oWGle`
 - **원격 저장소**: `rumdice/platforma`
+
+---
+
+## 환경별 Git 워크플로
+
+| 환경 | 브랜치 전략 | PR |
+|------|------------|-----|
+| **로컬 (VS Code / Claude Code Desktop)** | `main` 직접 커밋 + push | 불필요 |
+| **웹 Claude Code** | 작업명 기반 브랜치 생성 → `main` PR | 필수 |
+
+### 로컬 워크플로
+```bash
+# main 브랜치에서 직접 작업
+git add <파일>
+git commit -m "feat: 설명"
+git push origin main
+```
+
+### 웹 Claude Code 워크플로
+```bash
+# 작업 시작 시 브랜치 생성
+git checkout -b feat/작업-설명
+
+# 작업 완료 후 push + PR
+git push -u origin feat/작업-설명
+gh pr create --title "..." --body "..."
+```
 
 ---
 
@@ -23,7 +49,7 @@
 3. 아래 빌드 명령으로 현재 상태 확인:
 
 ```bash
-cd /home/user/platformA/PlatformA && dotnet build PlatformA.sln
+cd PlatformA && dotnet build PlatformA.sln
 ```
 
 ---
@@ -31,24 +57,24 @@ cd /home/user/platformA/PlatformA && dotnet build PlatformA.sln
 ## 핵심 명령어
 
 ```bash
-# 빌드
-cd /home/user/platformA/PlatformA && dotnet build PlatformA.sln
+# 빌드 (프로젝트 루트 기준)
+cd PlatformA && dotnet build PlatformA.sln
 
 # 특정 프로젝트만 빌드
 dotnet build PlatformA/PlatformA.Auth.API/PlatformA.Auth.API.csproj
 
-# Redis 클러스터 시작 (Linux)
-cd /home/user/platformA/Redis && docker-compose up -d
+# Redis 클러스터 시작
+cd Redis && docker-compose up -d
 
 # DB Migration 생성 (WebApp)
-cd /home/user/platformA/PlatformA/PlatformA.MySqlDB.Lib
+cd PlatformA/PlatformA.MySqlDB.Lib
 dotnet ef migrations add <이름> --context DbWebAppContext --output-dir Migrations/WebApp
 
 # DB Migration 적용 (WebApp)
 dotnet ef database update --context DbWebAppContext
 
 # Docker 이미지 빌드 (Auth API 예시)
-cd /home/user/platformA/PlatformA
+cd PlatformA
 docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 ```
 
@@ -88,7 +114,7 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 - [ ] 해당 기능을 DummyClient 시나리오로 검증 가능한 경우 검증
 - [ ] `AI/SPRINT.md` 해당 항목 체크
 - [ ] 관련 API 변경 시 `AI/API_CONTRACTS.md` 업데이트
-- [ ] git commit + push (브랜치: `claude/analyze-project-structure-oWGle`)
+- [ ] git commit + push (로컬: `main` 직접 / 웹: 브랜치 후 PR)
 
 ## Push 전 필수 빌드 검증 절차
 
@@ -96,14 +122,14 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 
 ```bash
 # 1. 전체 솔루션 빌드 — 오류 0개 확인
-cd /home/user/platformA/PlatformA
-dotnet build PlatformA.sln
+cd PlatformA && dotnet build PlatformA.sln
 
 # 2. 전체 테스트 실행 — 실패 0개 확인
 dotnet test PlatformA.sln
 
 # 3. 둘 다 통과한 경우에만 push
-git push -u origin claude/analyze-project-structure-oWGle
+# 로컬: git push origin main
+# 웹:   git push -u origin <브랜치명>
 ```
 
 > 빌드 또는 테스트 실패 시 push 금지. 오류를 수정한 뒤 재실행.
@@ -125,7 +151,7 @@ git push -u origin claude/analyze-project-structure-oWGle
 
 ## 절대 하지 말 것
 
-- `main` 브랜치에 직접 push
+- `main` 브랜치에 직접 push ← **웹 환경에서만 금지. 로컬 환경은 main 직접 push 허용**
 - Migration 없이 DB 스키마 변경
 - `Consts.cs` 외 위치에 설정값 하드코딩
 - 테스트/검증 없이 배포 명령 실행
