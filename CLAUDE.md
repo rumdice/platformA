@@ -15,29 +15,27 @@
 
 ---
 
-## 환경별 Git 워크플로
+## Git 워크플로 (로컬/웹 공통)
 
-| 환경 | 브랜치 전략 | PR |
-|------|------------|-----|
-| **로컬 (VS Code / Claude Code Desktop)** | `main` 직접 커밋 + push | 불필요 |
-| **웹 Claude Code** | 작업명 기반 브랜치 생성 → `main` PR | 필수 |
+**모든 환경에서 동일한 브랜치 기반 워크플로를 사용한다.**
 
-### 로컬 워크플로
-```bash
-# main 브랜치에서 직접 작업
-git add <파일>
-git commit -m "feat: 설명"
-git push origin main
+### 브랜치 네이밍 규칙
 ```
+YYYY-MM-DD_PlanName_N
 
-### 웹 Claude Code 워크플로
-```bash
-# 작업 시작 시 브랜치 생성
-git checkout -b feat/작업-설명
+예) 2026-04-25_AddAuthTests_1
+    2026-04-25_AddAuthTests_2   ← 같은 날 동일 플랜 재작업
+    2026-04-25_FixRedisBug_1    ← 같은 날 다른 플랜 (독립 카운터)
+```
+- `PlanName`: 사용자 설명에서 Claude가 PascalCase로 자동 생성
+- `N`: 해당 날짜+PlanName 조합의 원격 브랜치 수 + 1
 
-# 작업 완료 후 push + PR
-git push -u origin feat/작업-설명
-gh pr create --title "..." --body "..."
+### 표준 워크플로
+```
+/plan 작업 설명    → 브랜치 자동 생성 + SPRINT.md 업데이트
+  (작업 수행)
+/done              → 빌드/테스트 → 한글 PR 생성 → SPRINT 완료 체크
+  (GitHub에서 PR 머지)
 ```
 
 ---
@@ -114,7 +112,7 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 - [ ] 해당 기능을 DummyClient 시나리오로 검증 가능한 경우 검증
 - [ ] `AI/SPRINT.md` 해당 항목 체크
 - [ ] 관련 API 변경 시 `AI/API_CONTRACTS.md` 업데이트
-- [ ] git commit + push (로컬: `main` 직접 / 웹: 브랜치 후 PR)
+- [ ] `/done` 실행 → PR 생성 완료
 
 ## Push 전 필수 빌드 검증 절차
 
@@ -127,9 +125,7 @@ cd PlatformA && dotnet build PlatformA.sln
 # 2. 전체 테스트 실행 — 실패 0개 확인
 dotnet test PlatformA.sln
 
-# 3. 둘 다 통과한 경우에만 push
-# 로컬: git push origin main
-# 웹:   git push -u origin <브랜치명>
+# 3. 둘 다 통과한 경우에만 push → /done 이 자동으로 수행
 ```
 
 > 빌드 또는 테스트 실패 시 push 금지. 오류를 수정한 뒤 재실행.
@@ -151,7 +147,7 @@ dotnet test PlatformA.sln
 
 ## 절대 하지 말 것
 
-- `main` 브랜치에 직접 push ← **웹 환경에서만 금지. 로컬 환경은 main 직접 push 허용**
+- `main` 브랜치에 직접 push ← **로컬/웹 모두 금지. 반드시 /plan → /done 워크플로 사용**
 - Migration 없이 DB 스키마 변경
 - `Consts.cs` 외 위치에 설정값 하드코딩
 - 테스트/검증 없이 배포 명령 실행
