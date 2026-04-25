@@ -21,6 +21,7 @@ namespace PlatformA.Auth.API.HealthChecks
             HealthCheckContext context,
             CancellationToken cancellationToken = default)
         {
+            // test: claude 를 통해 뭔가작업을 해서 코드가 변경되었다 가정.
             try
             {
                 await using var db = await _contextFactory.CreateDbContextAsync(cancellationToken);

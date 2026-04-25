@@ -70,3 +70,16 @@
 - [ ] `dotnet build PlatformA.sln` 오류 0개 확인
 - [ ] `dotnet test PlatformA.sln` 실패 0개 확인
 - [ ] push + PR + CI 통과
+
+---
+
+## 스프린트 #4 (2026-04-25 ~)
+**목표**: Claude Code 커스텀 스킬 도입 및 로컬/웹 워크플로 통일
+
+### 완료
+
+- [x] 프로젝트 전용 커스텀 스킬 추가 (review, security-review, simplify, build-check, done)
+- [x] 로컬/웹 환경 Git 워크플로 통일 (Plan 모드 → /done)
+- [x] hooks 동적 경로 수정 (git rev-parse 기반, 로컬/웹 모두 동작)
+- [x] settings.json 훅 상대경로 및 권한 정비
+- [x] CLAUDE.md 브랜치 전략 재정의 및 절대경로 제거
