@@ -60,16 +60,16 @@
 ## 스프린트 #3 (2026-04-23 ~)
 **목표**: Auth.API 유닛/통합 테스트 프로젝트 구축 및 CI 반영
 
-### 진행 중
+### 완료
 
-- [ ] `AI/TESTING_STRATEGY.md` — Auth.API 테스트 명세 추가
-- [ ] `PlatformA.Tests.Auth.API` 프로젝트 생성 (csproj + 솔루션 등록)
-- [ ] `AuthTestWebAppFactory` 구현 (Redis Mock + InMemory DB + 고한도 Rate Limit)
-- [ ] `AuthControllerTests` 구현 (Login · Refresh · Logout 통합 테스트)
-- [ ] `AuthModelValidationTests` 구현 (DTO DataAnnotation 유닛 테스트)
-- [ ] `dotnet build PlatformA.sln` 오류 0개 확인
-- [ ] `dotnet test PlatformA.sln` 실패 0개 확인
-- [ ] push + PR + CI 통과
+- [x] `AI/TESTING_STRATEGY.md` — Auth.API 테스트 명세 추가
+- [x] `PlatformA.Tests.Auth.API` 프로젝트 생성 (csproj + 솔루션 등록)
+- [x] `AuthTestWebAppFactory` 구현 (Redis Mock + InMemory DB + 고한도 Rate Limit)
+- [x] `AuthControllerTests` 구현 (Login · Refresh · Logout 통합 테스트)
+- [x] `AuthModelValidationTests` 구현 (DTO DataAnnotation 유닛 테스트)
+- [x] `dotnet build PlatformA.sln` 오류 0개 확인
+- [x] `dotnet test PlatformA.sln` 실패 0개 확인
+- [x] push + PR + CI 통과
 
 ---
 

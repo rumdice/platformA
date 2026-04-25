@@ -61,6 +61,11 @@ git push
 ### 6단계: PR 생성
 브랜치명에서 PlanName을 추출하고, 커밋 이력과 변경 파일을 분석하여 **한글** PR을 생성한다.
 
+Windows 로컬 bash 환경에서는 gh가 PATH에 없으므로 아래처럼 PATH를 먼저 설정한다:
+```bash
+export PATH="/c/Program Files/GitHub CLI:$PATH"
+```
+
 ```bash
 gh pr create \
   --title "{한글 PR 제목}" \
