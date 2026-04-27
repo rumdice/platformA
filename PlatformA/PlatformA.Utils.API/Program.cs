@@ -26,9 +26,12 @@ builder.Services.AddSingleton<RedisManager>(sp =>
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     sp.GetRequiredService<RedisManager>().Connection);
 
-// Snowflake 등록 (WorkerId: 1, DatacenterId: 1)
-// 나중에 서버 2번을 띄우게 되면 (2, 1)로 바꾸면 됩니다.
-builder.Services.AddSingleton(new SnowflakeGenerator(1, 1));
+// Snowflake 등록 — SNOWFLAKE_WORKER_ID / SNOWFLAKE_DATACENTER_ID 환경변수로 스케일아웃 지원
+var snowflakeWorkerId = int.Parse(
+    Environment.GetEnvironmentVariable("SNOWFLAKE_WORKER_ID") ?? "1");
+var snowflakeDatacenterId = int.Parse(
+    Environment.GetEnvironmentVariable("SNOWFLAKE_DATACENTER_ID") ?? "1");
+builder.Services.AddSingleton(new SnowflakeGenerator(snowflakeWorkerId, snowflakeDatacenterId));
 
 // 백그라운드 서비스(Hosted Service) 등록
 builder.Services.AddHostedService<StatSyncsService>();
