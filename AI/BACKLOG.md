@@ -7,14 +7,8 @@
 
 ## 긴급 (보안/안정성)
 
-### #BACK-001: 설정값 환경변수 이전
-**배경**: JWT 시크릿, DB 비밀번호, Redis 주소가 Consts.cs에 하드코딩 (ADR-003)
-**작업**:
-- `appsettings.json` + 환경변수로 민감 정보 분리
-- `dotnet user-secrets` 개발 환경 적용
-- `Consts.cs`는 기본값만 유지 (CI/CD 주입)
-**영향 범위**: 전체 API 프로젝트 (Program.cs 수정)
-**예상 크기**: 중 (4~8시간)
+### ~~#BACK-001: 설정값 환경변수 이전~~ ✅ 완료 (스프린트 #5, 2026-04-27)
+JWT 시크릿·DB 비밀번호를 환경변수 fallback 패턴으로 이전. ADR-004 참조.
 
 ---
 
@@ -88,11 +82,8 @@
 **영향 범위**: 모든 API 프로젝트
 **예상 크기**: 소 (2시간)
 
-### #BACK-009: Snowflake WorkerId 환경변수 주입
-**배경**: `Utils API Program.cs`에 `WorkerId: 1, DatacenterId: 1` 하드코딩
-**작업**: 환경변수로 주입 가능하도록 변경
-**영향 범위**: Utils API Program.cs
-**예상 크기**: 소 (30분)
+### ~~#BACK-009: Snowflake WorkerId 환경변수 주입~~ ✅ 완료 (스프린트 #5, 2026-04-27)
+SNOWFLAKE_WORKER_ID / SNOWFLAKE_DATACENTER_ID 환경변수로 주입 가능하도록 변경.
 
 ### #BACK-010: 매치 기록 저장 구현
 **배경**: `match_records` 테이블 존재하나 실제 기록 저장 로직 미구현
@@ -106,4 +97,5 @@
 
 ## 완료된 항목
 
-*(없음 — 스프린트 #1에서 첫 항목들 완료 예정)*
+- **#BACK-001** 설정값 환경변수 이전 (스프린트 #5, 2026-04-27)
+- **#BACK-009** Snowflake WorkerId 환경변수 주입 (스프린트 #5, 2026-04-27)

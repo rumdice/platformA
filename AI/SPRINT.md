@@ -83,3 +83,17 @@
 - [x] hooks 동적 경로 수정 (git rev-parse 기반, 로컬/웹 모두 동작)
 - [x] settings.json 훅 상대경로 및 권한 정비
 - [x] CLAUDE.md 브랜치 전략 재정의 및 절대경로 제거
+
+---
+
+## 스프린트 #5 (2026-04-27 ~)
+**목표**: 민감 설정값 환경변수 이전 (BACK-001, BACK-009)
+
+### 완료
+
+- [x] `Consts.cs` — SECRET_KEY, MYSQL 연결 문자열을 환경변수 fallback 패턴으로 교체
+- [x] `Utils.API/Program.cs` — Snowflake WorkerId 환경변수 주입
+- [x] `AI/adr/004-env-var-config.md` 작성
+- [x] `dotnet build PlatformA.sln` 오류 0개 확인
+- [x] `dotnet test PlatformA.sln` 실패 0개 확인 (Utils 29 + Auth 19 = 48개 통과)
+- [x] push + PR + CI 통과

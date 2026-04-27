@@ -8,7 +8,9 @@ namespace PlatformA.Library.Common
 {
     public static class Consts
     {
-        public const string SECRET_KEY = "YourSuperSecretKeyForPlatformAMSA!@#123";
+        public static readonly string SECRET_KEY =
+            Environment.GetEnvironmentVariable("JWT_SECRET")
+            ?? "YourSuperSecretKeyForPlatformAMSA!@#123";
 
         // JWT Issuer/Audience: 타 서비스에서 발급한 토큰을 이 서버가 수락하지 않도록 검증합니다.
         public const string JWT_ISSUER = "PlatformA.Auth.API";
@@ -43,9 +45,13 @@ namespace PlatformA.Library.Common
         public const string REDIS_CONNECTION_STRING = "127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373";
 
 
-        // TODO: 차후 환경변수 또는 AWS KMS로 이동
-        public const string MYSQL_WEBAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
-        public const string MYSQL_LOGAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
+        public static readonly string MYSQL_WEBAPP_CONNECTION =
+            Environment.GetEnvironmentVariable("MYSQL_WEBAPP_CONNECTION_STRING")
+            ?? "Server=localhost;Port=3306;Database=db_WebApp;User=root;Password=pass1234";
+
+        public static readonly string MYSQL_LOGAPP_CONNECTION =
+            Environment.GetEnvironmentVariable("MYSQL_LOGAPP_CONNECTION_STRING")
+            ?? "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
 
         public const string AUTH_API_URL         = "https://localhost:7088/api/Auth/login";
         public const string AUTH_API_REFRESH_URL = "https://localhost:7088/api/Auth/refresh";
