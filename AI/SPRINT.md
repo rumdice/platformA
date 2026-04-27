@@ -96,4 +96,4 @@
 - [x] `AI/adr/004-env-var-config.md` 작성
 - [x] `dotnet build PlatformA.sln` 오류 0개 확인
 - [x] `dotnet test PlatformA.sln` 실패 0개 확인 (Utils 29 + Auth 19 = 48개 통과)
-- [ ] push + PR + CI 통과
+- [x] push + PR + CI 통과
