@@ -103,9 +103,9 @@
 ## 스프린트 #6 (2026-04-29 ~)
 **목표**: 개발 편의 커맨드 4종 추가 (Commands vs Skills 체계 정립)
 
-### 진행 중
+### 완료
 
-- [ ] `/sprint` 커맨드 추가 (`.claude/commands/sprint.md`) — 스프린트/백로그 온디맨드 조회
-- [ ] `/clean-build` 스킬 추가 (`.claude/skills/clean-build/SKILL.md`) — MSB3492 캐시 오류 해결
-- [ ] `/migrate` 스킬 추가 (`.claude/skills/migrate/SKILL.md`) — EF Core 마이그레이션 가이드
-- [ ] `/adr` 스킬 추가 (`.claude/skills/adr/SKILL.md`) — ADR 자동 채번 + 템플릿 생성
+- [x] `/sprint` 커맨드 추가 (`.claude/commands/sprint.md`) — 스프린트/백로그 온디맨드 조회
+- [x] `/clean-build` 스킬 추가 (`.claude/skills/clean-build/SKILL.md`) — MSB3492 캐시 오류 해결
+- [x] `/migrate` 스킬 추가 (`.claude/skills/migrate/SKILL.md`) — EF Core 마이그레이션 가이드
+- [x] `/adr` 스킬 추가 (`.claude/skills/adr/SKILL.md`) — ADR 자동 채번 + 템플릿 생성
