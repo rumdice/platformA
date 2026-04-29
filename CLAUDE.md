@@ -23,20 +23,29 @@
 ```
 YYYY-MM-DD_PlanName_N
 
-예) 2026-04-25_AddAuthTests_1
-    2026-04-25_AddAuthTests_2   ← 같은 날 동일 플랜 재작업
-    2026-04-25_FixRedisBug_1    ← 같은 날 다른 플랜 (독립 카운터)
+예) 2026-04-30_AddVSCodeBuildEnv_1   ← 당일 1번째 작업
+    2026-04-30_ImproveWorkflow_2     ← 당일 2번째 작업 (PlanName 달라도 N=2)
+    2026-04-30_FixRedisBug_3         ← 당일 3번째 작업
 ```
 - `PlanName`: 사용자 설명에서 Claude가 PascalCase로 자동 생성
-- `N`: 해당 날짜+PlanName 조합의 원격 브랜치 수 + 1
+- `N`: **당일 전체 원격 브랜치 수 + 1** (PlanName 무관 — 당일 통합 카운터)
 
 ### 표준 워크플로
 ```
-/plan 작업 설명    → 브랜치 자동 생성 + SPRINT.md 업데이트
+/plan 작업 설명    → PR 머지 확인 → main 최신화 → 브랜치 생성 → SPRINT.md 업데이트
   (작업 수행)
 /done              → 빌드/테스트 → 한글 PR 생성 → SPRINT 완료 체크
   (GitHub에서 PR 머지)
 ```
+
+### /plan 사전 검사 규칙 (feature 브랜치에서 실행 시)
+
+| 현재 브랜치 PR 상태 | /plan 동작 |
+|---|---|
+| `main` 브랜치 | 즉시 진행 |
+| PR `MERGED` | ✅ 자동으로 `git checkout main && git pull` 후 진행 |
+| PR `OPEN` | ⚠️ **중단** — PR을 먼저 머지하거나 `git checkout main` 후 재실행 |
+| PR 없음 | ⚠️ **중단** — `/done` 으로 완료 처리 또는 `git checkout main` 후 재실행 |
 
 ---
 
