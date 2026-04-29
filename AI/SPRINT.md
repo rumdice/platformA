@@ -122,3 +122,12 @@
 - [x] `.vscode/settings.json` 작성 — dotnet 기본 솔루션 지정
 - [x] `dotnet build PlatformA.sln` 디버그/릴리즈 빌드 검증 (오류 0개)
 - [x] `dotnet test PlatformA.sln` 전체 테스트 검증 (48개 통과)
+
+---
+
+## 스프린트 #8 (2026-04-30 ~)
+**목표**: Claude 커스텀 Sub-Agent 도입 — test-writer 에이전트 추가
+
+### 완료
+
+- [x] `.claude/agents/test-writer.md` 작성 — xUnit 통합/유닛 테스트 자동 생성 에이전트
