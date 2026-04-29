@@ -109,3 +109,16 @@
 - [x] `/clean-build` 스킬 추가 (`.claude/skills/clean-build/SKILL.md`) — MSB3492 캐시 오류 해결
 - [x] `/migrate` 스킬 추가 (`.claude/skills/migrate/SKILL.md`) — EF Core 마이그레이션 가이드
 - [x] `/adr` 스킬 추가 (`.claude/skills/adr/SKILL.md`) — ADR 자동 채번 + 템플릿 생성
+
+---
+
+## 스프린트 #7 (2026-04-30 ~)
+**목표**: VS Code 빌드 환경 구성 (Visual Studio 동등 환경)
+
+### 완료
+
+- [x] `.vscode/tasks.json` 작성 — 빌드/릴리즈/클린/테스트/퍼블리시/Redis 태스크
+- [x] `.vscode/launch.json` 작성 — 6개 프로젝트 디버그 실행 + 전체 API 동시 실행 compound
+- [x] `.vscode/settings.json` 작성 — dotnet 기본 솔루션 지정
+- [x] `dotnet build PlatformA.sln` 디버그/릴리즈 빌드 검증 (오류 0개)
+- [x] `dotnet test PlatformA.sln` 전체 테스트 검증 (48개 통과)
