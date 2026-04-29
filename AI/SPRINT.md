@@ -131,3 +131,14 @@
 ### 완료
 
 - [x] `.claude/agents/test-writer.md` 작성 — xUnit 통합/유닛 테스트 자동 생성 에이전트
+
+---
+
+## 스프린트 #9 (2026-04-30 ~)
+**목표**: /plan 워크플로 개선 — PR 머지 확인 및 당일 통합 브랜치 카운터 도입
+
+### 완료
+
+- [x] `/plan` 사전 검사 강화 — PR MERGED/OPEN/없음 케이스별 처리 (`.claude/skills/plan/SKILL.md`)
+- [x] N 카운터 변경 — PlanName별 독립 카운터 → 당일 전체 통합 카운터
+- [x] `CLAUDE.md` 업데이트 — 브랜치 네이밍 규칙 및 /plan 사전 검사 표 추가
