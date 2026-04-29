@@ -1,0 +1,125 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build: 솔루션 [디버그]",
+            "type": "shell",
+            "command": "dotnet build PlatformA/PlatformA.sln",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: 솔루션 [릴리즈]",
+            "type": "shell",
+            "command": "dotnet build PlatformA/PlatformA.sln -c Release",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean: 솔루션",
+            "type": "shell",
+            "command": "dotnet clean PlatformA/PlatformA.sln",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "clean-build: MSB3492 캐시 수정",
+            "type": "shell",
+            "command": "dotnet clean PlatformA/PlatformA.Generator.Lib/PlatformA.Generator.Lib.csproj -q && dotnet clean PlatformA/PlatformA.sln -q && dotnet build PlatformA/PlatformA.sln",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test: 전체 테스트",
+            "type": "shell",
+            "command": "dotnet test PlatformA/PlatformA.sln --logger \"console;verbosity=normal\"",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: Auth.API [릴리즈]",
+            "type": "shell",
+            "command": "dotnet publish PlatformA/PlatformA.Auth.API/PlatformA.Auth.API.csproj -c Release -o publish/Auth.API",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: Utils.API [릴리즈]",
+            "type": "shell",
+            "command": "dotnet publish PlatformA/PlatformA.Utils.API/PlatformA.Utils.API.csproj -c Release -o publish/Utils.API",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: Ticketing.API [릴리즈]",
+            "type": "shell",
+            "command": "dotnet publish PlatformA/PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj -c Release -o publish/Ticketing.API",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: Matching.API [릴리즈]",
+            "type": "shell",
+            "command": "dotnet publish PlatformA/PlatformA.Matching.API/PlatformA.Matching.API.csproj -c Release -o publish/Matching.API",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "infra: Redis 시작 (Docker)",
+            "type": "shell",
+            "command": "cd Redis && docker-compose up -d",
+            "group": "none",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

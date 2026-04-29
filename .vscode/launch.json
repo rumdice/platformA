@@ -1,0 +1,121 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Auth.API [:5097]",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: 솔루션 [디버그]",
+            "program": "${workspaceFolder}/PlatformA/PlatformA.Auth.API/bin/Debug/net8.0/PlatformA.Auth.API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PlatformA/PlatformA.Auth.API",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5097"
+            }
+        },
+        {
+            "name": "Utils.API [:5080]",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: 솔루션 [디버그]",
+            "program": "${workspaceFolder}/PlatformA/PlatformA.Utils.API/bin/Debug/net8.0/PlatformA.Utils.API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PlatformA/PlatformA.Utils.API",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5080"
+            }
+        },
+        {
+            "name": "Ticketing.API [:5282]",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: 솔루션 [디버그]",
+            "program": "${workspaceFolder}/PlatformA/PlatformA.Ticketing.API/bin/Debug/net8.0/PlatformA.Ticketing.API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PlatformA/PlatformA.Ticketing.API",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5282"
+            }
+        },
+        {
+            "name": "Matching.API [:5189]",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: 솔루션 [디버그]",
+            "program": "${workspaceFolder}/PlatformA/PlatformA.Matching.API/bin/Debug/net9.0/PlatformA.Matching.API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PlatformA/PlatformA.Matching.API",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5189"
+            }
+        },
+        {
+            "name": "Game.Server",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: 솔루션 [디버그]",
+            "program": "${workspaceFolder}/PlatformA/PlatformA.Game.Server/bin/Debug/net8.0/PlatformA.Game.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PlatformA/PlatformA.Game.Server",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "Game.DummyClient",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: 솔루션 [디버그]",
+            "program": "${workspaceFolder}/PlatformA/PlatformA.Game.DummyClient/bin/Debug/net8.0/PlatformA.Game.DummyClient.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PlatformA/PlatformA.Game.DummyClient",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "[전체] API 4종 동시 실행",
+            "configurations": [
+                "Auth.API [:5097]",
+                "Utils.API [:5080]",
+                "Ticketing.API [:5282]",
+                "Matching.API [:5189]"
+            ],
+            "stopAll": true
+        }
+    ]
+}
