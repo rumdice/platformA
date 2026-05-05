@@ -1,9 +1,9 @@
-using PlatformA.Library.Common;
-using PlatformA.Library.Packets;
 using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
+using PlatformA.Library.Common;
+using PlatformA.Library.Packets;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
@@ -43,7 +43,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (session == null)
             {
                 Fail("로그인 실패. 서버 상태 및 계정 정보를 확인하세요.");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Console.WriteLine($"  [OK] PlayerId={session.PlayerId}");
             Console.WriteLine($"       AccessToken : ...{Tail(session.AccessToken)}");
@@ -57,7 +58,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 string msg = await enterResp.Content.ReadAsStringAsync();
                 Fail($"대기열 진입 실패: HTTP {(int)enterResp.StatusCode} — {msg}");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Console.WriteLine("  [OK] 대기열 진입 완료. Active 상태 대기 중...");
 
@@ -65,7 +67,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (!activated)
             {
                 Fail("Active 상태 획득 실패. 타임아웃 또는 서버 오류.");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Console.WriteLine("  [OK] Active 상태 획득 완료!");
 
@@ -88,7 +91,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine($"  연결 #2 응답 코드 : {result2} ({GetResultName(result2)})");
             Console.WriteLine();
 
-            bool oneSuccess   = result1 == S_LoginPacket.ResultSuccess   || result2 == S_LoginPacket.ResultSuccess;
+            bool oneSuccess = result1 == S_LoginPacket.ResultSuccess || result2 == S_LoginPacket.ResultSuccess;
             bool oneDuplicate = result1 == S_LoginPacket.ResultDuplicate || result2 == S_LoginPacket.ResultDuplicate;
 
             // [Test A] 한 연결은 성공해야 한다
@@ -135,10 +138,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                 // C_Login 패킷 조립: header(4) + roomId(4) + stringLen(2) + token(N)
                 byte[] tokenBytes = Encoding.UTF8.GetBytes(jwtToken);
-                ushort stringLen  = (ushort)tokenBytes.Length;
+                ushort stringLen = (ushort)tokenBytes.Length;
                 ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-                byte[] sendBuf    = new byte[packetSize];
-                Span<byte> span   = sendBuf.AsSpan();
+                byte[] sendBuf = new byte[packetSize];
+                Span<byte> span = sendBuf.AsSpan();
                 BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
                 BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.C_Login);
                 BitConverter.TryWriteBytes(span.Slice(4, 4), 1);   // roomId = 1 (광장)
@@ -148,9 +151,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
                 // S_Login 응답 수신 (최대 10초 대기)
-                byte[] recvBuf   = new byte[64];
-                var recvTask     = socket.ReceiveAsync(recvBuf, SocketFlags.None);
-                var timeoutTask  = Task.Delay(10_000);
+                byte[] recvBuf = new byte[64];
+                var recvTask = socket.ReceiveAsync(recvBuf, SocketFlags.None);
+                var timeoutTask = Task.Delay(10_000);
                 if (await Task.WhenAny(recvTask, timeoutTask) == timeoutTask)
                 {
                     Console.WriteLine($"  [{connectionLabel}] 응답 타임아웃");
@@ -164,8 +167,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return -1;
                 }
 
-                ushort respId    = BitConverter.ToUInt16(recvBuf, 2);
-                int    resultCode = BitConverter.ToInt32(recvBuf, 4);
+                ushort respId = BitConverter.ToUInt16(recvBuf, 2);
+                int resultCode = BitConverter.ToInt32(recvBuf, 4);
 
                 if (respId != (ushort)PacketID.S_Login)
                 {
@@ -201,7 +204,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     {
                         Console.WriteLine("  [401] Access Token 만료 → Refresh 시도...");
                         var newSession = await AuthHelper.TryRefreshAsync(http, session);
-                        if (newSession == null) return (false, session);
+                        if (newSession == null)
+                            return (false, session);
                         session = newSession;
                         AuthHelper.ApplyToken(http, session);
                         continue;
@@ -213,12 +217,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         continue;
                     }
 
-                    if (!resp.IsSuccessStatusCode) return (false, session);
+                    if (!resp.IsSuccessStatusCode)
+                        return (false, session);
 
                     var data = await resp.Content.ReadFromJsonAsync<QueueStatusDto>(
                         cancellationToken: timeout.Token);
 
-                    if (data?.Status == "Active") return (true, session);
+                    if (data?.Status == "Active")
+                        return (true, session);
 
                     Console.WriteLine($"  ⏳ 대기 중... (앞에 {data?.Rank}명 / {data?.NextPollDelay}ms 후 재확인)");
                     await Task.Delay(data?.NextPollDelay ?? 3000, timeout.Token);
@@ -233,13 +239,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private static string GetResultName(int code) => code switch
         {
-            S_LoginPacket.ResultSuccess      => "성공",
+            S_LoginPacket.ResultSuccess => "성공",
             S_LoginPacket.ResultInvalidToken => "JWT 오류",
-            S_LoginPacket.ResultNotInQueue   => "대기열 미통과",
-            S_LoginPacket.ResultDuplicate    => "중복 로그인 차단",
+            S_LoginPacket.ResultNotInQueue => "대기열 미통과",
+            S_LoginPacket.ResultDuplicate => "중복 로그인 차단",
             S_LoginPacket.ResultRoomNotFound => "방 없음",
-            -1                               => "타임아웃/예외",
-            _                                => $"알 수 없음({code})"
+            -1 => "타임아웃/예외",
+            _ => $"알 수 없음({code})"
         };
 
         private static void PrintHeader()
@@ -272,10 +278,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private class QueueStatusDto
         {
-            public int    UserId        { get; set; }
-            public long   Rank          { get; set; }
-            public string Status        { get; set; } = "";
-            public int    NextPollDelay { get; set; }
+            public int UserId { get; set; }
+            public long Rank { get; set; }
+            public string Status { get; set; } = "";
+            public int NextPollDelay { get; set; }
         }
     }
 }

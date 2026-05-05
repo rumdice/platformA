@@ -1,0 +1,7 @@
+<Project>
+  <!-- 솔루션 전체 공통 MSBuild 속성 -->
+  <PropertyGroup>
+    <!-- .editorconfig 스타일 규칙을 빌드 경고로 노출 -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>

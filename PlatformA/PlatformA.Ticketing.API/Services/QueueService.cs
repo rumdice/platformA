@@ -1,6 +1,6 @@
-using Polly.CircuitBreaker;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
+using Polly.CircuitBreaker;
 using StackExchange.Redis;
 
 namespace PlatformA.Ticketing.API.Services
@@ -126,13 +126,13 @@ return rank + 1";
             var result = (long)await _redisManager.ExecuteAsync(db =>
             db.ScriptEvaluateAsync(
                 script,
-                new RedisKey[]{ 
+                new RedisKey[]{
                     Consts.QUEUE_HEARTBEATS_KEY,
-                    Consts.QUEUE_KEY 
-                }, 
-                new RedisValue[] { 
+                    Consts.QUEUE_KEY
+                },
+                new RedisValue[] {
                     userId.ToString(),
-                    ts 
+                    ts
                 }));
 
             return result == -1 ? null : result;

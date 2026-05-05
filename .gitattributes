@@ -1,0 +1,27 @@
+# 기본: 텍스트 파일은 LF로 저장, Windows checkout 시 CRLF로 변환
+* text=auto
+
+# C# 소스 파일
+*.cs     text eol=crlf
+*.csproj text eol=crlf
+*.sln    text eol=crlf
+*.props  text eol=crlf
+*.targets text eol=crlf
+
+# 설정/스크립트
+*.json   text eol=crlf
+*.xml    text eol=crlf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.sh     text eol=lf
+*.md     text eol=crlf
+
+# 바이너리 (diff/merge 비활성화)
+*.png    binary
+*.jpg    binary
+*.gif    binary
+*.ico    binary
+*.zip    binary
+*.dll    binary
+*.exe    binary
+*.pdb    binary

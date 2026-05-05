@@ -46,5 +46,14 @@ if [ $BUILD_EXIT -ne 0 ]; then
     exit 0
 fi
 
-# 빌드 성공 → push 허용
+# 코드 포맷 검사
+FORMAT_OUTPUT=$(dotnet format PlatformA.sln --verify-no-changes --no-restore 2>&1)
+FORMAT_EXIT=$?
+
+if [ $FORMAT_EXIT -ne 0 ]; then
+    echo "{\"decision\": \"block\", \"reason\": \"코드 포맷 불일치: git push가 차단됩니다.\\n\\n${FORMAT_OUTPUT}\\n\\ndotnet format PlatformA/PlatformA.sln 실행 후 다시 push하십시오.\"}"
+    exit 0
+fi
+
+# 빌드 + 포맷 모두 통과 → push 허용
 exit 0

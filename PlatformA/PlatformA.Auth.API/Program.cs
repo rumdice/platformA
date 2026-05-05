@@ -1,14 +1,14 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
 using PlatformA.Auth.API.HealthChecks;
 using PlatformA.Auth.API.Services;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
 using PlatformA.MySqlDB.Lib.DBWebApp;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 

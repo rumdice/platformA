@@ -124,9 +124,12 @@ namespace PlatformA.Ticketing.API.Controllers
 
         private static int CalculateSmartPollDelay(long rank)
         {
-            if (rank > 100) return 10000;
-            if (rank > 50) return 5000;
-            if (rank > 10) return 3000;
+            if (rank > 100)
+                return 10000;
+            if (rank > 50)
+                return 5000;
+            if (rank > 10)
+                return 3000;
             return Math.Max(10, (int)(1000 / Math.Sqrt(rank + 1)));
         }
     }

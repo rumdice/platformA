@@ -1,11 +1,11 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using PlatformA.Library.Common;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
-using PlatformA.Library.Common;
 using StackExchange.Redis;
-using System.Text.Json;
 
 namespace PlatformA.Library.Core
 {
@@ -39,16 +39,17 @@ namespace PlatformA.Library.Core
 
         public void Init(string connectionString, ILogger<RedisManager>? logger = null)
         {
-            if (logger != null) _logger = logger;
+            if (logger != null)
+                _logger = logger;
             try
             {
                 // ── Redis Cluster 연결 설정 ────────────────────���────────────
                 var options = ConfigurationOptions.Parse(connectionString);
-                options.AbortOnConnectFail   = false;  // 시작 시 연결 실패해도 앱 중단 안 함
-                options.ConnectTimeout       = 5000;   // 연결 타임아웃 (ms)
-                options.SyncTimeout          = 3000;   // 동기 명령 타임아웃 (ms)
-                options.AsyncTimeout         = 3000;   // 비동기 명령 타임아웃 (ms)
-                
+                options.AbortOnConnectFail = false;  // 시작 시 연결 실패해도 앱 중단 안 함
+                options.ConnectTimeout = 5000;   // 연결 타임아웃 (ms)
+                options.SyncTimeout = 3000;   // 동기 명령 타임아웃 (ms)
+                options.AsyncTimeout = 3000;   // 비동기 명령 타임아웃 (ms)
+
                 // 추가 옵션 클러스터 환경에서 구성 변경 시 자동 반영 및 DNS 풀이 강화
                 options.ResolveDns = true;
                 options.AllowAdmin = true;
@@ -65,7 +66,7 @@ namespace PlatformA.Library.Core
 
                 _redis = ConnectionMultiplexer.Connect(options);
                 LockManager = new RedisLockManager(this);
-                _subscriber  = _redis.GetSubscriber();
+                _subscriber = _redis.GetSubscriber();
 
                 // ── Polly 회로차단기 + 재시도 파이프라인 ───────────────────
                 // 실행 순서(안쪽 → 바깥쪽): Retry → CircuitBreaker
@@ -76,10 +77,10 @@ namespace PlatformA.Library.Core
                     .AddRetry(new RetryStrategyOptions
                     {
                         MaxRetryAttempts = 3,
-                        Delay            = TimeSpan.FromMilliseconds(300),
-                        BackoffType      = DelayBackoffType.Exponential,
-                        UseJitter        = true,
-                        ShouldHandle     = new PredicateBuilder()
+                        Delay = TimeSpan.FromMilliseconds(300),
+                        BackoffType = DelayBackoffType.Exponential,
+                        UseJitter = true,
+                        ShouldHandle = new PredicateBuilder()
                             .Handle<RedisException>()
                             .Handle<RedisTimeoutException>()
                             .Handle<RedisConnectionException>(),
@@ -94,11 +95,11 @@ namespace PlatformA.Library.Core
                     })
                     .AddCircuitBreaker(new CircuitBreakerStrategyOptions
                     {
-                        FailureRatio      = 0.5,
-                        SamplingDuration  = TimeSpan.FromSeconds(30),
+                        FailureRatio = 0.5,
+                        SamplingDuration = TimeSpan.FromSeconds(30),
                         MinimumThroughput = 5,
-                        BreakDuration     = TimeSpan.FromSeconds(60),
-                        ShouldHandle      = new PredicateBuilder()
+                        BreakDuration = TimeSpan.FromSeconds(60),
+                        ShouldHandle = new PredicateBuilder()
                             .Handle<RedisException>()
                             .Handle<RedisTimeoutException>()
                             .Handle<RedisConnectionException>(),

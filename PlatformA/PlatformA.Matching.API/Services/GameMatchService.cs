@@ -1,13 +1,13 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Polly.CircuitBreaker;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.MySqlDB.Lib.DBWebApp;
 using PlatformA.MySqlDB.Lib.DBWebApp.Entities;
+using Polly.CircuitBreaker;
 using StackExchange.Redis;
-using System.Text.Json;
 
 namespace PlatformA.Matching.API.Services
 {
@@ -138,7 +138,7 @@ namespace PlatformA.Matching.API.Services
                 {
                     Player1Id = player1Id,
                     Player2Id = player2Id,
-                    Status    = MatchStatus.InProgress,
+                    Status = MatchStatus.InProgress,
                     StartedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };

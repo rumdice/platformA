@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Net;
@@ -9,7 +9,7 @@ namespace PlatformA.Library.Network
 
     public abstract class Session
     {
-        private Socket _socket;
+        private Socket? _socket;
         private int _disconnected = 0; // 중복 해제 방지용 플래그
 
         // ----------------------------------------------------
@@ -75,12 +75,14 @@ namespace PlatformA.Library.Network
                 try
                 {
                     int bytesRead = await _socket.ReceiveAsync(memory, SocketFlags.None);
-                    if (bytesRead == 0) break; // 정상 종료
+                    if (bytesRead == 0)
+                        break; // 정상 종료
 
                     writer.Advance(bytesRead);
 
                     FlushResult result = await writer.FlushAsync();
-                    if (result.IsCompleted) break;
+                    if (result.IsCompleted)
+                        break;
                 }
                 catch (Exception ex)
                 {
@@ -109,7 +111,8 @@ namespace PlatformA.Library.Network
                     }
 
                     reader.AdvanceTo(buffer.Start, buffer.End);
-                    if (result.IsCompleted) break;
+                    if (result.IsCompleted)
+                        break;
                 }
             }
             catch (Exception ex)

@@ -142,3 +142,17 @@
 - [x] `/plan` 사전 검사 강화 — PR MERGED/OPEN/없음 케이스별 처리 (`.claude/skills/plan/SKILL.md`)
 - [x] N 카운터 변경 — PlanName별 독립 카운터 → 당일 전체 통합 카운터
 - [x] `CLAUDE.md` 업데이트 — 브랜치 네이밍 규칙 및 /plan 사전 검사 표 추가
+
+---
+
+## 스프린트 #10 (2026-04-30 ~)
+**목표**: 코드 포맷팅 파이프라인 구축 — .editorconfig + CI/pre-push 강제 적용
+
+### 완료
+
+- [x] `.editorconfig` 작성 — 블록 스코프 네임스페이스 통일, 4-space indent, Allman 중괄호
+- [x] `.gitattributes` 작성 — CRLF/LF 라인 엔딩 정규화
+- [x] `PlatformA/Directory.Build.props` 작성 — `EnforceCodeStyleInBuild=true`
+- [x] `dotnet format` 실행 — 파일 스코프 네임스페이스 12개 → 블록 스코프 변환, 전체 포맷 통일
+- [x] `.github/workflows/ci.yml` — Format check 단계 추가 (`dotnet format --verify-no-changes`)
+- [x] `.claude/hooks/pre-push-build-check.sh` — format check push 전 검증 추가

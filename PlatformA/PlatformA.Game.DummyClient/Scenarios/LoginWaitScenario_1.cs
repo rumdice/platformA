@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.SignalR.Client;
-using PlatformA.Library.Common;
-using PlatformA.Library.Packets;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.AspNetCore.SignalR.Client;
+using PlatformA.Library.Common;
+using PlatformA.Library.Packets;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
@@ -28,26 +28,26 @@ namespace PlatformA.Game.DummyClient.Scenarios
     public class LoginWaitScenario_1
     {
         // ── 시나리오 파라미터 ─────────────────────────────────────
-        private const int    USER_COUNT          = 1000;
-        private const int    SPAWN_RATE_PER_SEC  = 50;
-        private const int    SPAWN_INTERVAL_MS   = 1000 / SPAWN_RATE_PER_SEC; // 20ms
-        private const string USERNAME_PREFIX     = "lt_";   // lt_0001 ~ lt_1000
-        private const string PASSWORD            = "123456";
-        private const int    HTTP_TIMEOUT_SEC    = 120;
+        private const int USER_COUNT = 1000;
+        private const int SPAWN_RATE_PER_SEC = 50;
+        private const int SPAWN_INTERVAL_MS = 1000 / SPAWN_RATE_PER_SEC; // 20ms
+        private const string USERNAME_PREFIX = "lt_";   // lt_0001 ~ lt_1000
+        private const string PASSWORD = "123456";
+        private const int HTTP_TIMEOUT_SEC = 120;
         // ─────────────────────────────────────────────────────────
 
         // ── 측정 지표 (Interlocked — 멀티스레드 안전) ─────────────
-        private static int  _loginOk;
-        private static int  _loginFail;
-        private static int  _loginRateLimit;     // HTTP 429
-        private static int  _queueOk;
-        private static int  _queueFail;
-        private static int  _activeOk;
-        private static int  _activeFail;
-        private static int  _tokenRefreshCount;  // 대기 중 Access Token 갱신 횟수
-        private static int  _gameLoginOk;
-        private static int  _gameLoginFail;
-        private static int  _completed;
+        private static int _loginOk;
+        private static int _loginFail;
+        private static int _loginRateLimit;     // HTTP 429
+        private static int _queueOk;
+        private static int _queueFail;
+        private static int _activeOk;
+        private static int _activeFail;
+        private static int _tokenRefreshCount;  // 대기 중 Access Token 갱신 횟수
+        private static int _gameLoginOk;
+        private static int _gameLoginFail;
+        private static int _completed;
         private static long _totalWaitMs;
         // ─────────────────────────────────────────────────────────
 
@@ -74,7 +74,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
             sw.Stop();
 
             displayCts.Cancel();
-            try { await displayTask; } catch (OperationCanceledException) { }
+            try
+            { await displayTask; }
+            catch (OperationCanceledException) { }
 
             PrintFinalReport(sw.Elapsed);
         }
@@ -94,12 +96,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // ── STEP 1: 로그인 ────────────────────────────────────
             string username = $"{USERNAME_PREFIX}{userId:D4}";
             var session = await LoginAsync(http, username);
-            if (session == null) { Interlocked.Increment(ref _completed); return; }
+            if (session == null)
+            { Interlocked.Increment(ref _completed); return; }
 
             // ── STEP 2: 대기열 진입 ───────────────────────────────
             AuthHelper.ApplyToken(http, session);
             bool entered = await EnterQueueAsync(http, userId);
-            if (!entered) { Interlocked.Increment(ref _completed); return; }
+            if (!entered)
+            { Interlocked.Increment(ref _completed); return; }
 
             // ── STEP 3: Active 상태 대기 ──────────────────────────
             var (activated, finalSession) = await WaitUntilActiveAsync(http, session);
@@ -111,8 +115,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                 // ── STEP 4: 게임 서버 TCP 로그인 ──────────────────
                 bool gameLoginOk = await ConnectToGameServerAsync(finalSession.AccessToken);
-                if (gameLoginOk) Interlocked.Increment(ref _gameLoginOk);
-                else             Interlocked.Increment(ref _gameLoginFail);
+                if (gameLoginOk)
+                    Interlocked.Increment(ref _gameLoginOk);
+                else
+                    Interlocked.Increment(ref _gameLoginFail);
             }
             else
             {
@@ -210,7 +216,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     {
                         var pollDelay = Task.Delay(10_000, timeout.Token);
                         var completed = await Task.WhenAny(tcs.Task, pollDelay);
-                        if (completed == tcs.Task) return (true, session);
+                        if (completed == tcs.Task)
+                            return (true, session);
                     }
 
                     var resp = await http.GetAsync(
@@ -221,7 +228,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     if (resp.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         var newSession = await AuthHelper.TryRefreshAsync(http, session);
-                        if (newSession == null) return (false, session); // 세션 완전 만료
+                        if (newSession == null)
+                            return (false, session); // 세션 완전 만료
                         session = newSession;
                         AuthHelper.ApplyToken(http, session);
                         Interlocked.Increment(ref _tokenRefreshCount);
@@ -233,12 +241,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         await Task.Delay(2000, timeout.Token);
                         continue;
                     }
-                    if (!resp.IsSuccessStatusCode) return (false, session);
+                    if (!resp.IsSuccessStatusCode)
+                        return (false, session);
 
                     var data = await resp.Content.ReadFromJsonAsync<QueueStatusDto>(
                         cancellationToken: timeout.Token);
 
-                    if (data?.Status == "Active") return (true, session);
+                    if (data?.Status == "Active")
+                        return (true, session);
 
                     if (!signalRConnected)
                     {
@@ -266,7 +276,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 while (!ct.IsCancellationRequested)
                 {
                     await Task.Delay(2000, ct);
-                    int done        = _completed;
+                    int done = _completed;
                     int queueActive = Math.Max(0, _queueOk - _activeOk - _activeFail);
                     Console.WriteLine($"[진행] 완료 {done,4} / {USER_COUNT}");
                     Console.WriteLine(
@@ -384,10 +394,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
                 byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
-                ushort stringLen  = (ushort)tokenBytes.Length;
+                ushort stringLen = (ushort)tokenBytes.Length;
                 ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-                byte[] sendBuf    = new byte[packetSize];
-                Span<byte> span   = sendBuf.AsSpan();
+                byte[] sendBuf = new byte[packetSize];
+                Span<byte> span = sendBuf.AsSpan();
                 BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
                 BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.C_Login);
                 BitConverter.TryWriteBytes(span.Slice(4, 4), 1); // roomId = 1
@@ -396,15 +406,17 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
                 byte[] recvBuf = new byte[64];
-                var recvTask   = socket.ReceiveAsync(recvBuf, SocketFlags.None);
+                var recvTask = socket.ReceiveAsync(recvBuf, SocketFlags.None);
                 if (await Task.WhenAny(recvTask, Task.Delay(10_000)) != recvTask)
                     return false;
 
                 int received = await recvTask;
-                if (received < 12) return false;
+                if (received < 12)
+                    return false;
 
                 ushort respId = BitConverter.ToUInt16(recvBuf, 2);
-                if (respId != (ushort)PacketID.S_Login) return false;
+                if (respId != (ushort)PacketID.S_Login)
+                    return false;
 
                 int resultCode = BitConverter.ToInt32(recvBuf, 4);
                 return resultCode == S_LoginPacket.ResultSuccess;
@@ -426,10 +438,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // ── 응답 DTO ─────────────────────────────────────────────
         private class QueueStatusDto
         {
-            public int    UserId        { get; set; }
-            public long   Rank          { get; set; }
-            public string Status        { get; set; } = "";
-            public int    NextPollDelay { get; set; }
+            public int UserId { get; set; }
+            public long Rank { get; set; }
+            public string Status { get; set; } = "";
+            public int NextPollDelay { get; set; }
         }
     }
 }

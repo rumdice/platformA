@@ -1,4 +1,3 @@
-﻿using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -7,6 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 
 namespace PlatformA.Library.Common
 {
@@ -14,7 +14,7 @@ namespace PlatformA.Library.Common
     {
         // ⚠️ 주의: 이 키는 Auth.API 서버에서 토큰을 만들 때 사용한 키와 100% 동일해야 합니다!
         // (실제 상용에서는 appsettings.json이나 환경변수에서 불러옵니다)
-        
+
         /// <summary>
         /// 토큰을 검증하고 위조되지 않았다면 유저 ID(int)를 반환합니다. 실패 시 0 반환.
         /// </summary>
@@ -97,7 +97,8 @@ namespace PlatformA.Library.Common
         public static int? ParsePlayerIdFromRefreshToken(string refreshToken)
         {
             int colonIndex = refreshToken.IndexOf(':');
-            if (colonIndex <= 0) return null;
+            if (colonIndex <= 0)
+                return null;
             if (int.TryParse(refreshToken[..colonIndex], out int playerId))
                 return playerId;
             return null;

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using PlatformA.Library.Common;
 using PlatformA.Matching.API.Services;
 
@@ -80,6 +80,6 @@ namespace PlatformA.Matching.API.Hubs
         }
 
 
-        
+
     }
 }

@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using Polly.CircuitBreaker;
 using StackExchange.Redis;
-using System.Diagnostics;
 
 namespace PlatformA.Library.Core
 {
@@ -28,7 +28,8 @@ namespace PlatformA.Library.Core
                     bool acquired = await _redisManager.ExecuteAsync(
                         db => db.StringSetAsync(lockKey, lockValue, expiry, When.NotExists));
 
-                    if (acquired) return lockValue; // 락 획득 성공! 내 고유 ID를 반환
+                    if (acquired)
+                        return lockValue; // 락 획득 성공! 내 고유 ID를 반환
                 }
                 catch (BrokenCircuitException)
                 {

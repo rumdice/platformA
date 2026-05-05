@@ -1,10 +1,10 @@
-using Polly.CircuitBreaker;
+using System.Buffers.Binary;
 using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.Packets;
-using System.Buffers.Binary;
+using Polly.CircuitBreaker;
 
 namespace PlatformA.Game.Server.Packet
 {
@@ -21,7 +21,8 @@ namespace PlatformA.Game.Server.Packet
 
             // 🚀 유저가 속한 방을 찾습니다. 방이 없으면 무시!
             GameRoom room = session.Room;
-            if (room == null) return;
+            if (room == null)
+                return;
 
             room.Push(() =>
             {
@@ -67,7 +68,8 @@ namespace PlatformA.Game.Server.Packet
         public static void Handle_C_EnterRoom(GameSession session, ReadOnlySpan<byte> payload)
         {
             // 인증 전 세션은 무시
-            if (session.SessionId <= 0) return;
+            if (session.SessionId <= 0)
+                return;
 
             C_EnterRoomPacket req = new C_EnterRoomPacket();
             req.Deserialize(payload);
@@ -81,7 +83,7 @@ namespace PlatformA.Game.Server.Packet
             ushort totalSize = (ushort)(4 + S_EnterRoomPacket.Size); // header(4) + body(8)
             byte[] buffer = new byte[totalSize];
             Span<byte> span = buffer.AsSpan();
-            
+
             //BitConverter.TryWriteBytes(span.Slice(0, 2), totalSize);
             //BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.S_EnterRoom);
 
@@ -157,7 +159,7 @@ namespace PlatformA.Game.Server.Packet
             ushort totalSize = (ushort)(4 + S_LoginPacket.Size); // header(4) + body(8) = 12
             byte[] buffer = new byte[totalSize];
             Span<byte> span = buffer.AsSpan();
-            
+
             //BitConverter.TryWriteBytes(span.Slice(0, 2), totalSize);
             //BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.S_Login);
 
@@ -171,8 +173,8 @@ namespace PlatformA.Game.Server.Packet
 
         private static async Task ProcessLoginAsync(GameSession session, string jwtToken, int roomId)
         {
-            string lockKey = null;
-            string lockValue = null;
+            string? lockKey = null;
+            string? lockValue = null;
 
             try
             {

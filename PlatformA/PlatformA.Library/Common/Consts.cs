@@ -21,11 +21,11 @@ namespace PlatformA.Library.Common
         public const int ACCESS_TOKEN_EXPIRY_MINUTES = 15;
         public const int REFRESH_TOKEN_EXPIRY_DAYS = 7;
         public const string REFRESH_TOKEN_KEY_PREFIX = "refresh:";
-        
+
         // Redis Cluster 환경에서 멀티키 Lua 스크립트(LeaveQueue, GhostCleanup)가 동일 슬롯에
         // 위치하도록 해시태그 {ticket:queue} 를 사용합니다.
         // CRC16("{ticket:queue}") → 동일 슬롯 보장.
-        public const string QUEUE_KEY           = "{ticket:queue}:global";
+        public const string QUEUE_KEY = "{ticket:queue}:global";
         public const string QUEUE_HEARTBEATS_KEY = "{ticket:queue}:heartbeats";
 
         // Active 유저를 개별 키로 관리 (TTL 자동 만료 지원)
@@ -53,11 +53,11 @@ namespace PlatformA.Library.Common
             Environment.GetEnvironmentVariable("MYSQL_LOGAPP_CONNECTION_STRING")
             ?? "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
 
-        public const string AUTH_API_URL         = "https://localhost:7088/api/Auth/login";
+        public const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
         public const string AUTH_API_REFRESH_URL = "https://localhost:7088/api/Auth/refresh";
 
         public const string TICKET_API_URL = "https://localhost:7075";
-        
+
         public const string MATCH_API_URL = "http://localhost:5189/api/GameMatch/RequestMatch";
         public const string MATCH_HUB_URL = "http://localhost:5189/hubs/matching";
 

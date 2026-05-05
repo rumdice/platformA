@@ -1,4 +1,4 @@
-﻿namespace PlatformA.MatchingEngine
+namespace PlatformA.MatchingEngine
 {
     /// <summary>
     /// 주식 매도/매수 사용 DTO

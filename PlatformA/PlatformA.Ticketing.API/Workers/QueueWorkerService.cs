@@ -115,7 +115,8 @@ return #ghosts";
             // 2. 대기열에 사람이 없으면 종료
             long queueLength = await _redisManager.ExecuteAsync(db =>
                 db.SortedSetLengthAsync(Consts.QUEUE_KEY));
-            if (queueLength == 0) return;
+            if (queueLength == 0)
+                return;
 
             // 3. 앞에서 N명 pop → Active 키 발급
             var poppedUsers = await _redisManager.ExecuteAsync(db =>

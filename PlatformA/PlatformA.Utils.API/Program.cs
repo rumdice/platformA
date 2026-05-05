@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.Helper;

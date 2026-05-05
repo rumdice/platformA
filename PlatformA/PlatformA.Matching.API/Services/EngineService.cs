@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using System.Threading.Channels;
+using Microsoft.AspNetCore.SignalR;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.MatchingEngine;
-using System.Threading.Channels;
 
 namespace PlatformA.Matching.API.Services
 {
@@ -69,6 +69,6 @@ namespace PlatformA.Matching.API.Services
 
         // (디버깅용) 현재 호가창 객체 반환
         public OrderBook GetOrderBook() => _orderBook;
-        
+
     }
 }

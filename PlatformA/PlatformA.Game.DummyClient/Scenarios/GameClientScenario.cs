@@ -1,17 +1,17 @@
-using Microsoft.AspNetCore.SignalR.Client;
-using PlatformA.Library.Common;
-using PlatformA.Library.Packets;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.SignalR.Client;
+using PlatformA.Library.Common;
+using PlatformA.Library.Packets;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
 
     public class GameClientScenario
     {
-        
+
 
         public static async Task RunAsync()
         {
@@ -217,7 +217,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine("[매칭] 매칭 서버(SignalR)에 연결을 시도합니다...");
 
             // 1. 매칭 서버의 Hub URL 설정 (포트는 Matching.API 설정에 맞게 수정하세요)
-          
+
             var hubConnection = new HubConnectionBuilder()
                 .WithUrl(Consts.MATCH_HUB_URL, options =>
                 {
@@ -290,7 +290,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 cts.Token.Register(() => loginTcs.TrySetCanceled());
 
                 S_LoginPacket result;
-                try { result = await loginTcs.Task; }
+                try
+                { result = await loginTcs.Task; }
                 catch (OperationCanceledException)
                 {
                     Console.WriteLine("[GameServer] 로그인 응답 타임아웃. 서버 상태를 확인하세요.");
@@ -301,11 +302,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 {
                     string reason = result.ResultCode switch
                     {
-                        S_LoginPacket.ResultInvalidToken  => "JWT 토큰이 유효하지 않습니다.",
-                        S_LoginPacket.ResultNotInQueue    => "대기열을 통과하지 않은 접속입니다.",
-                        S_LoginPacket.ResultDuplicate     => "이미 다른 기기에서 접속 중입니다.",
-                        S_LoginPacket.ResultRoomNotFound  => "입장할 방이 아직 준비되지 않았습니다.",
-                        _                                 => $"알 수 없는 오류 (코드: {result.ResultCode})"
+                        S_LoginPacket.ResultInvalidToken => "JWT 토큰이 유효하지 않습니다.",
+                        S_LoginPacket.ResultNotInQueue => "대기열을 통과하지 않은 접속입니다.",
+                        S_LoginPacket.ResultDuplicate => "이미 다른 기기에서 접속 중입니다.",
+                        S_LoginPacket.ResultRoomNotFound => "입장할 방이 아직 준비되지 않았습니다.",
+                        _ => $"알 수 없는 오류 (코드: {result.ResultCode})"
                     };
                     Console.WriteLine($"[GameServer] 로그인 실패: {reason}");
                     return;
@@ -318,7 +319,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 while (true)
                 {
                     string input = Console.ReadLine();
-                    if (input?.ToLower() == "q") break;
+                    if (input?.ToLower() == "q")
+                        break;
                     float x = rand.Next(-50, 50);
                     float y = rand.Next(-50, 50);
                     await SendMovePacketAsync(client, x, y, 0f);
@@ -351,7 +353,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 cts.Token.Register(() => loginTcs.TrySetCanceled());
 
                 S_LoginPacket result;
-                try { result = await loginTcs.Task; }
+                try
+                { result = await loginTcs.Task; }
                 catch (OperationCanceledException)
                 {
                     Console.WriteLine("[GameServer] 로그인 응답 타임아웃.");
@@ -362,11 +365,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 {
                     string reason = result.ResultCode switch
                     {
-                        S_LoginPacket.ResultInvalidToken  => "JWT 토큰이 유효하지 않습니다.",
-                        S_LoginPacket.ResultNotInQueue    => "대기열을 통과하지 않은 접속입니다.",
-                        S_LoginPacket.ResultDuplicate     => "이미 다른 기기에서 접속 중입니다.",
-                        S_LoginPacket.ResultRoomNotFound  => "배틀룸이 아직 준비되지 않았습니다.",
-                        _                                 => $"알 수 없는 오류 (코드: {result.ResultCode})"
+                        S_LoginPacket.ResultInvalidToken => "JWT 토큰이 유효하지 않습니다.",
+                        S_LoginPacket.ResultNotInQueue => "대기열을 통과하지 않은 접속입니다.",
+                        S_LoginPacket.ResultDuplicate => "이미 다른 기기에서 접속 중입니다.",
+                        S_LoginPacket.ResultRoomNotFound => "배틀룸이 아직 준비되지 않았습니다.",
+                        _ => $"알 수 없는 오류 (코드: {result.ResultCode})"
                     };
                     Console.WriteLine($"[GameServer] 로그인 실패: {reason}");
                     return;
@@ -379,7 +382,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 while (true)
                 {
                     string input = Console.ReadLine();
-                    if (input?.ToLower() == "q") break;
+                    if (input?.ToLower() == "q")
+                        break;
                     float x = rand.Next(-50, 50);
                     float y = rand.Next(-50, 50);
                     await SendMovePacketAsync(client, x, y, 0f);
@@ -401,5 +405,5 @@ namespace PlatformA.Game.DummyClient.Scenarios
         }
 
     }
-    
+
 }
