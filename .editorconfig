@@ -1,0 +1,97 @@
+root = true
+
+# 모든 파일 공통
+[*]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# 소스 파일
+[*.cs]
+indent_size = 4
+
+# ── 네임스페이스 선언 ──────────────────────────────────────────────
+# 다수(58개) 블록 스코프 사용 중 → 블록 스코프로 통일
+csharp_style_namespace_declarations = block_scoped:warning
+
+# ── using 지시문 ──────────────────────────────────────────────────
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_using_directive_placement = outside_namespace:warning
+
+# ── 중괄호 (Allman 스타일) ────────────────────────────────────────
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+
+# ── 들여쓰기 ─────────────────────────────────────────────────────
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = flush_left
+
+# ── 공백 ─────────────────────────────────────────────────────────
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+
+# ── 줄 바꿈 ──────────────────────────────────────────────────────
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+# ── var 사용 (명시적 타입 선호 — 기존 코드 스타일) ─────────────────
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# ── 접근자 ───────────────────────────────────────────────────────
+csharp_style_expression_bodied_methods = false:suggestion
+csharp_style_expression_bodied_constructors = false:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+
+# ── null 검사 ─────────────────────────────────────────────────────
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+
+# ── 필드 명명 규칙 (private: _camelCase) ──────────────────────────
+dotnet_naming_rule.private_fields_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case.style = prefix_underscore
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.prefix_underscore.capitalization = camel_case
+dotnet_naming_style.prefix_underscore.required_prefix = _
+
+# ── 상수 명명 규칙 (ALL_CAPS 허용 — 기존 Consts.cs 스타일) ─────────
+dotnet_naming_rule.constants_should_be_upper_case.severity = none
+dotnet_naming_rule.constants_should_be_upper_case.symbols = constants
+dotnet_naming_rule.constants_should_be_upper_case.style = upper_case
+
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_style.upper_case.capitalization = all_upper
+
+# JSON / XML 설정 파일
+[*.{json,xml,csproj,props,targets}]
+indent_size = 4
+
+# YAML (GitHub Actions)
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
