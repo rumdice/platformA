@@ -3,9 +3,5 @@
   <PropertyGroup>
     <!-- .editorconfig 스타일 규칙을 빌드 경고로 노출 -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <!-- Nullable 참조 타입 활성화 (기존 코드와 충돌 방지를 위해 Warnings 수준) -->
-    <Nullable>warnings</Nullable>
-    <!-- 암묵적 using 비활성화 — 기존 명시적 using 스타일 유지 -->
-    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 </Project>
