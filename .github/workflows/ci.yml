@@ -25,6 +25,9 @@ jobs:
       - name: Build
         run: dotnet build PlatformA/PlatformA.sln --no-restore --configuration Release
 
+      - name: Build Generator.Lib (Debug — dotnet format 소스 제너레이터 지원)
+        run: dotnet build PlatformA/PlatformA.Generator.Lib/PlatformA.Generator.Lib.csproj --no-restore
+
       - name: Format check
         run: dotnet format PlatformA/PlatformA.sln --verify-no-changes --no-restore
 
