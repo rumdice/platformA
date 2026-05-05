@@ -22,11 +22,11 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore PlatformA/PlatformA.sln
 
-      - name: Format check
-        run: dotnet format PlatformA/PlatformA.sln --verify-no-changes --no-restore
-
       - name: Build
         run: dotnet build PlatformA/PlatformA.sln --no-restore --configuration Release
+
+      - name: Format check
+        run: dotnet format PlatformA/PlatformA.sln --verify-no-changes --no-restore
 
       - name: Test
         run: |
