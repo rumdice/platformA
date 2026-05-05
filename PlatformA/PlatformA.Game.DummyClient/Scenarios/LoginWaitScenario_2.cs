@@ -1,6 +1,6 @@
-using PlatformA.Library.Common;
 using System.Net;
 using System.Net.Http.Json;
+using PlatformA.Library.Common;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
@@ -35,7 +35,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (session1 == null)
             {
                 Fail("로그인 실패. 서버 상태 및 계정 정보를 확인하세요.");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Console.WriteLine($"  [OK] PlayerId={session1.PlayerId}");
             Console.WriteLine($"       AccessToken  : ...{Tail(session1.AccessToken)}");
@@ -47,7 +48,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (session2 == null)
             {
                 Fail("재로그인 실패.");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Console.WriteLine($"  [OK] 새 세션 발급 완료.");
             Console.WriteLine($"       새 RefreshToken: {Head(session2.RefreshToken)}...");
@@ -66,7 +68,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (session3 == null)
             {
                 Fail("Token 갱신 실패. 서버 상태를 확인하세요.");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Console.WriteLine($"  [OK] 갱신 완료.");
             Console.WriteLine($"       새 AccessToken  : ...{Tail(session3.AccessToken)}");
@@ -92,7 +95,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 if (currentSession == null)
                 {
                     Fail("세션 만료. 재로그인이 필요합니다.");
-                    WaitEnter(); return;
+                    WaitEnter();
+                    return;
                 }
                 AuthHelper.ApplyToken(http, currentSession);
                 Console.WriteLine("  [OK] 토큰 갱신 완료. 대기열 진입 재시도...");
@@ -103,7 +107,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 string msg = await enterResp.Content.ReadAsStringAsync();
                 Fail($"대기열 진입 실패: HTTP {(int)enterResp.StatusCode} — {msg}");
-                WaitEnter(); return;
+                WaitEnter();
+                return;
             }
             Pass("갱신된 토큰으로 대기열 진입 성공!");
 
@@ -159,12 +164,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         continue;
                     }
 
-                    if (!resp.IsSuccessStatusCode) return (false, session);
+                    if (!resp.IsSuccessStatusCode)
+                        return (false, session);
 
                     var data = await resp.Content.ReadFromJsonAsync<QueueStatusDto>(
                         cancellationToken: timeout.Token);
 
-                    if (data?.Status == "Active") return (true, session);
+                    if (data?.Status == "Active")
+                        return (true, session);
 
                     Console.WriteLine($"  ⏳ 대기 중... (앞에 {data?.Rank}명 / {data?.NextPollDelay}ms 후 재확인)");
                     await Task.Delay(data?.NextPollDelay ?? 3000, timeout.Token);
@@ -210,10 +217,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private class QueueStatusDto
         {
-            public int    UserId        { get; set; }
-            public long   Rank          { get; set; }
-            public string Status        { get; set; } = "";
-            public int    NextPollDelay { get; set; }
+            public int UserId { get; set; }
+            public long Rank { get; set; }
+            public string Status { get; set; } = "";
+            public int NextPollDelay { get; set; }
         }
     }
 }

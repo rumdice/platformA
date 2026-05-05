@@ -1,10 +1,10 @@
-﻿using PlatformA.Game.Server.Core;
-using PlatformA.Library.Core;
-using PlatformA.Library.Network;
-using PlatformA.Library.Packets;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
+using PlatformA.Game.Server.Core;
+using PlatformA.Library.Core;
+using PlatformA.Library.Network;
+using PlatformA.Library.Packets;
 
 namespace PlatformA.Game.Server.Network
 {
@@ -12,8 +12,8 @@ namespace PlatformA.Game.Server.Network
     {
         // 임시로 부여할 플레이어 ID (실제로는 로그인할 때 DB에서 가져오거나 자동 발급)
         public int SessionId { get; set; }
-        public GameRoom Room { get; set; } // 🚀 내가 속한 방 객체 기억하기
-        public string LoginLockValue { get; set; } // 내가 획득한 분산락 고유값
+        public GameRoom? Room { get; set; } // 🚀 내가 속한 방 객체 기억하기
+        public string? LoginLockValue { get; set; } // 내가 획득한 분산락 고유값
 
         protected override void OnConnected(EndPoint endPoint)
         {

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PlatformA.Library.Core;
 using PlatformA.Ticketing.API.Services;
 using RedLockNet.SERedis;

@@ -1,5 +1,5 @@
-﻿using PlatformA.Library.Network;
 using System.Reflection;
+using PlatformA.Library.Network;
 
 
 namespace PlatformA.Library.Packets
@@ -53,7 +53,7 @@ namespace PlatformA.Library.Packets
                         // 🚀 주의: Dictionary에 넣을 때 캐스팅 안전하게 확인
                         _handlers.Add(attribute.PacketId, handler);
                         Console.WriteLine($"[PacketManager] 라우팅 등록 완료: {attribute.PacketId} -> {method.Name}()");
-                    
+
                     }
                 }
             }

@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.SignalR.Client;
-using PlatformA.Library.Common;
-using PlatformA.Library.Packets;
 using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
+using Microsoft.AspNetCore.SignalR.Client;
+using PlatformA.Library.Common;
+using PlatformA.Library.Packets;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
@@ -40,12 +40,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (enterRes.StatusCode == HttpStatusCode.Unauthorized)
             {
                 session = await TryRefreshOrExitAsync(httpClient, session);
-                if (session == null) return;
+                if (session == null)
+                    return;
                 enterRes = await httpClient.PostAsync($"{Consts.TICKET_API_URL}/api/queue/enter", null);
             }
             if (!enterRes.IsSuccessStatusCode)
             {
-                Console.WriteLine("대기열 진입 실패!"); return;
+                Console.WriteLine("대기열 진입 실패!");
+                return;
             }
 
             // 3. [스마트 폴링] 대기열 대기
@@ -55,10 +57,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 if (statusRes.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     session = await TryRefreshOrExitAsync(httpClient, session);
-                    if (session == null) return;
+                    if (session == null)
+                        return;
                     statusRes = await httpClient.GetAsync($"{Consts.TICKET_API_URL}/api/queue/status");
                 }
-                if (!statusRes.IsSuccessStatusCode) return;
+                if (!statusRes.IsSuccessStatusCode)
+                    return;
 
                 var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
                 if (statusData?.Status == "Active")
@@ -136,7 +140,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         if (matchRes.StatusCode == HttpStatusCode.Unauthorized)
                         {
                             var newSession = await TryRefreshOrExitAsync(httpClient, session);
-                            if (newSession == null) break;
+                            if (newSession == null)
+                                break;
                             session = newSession;
                             matchRes = await httpClient.PostAsync(Consts.MATCH_API_URL, null);
                         }
@@ -179,9 +184,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
         static byte[] MakeLoginPacket(string token, int roomId = 1)
         {
             byte[] tokenBytes = System.Text.Encoding.UTF8.GetBytes(token);
-            ushort stringLen  = (ushort)tokenBytes.Length;
+            ushort stringLen = (ushort)tokenBytes.Length;
             ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-            ushort packetId   = (ushort)PacketID.C_Login;
+            ushort packetId = (ushort)PacketID.C_Login;
 
             byte[] buffer = new byte[packetSize];
             Span<byte> span = buffer.AsSpan();
@@ -196,7 +201,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         static byte[] MakeEnterRoomPacket(int roomId)
         {
             ushort packetSize = (ushort)(4 + C_EnterRoomPacket.Size);
-            ushort packetId   = (ushort)PacketID.C_EnterRoom;
+            ushort packetId = (ushort)PacketID.C_EnterRoom;
 
             byte[] buffer = new byte[packetSize];
             Span<byte> span = buffer.AsSpan();
@@ -220,8 +225,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 while (true)
                 {
                     int received = await client.ReceiveAsync(buffer, SocketFlags.None);
-                    if (received == 0) break;
-                    if (received < 4) continue;
+                    if (received == 0)
+                        break;
+                    if (received < 4)
+                        continue;
 
                     ushort packetId = BitConverter.ToUInt16(buffer, 2);
 

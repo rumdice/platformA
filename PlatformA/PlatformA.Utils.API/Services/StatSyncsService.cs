@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
@@ -46,7 +46,8 @@ namespace PlatformA.Utils.API.Services
             // SMEMBERS 명령어: Set에 있는 모든 멤버 조회
             var dirtyCodes = await dbRedis.SetMembersAsync("dirty_codes");
 
-            if (dirtyCodes.Length == 0) return; // 변경된 게 없으면 다시 잠듦
+            if (dirtyCodes.Length == 0)
+                return; // 변경된 게 없으면 다시 잠듦
 
             _logger.LogInformation($"[Sync] {dirtyCodes.Length}개의 URL 통계 DB 반영 시작...");
 

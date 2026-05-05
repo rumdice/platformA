@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace PlatformA.Generator.Lib
 {
@@ -30,7 +30,8 @@ namespace PlatformA.Library.Packets
             // 이 파일은 물리적인 하드디스크에는 없지만, 컴파일할 때 메모리상에 생성되어 합쳐집니다.
             context.AddSource("PacketAttribute.g.cs", SourceText.From(attributeSource, Encoding.UTF8));
 
-            if (!(context.SyntaxReceiver is PacketReceiver receiver)) return;
+            if (!(context.SyntaxReceiver is PacketReceiver receiver))
+                return;
 
             foreach (var structDecl in receiver.CandidateStructs)
             {

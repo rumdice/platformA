@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -79,7 +79,8 @@ namespace PlatformA.Library.Helper
                 {
                     // 같은 밀리초 안에 들어온 경우 순번 증가
                     _sequence = (_sequence + 1) & SequenceMask;
-                    if (_sequence == 0) timestamp = TilNextMillis(_lastTimestamp);
+                    if (_sequence == 0)
+                        timestamp = TilNextMillis(_lastTimestamp);
                 }
                 else
                 {
@@ -100,7 +101,8 @@ namespace PlatformA.Library.Helper
         private long TilNextMillis(long lastTimestamp)
         {
             var timestamp = TimeGen();
-            while (timestamp <= lastTimestamp) timestamp = TimeGen();
+            while (timestamp <= lastTimestamp)
+                timestamp = TimeGen();
             return timestamp;
         }
 

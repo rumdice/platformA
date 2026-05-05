@@ -5,10 +5,10 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp.Entities
     /// </summary>
     public enum MatchStatus : byte
     {
-        Pending    = 0, // 매칭 대기 중
+        Pending = 0, // 매칭 대기 중
         InProgress = 1, // 게임 진행 중
-        Completed  = 2, // 정상 종료
-        Cancelled  = 3  // 취소 / 비정상 종료
+        Completed = 2, // 정상 종료
+        Cancelled = 3  // 취소 / 비정상 종료
     }
 
     /// <summary>

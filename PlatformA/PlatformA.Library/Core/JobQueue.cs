@@ -1,4 +1,4 @@
-﻿namespace PlatformA.Library.Core
+namespace PlatformA.Library.Core
 {
     public class JobQueue
     {
@@ -42,7 +42,7 @@
         {
             while (true)
             {
-                Action action = null;
+                Action? action = null;
 
                 lock (_lock)
                 {

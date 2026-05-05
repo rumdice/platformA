@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Polly.CircuitBreaker;
 using PlatformA.Library.Core;
+using Polly.CircuitBreaker;
 using StackExchange.Redis;
 
 namespace PlatformA.Library.RateLimit

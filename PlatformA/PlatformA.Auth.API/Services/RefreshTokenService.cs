@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
-using Polly.CircuitBreaker;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
+using Polly.CircuitBreaker;
 
 namespace PlatformA.Auth.API.Services
 {
@@ -73,7 +73,8 @@ namespace PlatformA.Auth.API.Services
                         new StackExchange.Redis.RedisKey[] { key },
                         new StackExchange.Redis.RedisValue[] { refreshToken }));
 
-                if (result.IsNull) return null;
+                if (result.IsNull)
+                    return null;
                 return playerId;
             }
             catch (BrokenCircuitException)
@@ -89,7 +90,8 @@ namespace PlatformA.Auth.API.Services
         public async Task RevokeAsync(string refreshToken)
         {
             int? playerId = TokenManager.ParsePlayerIdFromRefreshToken(refreshToken);
-            if (playerId == null) return;
+            if (playerId == null)
+                return;
             string key = Consts.REFRESH_TOKEN_KEY_PREFIX + playerId;
             await _redisManager.ExecuteAsync(db => db.KeyDeleteAsync(key));
         }

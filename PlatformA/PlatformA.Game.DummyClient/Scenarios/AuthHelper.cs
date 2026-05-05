@@ -1,7 +1,7 @@
-using PlatformA.Library.Common;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using PlatformA.Library.Common;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
@@ -24,14 +24,15 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     Consts.AUTH_API_URL,
                     new { Username = username, Password = password });
 
-                if (!resp.IsSuccessStatusCode) return null;
+                if (!resp.IsSuccessStatusCode)
+                    return null;
 
                 using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
                 var root = doc.RootElement;
                 return new TokenSession(
-                    AccessToken:  root.GetProperty("token").GetString()!,
+                    AccessToken: root.GetProperty("token").GetString()!,
                     RefreshToken: root.GetProperty("refreshToken").GetString()!,
-                    PlayerId:     root.GetProperty("playerId").GetInt32());
+                    PlayerId: root.GetProperty("playerId").GetInt32());
             }
             catch { return null; }
         }
@@ -50,14 +51,15 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     Consts.AUTH_API_REFRESH_URL,
                     new { RefreshToken = session.RefreshToken });
 
-                if (!resp.IsSuccessStatusCode) return null;
+                if (!resp.IsSuccessStatusCode)
+                    return null;
 
                 using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
                 var root = doc.RootElement;
                 return new TokenSession(
-                    AccessToken:  root.GetProperty("token").GetString()!,
+                    AccessToken: root.GetProperty("token").GetString()!,
                     RefreshToken: root.GetProperty("refreshToken").GetString()!,
-                    PlayerId:     session.PlayerId);
+                    PlayerId: session.PlayerId);
             }
             catch { return null; }
         }

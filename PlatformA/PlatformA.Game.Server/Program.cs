@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection.Metadata;
+using Microsoft.Extensions.Logging;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
@@ -41,13 +41,13 @@ namespace PlatformA.Game.Server
             else
                 Console.WriteLine("=> ❌ 테스트 실패: 데이터가 오염되었습니다.");
 
-            
+
         }
 
         static async Task Main(string[] args)
         {
             Console.WriteLine("=== 🔥 High Performance Game Server (Level 6 - step 1) ===");
-            
+
             // 패킷매니저 초기화
             PacketManager<GameSession>.Instance.Register(); // 🚀 추가
 
@@ -103,6 +103,6 @@ namespace PlatformA.Game.Server
                 }
             }
         }
-        
+
     }
 }

@@ -1,4 +1,4 @@
-﻿using PlatformA.Game.Server.Network;
+using PlatformA.Game.Server.Network;
 using PlatformA.Library.Core;
 
 namespace PlatformA.Game.Server.Core

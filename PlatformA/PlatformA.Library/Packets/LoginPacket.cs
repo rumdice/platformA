@@ -10,10 +10,10 @@ namespace PlatformA.Library.Packets
     // payload 포맷: ResultCode(4) + PlayerId(4) = 8 bytes
     public struct S_LoginPacket
     {
-        public const int ResultSuccess      = 0; // 로그인 성공
+        public const int ResultSuccess = 0; // 로그인 성공
         public const int ResultInvalidToken = 1; // JWT 유효하지 않음
-        public const int ResultNotInQueue   = 2; // 대기열 미통과 (Active 키 없음)
-        public const int ResultDuplicate    = 3; // 중복 로그인
+        public const int ResultNotInQueue = 2; // 대기열 미통과 (Active 키 없음)
+        public const int ResultDuplicate = 3; // 중복 로그인
         public const int ResultRoomNotFound = 4; // 방 없음
 
         public int ResultCode;
@@ -30,7 +30,7 @@ namespace PlatformA.Library.Packets
         public void Deserialize(ReadOnlySpan<byte> span)
         {
             ResultCode = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(0, 4));
-            PlayerId   = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4, 4));
+            PlayerId = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4, 4));
         }
     }
 
@@ -53,7 +53,7 @@ namespace PlatformA.Library.Packets
     // payload 포맷: ResultCode(4) + RoomId(4)
     public struct S_EnterRoomPacket
     {
-        public const int ResultSuccess      = 0;
+        public const int ResultSuccess = 0;
         public const int ResultRoomNotFound = 1;
 
         public int ResultCode;
@@ -70,7 +70,7 @@ namespace PlatformA.Library.Packets
         public void Deserialize(ReadOnlySpan<byte> span)
         {
             ResultCode = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(0, 4));
-            RoomId     = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4, 4));
+            RoomId = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4, 4));
         }
     }
 

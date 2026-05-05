@@ -1,4 +1,4 @@
-﻿namespace PlatformA.MatchingEngine
+namespace PlatformA.MatchingEngine
 {
     /// <summary>
     /// 주식 매도 매수 엔진
@@ -64,7 +64,8 @@
                 bool isMatchable = (newOrder.Type == OrderType.Buy && priceLevel <= newOrder.Price) ||
                                    (newOrder.Type == OrderType.Sell && priceLevel >= newOrder.Price);
 
-                if (!isMatchable) break; // 더 이상 유리한 가격이 없음 -> 매칭 종료
+                if (!isMatchable)
+                    break; // 더 이상 유리한 가격이 없음 -> 매칭 종료
 
                 // 해당 가격대의 주문 큐 가져오기
                 var queue = oppositeBook[priceLevel];
@@ -97,7 +98,8 @@
                 }
 
                 // 내 주문을 다 처리했으면 종료
-                if (newOrder.Quantity == 0) break;
+                if (newOrder.Quantity == 0)
+                    break;
             }
 
             // 매칭을 다 시도했는데도 잔량이 남았으면? -> 내 호가창(myBook)에 등록

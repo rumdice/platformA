@@ -1,8 +1,8 @@
-using PlatformA.Library.Common;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using PlatformA.Library.Common;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
@@ -12,11 +12,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
     {
         public int UserId { get; set; }
         public long Rank { get; set; }
-        public string Status { get; set; } // "Waiting" or "Active"
+        public string? Status { get; set; } // "Waiting" or "Active"
         public int NextPollDelay { get; set; } // 스마트 풀링 지연시간
     }
 
-            
+
 
     public class TicketingScenario
     {
@@ -113,7 +113,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 while (true)
                 {
                     var statusRes = await client.GetAsync($"{host}/api/queue/status");
-                    if (!statusRes.IsSuccessStatusCode) 
+                    if (!statusRes.IsSuccessStatusCode)
                         return "FAIL";
 
                     var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
@@ -164,7 +164,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 // STEP 1: 대기열 진입 (Enter)
                 var enterRes = await myClient.PostAsync($"{host}/api/queue/enter?userId={userId}", null);
-                if (!enterRes.IsSuccessStatusCode) return "FAIL";
+                if (!enterRes.IsSuccessStatusCode)
+                    return "FAIL";
 
                 // STEP 2: 무한 대기 (Polling)
                 while (true)
@@ -172,7 +173,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     var statusRes = await myClient.GetAsync($"{host}/api/queue/status?userId={userId}");
 
                     // 400 에러 등 처리
-                    if (!statusRes.IsSuccessStatusCode) return "FAIL";
+                    if (!statusRes.IsSuccessStatusCode)
+                        return "FAIL";
 
                     var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
 

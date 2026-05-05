@@ -69,7 +69,7 @@ namespace PlatformA.Auth.API.Services
 
             _logger.LogInformation("[PlayerService] 기존 플레이어 인증 성공. Username: {Username}, PlayerId: {PlayerId}",
                 username, player.Id);
-            
+
             return player.Id;
         }
     }

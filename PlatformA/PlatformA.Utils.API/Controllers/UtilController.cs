@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API.Models;
@@ -27,7 +27,7 @@ namespace PlatformA.Utils.API.Controllers
             // 💡 팁: 서버 켤 때 DB가 없으면 자동으로 만들어줍니다. (실무에선 Migrations를 쓰지만 지금은 간편하게!)
             _db = db;
             _db.Database.EnsureCreated();
-            
+
             _redis = redisMux.GetDatabase();
             _snowflake = snowflake;
         }
@@ -45,7 +45,7 @@ namespace PlatformA.Utils.API.Controllers
             }
 
             // IPv6 로컬호스트(::1) 처리
-            if (ip == "::1") 
+            if (ip == "::1")
                 ip = "127.0.0.1";
 
             // 🔥 3. [개발 편의용] 만약 로컬호스트(127.0.0.1)라면? 
@@ -90,7 +90,7 @@ namespace PlatformA.Utils.API.Controllers
 
             // 랜덤 코드 생성 (6자리)
             //var shortCode = Guid.NewGuid().ToString().Substring(0, 6);
-            
+
             // 중복 위험성이 높고 DB B-tree 인덱스 성능이 떨어지므로, Guid 를 Snowflake로 교체
             long newId = _snowflake.NextId();
 
@@ -125,12 +125,12 @@ namespace PlatformA.Utils.API.Controllers
             string cacheKey = $"url:{code}"; // Redis 키 규칙 (예: url:Tx9z) 1. URL 정보 (원본 주소)
             string statsKey = $"stats:{code}";  // 2. 조회수 정보 (숫자)
 
-            string originalUrl = null;
+            string? originalUrl = null;
 
             // Redis 에서 찾기.
             var cachedUrl = await _redis.StringGetAsync(cacheKey);
 
-            
+
             if (!cachedUrl.IsNullOrEmpty) // 캐시 히트
             {
                 originalUrl = cachedUrl.ToString();
@@ -168,7 +168,7 @@ namespace PlatformA.Utils.API.Controllers
 
             // 3. 일단 리다이렉트
             return Redirect(originalUrl);
-            
+
             // 4. 일단 리다이렉트로 응답은 던지고 나중에 백그라운드 서비스 StatSyncsService 에서 주기적으로 Redis에서 "dirty_codes" Set을 확인해서 DB에 반영합니다.
         }
 
@@ -179,7 +179,7 @@ namespace PlatformA.Utils.API.Controllers
         public async Task<IActionResult> GetStats(string code)
         {
             var urlItem = await _db.ShortUrls.AsNoTracking().FirstOrDefaultAsync(u => u.Code == code);
-            if (urlItem == null) 
+            if (urlItem == null)
                 return NotFound("코드를 찾을 수 없습니다.");
 
             // Redis에 최신 카운트가 있는지 확인

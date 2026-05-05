@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -7,7 +8,6 @@ using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
 using PlatformA.Matching.API.Services;
 using PlatformA.MySqlDB.Lib.DBWebApp;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 

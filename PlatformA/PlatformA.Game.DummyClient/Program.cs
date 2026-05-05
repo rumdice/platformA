@@ -1,4 +1,4 @@
-﻿using PlatformA.Game.DummyClient.Scenarios;
+using PlatformA.Game.DummyClient.Scenarios;
 
 namespace PlatformA.Game.DummyClient
 {

@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 namespace PlatformA.Game.Server.Core
 {
@@ -7,7 +7,7 @@ namespace PlatformA.Game.Server.Core
         public static GameRoomManager Instance { get; } = new GameRoomManager();
         private GameRoomManager() { }
 
-    
+
         // 🚨 [주의] 여러 유저가 동시에 방에 입/퇴장 함. 반드시 동시성 제어(Lock)가 필요합니다!
         //private object _lock = new object();
         // 기존 방 관리

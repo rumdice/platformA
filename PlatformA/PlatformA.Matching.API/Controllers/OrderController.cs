@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PlatformA.Matching.API.Services;
 using PlatformA.MatchingEngine;
 
