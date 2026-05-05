@@ -29,7 +29,7 @@ jobs:
         run: dotnet build PlatformA/PlatformA.Generator.Lib/PlatformA.Generator.Lib.csproj --no-restore
 
       - name: Format check
-        run: dotnet format PlatformA/PlatformA.sln --verify-no-changes --no-restore
+        run: dotnet format PlatformA/PlatformA.sln --verify-no-changes --no-restore --verbosity diagnostic
 
       - name: Test
         run: |
