@@ -89,18 +89,11 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 
 ## 코드 변경 규칙
 
-### 패킷 추가
-- 반드시 `AI/PATTERNS.md`의 "패킷 추가 패턴" 따를 것
-- `PlatformA.Generator.Lib` 통해 코드 생성 (수동 직렬화 금지)
-
-### API 엔드포인트 추가
-- `AI/API_CONTRACTS.md` 먼저 업데이트 → 그 다음 구현
-- 컨트롤러 패턴은 `AI/PATTERNS.md` 참조
-
-### DB 스키마 변경
-- **반드시** EF Core Migration 생성 후 적용
-- 직접 SQL 실행 금지
-- Migration 없이 스키마 변경 절대 금지
+> 도메인별 상세 규칙은 `.claude/rules/` 참조 (파일 작업 시 자동 로드됨)
+> - 패킷: `.claude/rules/packets.md`
+> - API 컨트롤러: `.claude/rules/api-controllers.md`
+> - DB Migration: `.claude/rules/ef-migrations.md`
+> - 테스트: `.claude/rules/tests.md`
 
 ### Redis 키 추가
 - `PlatformA.Library/Common/Consts.cs`에 키 상수 추가
