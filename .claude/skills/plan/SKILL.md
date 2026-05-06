@@ -77,7 +77,11 @@ git pull origin main
 
 #### 현재 브랜치가 `main`인 경우
 
-사전 검사 생략, 1단계로 바로 진행한다.
+최신 상태로 동기화한 뒤 1단계로 진행한다:
+
+```bash
+git pull origin main
+```
 
 ---
 

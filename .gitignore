@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Claude Code 로컬 개인 설정 (커밋 금지)
+CLAUDE.local.md
+
 # User-specific files
 *.rsuser
 *.suo

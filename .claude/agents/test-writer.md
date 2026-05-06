@@ -1,6 +1,7 @@
 ---
 name: test-writer
 description: PlatformA xUnit 테스트(통합/유닛)를 자동 생성한다. 컨트롤러·DTO·유틸리티 클래스를 입력받아 기존 Moq Redis·InMemory DB·Reflection 주입 패턴을 정확히 따르는 테스트 파일을 작성하고 dotnet test로 검증한다.
+memory: agent-memory/test-writer
 tools:
   - Read
   - Write
