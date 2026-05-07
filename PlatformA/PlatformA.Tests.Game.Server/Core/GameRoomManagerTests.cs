@@ -79,8 +79,10 @@ namespace PlatformA.Tests.Game.Server.Core
                 threads[idx] = new Thread(() => results[idx] = _manager.CreateRoom(targetRoomId));
             }
 
-            foreach (var t in threads) t.Start();
-            foreach (var t in threads) t.Join();
+            foreach (var t in threads)
+                t.Start();
+            foreach (var t in threads)
+                t.Join();
 
             for (int i = 1; i < threadCount; i++)
                 Assert.Same(results[0], results[i]);
