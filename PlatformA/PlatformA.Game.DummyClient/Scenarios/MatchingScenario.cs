@@ -64,7 +64,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 if (!statusRes.IsSuccessStatusCode)
                     return;
 
-                var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
+                var statusData = await statusRes.Content.ReadFromJsonAsync<QueueStatusDto>();
                 if (statusData?.Status == "Active")
                 {
                     Console.WriteLine("[통과] 대기열을 통과하여 입장 허가를 받았습니다!\n");

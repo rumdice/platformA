@@ -5,6 +5,14 @@ using PlatformA.Library.Common;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
+    public class QueueStatusDto
+    {
+        public int UserId { get; set; }
+        public long Rank { get; set; }
+        public string Status { get; set; } = "";
+        public int NextPollDelay { get; set; }
+    }
+
     /// <summary>
     /// 로그인/토큰 갱신 공통 헬퍼. 모든 시나리오에서 재사용합니다.
     /// </summary>
@@ -71,6 +79,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
         {
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", session.AccessToken);
+        }
+
+        public static string GenerateTestUserName()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

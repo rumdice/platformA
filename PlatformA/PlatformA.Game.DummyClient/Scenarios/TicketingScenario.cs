@@ -1,22 +1,9 @@
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 using PlatformA.Library.Common;
 
 namespace PlatformA.Game.DummyClient.Scenarios
 {
-
-    // 응답 DTO
-    class QueueResponse
-    {
-        public int UserId { get; set; }
-        public long Rank { get; set; }
-        public string? Status { get; set; } // "Waiting" or "Active"
-        public int NextPollDelay { get; set; } // 스마트 풀링 지연시간
-    }
-
-
 
     public class TicketingScenario
     {
@@ -87,17 +74,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 // 🌐 [STEP 1] Auth.API 로그인 (JWT 발급)
                 // =================================================================
                 Console.WriteLine("[Web] Auth.API 에 로그인을 시도합니다...");
-                var userName = GenerateTestUserName();
-                string realToken = await LoginToAuthServerAsync(userName, "123456");
-
-                if (string.IsNullOrEmpty(realToken))
+                var session = await AuthHelper.LoginAsync(client, AuthHelper.GenerateTestUserName(), "123456");
+                if (session == null)
                 {
                     Console.WriteLine("[Web] 로그인 실패! 프로그램을 종료합니다.");
                     return "FAIL";
                 }
-
-                // 토큰 실어 보내기
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", realToken);
+                string realToken = session.AccessToken;
+                AuthHelper.ApplyToken(client, session);
 
 
                 // 🚀 2. STEP 2: 대기열 진입
@@ -116,7 +100,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     if (!statusRes.IsSuccessStatusCode)
                         return "FAIL";
 
-                    var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
+                    var statusData = await statusRes.Content.ReadFromJsonAsync<QueueStatusDto>();
                     if (statusData != null && statusData.Status == "Active")
                     {
                         // 입장 허가! (문지기를 통과함)
@@ -176,7 +160,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     if (!statusRes.IsSuccessStatusCode)
                         return "FAIL";
 
-                    var statusData = await statusRes.Content.ReadFromJsonAsync<QueueResponse>();
+                    var statusData = await statusRes.Content.ReadFromJsonAsync<QueueStatusDto>();
 
                     if (statusData.Status == "Pass")
                     {
@@ -219,52 +203,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 Console.WriteLine($"ERR [User_{id}]: {ex.Message}");
                 return "FAIL";
-            }
-        }
-
-        private static string GenerateTestUserName()
-        {
-            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            Random random = new Random();
-            return new string(Enumerable.Repeat(chars, 8)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-
-        static async Task<string> LoginToAuthServerAsync(string username, string password)
-        {
-            using HttpClient httpClient = new HttpClient();
-            var loginData = new { Username = username, Password = password };
-
-            try
-            {
-                // C# 최신 문법: 클래스 없이도 익명 객체를 바로 JSON으로 쏴줍니다.
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync(Consts.AUTH_API_URL, loginData);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                    // JSON 데이터 까보기
-                    using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                    string token = doc.RootElement.GetProperty("token").GetString();
-                    int playerId = doc.RootElement.GetProperty("playerId").GetInt32();
-
-                    Console.WriteLine($"[Web] 로그인 성공! 발급받은 PlayerID: {playerId}");
-                    Console.WriteLine($"[Web] JWT 토큰: {token.Substring(0, 20)}...");
-
-                    return token;
-                }
-                else
-                {
-                    Console.WriteLine($"[Web] 로그인 실패. 상태 코드: {response.StatusCode}");
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Web] Auth.API 서버에 연결할 수 없습니다. 켜져 있는지 확인하세요! ({ex.Message})");
-                return null;
             }
         }
 
