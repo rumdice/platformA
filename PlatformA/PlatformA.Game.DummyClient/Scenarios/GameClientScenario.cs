@@ -55,11 +55,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 {
                     var statusResp = await http.GetAsync(
                         $"{Consts.TICKET_API_URL}/api/queue/status", cts.Token);
-                    if (!statusResp.IsSuccessStatusCode) break;
+                    if (!statusResp.IsSuccessStatusCode)
+                        break;
 
                     var data = await statusResp.Content.ReadFromJsonAsync<QueueStatusDto>(
                         cancellationToken: cts.Token);
-                    if (data?.Status == "Active") { activated = true; break; }
+                    if (data?.Status == "Active")
+                    { activated = true; break; }
 
                     Console.WriteLine($"  ⏳ 대기 중... (앞에 {data?.Rank}명 / {data?.NextPollDelay}ms 후 재확인)");
                     await Task.Delay(data?.NextPollDelay ?? 3000, cts.Token);
@@ -98,10 +100,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return false;
 
                 int received = await recvTask;
-                if (received < 4 + S_LoginPacket.Size) return false;
+                if (received < 4 + S_LoginPacket.Size)
+                    return false;
 
                 ushort respId = BitConverter.ToUInt16(recvBuf, 2);
-                if (respId != (ushort)PacketID.S_Login) return false;
+                if (respId != (ushort)PacketID.S_Login)
+                    return false;
 
                 var pkt = new S_LoginPacket();
                 pkt.Deserialize(recvBuf.AsSpan(4, S_LoginPacket.Size));
@@ -128,7 +132,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 cts.Token.Register(() => loginTcs.TrySetCanceled());
 
                 S_LoginPacket result;
-                try { result = await loginTcs.Task; }
+                try
+                { result = await loginTcs.Task; }
                 catch (OperationCanceledException)
                 {
                     Console.WriteLine("[GameServer] 로그인 응답 타임아웃. 서버 상태를 확인하세요.");
