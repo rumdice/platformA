@@ -435,13 +435,5 @@ namespace PlatformA.Game.DummyClient.Scenarios
             _totalWaitMs = 0;
         }
 
-        // ── 응답 DTO ─────────────────────────────────────────────
-        private class QueueStatusDto
-        {
-            public int UserId { get; set; }
-            public long Rank { get; set; }
-            public string Status { get; set; } = "";
-            public int NextPollDelay { get; set; }
-        }
     }
 }

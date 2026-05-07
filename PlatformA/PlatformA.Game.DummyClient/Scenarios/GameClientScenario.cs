@@ -1,7 +1,5 @@
-using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
@@ -28,14 +26,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
             // 🌐 [STEP 1] Auth.API 로그인 (JWT 발급)
             // =================================================================
             Console.WriteLine("[Web] Auth.API 에 로그인을 시도합니다...");
-            var userName = GenerateTestUserName();
-            string realToken = await LoginToAuthServerAsync(userName, "1234");
-
-            if (string.IsNullOrEmpty(realToken))
+            using var http = new HttpClient();
+            var session = await AuthHelper.LoginAsync(http, AuthHelper.GenerateTestUserName(), "1234");
+            if (session == null)
             {
                 Console.WriteLine("[Web] 로그인 실패! 프로그램을 종료합니다.");
                 return;
             }
+            string realToken = session.AccessToken;
 
             // =================================================================
             // 🎮 [STEP 2] 매칭 서버(SignalR) 접속 및 대기
@@ -170,44 +168,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 Console.WriteLine($"수신 에러: {ex.Message}");
                 loginTcs?.TrySetCanceled();
-            }
-        }
-
-
-        static async Task<string> LoginToAuthServerAsync(string username, string password)
-        {
-            using HttpClient httpClient = new HttpClient();
-            var loginData = new { Username = username, Password = password };
-
-            try
-            {
-                // C# 최신 문법: 클래스 없이도 익명 객체를 바로 JSON으로 쏴줍니다.
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync(Consts.AUTH_API_URL, loginData);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                    // JSON 데이터 까보기
-                    using JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                    string token = doc.RootElement.GetProperty("token").GetString();
-                    int playerId = doc.RootElement.GetProperty("playerId").GetInt32();
-
-                    Console.WriteLine($"[Web] 로그인 성공! 발급받은 PlayerID: {playerId}");
-                    Console.WriteLine($"[Web] JWT 토큰: {token.Substring(0, 20)}...");
-
-                    return token;
-                }
-                else
-                {
-                    Console.WriteLine($"[Web] 로그인 실패. 상태 코드: {response.StatusCode}");
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Web] Auth.API 서버에 연결할 수 없습니다. 켜져 있는지 확인하세요! ({ex.Message})");
-                return null;
             }
         }
 
@@ -395,14 +355,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
             }
         }
 
-
-        private static string GenerateTestUserName()
-        {
-            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            Random random = new Random();
-            return new string(Enumerable.Repeat(chars, 8)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
 
     }
 

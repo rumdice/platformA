@@ -215,12 +215,5 @@ namespace PlatformA.Game.DummyClient.Scenarios
         private static string Head(string s) => s.Length >= 20 ? s[..20] : s;
         private static string Tail(string s) => s.Length >= 20 ? s[^20..] : s;
 
-        private class QueueStatusDto
-        {
-            public int UserId { get; set; }
-            public long Rank { get; set; }
-            public string Status { get; set; } = "";
-            public int NextPollDelay { get; set; }
-        }
     }
 }
