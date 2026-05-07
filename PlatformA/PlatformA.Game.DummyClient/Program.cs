@@ -32,10 +32,10 @@ namespace PlatformA.Game.DummyClient
                 switch (input)
                 {
                     case "1":
-                        //await GameClientScenario.RunAsync(); // TODO: 코드 수정
+                        await GameClientScenario.RunAsync();
                         break;
                     case "2":
-                        //await TicketingScenario.RunAsync(); // TODO: 코드 수정
+                        await TicketingScenario.RunAsync();
                         break;
                     case "3":
                         await MatchingScenario.RunAsync();
