@@ -1,5 +1,5 @@
 #!/bin/bash
-# PreToolUse hook: git push 전 dotnet build 통과 여부 검증
+# PreToolUse hook: git push 전 브랜치·빌드·포맷 검증
 # stdin: 도구 호출 정보 (JSON)
 # 출력: {"decision": "block", "reason": "..."} → 차단 / 출력 없음 → 허용
 
@@ -20,6 +20,13 @@ if ! echo "$COMMAND" | grep -qE "git push"; then
     exit 0
 fi
 
+# ── 1. main 브랜치 직접 push 차단 ────────────────────────────────────────
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    echo '{"decision": "block", "reason": "main 브랜치에 직접 push할 수 없습니다.\n/plan을 먼저 실행하여 작업 브랜치를 생성한 뒤 push하십시오."}'
+    exit 0
+fi
+
 # dotnet 사용 가능 여부 확인
 if ! command -v dotnet &>/dev/null; then
     exit 0
@@ -36,8 +43,9 @@ if [ ! -d "$SLN_DIR" ]; then
     exit 0
 fi
 
-# 전체 솔루션 빌드 실행
 cd "$SLN_DIR" || exit 0
+
+# ── 2. 전체 솔루션 빌드 ───────────────────────────────────────────────────
 BUILD_OUTPUT=$(dotnet build PlatformA.sln -q 2>&1)
 BUILD_EXIT=$?
 
@@ -46,14 +54,22 @@ if [ $BUILD_EXIT -ne 0 ]; then
     exit 0
 fi
 
-# 코드 포맷 검사
-FORMAT_OUTPUT=$(dotnet format PlatformA.sln --verify-no-changes --no-restore 2>&1)
-FORMAT_EXIT=$?
+# ── 3. 포맷 검사 (CI와 동일하게 whitespace → style 순서) ─────────────────
+WS_OUTPUT=$(dotnet format PlatformA.sln whitespace --verify-no-changes --no-restore 2>&1)
+WS_EXIT=$?
 
-if [ $FORMAT_EXIT -ne 0 ]; then
-    echo "{\"decision\": \"block\", \"reason\": \"코드 포맷 불일치: git push가 차단됩니다.\\n\\n${FORMAT_OUTPUT}\\n\\ndotnet format PlatformA/PlatformA.sln 실행 후 다시 push하십시오.\"}"
+if [ $WS_EXIT -ne 0 ]; then
+    echo "{\"decision\": \"block\", \"reason\": \"공백 포맷 불일치: git push가 차단됩니다.\\n\\n${WS_OUTPUT}\\n\\ndotnet format PlatformA.sln whitespace --no-restore 실행 후 다시 push하십시오.\"}"
     exit 0
 fi
 
-# 빌드 + 포맷 모두 통과 → push 허용
+STYLE_OUTPUT=$(dotnet format PlatformA.sln style --verify-no-changes --no-restore 2>&1)
+STYLE_EXIT=$?
+
+if [ $STYLE_EXIT -ne 0 ]; then
+    echo "{\"decision\": \"block\", \"reason\": \"스타일 포맷 불일치: git push가 차단됩니다.\\n\\n${STYLE_OUTPUT}\\n\\ndotnet format PlatformA.sln style --no-restore 실행 후 다시 push하십시오.\"}"
+    exit 0
+fi
+
+# 모든 검사 통과 → push 허용
 exit 0

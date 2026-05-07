@@ -34,22 +34,33 @@ git commit -m "{한글 커밋 메시지}"
 
 ### 2단계: 빌드 검증
 ```bash
-cd PlatformA && dotnet build PlatformA.sln -q
+# git 루트 기반으로 경로를 찾아 실행 (현재 디렉토리 무관)
+SLN=$(git rev-parse --show-toplevel)/PlatformA
+cd "$SLN" && dotnet build PlatformA.sln -q
 ```
 빌드 실패 시 **즉시 중단**하고 오류를 출력한다. push 금지.
 
-### 3단계: 테스트 검증
+### 3단계: 포맷 검사
 ```bash
-dotnet test PlatformA.sln
+dotnet format PlatformA.sln whitespace --verify-no-changes --no-restore
+dotnet format PlatformA.sln style --verify-no-changes --no-restore
+```
+포맷 불일치 시 **즉시 중단**한다.
+수정 명령: `dotnet format PlatformA.sln whitespace --no-restore && dotnet format PlatformA.sln style --no-restore`
+수정 후 재커밋 → 3단계 재실행. push 금지.
+
+### 4단계: 테스트 검증
+```bash
+dotnet test PlatformA.sln -q
 ```
 테스트 실패 시 **즉시 중단**하고 실패 항목을 출력한다. push 금지.
 
-### 4단계: 원격 push
+### 5단계: 원격 push
 ```bash
 git push
 ```
 
-### 5단계: SPRINT.md 완료 체크
+### 6단계: SPRINT.md 완료 체크
 `AI/SPRINT.md`를 읽어 이번 브랜치에서 작업한 태스크 항목의 `- [ ]`를 `- [x]`로 변경한다.
 변경 후 커밋:
 ```bash
@@ -58,7 +69,7 @@ git commit -m "완료: {PlanName} 태스크 체크"
 git push
 ```
 
-### 6단계: PR 생성
+### 7단계: PR 생성
 브랜치명에서 PlanName을 추출하고, 커밋 이력과 변경 파일을 분석하여 **한글** PR을 생성한다.
 
 Windows 로컬 bash 환경에서는 gh가 PATH에 없으므로 아래처럼 PATH를 먼저 설정한다:
@@ -88,7 +99,7 @@ EOF
 )"
 ```
 
-### 7단계: 완료 보고
+### 8단계: 완료 보고
 ```
 PR: {PR URL}
 브랜치: {브랜치명}

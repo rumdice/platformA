@@ -34,9 +34,13 @@ YYYY-MM-DD_PlanName_N
 ```
 /plan 작업 설명    → PR 머지 확인 → main 최신화 → 브랜치 생성 → SPRINT.md 업데이트
   (작업 수행)
-/done              → 빌드/테스트 → 한글 PR 생성 → SPRINT 완료 체크
+/done              → 빌드 → 포맷 → 테스트 → push → 한글 PR 생성 → SPRINT 완료 체크
   (GitHub에서 PR 머지)
 ```
+
+> **주의**: Plan mode(설계 승인)와 `/plan` 스킬(브랜치 생성)은 별개다.
+> Plan mode에서 승인 후 구현을 시작하기 전에 반드시 `/plan` 스킬을 실행하거나
+> 수동으로 작업 브랜치를 생성해야 한다.
 
 ### /plan 사전 검사 규칙 (feature 브랜치에서 실행 시)
 
@@ -150,12 +154,13 @@ dotnet test PlatformA.sln
 ## 절대 하지 말 것
 
 - `main` 브랜치에 직접 push ← **로컬/웹 모두 금지. 반드시 /plan → /done 워크플로 사용**
+- **작업 브랜치 없이 구현 시작** ← Plan mode 승인 후에도 브랜치가 없으면 먼저 생성
 - Migration 없이 DB 스키마 변경
 - `Consts.cs` 외 위치에 설정값 하드코딩
 - 테스트/검증 없이 배포 명령 실행
 - 이미 ADR로 결정된 사항을 사용자 승인 없이 변경
 - `--no-verify` 플래그로 git hook 우회
-- **빌드(`dotnet build`) 또는 테스트(`dotnet test`) 실패 상태로 push**
+- **빌드(`dotnet build`), 포맷(`dotnet format`), 테스트(`dotnet test`) 실패 상태로 push**
 
 ---
 
