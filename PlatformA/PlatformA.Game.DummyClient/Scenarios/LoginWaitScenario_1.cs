@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Sockets;
-using System.Text;
 using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
@@ -393,16 +391,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
-                ushort stringLen = (ushort)tokenBytes.Length;
-                ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-                byte[] sendBuf = new byte[packetSize];
-                Span<byte> span = sendBuf.AsSpan();
-                BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-                BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.C_Login);
-                BitConverter.TryWriteBytes(span.Slice(4, 4), 1); // roomId = 1
-                BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
-                tokenBytes.CopyTo(span.Slice(10));
+                byte[] sendBuf = PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = 1, JwtToken = token });
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
                 byte[] recvBuf = new byte[64];
@@ -411,15 +400,19 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return false;
 
                 int received = await recvTask;
-                if (received < 12)
+                if (received < 4)
                     return false;
 
                 ushort respId = BitConverter.ToUInt16(recvBuf, 2);
                 if (respId != (ushort)PacketID.S_Login)
                     return false;
 
-                int resultCode = BitConverter.ToInt32(recvBuf, 4);
-                return resultCode == S_LoginPacket.ResultSuccess;
+                try
+                {
+                    var pkt = SLogin.Parser.ParseFrom(recvBuf, 4, received - 4);
+                    return pkt.ResultCode == LoginResultCode.LoginSuccess;
+                }
+                catch { return false; }
             }
             catch { return false; }
         }

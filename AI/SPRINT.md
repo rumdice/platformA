@@ -145,6 +145,15 @@
 
 ---
 
+## 스프린트 #11 (2026-05-11 ~)
+**목표**: 패킷 직렬화 Google Protocol Buffers 교체 (Generator.Lib 제거)
+
+### 진행 중
+
+- [ ] 패킷 직렬화 Protobuf 교체 (proto 파일, Library csproj, PacketHandler, DummyClient, 테스트 재작성, Generator.Lib 삭제)
+
+---
+
 ## 스프린트 #10 (2026-04-30 ~)
 **목표**: 코드 포맷팅 파이프라인 구축 — .editorconfig + CI/pre-push 강제 적용
 

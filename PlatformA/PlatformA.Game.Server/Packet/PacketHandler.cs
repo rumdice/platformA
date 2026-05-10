@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using Google.Protobuf;
 using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
@@ -10,16 +11,11 @@ namespace PlatformA.Game.Server.Packet
 {
     public class PacketHandler
     {
-
-        // 🌟 이 명찰만 달아주면, PacketManager가 알아서 이 함수를 C_Move 패킷과 연결해줍니다!
         [PacketHandler((ushort)PacketID.C_Move)]
         public static void Handle_C_Move(GameSession session, ReadOnlySpan<byte> payload)
         {
-            // 구조체 생성 및 파싱 (Zero-Allocation!)
-            C_MovePacket moveReq = new C_MovePacket();
-            moveReq.Deserialize(payload); // 패킷 제너레이터로 역직렬화 해제 (패킷 파싱)
+            var moveReq = CMove.Parser.ParseFrom(payload);
 
-            // 🚀 유저가 속한 방을 찾습니다. 방이 없으면 무시!
             GameRoom room = session.Room;
             if (room == null)
                 return;
@@ -28,9 +24,7 @@ namespace PlatformA.Game.Server.Packet
             {
                 Console.WriteLine($"[C_Move] ID({session.SessionId}) 이동 -> X:{moveReq.X}, Y:{moveReq.Y}, Z:{moveReq.Z}");
 
-                // 내가 움직였음을 남들에게 알리기.
-                // 📡 1. 남들에게 뿌려줄 S_Move 패킷 만들기
-                S_MovePacket moveRes = new S_MovePacket()
+                var moveRes = new SMove
                 {
                     PlayerId = session.SessionId,
                     X = moveReq.X,
@@ -38,113 +32,27 @@ namespace PlatformA.Game.Server.Packet
                     Z = moveReq.Z
                 };
 
-                // 📡 2. 패킷 조립 (헤더 4바이트 + 본문 16바이트 = 총 20바이트)
-                // 패킷 제너레이터로 패킷에 정의해둔 본문 크기 상수 활용
-                ushort resSize = (ushort)(4 + S_MovePacket.Size); // 헤더 4 + 본문 16
-                ushort resId = (ushort)PacketID.S_Move;
-
-                byte[] sendBuffer = new byte[resSize];
-                Span<byte> sendSpan = sendBuffer.AsSpan();
-
-                //BitConverter.TryWriteBytes(sendSpan.Slice(0, 2), resSize);
-                //BitConverter.TryWriteBytes(sendSpan.Slice(2, 2), resId);
-
-                // review : 엔디안 방식 명시적
-                BinaryPrimitives.WriteUInt16LittleEndian(sendSpan.Slice(0, 2), resSize);
-                BinaryPrimitives.WriteUInt16LittleEndian(sendSpan.Slice(2, 2), resId);
-
-                moveRes.Serialize(sendSpan.Slice(4)); // 본문 직렬화 (패킷 제너레이터 사용)
-
-                // 세션 매니저의 전체 접속된 모든유저 (통유저) 가 아닌 같은 게임룸의 대상 유저들에게만 브로드케스팅
-                room.Broadcast(sendBuffer);
-
-            }); // 🔥 2. 방의 큐에 이동 요청 처리 작업을 던집니다.
-
+                room.Broadcast(BuildResponsePacket(PacketID.S_Move, moveRes));
+            });
         }
-
-
 
         [PacketHandler((ushort)PacketID.C_EnterRoom)]
         public static void Handle_C_EnterRoom(GameSession session, ReadOnlySpan<byte> payload)
         {
-            // 인증 전 세션은 무시
             if (session.SessionId <= 0)
                 return;
 
-            C_EnterRoomPacket req = new C_EnterRoomPacket();
-            req.Deserialize(payload);
-
+            var req = CEnterRoom.Parser.ParseFrom(payload);
             ProcessEnterRoom(session, req.RoomId);
         }
 
-        // S_EnterRoom 패킷 조립 헬퍼
-        private static byte[] BuildS_EnterRoomPacket(int resultCode, int roomId)
-        {
-            ushort totalSize = (ushort)(4 + S_EnterRoomPacket.Size); // header(4) + body(8)
-            byte[] buffer = new byte[totalSize];
-            Span<byte> span = buffer.AsSpan();
-
-            //BitConverter.TryWriteBytes(span.Slice(0, 2), totalSize);
-            //BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.S_EnterRoom);
-
-            // review : 엔디안 방식 명시
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(0, 2), totalSize);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(2, 2), (ushort)PacketID.S_EnterRoom);
-
-            new S_EnterRoomPacket { ResultCode = resultCode, RoomId = roomId }.Serialize(span.Slice(4));
-            return buffer;
-        }
-
-        private static void ProcessEnterRoom(GameSession session, int roomId)
-        {
-            GameRoom newRoom = GameRoomManager.Instance.FindRoom(roomId);
-            if (newRoom == null)
-            {
-                Console.WriteLine($"[C_EnterRoom] 방({roomId})이 존재하지 않습니다. (User_{session.SessionId})");
-                _ = session.SendAsync(BuildS_EnterRoomPacket(S_EnterRoomPacket.ResultRoomNotFound, roomId));
-                return;
-            }
-
-            GameRoom currentRoom = session.Room;
-            if (currentRoom != null)
-            {
-                // 현재 방 큐에서 Leave 완료 후 새 방에 Enter
-                // (중첩 Push로 순서 보장: Leave → Enter)
-                currentRoom.Push(() =>
-                {
-                    currentRoom.Leave(session);
-                    newRoom.Push(() =>
-                    {
-                        newRoom.Enter(session);
-                        _ = session.SendAsync(BuildS_EnterRoomPacket(S_EnterRoomPacket.ResultSuccess, roomId));
-                    });
-                });
-            }
-            else
-            {
-                newRoom.Push(() =>
-                {
-                    newRoom.Enter(session);
-                    _ = session.SendAsync(BuildS_EnterRoomPacket(S_EnterRoomPacket.ResultSuccess, roomId));
-                });
-            }
-        }
-
-        // 로그인은 수동 제너레이팅 (문자열이라서)
-        // 🚀 1. 로그인 핸들러 추가
         [PacketHandler((ushort)PacketID.C_Login)]
         public static void Handle_C_LoginAsync(GameSession session, ReadOnlySpan<byte> payload)
         {
             try
             {
-                // 수동 역직렬화
-                C_LoginPacket loginReq = new C_LoginPacket();
-                loginReq.Deserialize(payload);
-
-                string token = loginReq.JwtToken; // 힙에 올라갈 수 있는 일반 string 변수로 추출!
-                int roomId = loginReq.RoomId;
-
-                _ = ProcessLoginAsync(session, token, roomId);
+                var loginReq = CLogin.Parser.ParseFrom(payload);
+                _ = ProcessLoginAsync(session, loginReq.JwtToken, loginReq.RoomId);
             }
             catch (Exception ex)
             {
@@ -153,22 +61,49 @@ namespace PlatformA.Game.Server.Packet
             }
         }
 
-        // S_Login 패킷 조립 헬퍼
-        private static byte[] BuildS_LoginPacket(int resultCode, int playerId)
+        private static void ProcessEnterRoom(GameSession session, int roomId)
         {
-            ushort totalSize = (ushort)(4 + S_LoginPacket.Size); // header(4) + body(8) = 12
-            byte[] buffer = new byte[totalSize];
-            Span<byte> span = buffer.AsSpan();
+            GameRoom newRoom = GameRoomManager.Instance.FindRoom(roomId);
+            if (newRoom == null)
+            {
+                Console.WriteLine($"[C_EnterRoom] 방({roomId})이 존재하지 않습니다. (User_{session.SessionId})");
+                _ = session.SendAsync(BuildResponsePacket(PacketID.S_EnterRoom, new SEnterRoom
+                {
+                    ResultCode = EnterRoomResultCode.EnterRoomNotFound,
+                    RoomId = roomId
+                }));
+                return;
+            }
 
-            //BitConverter.TryWriteBytes(span.Slice(0, 2), totalSize);
-            //BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.S_Login);
-
-            // review : 엔디안 방식 명시
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(0, 2), totalSize);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(2, 2), (ushort)PacketID.S_Login);
-
-            new S_LoginPacket { ResultCode = resultCode, PlayerId = playerId }.Serialize(span.Slice(4));
-            return buffer;
+            GameRoom currentRoom = session.Room;
+            if (currentRoom != null)
+            {
+                currentRoom.Push(() =>
+                {
+                    currentRoom.Leave(session);
+                    newRoom.Push(() =>
+                    {
+                        newRoom.Enter(session);
+                        _ = session.SendAsync(BuildResponsePacket(PacketID.S_EnterRoom, new SEnterRoom
+                        {
+                            ResultCode = EnterRoomResultCode.EnterRoomSuccess,
+                            RoomId = roomId
+                        }));
+                    });
+                });
+            }
+            else
+            {
+                newRoom.Push(() =>
+                {
+                    newRoom.Enter(session);
+                    _ = session.SendAsync(BuildResponsePacket(PacketID.S_EnterRoom, new SEnterRoom
+                    {
+                        ResultCode = EnterRoomResultCode.EnterRoomSuccess,
+                        RoomId = roomId
+                    }));
+                });
+            }
         }
 
         private static async Task ProcessLoginAsync(GameSession session, string jwtToken, int roomId)
@@ -178,18 +113,20 @@ namespace PlatformA.Game.Server.Packet
 
             try
             {
-                // 1. JWT 토큰 검증
                 int playerId = TokenManager.ValidateTokenAndGetUserId(jwtToken);
 
                 if (playerId <= 0)
                 {
                     Console.WriteLine($"[GameServer] JWT 토큰 인증 실패. 연결을 강제로 끊습니다.");
-                    await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultInvalidToken, 0));
+                    await session.SendAsync(BuildResponsePacket(PacketID.S_Login, new SLogin
+                    {
+                        ResultCode = LoginResultCode.LoginInvalidToken,
+                        PlayerId = 0
+                    }));
                     session.Disconnect();
                     return;
                 }
 
-                // 2. 대기열(Active) 문지기 검증
                 string activeKey = $"{Consts.ACTIVE_USER_KEY_PREFIX}{playerId}";
                 bool isActive;
                 try
@@ -199,7 +136,11 @@ namespace PlatformA.Game.Server.Packet
                 catch (BrokenCircuitException)
                 {
                     Console.WriteLine($"🚨 [Redis 장애] 회로차단기 OPEN — 입장권 검증 불가. 접속 거부 (User_{playerId})");
-                    await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultNotInQueue, 0));
+                    await session.SendAsync(BuildResponsePacket(PacketID.S_Login, new SLogin
+                    {
+                        ResultCode = LoginResultCode.LoginNotInQueue,
+                        PlayerId = 0
+                    }));
                     session.Disconnect();
                     return;
                 }
@@ -207,16 +148,18 @@ namespace PlatformA.Game.Server.Packet
                 if (!isActive)
                 {
                     Console.WriteLine($"🚨 [보안 경고] 대기열을 거치지 않은 불법 접속 시도! (User_{playerId})");
-                    await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultNotInQueue, 0));
+                    await session.SendAsync(BuildResponsePacket(PacketID.S_Login, new SLogin
+                    {
+                        ResultCode = LoginResultCode.LoginNotInQueue,
+                        PlayerId = 0
+                    }));
                     session.Disconnect();
                     return;
                 }
 
-                // 3. 입장권 회수
                 await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(activeKey));
                 Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
 
-                // 4. 중복 로그인 방어 (분산 락)
                 lockKey = $"player:login_lock:{playerId}";
                 lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
                     lockKey,
@@ -228,25 +171,31 @@ namespace PlatformA.Game.Server.Packet
                 if (lockValue == null)
                 {
                     Console.WriteLine($"[GameServer Warning] 중복 로그인 차단! ID ({playerId})는 이미 접속 중입니다.");
-                    await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultDuplicate, 0));
+                    await session.SendAsync(BuildResponsePacket(PacketID.S_Login, new SLogin
+                    {
+                        ResultCode = LoginResultCode.LoginDuplicate,
+                        PlayerId = 0
+                    }));
                     session.Disconnect();
                     return;
                 }
 
-                // 5. 방 찾기
                 int targetRoomId = roomId > 0 ? roomId : 1;
                 Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(targetRoomId);
 
                 if (room == null)
                 {
                     Console.WriteLine($"[GameServer Warning] 방({targetRoomId})이 아직 생성되지 않았습니다. (User_{playerId})");
-                    await session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultRoomNotFound, 0));
+                    await session.SendAsync(BuildResponsePacket(PacketID.S_Login, new SLogin
+                    {
+                        ResultCode = LoginResultCode.LoginRoomNotFound,
+                        PlayerId = 0
+                    }));
                     await RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, lockValue);
                     session.Disconnect();
                     return;
                 }
 
-                // 6. 로그인 성공 — 입장 후 S_Login 전송 (레이스 컨디션 방지)
                 session.LoginLockValue = lockValue;
                 session.SessionId = playerId;
                 Console.WriteLine($"[GameServer] 인증 성공! 정식 플레이어 승급: ID ({playerId})");
@@ -254,7 +203,11 @@ namespace PlatformA.Game.Server.Packet
                 room.Push(() =>
                 {
                     room.Enter(session);
-                    _ = session.SendAsync(BuildS_LoginPacket(S_LoginPacket.ResultSuccess, playerId));
+                    _ = session.SendAsync(BuildResponsePacket(PacketID.S_Login, new SLogin
+                    {
+                        ResultCode = LoginResultCode.LoginSuccess,
+                        PlayerId = playerId
+                    }));
                 });
             }
             catch (Exception ex)
@@ -262,12 +215,21 @@ namespace PlatformA.Game.Server.Packet
                 Console.WriteLine($"ProcessLoginAsync Error {ex.Message}");
 
                 if (lockValue != null)
-                {
                     await RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, lockValue);
-                }
 
                 session.Disconnect();
             }
+        }
+
+        private static byte[] BuildResponsePacket(PacketID id, IMessage message)
+        {
+            byte[] payload = message.ToByteArray();
+            ushort size = (ushort)(4 + payload.Length);
+            byte[] buf = new byte[size];
+            BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(0, 2), size);
+            BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(2, 2), (ushort)id);
+            payload.CopyTo(buf, 4);
+            return buf;
         }
     }
 }

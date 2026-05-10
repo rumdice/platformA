@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using System.Net.Sockets;
-using System.Text;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
 
@@ -100,16 +99,19 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return false;
 
                 int received = await recvTask;
-                if (received < 4 + S_LoginPacket.Size)
+                if (received < 4)
                     return false;
 
                 ushort respId = BitConverter.ToUInt16(recvBuf, 2);
                 if (respId != (ushort)PacketID.S_Login)
                     return false;
 
-                var pkt = new S_LoginPacket();
-                pkt.Deserialize(recvBuf.AsSpan(4, S_LoginPacket.Size));
-                return pkt.ResultCode == S_LoginPacket.ResultSuccess;
+                try
+                {
+                    var pkt = SLogin.Parser.ParseFrom(recvBuf, 4, received - 4);
+                    return pkt.ResultCode == LoginResultCode.LoginSuccess;
+                }
+                catch { return false; }
             }
             catch { return false; }
         }
@@ -123,7 +125,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await client.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                var loginTcs = new TaskCompletionSource<S_LoginPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var loginTcs = new TaskCompletionSource<SLogin>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _ = ReceiveLoopAsync(client, loginTcs);
 
                 await SendLoginPacketAsync(client, realToken, roomId: 1);
@@ -131,7 +133,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 cts.Token.Register(() => loginTcs.TrySetCanceled());
 
-                S_LoginPacket result;
+                SLogin result;
                 try
                 { result = await loginTcs.Task; }
                 catch (OperationCanceledException)
@@ -140,14 +142,14 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return;
                 }
 
-                if (result.ResultCode != S_LoginPacket.ResultSuccess)
+                if (result.ResultCode != LoginResultCode.LoginSuccess)
                 {
                     string reason = result.ResultCode switch
                     {
-                        S_LoginPacket.ResultInvalidToken => "JWT 토큰이 유효하지 않습니다.",
-                        S_LoginPacket.ResultNotInQueue => "대기열을 통과하지 않은 접속입니다.",
-                        S_LoginPacket.ResultDuplicate => "이미 다른 기기에서 접속 중입니다.",
-                        S_LoginPacket.ResultRoomNotFound => "입장할 방이 아직 준비되지 않았습니다.",
+                        LoginResultCode.LoginInvalidToken => "JWT 토큰이 유효하지 않습니다.",
+                        LoginResultCode.LoginNotInQueue => "대기열을 통과하지 않은 접속입니다.",
+                        LoginResultCode.LoginDuplicate => "이미 다른 기기에서 접속 중입니다.",
+                        LoginResultCode.LoginRoomNotFound => "입장할 방이 아직 준비되지 않았습니다.",
                         _ => $"알 수 없는 오류 (코드: {result.ResultCode})"
                     };
                     Console.WriteLine($"[GameServer] 로그인 실패: {reason}");
@@ -175,36 +177,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
         }
 
         static byte[] MakeMovePacket(float x, float y, float z)
-        {
-            ushort packetSize = 16;
-            ushort packetId = (ushort)PacketID.C_Move;
-            C_MovePacket movePacket = new C_MovePacket { X = x, Y = y, Z = z };
+            => PacketHelper.BuildPacket(PacketID.C_Move, new CMove { X = x, Y = y, Z = z });
 
-            byte[] sendBuffer = new byte[packetSize];
-            Span<byte> span = sendBuffer.AsSpan();
-            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-            movePacket.Serialize(span.Slice(4));
-            return sendBuffer;
-        }
-
-        // payload 포맷: 헤더(4) + roomId(4) + stringLen(2) + token(N)
         static byte[] MakeLoginPacket(string token, int roomId)
-        {
-            byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
-            ushort stringLen = (ushort)tokenBytes.Length;
-            ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-            ushort packetId = (ushort)PacketID.C_Login;
-
-            byte[] buffer = new byte[packetSize];
-            Span<byte> span = buffer.AsSpan();
-            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
-            BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
-            tokenBytes.CopyTo(span.Slice(10));
-            return buffer;
-        }
+            => PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = roomId, JwtToken = token });
 
         static async Task SendLoginPacketAsync(Socket client, string token, int roomId)
         {
@@ -217,10 +193,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
         {
             byte[] packet = MakeMovePacket(x, y, z);
             await client.SendAsync(packet, SocketFlags.None);
-            Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - 16 bytes");
+            Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - {packet.Length} bytes");
         }
 
-        static async Task ReceiveLoopAsync(Socket client, TaskCompletionSource<S_LoginPacket>? loginTcs = null)
+        static async Task ReceiveLoopAsync(Socket client, TaskCompletionSource<SLogin>? loginTcs = null)
         {
             byte[] buffer = new byte[1024];
             try
@@ -241,17 +217,21 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                         if (packetId == (ushort)PacketID.S_Move)
                         {
-                            int playerId = BitConverter.ToInt32(buffer, 4);
-                            float x = BitConverter.ToSingle(buffer, 8);
-                            float y = BitConverter.ToSingle(buffer, 12);
-                            float z = BitConverter.ToSingle(buffer, 16);
-                            Console.WriteLine($"\n  [Broadcast] 플레이어 {playerId} 이동 -> X:{x}, Y:{y}, Z:{z}");
+                            try
+                            {
+                                var move = SMove.Parser.ParseFrom(buffer, 4, received - 4);
+                                Console.WriteLine($"\n  [Broadcast] 플레이어 {move.PlayerId} 이동 -> X:{move.X}, Y:{move.Y}, Z:{move.Z}");
+                            }
+                            catch { }
                         }
-                        else if (packetId == (ushort)PacketID.S_Login && received >= 4 + S_LoginPacket.Size)
+                        else if (packetId == (ushort)PacketID.S_Login)
                         {
-                            var pkt = new S_LoginPacket();
-                            pkt.Deserialize(buffer.AsSpan(4, S_LoginPacket.Size));
-                            loginTcs?.TrySetResult(pkt);
+                            try
+                            {
+                                var pkt = SLogin.Parser.ParseFrom(buffer, 4, received - 4);
+                                loginTcs?.TrySetResult(pkt);
+                            }
+                            catch { loginTcs?.TrySetCanceled(); }
                         }
                     }
                 }

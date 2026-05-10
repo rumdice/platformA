@@ -1,4 +1,4 @@
-using System.Buffers.Binary;
+using Google.Protobuf;
 using PlatformA.Library.Packets;
 
 namespace PlatformA.Tests.Game.Server.Packets
@@ -6,54 +6,31 @@ namespace PlatformA.Tests.Game.Server.Packets
     public class EnterRoomPacketTests
     {
         [Fact]
-        public void CEnterRoomPacket_Deserialize_ExtractsRoomId()
+        public void CEnterRoom_RoundTrip_ExtractsRoomId()
         {
-            byte[] buf = new byte[C_EnterRoomPacket.Size];
-            BinaryPrimitives.WriteInt32LittleEndian(buf, 7);
+            var original = new CEnterRoom { RoomId = 7 };
+            var result = CEnterRoom.Parser.ParseFrom(original.ToByteArray());
 
-            var packet = new C_EnterRoomPacket();
-            packet.Deserialize(buf);
-
-            Assert.Equal(7, packet.RoomId);
+            Assert.Equal(7, result.RoomId);
         }
 
         [Fact]
-        public void CEnterRoomPacket_Deserialize_CorrectByteLength()
+        public void SEnterRoom_Success_RoundTrip()
         {
-            Assert.Equal(4, C_EnterRoomPacket.Size);
-        }
+            var original = new SEnterRoom { ResultCode = EnterRoomResultCode.EnterRoomSuccess, RoomId = 5 };
+            var result = SEnterRoom.Parser.ParseFrom(original.ToByteArray());
 
-        [Fact]
-        public void SEnterRoomPacket_Serialize_ProducesCorrectByteLength()
-        {
-            Assert.Equal(8, S_EnterRoomPacket.Size);
-        }
-
-        [Fact]
-        public void SEnterRoomPacket_ResultSuccess_RoomId_Preserved()
-        {
-            var packet = new S_EnterRoomPacket { ResultCode = S_EnterRoomPacket.ResultSuccess, RoomId = 5 };
-            byte[] buf = new byte[S_EnterRoomPacket.Size];
-            packet.Serialize(buf);
-
-            var result = new S_EnterRoomPacket();
-            result.Deserialize(buf);
-
-            Assert.Equal(S_EnterRoomPacket.ResultSuccess, result.ResultCode);
+            Assert.Equal(EnterRoomResultCode.EnterRoomSuccess, result.ResultCode);
             Assert.Equal(5, result.RoomId);
         }
 
         [Fact]
-        public void SEnterRoomPacket_ResultRoomNotFound_SerializesCorrectly()
+        public void SEnterRoom_NotFound_RoundTrip()
         {
-            var packet = new S_EnterRoomPacket { ResultCode = S_EnterRoomPacket.ResultRoomNotFound, RoomId = 0 };
-            byte[] buf = new byte[S_EnterRoomPacket.Size];
-            packet.Serialize(buf);
+            var original = new SEnterRoom { ResultCode = EnterRoomResultCode.EnterRoomNotFound, RoomId = 0 };
+            var result = SEnterRoom.Parser.ParseFrom(original.ToByteArray());
 
-            var result = new S_EnterRoomPacket();
-            result.Deserialize(buf);
-
-            Assert.Equal(S_EnterRoomPacket.ResultRoomNotFound, result.ResultCode);
+            Assert.Equal(EnterRoomResultCode.EnterRoomNotFound, result.ResultCode);
         }
 
         [Fact]

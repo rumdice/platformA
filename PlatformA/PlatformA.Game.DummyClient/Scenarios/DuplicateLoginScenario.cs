@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
-using System.Text;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
 
@@ -91,20 +90,23 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine($"  연결 #2 응답 코드 : {result2} ({GetResultName(result2)})");
             Console.WriteLine();
 
-            bool oneSuccess = result1 == S_LoginPacket.ResultSuccess || result2 == S_LoginPacket.ResultSuccess;
-            bool oneDuplicate = result1 == S_LoginPacket.ResultDuplicate || result2 == S_LoginPacket.ResultDuplicate;
+            int successCode = (int)LoginResultCode.LoginSuccess;
+            int duplicateCode = (int)LoginResultCode.LoginDuplicate;
+
+            bool oneSuccess = result1 == successCode || result2 == successCode;
+            bool oneDuplicate = result1 == duplicateCode || result2 == duplicateCode;
 
             // [Test A] 한 연결은 성공해야 한다
             PrintStep("Test A", "정상 연결 1개 성공 확인");
             if (oneSuccess)
-                Pass($"정상 접속 1개 성공 (ResultCode={S_LoginPacket.ResultSuccess})");
+                Pass($"정상 접속 1개 성공 (ResultCode={successCode})");
             else
                 Fail($"정상 성공 연결이 없습니다. 두 응답 코드: {result1}, {result2}");
 
             // [Test B] 나머지 한 연결은 중복 로그인으로 차단되어야 한다
             PrintStep("Test B", "중복 로그인 차단 확인 (ResultDuplicate=3)");
             if (oneDuplicate)
-                Pass($"중복 로그인 차단 동작 확인 (ResultCode={S_LoginPacket.ResultDuplicate})");
+                Pass($"중복 로그인 차단 동작 확인 (ResultCode={duplicateCode})");
             else
                 Fail($"중복 로그인이 차단되지 않았습니다! 두 응답 코드: {result1}, {result2}\n" +
                      "  → Redis 분산 락(player:login_lock) 설정을 확인하세요.");
@@ -136,18 +138,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                // C_Login 패킷 조립: header(4) + roomId(4) + stringLen(2) + token(N)
-                byte[] tokenBytes = Encoding.UTF8.GetBytes(jwtToken);
-                ushort stringLen = (ushort)tokenBytes.Length;
-                ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-                byte[] sendBuf = new byte[packetSize];
-                Span<byte> span = sendBuf.AsSpan();
-                BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-                BitConverter.TryWriteBytes(span.Slice(2, 2), (ushort)PacketID.C_Login);
-                BitConverter.TryWriteBytes(span.Slice(4, 4), 1);   // roomId = 1 (광장)
-                BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
-                tokenBytes.CopyTo(span.Slice(10));
-
+                byte[] sendBuf = PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = 1, JwtToken = jwtToken });
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
                 // S_Login 응답 수신 (최대 10초 대기)
@@ -161,23 +152,31 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 }
 
                 int received = await recvTask;
-                if (received < 12)
+                if (received < 4)
                 {
                     Console.WriteLine($"  [{connectionLabel}] 응답 크기 부족 ({received} bytes)");
                     return -1;
                 }
 
                 ushort respId = BitConverter.ToUInt16(recvBuf, 2);
-                int resultCode = BitConverter.ToInt32(recvBuf, 4);
-
                 if (respId != (ushort)PacketID.S_Login)
                 {
                     Console.WriteLine($"  [{connectionLabel}] 예상치 못한 패킷 ID: {respId}");
                     return -1;
                 }
 
-                Console.WriteLine($"  [{connectionLabel}] S_Login 수신 → ResultCode={resultCode} ({GetResultName(resultCode)})");
-                return resultCode;
+                try
+                {
+                    var pkt = SLogin.Parser.ParseFrom(recvBuf, 4, received - 4);
+                    int code = (int)pkt.ResultCode;
+                    Console.WriteLine($"  [{connectionLabel}] S_Login 수신 → ResultCode={code} ({GetResultName(code)})");
+                    return code;
+                }
+                catch
+                {
+                    Console.WriteLine($"  [{connectionLabel}] S_Login 파싱 실패");
+                    return -1;
+                }
             }
             catch (Exception ex)
             {
@@ -200,7 +199,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         $"{Consts.TICKET_API_URL}/api/queue/status",
                         timeout.Token);
 
-                    if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    if (resp.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         Console.WriteLine("  [401] Access Token 만료 → Refresh 시도...");
                         var newSession = await AuthHelper.TryRefreshAsync(http, session);
@@ -211,7 +210,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         continue;
                     }
 
-                    if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    if (resp.StatusCode == HttpStatusCode.NotFound)
                     {
                         await Task.Delay(2000, timeout.Token);
                         continue;
@@ -239,11 +238,11 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private static string GetResultName(int code) => code switch
         {
-            S_LoginPacket.ResultSuccess => "성공",
-            S_LoginPacket.ResultInvalidToken => "JWT 오류",
-            S_LoginPacket.ResultNotInQueue => "대기열 미통과",
-            S_LoginPacket.ResultDuplicate => "중복 로그인 차단",
-            S_LoginPacket.ResultRoomNotFound => "방 없음",
+            (int)LoginResultCode.LoginSuccess => "성공",
+            (int)LoginResultCode.LoginInvalidToken => "JWT 오류",
+            (int)LoginResultCode.LoginNotInQueue => "대기열 미통과",
+            (int)LoginResultCode.LoginDuplicate => "중복 로그인 차단",
+            (int)LoginResultCode.LoginRoomNotFound => "방 없음",
             -1 => "타임아웃/예외",
             _ => $"알 수 없음({code})"
         };
@@ -275,13 +274,5 @@ namespace PlatformA.Game.DummyClient.Scenarios
         }
 
         private static string Tail(string s) => s.Length >= 20 ? s[^20..] : s;
-
-        private class QueueStatusDto
-        {
-            public int UserId { get; set; }
-            public long Rank { get; set; }
-            public string Status { get; set; } = "";
-            public int NextPollDelay { get; set; }
-        }
     }
 }
