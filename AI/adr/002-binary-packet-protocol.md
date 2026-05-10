@@ -1,6 +1,6 @@
 # ADR-002: Game Server Binary 패킷 프로토콜 + Source Generator
 
-## 상태: 확정
+## 상태: 폐기 (Superseded by ADR-003 — 2026-05-11)
 
 ## 날짜: 2026-04-21
 

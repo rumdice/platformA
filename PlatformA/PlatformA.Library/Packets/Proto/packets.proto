@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+option csharp_namespace = "PlatformA.Library.Packets";
+
+enum LoginResultCode
+{
+    LOGIN_SUCCESS = 0;
+    LOGIN_INVALID_TOKEN = 1;
+    LOGIN_NOT_IN_QUEUE = 2;
+    LOGIN_DUPLICATE = 3;
+    LOGIN_ROOM_NOT_FOUND = 4;
+}
+
+enum EnterRoomResultCode
+{
+    ENTER_ROOM_SUCCESS = 0;
+    ENTER_ROOM_NOT_FOUND = 1;
+}
+
+// C_Move (PacketID = 1) — Client → Server: 이동 요청
+message CMove
+{
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+// S_Move (PacketID = 2) — Server → Client: 이동 브로드캐스트
+message SMove
+{
+    int32 player_id = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+}
+
+// C_Login (PacketID = 3) — Client → Server: 로그인 요청
+message CLogin
+{
+    int32 room_id = 1;
+    string jwt_token = 2;
+}
+
+// S_Login (PacketID = 4) — Server → Client: 로그인 결과
+message SLogin
+{
+    LoginResultCode result_code = 1;
+    int32 player_id = 2;
+}
+
+// C_EnterRoom (PacketID = 5) — Client → Server: 방 이동 요청
+message CEnterRoom
+{
+    int32 room_id = 1;
+}
+
+// S_EnterRoom (PacketID = 6) — Server → Client: 방 이동 결과
+message SEnterRoom
+{
+    EnterRoomResultCode result_code = 1;
+    int32 room_id = 2;
+}

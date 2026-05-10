@@ -79,7 +79,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             using Socket tcpClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             await tcpClient.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
             _ = ReceiveLoopAsync(tcpClient);
-            await SendLoginPacketAsync(tcpClient, session.AccessToken, roomId: 1);
+            await tcpClient.SendAsync(MakeLoginPacket(session.AccessToken, roomId: 1), SocketFlags.None);
             Console.WriteLine("게임 서버 로비에 성공적으로 입장했습니다!\n");
 
             // 5. [인터랙티브 조작] 매칭 시스템 연동
@@ -90,7 +90,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
         private static async Task HandleUserInputAsync(
             HttpClient httpClient, Socket tcpClient, TokenSession initialSession)
         {
-            // session을 로컬 변수로 유지 — 람다가 변수를 캡처하므로 갱신 시 SignalR에도 반영됨
             var session = initialSession;
             HubConnection? matchHub = null;
 
@@ -118,7 +117,6 @@ namespace PlatformA.Game.DummyClient.Scenarios
                             matchHub = new HubConnectionBuilder()
                                 .WithUrl(Consts.MATCH_HUB_URL, options =>
                                 {
-                                    // session 변수를 캡처 — 갱신 후에도 최신 AccessToken 사용
                                     options.AccessTokenProvider = () => Task.FromResult<string?>(session.AccessToken);
                                 })
                                 .Build();
@@ -128,14 +126,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                                 Console.WriteLine($"\n[매칭 성사!] 배정 방 번호: {matchInfo.RoomId}");
                                 Console.WriteLine($"함께할 유저들: {string.Join(", ", matchInfo.MatchedUserIds)}\n");
 
-                                byte[] enterPacket = MakeEnterRoomPacket(matchInfo.RoomId);
-                                await tcpClient.SendAsync(enterPacket, SocketFlags.None);
+                                await tcpClient.SendAsync(MakeEnterRoomPacket(matchInfo.RoomId), SocketFlags.None);
                             });
 
                             await matchHub.StartAsync();
                         }
 
-                        // 매칭 큐 등록
                         var matchRes = await httpClient.PostAsync(Consts.MATCH_API_URL, null);
                         if (matchRes.StatusCode == HttpStatusCode.Unauthorized)
                         {
@@ -182,40 +178,10 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // --- 헬퍼 함수 ---
 
         static byte[] MakeLoginPacket(string token, int roomId = 1)
-        {
-            byte[] tokenBytes = System.Text.Encoding.UTF8.GetBytes(token);
-            ushort stringLen = (ushort)tokenBytes.Length;
-            ushort packetSize = (ushort)(4 + 4 + 2 + stringLen);
-            ushort packetId = (ushort)PacketID.C_Login;
-
-            byte[] buffer = new byte[packetSize];
-            Span<byte> span = buffer.AsSpan();
-            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
-            BitConverter.TryWriteBytes(span.Slice(8, 2), stringLen);
-            tokenBytes.CopyTo(span.Slice(10));
-            return buffer;
-        }
+            => PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = roomId, JwtToken = token });
 
         static byte[] MakeEnterRoomPacket(int roomId)
-        {
-            ushort packetSize = (ushort)(4 + C_EnterRoomPacket.Size);
-            ushort packetId = (ushort)PacketID.C_EnterRoom;
-
-            byte[] buffer = new byte[packetSize];
-            Span<byte> span = buffer.AsSpan();
-            BitConverter.TryWriteBytes(span.Slice(0, 2), packetSize);
-            BitConverter.TryWriteBytes(span.Slice(2, 2), packetId);
-            BitConverter.TryWriteBytes(span.Slice(4, 4), roomId);
-            return buffer;
-        }
-
-        static async Task SendLoginPacketAsync(Socket client, string token, int roomId = 1)
-        {
-            byte[] packet = MakeLoginPacket(token, roomId);
-            await client.SendAsync(packet, SocketFlags.None);
-        }
+            => PacketHelper.BuildPacket(PacketID.C_EnterRoom, new CEnterRoom { RoomId = roomId });
 
         static async Task ReceiveLoopAsync(Socket client)
         {
@@ -232,27 +198,36 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
                     ushort packetId = BitConverter.ToUInt16(buffer, 2);
 
-                    if (packetId == (ushort)PacketID.S_Login && received >= 4 + S_LoginPacket.Size)
+                    if (packetId == (ushort)PacketID.S_Login)
                     {
-                        var resp = new S_LoginPacket();
-                        resp.Deserialize(buffer.AsSpan(4));
-                        Console.WriteLine(resp.ResultCode == S_LoginPacket.ResultSuccess
-                            ? $"[TCP 로그인 성공] PlayerId: {resp.PlayerId}"
-                            : $"[TCP 로그인 실패] ResultCode: {resp.ResultCode}");
+                        try
+                        {
+                            var resp = SLogin.Parser.ParseFrom(buffer, 4, received - 4);
+                            Console.WriteLine(resp.ResultCode == LoginResultCode.LoginSuccess
+                                ? $"[TCP 로그인 성공] PlayerId: {resp.PlayerId}"
+                                : $"[TCP 로그인 실패] ResultCode: {resp.ResultCode}");
+                        }
+                        catch { }
                     }
-                    else if (packetId == (ushort)PacketID.S_EnterRoom && received >= 4 + S_EnterRoomPacket.Size)
+                    else if (packetId == (ushort)PacketID.S_EnterRoom)
                     {
-                        var resp = new S_EnterRoomPacket();
-                        resp.Deserialize(buffer.AsSpan(4));
-                        Console.WriteLine(resp.ResultCode == S_EnterRoomPacket.ResultSuccess
-                            ? $"[방 이동 성공] {resp.RoomId}번 게임방에 입장했습니다!"
-                            : $"[방 이동 실패] ResultCode: {resp.ResultCode}");
+                        try
+                        {
+                            var resp = SEnterRoom.Parser.ParseFrom(buffer, 4, received - 4);
+                            Console.WriteLine(resp.ResultCode == EnterRoomResultCode.EnterRoomSuccess
+                                ? $"[방 이동 성공] {resp.RoomId}번 게임방에 입장했습니다!"
+                                : $"[방 이동 실패] ResultCode: {resp.ResultCode}");
+                        }
+                        catch { }
                     }
-                    else if (packetId == (ushort)PacketID.S_Move && received >= 4 + S_MovePacket.Size)
+                    else if (packetId == (ushort)PacketID.S_Move)
                     {
-                        var move = new S_MovePacket();
-                        move.Deserialize(buffer.AsSpan(4));
-                        Console.WriteLine($"[S_Move] Player {move.PlayerId} → ({move.X:F1}, {move.Y:F1}, {move.Z:F1})");
+                        try
+                        {
+                            var move = SMove.Parser.ParseFrom(buffer, 4, received - 4);
+                            Console.WriteLine($"[S_Move] Player {move.PlayerId} → ({move.X:F1}, {move.Y:F1}, {move.Z:F1})");
+                        }
+                        catch { }
                     }
                 }
             }
