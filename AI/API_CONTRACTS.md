@@ -206,12 +206,43 @@ Base URL: `http://localhost:5189/api/GameMatch`
 
 ---
 
+### DELETE /CancelMatch
+매칭 취소. 대기열에서 본인을 제거합니다.
+
+**인증 필요**: `Authorization: Bearer <token>`
+
+**Request:** Body 없음
+
+**Response 200:**
+```json
+{ "message": "매칭이 취소되었습니다." }
+```
+
+**Response 404:** 대기열에서 찾을 수 없는 경우
+
+---
+
+### GET /Status
+대기열 순위 조회. 본인의 순위와 전체 대기 인원을 반환합니다.
+
+**인증 필요**: `Authorization: Bearer <token>`
+
+**Response 200:**
+```json
+{ "rank": 3, "total": 10 }
+```
+
+**Response 404:** 대기열에 없는 경우
+
+---
+
 ### SignalR Hub: /hubs/matching
 매칭 결과 실시간 알림.
 
 | 이벤트 | 방향 | 데이터 |
 |--------|------|--------|
-| `MatchFound` | 서버→클라이언트 | `{ roomId, opponentId, gameServerIp, gameServerPort }` |
+| `MatchFound` | 서버→클라이언트 | `{ roomId, matchedUserIds }` |
+| `MatchTimeout` | 서버→클라이언트 | `{ message }` (120초 초과 시) |
 
 **CORS 허용 오리진:**
 - `http://127.0.0.1:5500`

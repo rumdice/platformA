@@ -70,5 +70,9 @@ namespace PlatformA.Library.Common
         public const string MATCH_API_URL = "http://localhost:5189/api/GameMatch/RequestMatch";
         public const string MATCH_HUB_URL = "http://localhost:5189/hubs/matching";
 
+        // Redis Sorted Set 기반 매칭 대기열 (score = 입장 시각 UnixMs, 타임아웃 추적 가능)
+        public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
+        public const int MATCH_TIMEOUT_SECONDS = 120; // 2분 초과 시 MatchTimeout 이벤트 push
+
     }
 }

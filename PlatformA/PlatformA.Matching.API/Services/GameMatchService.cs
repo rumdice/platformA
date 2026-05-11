@@ -21,7 +21,26 @@ namespace PlatformA.Matching.API.Services
         private readonly RedisManager _redisManager;
         private readonly ILogger<GameMatchService> _logger;
         private readonly IDbContextFactory<DbWebAppContext> _dbFactory;
-        private const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
+
+        // Lua: 타임아웃된 유저를 원자적으로 제거하고 반환
+        private const string TIMEOUT_CLEANUP_SCRIPT = @"
+local timedOut = redis.call('ZRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
+if #timedOut > 0 then
+    redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
+end
+return timedOut";
+
+        // Lua: 가장 오래 기다린 유저 2명을 원자적으로 pop
+        // ZPOPMIN은 [member, score, member, score, ...] 형식으로 반환
+        private const string POP_TWO_SCRIPT = @"
+local members = redis.call('ZPOPMIN', KEYS[1], 2)
+if #members < 4 then
+    if #members == 2 then
+        redis.call('ZADD', KEYS[1], members[2], members[1])
+    end
+    return {}
+end
+return {members[1], members[3]}";
 
         public GameMatchService(
             IHubContext<MatchingHub> hubContext,
@@ -35,12 +54,37 @@ namespace PlatformA.Matching.API.Services
             _dbFactory = dbFactory;
         }
 
-        /// <summary>매칭 큐에 유저를 추가합니다.</summary>
+        /// <summary>매칭 큐에 유저를 추가합니다. (Sorted Set, score = 입장 시각 UnixMs)</summary>
         public async Task AddPlayerToQueueAsync(int userId)
         {
             _logger.LogInformation("[Matching] 유저 큐 진입 — UserId: {UserId}", userId);
-            await _redisManager.ExecuteAsync(db => db.ListRightPushAsync(MATCH_QUEUE_KEY, userId));
+            double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            await _redisManager.ExecuteAsync(db =>
+                db.SortedSetAddAsync(Consts.MATCH_QUEUE_KEY, userId, score));
             _logger.LogInformation("[Matching] Redis 대기열 진입 완료 — UserId: {UserId}", userId);
+        }
+
+        /// <summary>매칭 대기열에서 유저를 제거합니다. true이면 실제로 제거됨.</summary>
+        public async Task<bool> RemovePlayerFromQueueAsync(int userId)
+        {
+            long removed = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetRemoveAsync(Consts.MATCH_QUEUE_KEY, userId));
+            return removed > 0;
+        }
+
+        /// <summary>유저의 대기열 순위를 반환합니다. 없으면 -1.</summary>
+        public async Task<long> GetQueueRankAsync(int userId)
+        {
+            long? rank = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetRankAsync(Consts.MATCH_QUEUE_KEY, userId));
+            return rank ?? -1;
+        }
+
+        /// <summary>현재 대기열 총 인원을 반환합니다.</summary>
+        public async Task<long> GetQueueLengthAsync()
+        {
+            return await _redisManager.ExecuteAsync(db =>
+                db.SortedSetLengthAsync(Consts.MATCH_QUEUE_KEY));
         }
 
         /// <summary>백그라운드 매칭 워커</summary>
@@ -50,35 +94,11 @@ namespace PlatformA.Matching.API.Services
             {
                 try
                 {
-                    long queueLength = await _redisManager.ExecuteAsync(
-                        db => db.ListLengthAsync(MATCH_QUEUE_KEY));
-
-                    if (queueLength >= 2)
-                    {
-                        var user1Val = await _redisManager.ExecuteAsync(
-                            db => db.ListLeftPopAsync(MATCH_QUEUE_KEY));
-                        var user2Val = await _redisManager.ExecuteAsync(
-                            db => db.ListLeftPopAsync(MATCH_QUEUE_KEY));
-
-                        if (user1Val.HasValue && user2Val.HasValue)
-                        {
-                            int player1Id = (int)user1Val;
-                            int player2Id = (int)user2Val;
-                            _ = ProcessMatchingAsync(player1Id, player2Id);
-                        }
-                        else
-                        {
-                            await Task.Delay(1000, stoppingToken);
-                        }
-                    }
-                    else
-                    {
-                        await Task.Delay(1000, stoppingToken);
-                    }
+                    await ProcessQueueAsync();
+                    await Task.Delay(200, stoppingToken);
                 }
                 catch (BrokenCircuitException)
                 {
-                    // 회로차단기 OPEN — Redis 회복 대기 (BreakDuration 60s)
                     _logger.LogWarning("[Matching] 회로차단기 OPEN — Redis 회복 대기 중 (5초 후 재시도)");
                     await Task.Delay(5000, stoppingToken);
                 }
@@ -91,6 +111,45 @@ namespace PlatformA.Matching.API.Services
                     _logger.LogError(ex, "[Matching] 매칭 처리 중 예외 발생");
                     await Task.Delay(2000, stoppingToken);
                 }
+            }
+        }
+
+        private async Task ProcessQueueAsync()
+        {
+            // 1. 타임아웃 유저 정리 (MATCH_TIMEOUT_SECONDS 초 초과 대기 유저)
+            double cutoff = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                - (Consts.MATCH_TIMEOUT_SECONDS * 1000L);
+
+            var timeoutResult = (RedisValue[])await _redisManager.ExecuteAsync(db =>
+                db.ScriptEvaluateAsync(
+                    TIMEOUT_CLEANUP_SCRIPT,
+                    new RedisKey[] { Consts.MATCH_QUEUE_KEY },
+                    new RedisValue[] { cutoff }));
+
+            foreach (var val in timeoutResult)
+            {
+                if (int.TryParse(val, out int timedOutId))
+                {
+                    _logger.LogInformation("[Matching] 매칭 타임아웃 — UserId: {UserId}", timedOutId);
+                    await _hubContext.Clients
+                        .Group($"User_{timedOutId}")
+                        .SendAsync("MatchTimeout", new { Message = "매칭 시간이 초과되었습니다." });
+                }
+            }
+
+            // 2. 유저 2명 원자 pop (Lua로 race condition 방지)
+            var popResult = (RedisValue[])await _redisManager.ExecuteAsync(db =>
+                db.ScriptEvaluateAsync(
+                    POP_TWO_SCRIPT,
+                    new RedisKey[] { Consts.MATCH_QUEUE_KEY }));
+
+            if (popResult.Length < 2)
+                return;
+
+            if (int.TryParse(popResult[0], out int player1Id) &&
+                int.TryParse(popResult[1], out int player2Id))
+            {
+                _ = ProcessMatchingAsync(player1Id, player2Id);
             }
         }
 
@@ -107,7 +166,6 @@ namespace PlatformA.Matching.API.Services
             _logger.LogInformation("[Matching] 매칭 성사 — 방: {RoomId}, Player1: {P1}, Player2: {P2}",
                 newRoomId, player1Id, player2Id);
 
-            // ── MatchRecord DB 기록 ────────────────────────────────
             await RecordMatchStartAsync(player1Id, player2Id);
 
             var matchEvent = new MatchSuccessEvent
@@ -125,10 +183,6 @@ namespace PlatformA.Matching.API.Services
             await _hubContext.Clients.Group($"User_{player2Id}").SendAsync("MatchFound", matchEvent);
         }
 
-        /// <summary>
-        /// 매칭 성사 시 match_records 테이블에 InProgress 상태로 기록합니다.
-        /// 실패해도 매칭 흐름을 중단하지 않습니다.
-        /// </summary>
         private async Task RecordMatchStartAsync(int player1Id, int player2Id)
         {
             try
