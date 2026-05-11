@@ -197,3 +197,15 @@
 - [x] `GameMatchController.cs` — `DELETE /CancelMatch`, `GET /Status` 엔드포인트 추가, `ExtractPlayerId` 헬퍼 추출
 - [x] `MatchingHub.cs` — 미사용 `EngineService` / `GameMatchService` 의존성 제거
 - [x] `AI/adr/006-matching-improvement.md` 작성
+
+---
+
+## 스프린트 #15 (2026-05-12 ~)
+**목표**: 시나리오 5 구현 — 1000명 매칭 시스템 부하 테스트
+
+### 완료
+
+- [x] `AuthHelper.cs` — `WaitUntilActiveAsync` 공통 헬퍼 추출 (SignalR + fallback 폴링 + 토큰 갱신)
+- [x] `LoginWaitScenario_1.cs` — 추출된 헬퍼 호출로 교체 (중복 코드 제거)
+- [x] `Scenarios/LoadTestMatchingScenario.cs` — 신규 생성 (매칭 등록, MatchFound 대기, P50/P95/P99 지연 통계)
+- [x] `Program.cs` — case "5" 연결
