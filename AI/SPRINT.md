@@ -183,3 +183,17 @@
 ### 완료
 
 - [x] 대기열 처리 속도 동적 스케일링 (QUEUE_BASE_RATE/QUEUE_MAX_RATE 환경 변수, CalculateEffectiveRate 비례 알고리즘)
+
+---
+
+## 스프린트 #14 (2026-05-11 ~)
+**목표**: 매칭 시스템 기능 개선 (취소, 타임아웃, 폴링 단축, 상태 API, Lua 원자 pop)
+
+### 완료
+
+- [x] `Consts.cs` — `MATCH_QUEUE_KEY`, `MATCH_TIMEOUT_SECONDS` 추가
+- [x] `GameMatchService.cs` — Redis List → Sorted Set 전환, 타임아웃 정리, Lua 원자 2-player pop, 폴링 1000ms → 200ms
+- [x] `GameMatchService.cs` — `RemovePlayerFromQueueAsync`, `GetQueueRankAsync`, `GetQueueLengthAsync` 추가
+- [x] `GameMatchController.cs` — `DELETE /CancelMatch`, `GET /Status` 엔드포인트 추가, `ExtractPlayerId` 헬퍼 추출
+- [x] `MatchingHub.cs` — 미사용 `EngineService` / `GameMatchService` 의존성 제거
+- [x] `AI/adr/006-matching-improvement.md` 작성
