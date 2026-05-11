@@ -145,6 +145,15 @@
 
 ---
 
+## 스프린트 #13 (2026-05-11 ~)
+**목표**: 대기열 처리 속도 동적 스케일링
+
+### 완료
+
+- [x] 대기열 처리 속도 동적 스케일링 (QUEUE_BASE_RATE/QUEUE_MAX_RATE 환경 변수, CalculateEffectiveRate 비례 알고리즘)
+
+---
+
 ## 스프린트 #12 (2026-05-11 ~)
 **목표**: TCP 프레이밍 Protobuf Envelope 전환 — packetId 헤더 제거 + DummyClient 단편화 수정
 
