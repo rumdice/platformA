@@ -148,9 +148,9 @@
 ## 스프린트 #12 (2026-05-11 ~)
 **목표**: TCP 프레이밍 Protobuf Envelope 전환 — packetId 헤더 제거 + DummyClient 단편화 수정
 
-### 진행 중
+### 완료
 
-- [ ] Protobuf Envelope 전환 (packets.proto Packet oneof, PacketManager PayloadOneofCase, GameSession/PacketHandler/DummyClient 전체 교체)
+- [x] Protobuf Envelope 전환 (packets.proto Packet oneof, PacketManager PayloadOneofCase, GameSession/PacketHandler/DummyClient 전체 교체)
 
 ---
 
