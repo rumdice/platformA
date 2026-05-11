@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
-using Microsoft.AspNetCore.SignalR.Client;
 using PlatformA.Library.Common;
 using PlatformA.Library.Packets;
 
@@ -177,92 +175,15 @@ namespace PlatformA.Game.DummyClient.Scenarios
             }
         }
 
-        // ── STEP 3: Active 대기 (SignalR push + fallback 폴링) ────
-        // 대기 중 401 수신 시 Refresh Token으로 자동 갱신 후 재시도합니다.
-        // 갱신된 session을 반환하여 이후 게임 서버 로그인에 최신 토큰이 사용됩니다.
+        // ── STEP 3: Active 대기 — AuthHelper.WaitUntilActiveAsync 위임 ──
 
         private static async Task<(bool activated, TokenSession session)> WaitUntilActiveAsync(
             HttpClient http, TokenSession session)
         {
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(300));
-
-            var hub = new HubConnectionBuilder()
-                .WithUrl($"{Consts.TICKET_API_URL}/hubs/queue", options =>
-                {
-                    options.AccessTokenProvider = () => Task.FromResult<string?>(session.AccessToken);
-                    options.HttpMessageHandlerFactory = _ =>
-                        new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, _, _, _) => true };
-                })
-                .Build();
-
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            hub.On("QueueActivated", () => tcs.TrySetResult(true));
-
-            bool signalRConnected = false;
-            try
-            {
-                await hub.StartAsync(timeout.Token);
-                signalRConnected = true;
-            }
-            catch { /* SignalR 연결 실패 → fallback 폴링으로 진행 */ }
-
-            try
-            {
-                while (!timeout.IsCancellationRequested)
-                {
-                    if (signalRConnected)
-                    {
-                        var pollDelay = Task.Delay(10_000, timeout.Token);
-                        var completed = await Task.WhenAny(tcs.Task, pollDelay);
-                        if (completed == tcs.Task)
-                            return (true, session);
-                    }
-
-                    var resp = await http.GetAsync(
-                        $"{Consts.TICKET_API_URL}/api/queue/status",
-                        timeout.Token);
-
-                    // 401: Access Token 만료 → Refresh Token으로 갱신
-                    if (resp.StatusCode == HttpStatusCode.Unauthorized)
-                    {
-                        var newSession = await AuthHelper.TryRefreshAsync(http, session);
-                        if (newSession == null)
-                            return (false, session); // 세션 완전 만료
-                        session = newSession;
-                        AuthHelper.ApplyToken(http, session);
-                        Interlocked.Increment(ref _tokenRefreshCount);
-                        continue;
-                    }
-
-                    if (resp.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        await Task.Delay(2000, timeout.Token);
-                        continue;
-                    }
-                    if (!resp.IsSuccessStatusCode)
-                        return (false, session);
-
-                    var data = await resp.Content.ReadFromJsonAsync<QueueStatusDto>(
-                        cancellationToken: timeout.Token);
-
-                    if (data?.Status == "Active")
-                        return (true, session);
-
-                    if (!signalRConnected)
-                    {
-                        int delay = data?.NextPollDelay ?? 3000;
-                        await Task.Delay(delay, timeout.Token);
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch { /* 연결 오류 */ }
-            finally
-            {
-                await hub.DisposeAsync();
-            }
-
-            return (false, session);
+            var (activated, updatedSession, refreshes) =
+                await AuthHelper.WaitUntilActiveAsync(http, session);
+            Interlocked.Add(ref _tokenRefreshCount, refreshes);
+            return (activated, updatedSession);
         }
 
         // ── 진행 상황 실시간 출력 ─────────────────────────────────

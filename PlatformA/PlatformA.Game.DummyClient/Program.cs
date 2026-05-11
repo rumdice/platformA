@@ -44,8 +44,7 @@ namespace PlatformA.Game.DummyClient
                         await LoginWaitScenario_1.RunAsync();
                         break;
                     case "5":
-                        Console.WriteLine("\n[경고] 준비중인 기능입니다.");
-                        await Task.Delay(500);
+                        await LoadTestMatchingScenario.RunAsync();
                         break;
                     case "6":
                         Console.WriteLine("\n[경고] 준비중인 기능입니다.");
