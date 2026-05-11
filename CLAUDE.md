@@ -151,10 +151,14 @@ dotnet test PlatformA.sln
 
 ## Plan 파일 정책
 
-Plan mode 진입 시 시스템이 제공하는 플랜 파일(`.claude/plans/*.md`)은 **항상 신규 작업 내용으로 완전히 교체**한다.
+Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear.md`)을 제안하더라도 **그 파일은 무시하고** 아래 규칙을 따른다.
 
-- **이전 플랜 내용 재사용 금지**: 파일에 이전 작업 내용이 남아 있어도 신규 태스크라면 전체를 새 내용으로 덮어쓴다.
-- **확인 방법**: Plan mode 진입 시 기존 파일을 읽고, 사용자의 현재 요청과 다른 태스크이면 파일 전체를 `Write`로 교체한다.
+1. **새 파일 생성**: `C:\Users\rumdi\.claude\plans\YYYY-MM-DD_PlanName.md` 형식으로 **항상 새 파일을 만든다**.
+   - `YYYY-MM-DD`: 오늘 날짜 (`date +%Y-%m-%d`)
+   - `PlanName`: 현재 작업을 PascalCase로 표현 (예: `CreateScenarioSkill`, `FixRedisBug`)
+2. **시스템 파일 동기화**: Plan mode가 시스템 제공 파일(`bright-*.md` 등)을 읽으므로, 동일 내용을 시스템 파일에도 `Write`로 저장한다. (두 파일 동일 내용)
+3. **이전 플랜 재사용 금지**: 같은 이름의 플랜 파일이 있어도 신규 태스크면 전체를 덮어쓴다.
+
 - **SPRINT.md 작성 순서**: 신규 스프린트는 **항상 파일 맨 끝에 추가**한다 (오래된 스프린트 위로 삽입 금지). 번호와 날짜는 항상 오름차순이어야 한다.
 
 ---
