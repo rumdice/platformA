@@ -209,3 +209,13 @@
 - [x] `LoginWaitScenario_1.cs` — 추출된 헬퍼 호출로 교체 (중복 코드 제거)
 - [x] `Scenarios/LoadTestMatchingScenario.cs` — 신규 생성 (매칭 등록, MatchFound 대기, P50/P95/P99 지연 통계)
 - [x] `Program.cs` — case "5" 연결
+
+---
+
+## 스프린트 #16 (2026-05-12 ~)
+**목표**: run-scenarios 스킬 작성 — 전체 DummyClient 시나리오 자동 실행
+
+### 완료
+
+- [x] `.claude/skills/run-scenarios/SKILL.md` — 신규 생성 (인프라 체크, 서버 자동 시작, stdin 파이핑, Redis 정리, 서버 종료, 콘솔 리포트)
+- [x] `Program.cs` — 시나리오 1 메뉴 레이블 `[시나리오 1]` 접두사 통일
