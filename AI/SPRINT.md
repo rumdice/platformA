@@ -145,21 +145,17 @@
 
 ---
 
-## 스프린트 #13 (2026-05-11 ~)
-**목표**: 대기열 처리 속도 동적 스케일링
+## 스프린트 #10 (2026-04-30 ~)
+**목표**: 코드 포맷팅 파이프라인 구축 — .editorconfig + CI/pre-push 강제 적용
 
 ### 완료
 
-- [x] 대기열 처리 속도 동적 스케일링 (QUEUE_BASE_RATE/QUEUE_MAX_RATE 환경 변수, CalculateEffectiveRate 비례 알고리즘)
-
----
-
-## 스프린트 #12 (2026-05-11 ~)
-**목표**: TCP 프레이밍 Protobuf Envelope 전환 — packetId 헤더 제거 + DummyClient 단편화 수정
-
-### 완료
-
-- [x] Protobuf Envelope 전환 (packets.proto Packet oneof, PacketManager PayloadOneofCase, GameSession/PacketHandler/DummyClient 전체 교체)
+- [x] `.editorconfig` 작성 — 블록 스코프 네임스페이스 통일, 4-space indent, Allman 중괄호
+- [x] `.gitattributes` 작성 — CRLF/LF 라인 엔딩 정규화
+- [x] `PlatformA/Directory.Build.props` 작성 — `EnforceCodeStyleInBuild=true`
+- [x] `dotnet format` 실행 — 파일 스코프 네임스페이스 12개 → 블록 스코프 변환, 전체 포맷 통일
+- [x] `.github/workflows/ci.yml` — Format check 단계 추가 (`dotnet format --verify-no-changes`)
+- [x] `.claude/hooks/pre-push-build-check.sh` — format check push 전 검증 추가
 
 ---
 
@@ -172,14 +168,18 @@
 
 ---
 
-## 스프린트 #10 (2026-04-30 ~)
-**목표**: 코드 포맷팅 파이프라인 구축 — .editorconfig + CI/pre-push 강제 적용
+## 스프린트 #12 (2026-05-11 ~)
+**목표**: TCP 프레이밍 Protobuf Envelope 전환 — packetId 헤더 제거 + DummyClient 단편화 수정
 
 ### 완료
 
-- [x] `.editorconfig` 작성 — 블록 스코프 네임스페이스 통일, 4-space indent, Allman 중괄호
-- [x] `.gitattributes` 작성 — CRLF/LF 라인 엔딩 정규화
-- [x] `PlatformA/Directory.Build.props` 작성 — `EnforceCodeStyleInBuild=true`
-- [x] `dotnet format` 실행 — 파일 스코프 네임스페이스 12개 → 블록 스코프 변환, 전체 포맷 통일
-- [x] `.github/workflows/ci.yml` — Format check 단계 추가 (`dotnet format --verify-no-changes`)
-- [x] `.claude/hooks/pre-push-build-check.sh` — format check push 전 검증 추가
+- [x] Protobuf Envelope 전환 (packets.proto Packet oneof, PacketManager PayloadOneofCase, GameSession/PacketHandler/DummyClient 전체 교체)
+
+---
+
+## 스프린트 #13 (2026-05-11 ~)
+**목표**: 대기열 처리 속도 동적 스케일링
+
+### 완료
+
+- [x] 대기열 처리 속도 동적 스케일링 (QUEUE_BASE_RATE/QUEUE_MAX_RATE 환경 변수, CalculateEffectiveRate 비례 알고리즘)
