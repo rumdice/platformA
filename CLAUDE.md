@@ -21,35 +21,33 @@
 
 ### 브랜치 네이밍 규칙
 ```
-YYYY-MM-DD_PlanName_N
+YYYY-MM-DD_PlanName
 
-예) 2026-04-30_AddVSCodeBuildEnv_1   ← 당일 1번째 작업
-    2026-04-30_ImproveWorkflow_2     ← 당일 2번째 작업 (PlanName 달라도 N=2)
-    2026-04-30_FixRedisBug_3         ← 당일 3번째 작업
+예) 2026-05-12_AddAuthTests
+    2026-05-12_FixRedisBug
 ```
-- `PlanName`: 사용자 설명에서 Claude가 PascalCase로 자동 생성
-- `N`: **당일 전체 원격 브랜치 수 + 1** (PlanName 무관 — 당일 통합 카운터)
+- `YYYY-MM-DD`: `/plan` 실행 시점의 **실제 오늘 날짜** (`date +%Y-%m-%d` 결과)
+- `PlanName`: 사용자 설명에서 Claude가 PascalCase로 자동 생성 (최대 30자)
+- 카운터 접미사(`_N`) 없음 — 같은 날 여러 작업은 PlanName으로 구분
 
 ### 표준 워크플로
 ```
-/plan 작업 설명    → PR 머지 확인 → main 최신화 → 브랜치 생성 → SPRINT.md 업데이트
+/plan 작업 설명    → main 이동 + pull → 브랜치 생성 → SPRINT.md 업데이트
   (작업 수행)
 /done              → 빌드 → 포맷 → 테스트 → push → 한글 PR 생성 → SPRINT 완료 체크
-  (GitHub에서 PR 머지)
+  (사용자가 GitHub에서 PR 머지)
 ```
 
 > **주의**: Plan mode(설계 승인)와 `/plan` 스킬(브랜치 생성)은 별개다.
 > Plan mode에서 승인 후 구현을 시작하기 전에 반드시 `/plan` 스킬을 실행하거나
 > 수동으로 작업 브랜치를 생성해야 한다.
 
-### /plan 사전 검사 규칙 (feature 브랜치에서 실행 시)
+### /plan 브랜치 결정 규칙
 
 | 현재 브랜치 PR 상태 | /plan 동작 |
 |---|---|
-| `main` 브랜치 | 즉시 진행 |
-| PR `MERGED` | ✅ 자동으로 `git checkout main && git pull` 후 진행 |
-| PR `OPEN` | ⚠️ **중단** — PR을 먼저 머지하거나 `git checkout main` 후 재실행 |
-| PR 없음 | ⚠️ **중단** — `/done` 으로 완료 처리 또는 `git checkout main` 후 재실행 |
+| PR `OPEN` (미머지) | 해당 브랜치에서 계속 작업 — main 이동 없음 |
+| 그 외 모든 경우 (main, PR MERGED, PR 없음) | `git checkout main && git pull` 후 새 브랜치 생성 |
 
 ---
 
