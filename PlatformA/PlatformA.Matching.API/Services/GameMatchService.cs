@@ -67,9 +67,8 @@ return {members[1], members[3]}";
         /// <summary>매칭 대기열에서 유저를 제거합니다. true이면 실제로 제거됨.</summary>
         public async Task<bool> RemovePlayerFromQueueAsync(int userId)
         {
-            long removed = await _redisManager.ExecuteAsync(db =>
+            return await _redisManager.ExecuteAsync(db =>
                 db.SortedSetRemoveAsync(Consts.MATCH_QUEUE_KEY, userId));
-            return removed > 0;
         }
 
         /// <summary>유저의 대기열 순위를 반환합니다. 없으면 -1.</summary>
