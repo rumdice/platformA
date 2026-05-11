@@ -12,7 +12,9 @@ namespace PlatformA.Ticketing.API.Workers
         private readonly IHubContext<QueueHub> _hubContext;
         private readonly ILogger<QueueWorkerService> _logger;
 
-        private const int USERS_PER_SECOND = 50;
+        private readonly int _baseRate = Consts.QUEUE_BASE_RATE;
+        private readonly int _maxRate = Consts.QUEUE_MAX_RATE;
+        private const int SCALE_THRESHOLD = 200; // 대기열 N명당 처리 속도 1단계 증가
         private const string WORKER_LEADER_LOCK = "lock:queue:worker:leader";
         private static readonly TimeSpan LOCK_EXPIRY = TimeSpan.FromSeconds(10);
         private static readonly TimeSpan LOCK_RENEW_INTERVAL = TimeSpan.FromSeconds(3);
@@ -26,7 +28,8 @@ namespace PlatformA.Ticketing.API.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("[QueueWorker] 티켓팅 문지기 워커 가동! (초당 입장: {Rate}명)", USERS_PER_SECOND);
+            _logger.LogInformation("[QueueWorker] 티켓팅 문지기 워커 가동! 기준: {Base}명/초, 최대: {Max}명/초",
+                _baseRate, _maxRate);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -67,6 +70,14 @@ namespace PlatformA.Ticketing.API.Workers
                     await Task.Delay(2000, stoppingToken);
                 }
             }
+        }
+
+        // 대기열 길이에 비례해 처리 속도를 조정합니다.
+        // effectiveRate = min(baseRate × (1 + queueLength / SCALE_THRESHOLD), maxRate)
+        private int CalculateEffectiveRate(long queueLength)
+        {
+            int multiplier = 1 + (int)(queueLength / SCALE_THRESHOLD);
+            return (int)Math.Min((long)_baseRate * multiplier, _maxRate);
         }
 
         private async Task RenewLockPeriodicallyAsync(string lockValue, CancellationToken ct)
@@ -118,9 +129,14 @@ return #ghosts";
             if (queueLength == 0)
                 return;
 
-            // 3. 앞에서 N명 pop → Active 키 발급
+            // 3. 앞에서 N명 pop → Active 키 발급 (대기열 길이에 따라 처리 속도 동적 조정)
+            int effectiveRate = CalculateEffectiveRate(queueLength);
+            if (effectiveRate != _baseRate)
+                _logger.LogInformation("[QueueWorker] 처리 속도 동적 조정: {Rate}명/초 (대기열 {QLen}명)",
+                    effectiveRate, queueLength);
+
             var poppedUsers = await _redisManager.ExecuteAsync(db =>
-                db.SortedSetPopAsync(Consts.QUEUE_KEY, USERS_PER_SECOND));
+                db.SortedSetPopAsync(Consts.QUEUE_KEY, effectiveRate));
 
 
             // REVIEW: 딥다이브 리뷰 2-2 개선 포인트. (대기열을 초당 50명이 아니라 1000명으로 늘어난다면?)

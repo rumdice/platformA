@@ -34,6 +34,15 @@ namespace PlatformA.Library.Common
 
         public const int WAIT_QUEUE_MAX_SIZE = 10000; // 대기열 최대 사이즈 (실무에서는 이 값도 DB 부하량에 따라 동적으로 바뀌어야 합니다.)
 
+        // 대기열 처리 속도: 환경 변수로 재배포 없이 조정 가능
+        // QUEUE_BASE_RATE: 평시 기준 속도 (기본 50명/초)
+        // QUEUE_MAX_RATE: 게임 서버가 견딜 수 있는 최대 속도 (기본 500명/초)
+        public static readonly int QUEUE_BASE_RATE =
+            int.TryParse(Environment.GetEnvironmentVariable("QUEUE_BASE_RATE"), out var qbr) ? qbr : 50;
+
+        public static readonly int QUEUE_MAX_RATE =
+            int.TryParse(Environment.GetEnvironmentVariable("QUEUE_MAX_RATE"), out var qmr) ? qmr : 500;
+
         // Active 유저 입장권 만료 시간: 이 시간 안에 게임 서버에 접속하지 않으면 입장권이 소멸됩니다.
         public const int ACTIVE_USER_TTL_SECONDS = 300; // 5분
 
