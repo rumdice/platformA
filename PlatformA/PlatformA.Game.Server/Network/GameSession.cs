@@ -1,10 +1,11 @@
 using System.Buffers;
-using System.Buffers.Binary;
 using System.Net;
+using Google.Protobuf;
 using PlatformA.Game.Server.Core;
 using PlatformA.Library.Core;
 using PlatformA.Library.Network;
 using PlatformA.Library.Packets;
+using ProtoPacket = PlatformA.Library.Packets.Packet;
 
 namespace PlatformA.Game.Server.Network
 {
@@ -42,24 +43,20 @@ namespace PlatformA.Game.Server.Network
         /// <param name="packet"></param>
         protected override void OnRecv(ReadOnlySequence<byte> packet)
         {
-            // ReadOnlySequence가 여러 조각으로 나뉘어 있을 수 있으니
-            // 안전하게 연속된 Span으로 뽑아냅니다. (보통 단일 패킷은 한 조각에 들어있음)
             ReadOnlySpan<byte> span = packet.IsSingleSegment ? packet.FirstSpan : packet.ToArray().AsSpan();
 
-            // 1. 헤더 파싱 (사이즈 2바이트 + 패킷 ID 2바이트)
-            // 사이즈는 이미 파이프라인에서 검증하고 잘라서 넘겨주었으니 건너뛰고, 패킷 ID만 읽습니다.
-            //ushort packetId = BitConverter.ToUInt16(span.Slice(2, 2));
-
-            // review : 엔디안 방식 명시하기.
-            ushort packetId = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(2));
-
-            // 본문 잘라내기 (파싱)
-            // 본문은 앞의 헤더(4바이트: 사이즈 2 + ID 2)를 제외한 부분
-            ReadOnlySpan<byte> payload = span.Slice(4);
-
-            // 2. 패킷 종류에 따른 라우팅
-            // 🔥 2. 거대한 switch-case 제거! PacketManager에게 처리를 맡깁니다.
-            PacketManager<GameSession>.Instance.HandlePacket(this, packetId, payload);
+            // size 2바이트 건너뛰고 Packet envelope 파싱 (offset 2부터 끝까지)
+            ReadOnlySpan<byte> envelopeBytes = span.Slice(2);
+            try
+            {
+                ProtoPacket envelope = ProtoPacket.Parser.ParseFrom(envelopeBytes);
+                PacketManager<GameSession>.Instance.HandlePacket(this, envelope);
+            }
+            catch (InvalidProtocolBufferException ex)
+            {
+                Console.WriteLine($"[OnRecv] 잘못된 패킷: {ex.Message}");
+                Disconnect();
+            }
         }
 
 

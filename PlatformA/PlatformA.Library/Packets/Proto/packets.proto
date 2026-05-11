@@ -60,3 +60,17 @@ message SEnterRoom
     EnterRoomResultCode result_code = 1;
     int32 room_id = 2;
 }
+
+// Packet — 모든 메시지를 감싸는 envelope. oneof field tag 가 packetId 역할을 대체한다.
+message Packet
+{
+    oneof payload
+    {
+        CMove      c_move       = 1;
+        SMove      s_move       = 2;
+        CLogin     c_login      = 3;
+        SLogin     s_login      = 4;
+        CEnterRoom c_enter_room = 5;
+        SEnterRoom s_enter_room = 6;
+    }
+}

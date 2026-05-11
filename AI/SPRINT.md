@@ -145,6 +145,15 @@
 
 ---
 
+## 스프린트 #12 (2026-05-11 ~)
+**목표**: TCP 프레이밍 Protobuf Envelope 전환 — packetId 헤더 제거 + DummyClient 단편화 수정
+
+### 완료
+
+- [x] Protobuf Envelope 전환 (packets.proto Packet oneof, PacketManager PayloadOneofCase, GameSession/PacketHandler/DummyClient 전체 교체)
+
+---
+
 ## 스프린트 #11 (2026-05-11 ~)
 **목표**: 패킷 직렬화 Google Protocol Buffers 교체 (Generator.Lib 제거)
 

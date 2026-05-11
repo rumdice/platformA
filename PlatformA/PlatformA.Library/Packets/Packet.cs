@@ -6,7 +6,7 @@ namespace PlatformA.Library.Packets
     //{
     //}
 
-    // TODO: 현재 이 패킷 구조체는 게임서버의 패킷 넘버링만을 의미함.
+    [Obsolete("Use Packet.PayloadOneofCase instead. PacketID will be removed in a future PR.")]
     public enum PacketID : ushort
     {
         C_Move = 1, // Client -> Server 이동 요청

@@ -391,26 +391,19 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                byte[] sendBuf = PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = 1, JwtToken = token });
+                byte[] sendBuf = PacketHelper.BuildPacket(new Packet { CLogin = new CLogin { RoomId = 1, JwtToken = token } });
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
-                byte[] recvBuf = new byte[64];
-                var recvTask = socket.ReceiveAsync(recvBuf, SocketFlags.None);
-                if (await Task.WhenAny(recvTask, Task.Delay(10_000)) != recvTask)
-                    return false;
-
-                int received = await recvTask;
-                if (received < 4)
-                    return false;
-
-                ushort respId = BitConverter.ToUInt16(recvBuf, 2);
-                if (respId != (ushort)PacketID.S_Login)
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                byte[]? frame = await PacketHelper.ReceiveFrameAsync(socket, cts.Token);
+                if (frame == null)
                     return false;
 
                 try
                 {
-                    var pkt = SLogin.Parser.ParseFrom(recvBuf, 4, received - 4);
-                    return pkt.ResultCode == LoginResultCode.LoginSuccess;
+                    Packet envelope = PacketHelper.ParseEnvelope(frame);
+                    return envelope.PayloadCase == Packet.PayloadOneofCase.SLogin
+                        && envelope.SLogin.ResultCode == LoginResultCode.LoginSuccess;
                 }
                 catch { return false; }
             }
