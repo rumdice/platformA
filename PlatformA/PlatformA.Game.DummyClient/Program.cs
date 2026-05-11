@@ -15,7 +15,7 @@ namespace PlatformA.Game.DummyClient
                 Console.WriteLine("==================================================");
                 Console.WriteLine("    🚀 Dummy Client Integrated Simulator");
                 Console.WriteLine("==================================================");
-                Console.WriteLine(" 1. 게임 서버 직접 접속 테스트 (C# TCP Socket)");
+                Console.WriteLine(" 1. [시나리오 1] 게임서버 직접 접속 테스트 (C# TCP Socket)");
                 Console.WriteLine(" 2. [시나리오 2] Front Page Util.API 테스트.");
                 Console.WriteLine(" 3. [시나리오 3] 한명의 유저가 로그인 후 매칭 신청. 2개 실행.");
                 Console.WriteLine(" 4. [시나리오 4] 1000명 로그인 + 대기열 통과 부하 테스트");
