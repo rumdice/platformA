@@ -178,57 +178,45 @@ namespace PlatformA.Game.DummyClient.Scenarios
         // --- 헬퍼 함수 ---
 
         static byte[] MakeLoginPacket(string token, int roomId = 1)
-            => PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = roomId, JwtToken = token });
+            => PacketHelper.BuildPacket(new Packet { CLogin = new CLogin { RoomId = roomId, JwtToken = token } });
 
         static byte[] MakeEnterRoomPacket(int roomId)
-            => PacketHelper.BuildPacket(PacketID.C_EnterRoom, new CEnterRoom { RoomId = roomId });
+            => PacketHelper.BuildPacket(new Packet { CEnterRoom = new CEnterRoom { RoomId = roomId } });
 
         static async Task ReceiveLoopAsync(Socket client)
         {
-            byte[] buffer = new byte[1024];
             try
             {
                 while (true)
                 {
-                    int received = await client.ReceiveAsync(buffer, SocketFlags.None);
-                    if (received == 0)
+                    byte[]? frame = await PacketHelper.ReceiveFrameAsync(client);
+                    if (frame == null)
                         break;
-                    if (received < 4)
-                        continue;
 
-                    ushort packetId = BitConverter.ToUInt16(buffer, 2);
-
-                    if (packetId == (ushort)PacketID.S_Login)
+                    try
                     {
-                        try
+                        Packet envelope = PacketHelper.ParseEnvelope(frame);
+                        switch (envelope.PayloadCase)
                         {
-                            var resp = SLogin.Parser.ParseFrom(buffer, 4, received - 4);
-                            Console.WriteLine(resp.ResultCode == LoginResultCode.LoginSuccess
-                                ? $"[TCP 로그인 성공] PlayerId: {resp.PlayerId}"
-                                : $"[TCP 로그인 실패] ResultCode: {resp.ResultCode}");
+                            case Packet.PayloadOneofCase.SLogin:
+                                SLogin resp = envelope.SLogin;
+                                Console.WriteLine(resp.ResultCode == LoginResultCode.LoginSuccess
+                                    ? $"[TCP 로그인 성공] PlayerId: {resp.PlayerId}"
+                                    : $"[TCP 로그인 실패] ResultCode: {resp.ResultCode}");
+                                break;
+                            case Packet.PayloadOneofCase.SEnterRoom:
+                                SEnterRoom enterResp = envelope.SEnterRoom;
+                                Console.WriteLine(enterResp.ResultCode == EnterRoomResultCode.EnterRoomSuccess
+                                    ? $"[방 이동 성공] {enterResp.RoomId}번 게임방에 입장했습니다!"
+                                    : $"[방 이동 실패] ResultCode: {enterResp.ResultCode}");
+                                break;
+                            case Packet.PayloadOneofCase.SMove:
+                                SMove move = envelope.SMove;
+                                Console.WriteLine($"[S_Move] Player {move.PlayerId} → ({move.X:F1}, {move.Y:F1}, {move.Z:F1})");
+                                break;
                         }
-                        catch { }
                     }
-                    else if (packetId == (ushort)PacketID.S_EnterRoom)
-                    {
-                        try
-                        {
-                            var resp = SEnterRoom.Parser.ParseFrom(buffer, 4, received - 4);
-                            Console.WriteLine(resp.ResultCode == EnterRoomResultCode.EnterRoomSuccess
-                                ? $"[방 이동 성공] {resp.RoomId}번 게임방에 입장했습니다!"
-                                : $"[방 이동 실패] ResultCode: {resp.ResultCode}");
-                        }
-                        catch { }
-                    }
-                    else if (packetId == (ushort)PacketID.S_Move)
-                    {
-                        try
-                        {
-                            var move = SMove.Parser.ParseFrom(buffer, 4, received - 4);
-                            Console.WriteLine($"[S_Move] Player {move.PlayerId} → ({move.X:F1}, {move.Y:F1}, {move.Z:F1})");
-                        }
-                        catch { }
-                    }
+                    catch { }
                 }
             }
             catch { /* 정상 종료 무시 */ }

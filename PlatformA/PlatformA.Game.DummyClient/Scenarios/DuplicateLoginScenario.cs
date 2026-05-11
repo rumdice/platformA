@@ -138,37 +138,26 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                byte[] sendBuf = PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = 1, JwtToken = jwtToken });
+                byte[] sendBuf = PacketHelper.BuildPacket(new Packet { CLogin = new CLogin { RoomId = 1, JwtToken = jwtToken } });
                 await socket.SendAsync(sendBuf, SocketFlags.None);
 
-                // S_Login 응답 수신 (최대 10초 대기)
-                byte[] recvBuf = new byte[64];
-                var recvTask = socket.ReceiveAsync(recvBuf, SocketFlags.None);
-                var timeoutTask = Task.Delay(10_000);
-                if (await Task.WhenAny(recvTask, timeoutTask) == timeoutTask)
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                byte[]? frame = await PacketHelper.ReceiveFrameAsync(socket, cts.Token);
+                if (frame == null)
                 {
-                    Console.WriteLine($"  [{connectionLabel}] 응답 타임아웃");
-                    return -1;
-                }
-
-                int received = await recvTask;
-                if (received < 4)
-                {
-                    Console.WriteLine($"  [{connectionLabel}] 응답 크기 부족 ({received} bytes)");
-                    return -1;
-                }
-
-                ushort respId = BitConverter.ToUInt16(recvBuf, 2);
-                if (respId != (ushort)PacketID.S_Login)
-                {
-                    Console.WriteLine($"  [{connectionLabel}] 예상치 못한 패킷 ID: {respId}");
+                    Console.WriteLine($"  [{connectionLabel}] 응답 타임아웃 또는 연결 끊김");
                     return -1;
                 }
 
                 try
                 {
-                    var pkt = SLogin.Parser.ParseFrom(recvBuf, 4, received - 4);
-                    int code = (int)pkt.ResultCode;
+                    Packet envelope = PacketHelper.ParseEnvelope(frame);
+                    if (envelope.PayloadCase != Packet.PayloadOneofCase.SLogin)
+                    {
+                        Console.WriteLine($"  [{connectionLabel}] 예상치 못한 패킷: {envelope.PayloadCase}");
+                        return -1;
+                    }
+                    int code = (int)envelope.SLogin.ResultCode;
                     Console.WriteLine($"  [{connectionLabel}] S_Login 수신 → ResultCode={code} ({GetResultName(code)})");
                     return code;
                 }

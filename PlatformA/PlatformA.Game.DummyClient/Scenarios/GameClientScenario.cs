@@ -90,26 +90,19 @@ namespace PlatformA.Game.DummyClient.Scenarios
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
 
-                byte[] packet = MakeLoginPacket(token, roomId);
+                byte[] packet = PacketHelper.BuildPacket(new Packet { CLogin = new CLogin { RoomId = roomId, JwtToken = token } });
                 await socket.SendAsync(packet, SocketFlags.None);
 
-                byte[] recvBuf = new byte[64];
-                var recvTask = socket.ReceiveAsync(recvBuf, SocketFlags.None);
-                if (await Task.WhenAny(recvTask, Task.Delay(10_000)) != recvTask)
-                    return false;
-
-                int received = await recvTask;
-                if (received < 4)
-                    return false;
-
-                ushort respId = BitConverter.ToUInt16(recvBuf, 2);
-                if (respId != (ushort)PacketID.S_Login)
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                byte[]? frame = await PacketHelper.ReceiveFrameAsync(socket, cts.Token);
+                if (frame == null)
                     return false;
 
                 try
                 {
-                    var pkt = SLogin.Parser.ParseFrom(recvBuf, 4, received - 4);
-                    return pkt.ResultCode == LoginResultCode.LoginSuccess;
+                    Packet envelope = PacketHelper.ParseEnvelope(frame);
+                    return envelope.PayloadCase == Packet.PayloadOneofCase.SLogin
+                        && envelope.SLogin.ResultCode == LoginResultCode.LoginSuccess;
                 }
                 catch { return false; }
             }
@@ -128,7 +121,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 var loginTcs = new TaskCompletionSource<SLogin>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _ = ReceiveLoopAsync(client, loginTcs);
 
-                await SendLoginPacketAsync(client, realToken, roomId: 1);
+                byte[] loginPacket = PacketHelper.BuildPacket(new Packet
+                {
+                    CLogin = new CLogin { RoomId = 1, JwtToken = realToken },
+                });
+                await client.SendAsync(loginPacket, SocketFlags.None);
+                Console.WriteLine($"[Send] C_Login (RoomId:1) - {loginPacket.Length} bytes");
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 cts.Token.Register(() => loginTcs.TrySetCanceled());
@@ -167,7 +165,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                         break;
                     float x = rand.Next(-50, 50);
                     float y = rand.Next(-50, 50);
-                    await SendMovePacketAsync(client, x, y, 0f);
+                    byte[] movePacket = PacketHelper.BuildPacket(new Packet
+                    {
+                        CMove = new CMove { X = x, Y = y, Z = 0f },
+                    });
+                    await client.SendAsync(movePacket, SocketFlags.None);
+                    Console.WriteLine($"[Send] C_Move ({x}, {y}, 0) - {movePacket.Length} bytes");
                 }
             }
             catch (Exception ex)
@@ -176,64 +179,35 @@ namespace PlatformA.Game.DummyClient.Scenarios
             }
         }
 
-        static byte[] MakeMovePacket(float x, float y, float z)
-            => PacketHelper.BuildPacket(PacketID.C_Move, new CMove { X = x, Y = y, Z = z });
-
-        static byte[] MakeLoginPacket(string token, int roomId)
-            => PacketHelper.BuildPacket(PacketID.C_Login, new CLogin { RoomId = roomId, JwtToken = token });
-
-        static async Task SendLoginPacketAsync(Socket client, string token, int roomId)
-        {
-            byte[] packet = MakeLoginPacket(token, roomId);
-            await client.SendAsync(packet, SocketFlags.None);
-            Console.WriteLine($"[Send] C_Login (RoomId:{roomId}) - {packet.Length} bytes");
-        }
-
-        static async Task SendMovePacketAsync(Socket client, float x, float y, float z)
-        {
-            byte[] packet = MakeMovePacket(x, y, z);
-            await client.SendAsync(packet, SocketFlags.None);
-            Console.WriteLine($"[Send] C_Move ({x}, {y}, {z}) - {packet.Length} bytes");
-        }
-
         static async Task ReceiveLoopAsync(Socket client, TaskCompletionSource<SLogin>? loginTcs = null)
         {
-            byte[] buffer = new byte[1024];
             try
             {
                 while (true)
                 {
-                    int received = await client.ReceiveAsync(buffer, SocketFlags.None);
-                    if (received == 0)
+                    byte[]? frame = await PacketHelper.ReceiveFrameAsync(client);
+                    if (frame == null)
                     {
                         Console.WriteLine("서버와 연결이 끊어졌습니다.");
                         loginTcs?.TrySetCanceled();
                         break;
                     }
 
-                    if (received >= 4)
+                    try
                     {
-                        ushort packetId = BitConverter.ToUInt16(buffer, 2);
-
-                        if (packetId == (ushort)PacketID.S_Move)
+                        Packet envelope = PacketHelper.ParseEnvelope(frame);
+                        switch (envelope.PayloadCase)
                         {
-                            try
-                            {
-                                var move = SMove.Parser.ParseFrom(buffer, 4, received - 4);
+                            case Packet.PayloadOneofCase.SMove:
+                                SMove move = envelope.SMove;
                                 Console.WriteLine($"\n  [Broadcast] 플레이어 {move.PlayerId} 이동 -> X:{move.X}, Y:{move.Y}, Z:{move.Z}");
-                            }
-                            catch { }
-                        }
-                        else if (packetId == (ushort)PacketID.S_Login)
-                        {
-                            try
-                            {
-                                var pkt = SLogin.Parser.ParseFrom(buffer, 4, received - 4);
-                                loginTcs?.TrySetResult(pkt);
-                            }
-                            catch { loginTcs?.TrySetCanceled(); }
+                                break;
+                            case Packet.PayloadOneofCase.SLogin:
+                                loginTcs?.TrySetResult(envelope.SLogin);
+                                break;
                         }
                     }
+                    catch { loginTcs?.TrySetCanceled(); }
                 }
             }
             catch (Exception ex)
