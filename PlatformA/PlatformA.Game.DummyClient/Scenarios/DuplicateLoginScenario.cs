@@ -76,8 +76,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
             Console.WriteLine("  두 연결을 동시에 발사합니다...");
             Console.WriteLine();
 
-            var task1 = ConnectAndLoginAsync(finalSession.AccessToken, connectionLabel: "연결 #1");
-            var task2 = ConnectAndLoginAsync(finalSession.AccessToken, connectionLabel: "연결 #2");
+            // 소켓을 RunAsync에서 소유: 두 응답을 모두 받을 때까지 연결 #1을 닫지 않아야
+            // 서버의 Redis 락이 유지되어 연결 #2가 LoginDuplicate를 정상 수신한다.
+            using var socket1 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using var socket2 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            var task1 = ConnectAndLoginAsync(socket1, finalSession.AccessToken, connectionLabel: "연결 #1");
+            var task2 = ConnectAndLoginAsync(socket2, finalSession.AccessToken, connectionLabel: "연결 #2");
 
             int[] results = await Task.WhenAll(task1, task2);
             int result1 = results[0];
@@ -131,9 +136,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         // ── 게임 서버 TCP 연결 + 로그인 응답 수신 ────────────────────
 
-        private static async Task<int> ConnectAndLoginAsync(string jwtToken, string connectionLabel)
+        private static async Task<int> ConnectAndLoginAsync(Socket socket, string jwtToken, string connectionLabel)
         {
-            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
                 await socket.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
