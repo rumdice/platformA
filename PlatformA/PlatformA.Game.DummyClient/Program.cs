@@ -11,7 +11,7 @@ namespace PlatformA.Game.DummyClient
 
             while (true)
             {
-                Console.Clear();
+                try { Console.Clear(); } catch { }
                 Console.WriteLine("==================================================");
                 Console.WriteLine("    🚀 Dummy Client Integrated Simulator");
                 Console.WriteLine("==================================================");

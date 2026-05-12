@@ -17,7 +17,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
     {
         public static async Task RunAsync()
         {
-            Console.Clear();
+            try { Console.Clear(); } catch { }
             PrintHeader();
 
             using var http = new HttpClient();

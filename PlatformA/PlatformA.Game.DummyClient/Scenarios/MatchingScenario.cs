@@ -11,7 +11,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
     {
         public static async Task RunAsync()
         {
-            Console.Clear();
+            try { Console.Clear(); } catch { }
             Console.WriteLine("==================================================");
             Console.WriteLine("   PlatformA 인터랙티브 게임 클라이언트");
             Console.WriteLine("==================================================\n");

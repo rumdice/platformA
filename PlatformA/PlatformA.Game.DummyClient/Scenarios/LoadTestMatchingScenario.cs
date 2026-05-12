@@ -47,7 +47,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         public static async Task RunAsync()
         {
-            Console.Clear();
+            try { Console.Clear(); } catch { }
             PrintHeader();
             ResetCounters();
 

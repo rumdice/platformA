@@ -16,7 +16,12 @@
       "PowerShell(& \"$env:LOCALAPPDATA\\\\Microsoft\\\\OneDrive\\\\OneDrive.exe\" /pause)",
       "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
       "PowerShell(winget install GitHub.cli --accept-package-agreements --accept-source-agreements)",
-      "PowerShell(gh auth status 2>&1)"
+      "PowerShell(gh auth status 2>&1)",
+      "Read(//tmp/**)",
+      "Bash(grep -E \"708[0-9]|707[0-9]|518[0-9]|777[0-9]\" echo \"---\")",
+      "Bash(grep -v grep echo \"---\")",
+      "Bash(echo \"빌드 종료 코드: $?\")",
+      "Bash(echo \"빌드 종료: $?\")"
     ]
   }
 }
