@@ -1,0 +1,31 @@
+version: '3.8'
+
+# MariaDB 11.6.x — 로컬 개발 환경
+#
+# 시작:  docker-compose up -d
+# 종료:  docker-compose down
+# 완전 초기화 (데이터 삭제): docker-compose down -v
+#
+# 접속 정보:
+#   Host    : localhost
+#   Port    : 3306
+#   Root PW : pass1234
+#
+# 데이터는 Docker Named Volume(mariadb_data)에 보존됩니다.
+# 컨테이너를 재시작해도 데이터가 유지됩니다.
+
+services:
+  mariadb:
+    image: mariadb:latest           # 실행 중 버전: 11.6.2
+    container_name: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: pass1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: always                 # Docker 재시작 시 항상 자동 기동
+
+volumes:
+  mariadb_data:
+    driver: local
