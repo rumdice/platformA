@@ -156,7 +156,7 @@ Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear
 1. **새 파일 생성**: `C:\Users\rumdi\.claude\plans\YYYY-MM-DD_PlanName.md` 형식으로 **항상 새 파일을 만든다**.
    - `YYYY-MM-DD`: 오늘 날짜 (`date +%Y-%m-%d`)
    - `PlanName`: 현재 작업을 PascalCase로 표현 (예: `CreateScenarioSkill`, `FixRedisBug`)
-2. **시스템 파일 동기화**: Plan mode가 시스템 제공 파일(`bright-*.md` 등)을 읽으므로, 동일 내용을 시스템 파일에도 `Write`로 저장한다. (두 파일 동일 내용)
+2. **시스템 제공 파일(`bright-*.md` 등)은 절대 덮어쓰지 않는다.** 해당 파일은 무시한다.
 3. **이전 플랜 재사용 금지**: 같은 이름의 플랜 파일이 있어도 신규 태스크면 전체를 덮어쓴다.
 
 - **SPRINT.md 작성 순서**: 신규 스프린트는 **항상 파일 맨 끝에 추가**한다 (오래된 스프린트 위로 삽입 금지). 번호와 날짜는 항상 오름차순이어야 한다.
