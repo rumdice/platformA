@@ -72,8 +72,11 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://127.0.0.1:5500",
+                "https://127.0.0.1:5500",
                 "http://localhost:5500",
-                "http://localhost:8080")
+                "https://localhost:5500",
+                "http://localhost:8080",
+                "https://localhost:8080")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -99,6 +102,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHttpsRedirection();
 app.UseCors("AllowLevel1");
 app.UseStaticFiles();
 app.MapControllers();

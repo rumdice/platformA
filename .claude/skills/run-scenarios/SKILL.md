@@ -1,6 +1,6 @@
 ---
 name: run-scenarios
-description: 시나리오 6(미구현)을 제외한 모든 DummyClient 시나리오(1~5, 7, 8)를 자동으로 실행한다. 인프라 체크 → 서버 자동 시작 → stdin 파이핑 실행 → Redis 정리 → 서버 종료 → 콘솔 리포트 순서로 진행한다.
+description: 시나리오 6(미구현)을 제외한 모든 DummyClient 시나리오(1~5, 7, 8)를 자동으로 실행한다. 인프라 체크 → 기존 서버 강제 종료 → 서버 자동 시작 → stdin 파이핑 실행 → Redis 정리 → 서버 종료 → 콘솔 리포트 순서로 진행한다.
 allowed-tools: Bash(docker *) Bash(dotnet *) Bash(curl *) Bash(printf *) Bash(timeout *) Bash(kill *) Bash(powershell *) Read
 ---
 
@@ -21,7 +21,6 @@ AUTH_DIR="$SLN/PlatformA.Auth.API"
 TICKET_DIR="$SLN/PlatformA.Ticketing.API"
 MATCH_DIR="$SLN/PlatformA.Matching.API"
 GAME_DIR="$SLN/PlatformA.Game.Server"
-STARTED_PIDS=""
 ```
 
 ---
@@ -50,10 +49,42 @@ DB_OK=$(powershell -c "try { \$c=New-Object Net.Sockets.TcpClient('localhost',33
 echo "[확인] MariaDB 정상"
 ```
 
-### 2단계: .NET 서버 자동 시작
+### 2단계: 기존 서버 강제 종료
+
+시나리오 실행 전 클린 상태를 보장하기 위해 이미 실행 중인 서버 프로세스를 강제 종료한다.
+
+```bash
+kill_if_running() {
+  local NAME="$1"
+  local PORT="$2"
+  local PID
+  PID=$(powershell -c "
+    \$conn = Get-NetTCPConnection -LocalPort $PORT -State Listen -ErrorAction SilentlyContinue
+    if (\$conn) { \$conn.OwningProcess } else { '' }
+  " 2>/dev/null | tr -d '\r\n ')
+  if [ -n "$PID" ]; then
+    echo "[강제 종료] $NAME (PORT=$PORT, PID=$PID) 종료 중..."
+    powershell -c "Stop-Process -Id $PID -Force -ErrorAction SilentlyContinue" 2>/dev/null
+    echo "  [완료] PID=$PID 종료됨"
+  else
+    echo "[확인] $NAME (PORT=$PORT) 실행 중이지 않음"
+  fi
+}
+
+kill_if_running "Auth.API"      7088
+kill_if_running "Ticketing.API" 7075
+kill_if_running "Matching.API"  7007
+kill_if_running "Game.Server"   7777
+
+# 포트가 완전히 해제될 때까지 대기
+sleep 2
+echo "[완료] 기존 서버 정리 완료"
+```
+
+### 3단계: .NET 서버 자동 시작
 
 각 서버를 HTTP/TCP 포트로 체크하고, 응답이 없으면 배경 실행 후 최대 30초 대기한다.
-이미 실행 중이면 시작을 건너뛴다. **자동 시작한 서버만** 종료 단계에서 정리한다.
+이미 실행 중이면 시작을 건너뛴다. 종료는 7단계에서 포트 기반으로 일괄 처리한다.
 
 ```bash
 # HTTP 서버 체크 헬퍼 (HTTPS 포함, 인증서 무시)
@@ -66,16 +97,15 @@ check_tcp() {
   powershell -c "try { \$c=New-Object Net.Sockets.TcpClient('$1',$2); \$c.Close(); 'OK' } catch { 'FAIL' }" 2>/dev/null | tr -d '\r'
 }
 
-# 서버 시작 헬퍼: start_server <이름> <디렉토리> <로그> <체크명령> <PID변수>
+# 서버 시작 헬퍼: start_if_not_running <이름> <디렉토리> <로그> <체크명령> [추가 dotnet run 옵션]
 start_if_not_running() {
-  local NAME="$1" DIR="$2" LOG="$3" CHECK_CMD="$4"
+  local NAME="$1" DIR="$2" LOG="$3" CHECK_CMD="$4" EXTRA_ARGS="${5:-}"
   local CODE
   eval "CODE=\$($CHECK_CMD)"
   if [ "$CODE" = "000" ] || [ "$CODE" = "FAIL" ]; then
     echo "[시작] $NAME 실행 중..."
-    (cd "$DIR" && dotnet run > "$LOG" 2>&1) &
+    (cd "$DIR" && dotnet run $EXTRA_ARGS > "$LOG" 2>&1) &
     local PID=$!
-    STARTED_PIDS="$STARTED_PIDS $PID"
     echo "  PID=$PID, 로그=$LOG"
     echo "  최대 30초 대기 중..."
     for i in $(seq 1 15); do
@@ -104,14 +134,15 @@ start_if_not_running \
 
 start_if_not_running \
   "Matching.API" "$MATCH_DIR" "/tmp/match_api.log" \
-  'check_http "http://localhost:5189/"'
+  'check_http "https://localhost:7007/"' \
+  "--launch-profile https"
 
 start_if_not_running \
   "Game.Server" "$GAME_DIR" "/tmp/game_server.log" \
   'check_tcp "127.0.0.1" 7777'
 ```
 
-### 3단계: DummyClient 사전 빌드
+### 4단계: DummyClient 사전 빌드
 
 ```bash
 echo ""
@@ -121,7 +152,7 @@ cd "$SLN" && dotnet build "PlatformA.Game.DummyClient/PlatformA.Game.DummyClient
 echo "[완료] 빌드 성공"
 ```
 
-### 4단계: 시나리오 실행
+### 5단계: 시나리오 실행
 
 각 시나리오를 순서대로 실행하고 결과를 `/tmp/scenario_N.log`에 저장한다.
 시나리오 3만 두 프로세스를 병렬로 실행한 후 `wait`으로 동기화한다.
@@ -194,7 +225,7 @@ run_scenario 7 "7\nlt_0001\n123456\n\n0\n" 300
 run_scenario 8 "8\nlt_0001\n123456\n\n0\n" 300
 ```
 
-### 5단계: Redis 데이터 정리
+### 6단계: Redis 데이터 정리
 
 ```bash
 echo ""
@@ -206,24 +237,22 @@ docker exec redis-master-1 redis-cli -h 127.0.0.1 -p 6373 FLUSHALL
 echo "[완료] Redis 3개 마스터 노드 데이터 초기화 완료"
 ```
 
-### 6단계: 서버 종료
+### 7단계: 서버 종료
 
-자동 시작한 서버만 종료한다. 사용자가 수동으로 실행한 서버는 건드리지 않는다.
+자동 시작 여부와 무관하게 4개 서버 포트를 모두 강제 종료한다.
 
 ```bash
-if [ -n "$STARTED_PIDS" ]; then
-  echo ""
-  echo "[정리] 자동 시작된 서버 프로세스 종료 중... (PIDs:$STARTED_PIDS)"
-  kill $STARTED_PIDS 2>/dev/null
-  sleep 2
-  echo "[완료] 서버 종료 완료"
-else
-  echo ""
-  echo "[정리] 자동 시작된 서버 없음 — 종료 건너뜀"
-fi
+echo ""
+echo "[정리] 서버 프로세스 종료 중..."
+kill_if_running "Auth.API"      7088
+kill_if_running "Ticketing.API" 7075
+kill_if_running "Matching.API"  7007
+kill_if_running "Game.Server"   7777
+sleep 2
+echo "[완료] 서버 종료 완료"
 ```
 
-### 7단계: 결과 리포트
+### 8단계: 결과 리포트
 
 다음 로그 파일들을 읽고 결과를 요약하여 출력한다:
 - `/tmp/scenario_1.log`, `/tmp/scenario_2.log`

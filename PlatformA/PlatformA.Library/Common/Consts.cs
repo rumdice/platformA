@@ -67,8 +67,8 @@ namespace PlatformA.Library.Common
 
         public const string TICKET_API_URL = "https://localhost:7075";
 
-        public const string MATCH_API_URL = "http://localhost:5189/api/GameMatch/RequestMatch";
-        public const string MATCH_HUB_URL = "http://localhost:5189/hubs/matching";
+        public const string MATCH_API_URL = "https://localhost:7007/api/GameMatch/RequestMatch";
+        public const string MATCH_HUB_URL = "https://localhost:7007/hubs/matching";
 
         // Redis Sorted Set 기반 매칭 대기열 (score = 입장 시각 UnixMs, 타임아웃 추적 가능)
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
