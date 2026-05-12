@@ -219,3 +219,15 @@
 
 - [x] `.claude/skills/run-scenarios/SKILL.md` — 신규 생성 (인프라 체크, 서버 자동 시작, stdin 파이핑, Redis 정리, 서버 종료, 콘솔 리포트)
 - [x] `Program.cs` — 시나리오 1 메뉴 레이블 `[시나리오 1]` 접두사 통일
+
+---
+
+## 스프린트 #17 (2026-05-12 ~)
+**목표**: docker-compose 파일 구조 정리 및 MariaDB·RabbitMQ compose 파일 추가
+
+### 완료
+
+- [x] `Redis/` → `PlatformA/docker/redis-cluster/` 디렉토리 이동
+- [x] `PlatformA/docker/mariadb/docker-compose.yml` — 신규 생성 (실행 중 컨테이너 기반)
+- [x] `PlatformA/docker/rabbitmq/docker-compose.yml` — 신규 생성 (실행 중 컨테이너 기반)
+- [x] 세 compose 파일 `restart: always` 적용
