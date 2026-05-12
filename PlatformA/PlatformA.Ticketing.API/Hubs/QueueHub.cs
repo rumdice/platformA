@@ -45,10 +45,5 @@ namespace PlatformA.Ticketing.API.Hubs
 
             await base.OnConnectedAsync();
         }
-
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            await base.OnDisconnectedAsync(exception);
-        }
     }
 }

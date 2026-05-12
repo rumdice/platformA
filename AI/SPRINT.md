@@ -231,3 +231,14 @@
 - [x] `PlatformA/docker/mariadb/docker-compose.yml` — 신규 생성 (실행 중 컨테이너 기반)
 - [x] `PlatformA/docker/rabbitmq/docker-compose.yml` — 신규 생성 (실행 중 컨테이너 기반)
 - [x] 세 compose 파일 `restart: always` 적용
+
+---
+
+## 스프린트 #18 (2026-05-12 ~)
+**목표**: Ticketing.API 코드 정리 — 데모 코드 제거 및 보안 수정
+
+### 완료
+
+- [x] `Controllers/TicketController.cs` 삭제 (전체 데모/학습용 코드)
+- [x] `Controllers/QueueController.cs` — 주석 블록 제거, `BadRequest(ex.Message)` → 일반 메시지, `StartsWith("Bearer")` → `StartsWith("Bearer ")`
+- [x] `Hubs/QueueHub.cs` — base만 호출하는 빈 `OnDisconnectedAsync` 제거

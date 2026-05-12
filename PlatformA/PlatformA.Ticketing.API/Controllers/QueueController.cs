@@ -43,7 +43,7 @@ namespace PlatformA.Ticketing.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Queue] EnterQueue 처리 중 예외 발생");
-                return BadRequest(ex.Message);
+                return BadRequest(new { Message = "요청 처리 중 오류가 발생했습니다." });
             }
         }
 
@@ -59,17 +59,6 @@ namespace PlatformA.Ticketing.API.Controllers
             bool isActive = await _queueService.IsActiveAsync(userId);
             if (isActive)
                 return Ok(new { UserId = userId, Rank = 0, Status = "Active", NextPollDelay = 0 });
-
-            //// 폴링 중인 유저의 하트비트 갱신 — Ghost 오탐 방지
-            //await _queueService.UpdateHeartbeatAsync(userId);
-
-            //// GetRank
-            //long? rank = await _queueService.GetRankAsync(userId);
-            //if (rank.HasValue)
-            //{
-            //    int delayMs = CalculateSmartPollDelay(rank.Value);
-            //    return Ok(new { UserId = userId, Rank = rank.Value, Status = "Waiting", NextPollDelay = delayMs });
-            //}
 
             long? rank = await _queueService.UpdateHeartbeatAndGetRankAsync(userId);
             if (rank.HasValue)
@@ -105,14 +94,14 @@ namespace PlatformA.Ticketing.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Queue] LeaveQueue 처리 중 예외 발생");
-                return BadRequest(ex.Message);
+                return BadRequest(new { Message = "요청 처리 중 오류가 발생했습니다." });
             }
         }
 
         private int GetUserIdFromToken()
         {
             string authHeader = Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer"))
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
                 _logger.LogDebug("[Queue] Authorization 헤더 없음 또는 형식 오류: {Header}", authHeader);
                 return -1;
