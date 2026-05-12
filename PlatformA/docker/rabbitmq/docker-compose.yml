@@ -1,0 +1,42 @@
+version: '3.8'
+
+# RabbitMQ 3.13 — 로컬 개발 환경
+#
+# 시작:  docker-compose up -d
+# 종료:  docker-compose down
+# 완전 초기화 (데이터 삭제): docker-compose down -v
+#
+# 접속 정보:
+#   AMQP      : localhost:5672  (기본 계정: guest / guest)
+#   Management UI : http://localhost:15672  (활성화 시, 아래 주석 참고)
+#   Prometheus metrics : http://localhost:15691
+#
+# 현재 실행 중인 컨테이너 설정과 일치하는 구성입니다.
+# 호스트 포트 5552 → 컨테이너 15691 (Prometheus metrics endpoint)
+#
+# 데이터는 Docker Named Volume(rabbitmq_data)에 보존됩니다.
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13            # 실행 중 버전: 3.13.7
+    container_name: rabbitmq
+    ports:
+      # ── 현재 실행 중인 포트 바인딩 ────────────────────────────
+      - "5552:15691"                # 호스트 5552 → Prometheus metrics (15691)
+
+      # ── 필요 시 활성화 ────────────────────────────────────────
+      # - "5672:5672"               # AMQP 0-9-1 (메시지 큐 연결)
+      # - "15672:15672"             # Management UI (management 플러그인 필요)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always                 # Docker 재시작 시 항상 자동 기동
+
+    # Management UI + Prometheus 플러그인을 활성화하려면 아래 주석 해제:
+    # environment:
+    #   RABBITMQ_DEFAULT_USER: admin
+    #   RABBITMQ_DEFAULT_PASS: pass1234
+    # command: rabbitmq-plugins enable rabbitmq_management rabbitmq_prometheus && rabbitmq-server
+
+volumes:
+  rabbitmq_data:
+    driver: local

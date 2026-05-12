@@ -5,6 +5,7 @@ services:
   redis-master-1:
     image: redis:latest
     container_name: redis-master-1
+    restart: always
     command: redis-server --port 6371 --cluster-enabled yes --cluster-config-file nodes-6371.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6371 --cluster-announce-bus-port 16371
     ports:
       # 호스트의 6371~6376 포트를 컨테이너로 연결
@@ -15,6 +16,7 @@ services:
   redis-master-2:
     image: redis:latest
     container_name: redis-master-2
+    restart: always
     network_mode: "service:redis-master-1" # 마스터 1번의 네트워크를 공유
     command: redis-server --port 6372 --cluster-enabled yes --cluster-config-file nodes-6372.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6372 --cluster-announce-bus-port 16372
     depends_on:
@@ -23,6 +25,7 @@ services:
   redis-master-3:
     image: redis:latest
     container_name: redis-master-3
+    restart: always
     network_mode: "service:redis-master-1"
     command: redis-server --port 6373 --cluster-enabled yes --cluster-config-file nodes-6373.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6373 --cluster-announce-bus-port 16373
     depends_on:
@@ -31,6 +34,7 @@ services:
   redis-slave-1:
     image: redis:latest
     container_name: redis-slave-1
+    restart: always
     network_mode: "service:redis-master-1"
     command: redis-server --port 6374 --cluster-enabled yes --cluster-config-file nodes-6374.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6374 --cluster-announce-bus-port 16374
     depends_on:
@@ -39,6 +43,7 @@ services:
   redis-slave-2:
     image: redis:latest
     container_name: redis-slave-2
+    restart: always
     network_mode: "service:redis-master-1"
     command: redis-server --port 6375 --cluster-enabled yes --cluster-config-file nodes-6375.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6375 --cluster-announce-bus-port 16375
     depends_on:
@@ -47,6 +52,7 @@ services:
   redis-slave-3:
     image: redis:latest
     container_name: redis-slave-3
+    restart: always
     network_mode: "service:redis-master-1"
     command: redis-server --port 6376 --cluster-enabled yes --cluster-config-file nodes-6376.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-ip 127.0.0.1 --cluster-announce-port 6376 --cluster-announce-bus-port 16376
     depends_on:
@@ -56,6 +62,7 @@ services:
   redis-cluster-init:
     image: redis:latest
     container_name: redis-cluster-init
+    restart: "no"                   # 클러스터 초기화는 최초 1회만 실행
     network_mode: "service:redis-master-1"
     depends_on:
       - redis-master-1
