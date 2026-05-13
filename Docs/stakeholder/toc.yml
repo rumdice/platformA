@@ -1,0 +1,6 @@
+- name: PlatformA란?
+  href: overview.md
+- name: 게임 플레이어 여정
+  href: user-journey.md
+- name: 자주 묻는 질문
+  href: faq.md

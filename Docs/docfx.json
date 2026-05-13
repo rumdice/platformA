@@ -1,0 +1,48 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "PlatformA.Auth.API/PlatformA.Auth.API.csproj",
+            "PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj",
+            "PlatformA.Matching.API/PlatformA.Matching.API.csproj",
+            "PlatformA.Utils.API/PlatformA.Utils.API.csproj",
+            "PlatformA.Library/PlatformA.Library.csproj"
+          ],
+          "src": "../PlatformA"
+        }
+      ],
+      "dest": "api",
+      "disableGitFeatures": false
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": ["**/*.md", "**/*.yml"],
+        "exclude": ["_site/**", "templates/**", "obj/**", "api/**.yml", "api/index.md"]
+      },
+      {
+        "files": ["api/**.yml", "api/index.md"]
+      }
+    ],
+    "resource": [
+      {
+        "files": ["images/**"]
+      }
+    ],
+    "output": "_site",
+    "template": ["default", "templates/custom"],
+    "globalMetadata": {
+      "_appName": "PlatformA",
+      "_appTitle": "PlatformA 개발자 문서",
+      "_appFooter": "PlatformA Team © 2026",
+      "_enableSearch": true,
+      "_noIndex": false
+    },
+    "fileMetadata": {},
+    "postProcessors": [],
+    "dest": "_site"
+  }
+}

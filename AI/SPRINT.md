@@ -260,3 +260,27 @@
 - [x] `docker/docker-compose.full.yml` — 신규 생성 (Redis 6-node cluster + MariaDB + 5개 서비스 전체 스택, TLS 인증서 볼륨 마운트)
 - [x] `docker/certs/.gitignore` — *.pfx 제외
 - [x] `.claude/skills/run-scenarios/SKILL.md` — 포트 업데이트 (7001/7002/7003/7004)
+
+---
+
+## 스프린트 #20 (2026-05-14 ~)
+**목표**: DocFX 기반 공개 문서 사이트 구축 — GitHub Pages 자동 배포
+
+### 완료
+
+- [x] `Docs/docfx.json` — DocFX v2 설정 (metadata, build, custom 템플릿)
+- [x] `Docs/toc.yml` + `Docs/index.md` — 홈 (아키텍처 다이어그램, 서비스 표, 기술 스택)
+- [x] `Docs/templates/custom/partials/head.tmpl.partial` — Mermaid.js v10 CDN 주입
+- [x] `Docs/architecture/overview.md` — C4 스타일 아키텍처 다이어그램 + 서비스 책임 표
+- [x] `Docs/architecture/sequences.md` — 5개 시퀀스 다이어그램 (로그인·토큰 갱신·대기열·매칭·게임 세션)
+- [x] `Docs/architecture/redis-keyspace.md` — Redis 키스페이스 맵 + 상세 명세표
+- [x] `Docs/architecture/database-schema.md` — ER 다이어그램 + 상태 머신 + Migration 명령
+- [x] `Docs/stakeholder/overview.md` — 놀이공원 비유 설명 + 핵심 수치 + 보안 특징
+- [x] `Docs/stakeholder/user-journey.md` — 플레이어 여정 플로우차트 + Gantt 타임라인
+- [x] `Docs/stakeholder/faq.md` — 비개발자 Q&A (용량·매칭·보안·데이터)
+- [x] `.github/workflows/docs.yml` — GitHub Pages 자동 배포 (push to main → docfx → gh-pages)
+- [x] `PlatformA.Library/PlatformA.Library.csproj` — `GenerateDocumentationFile` 추가
+- [x] `PlatformA.Matching.API/PlatformA.Matching.API.csproj` — `GenerateDocumentationFile` 추가
+- [x] `PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj` — `GenerateDocumentationFile` 추가
+- [x] `PlatformA.Utils.API/PlatformA.Utils.API.csproj` — `GenerateDocumentationFile` 추가
+- [x] `dotnet build PlatformA.sln` 오류 0개 확인 (CS1591 경고 277개는 정상)
