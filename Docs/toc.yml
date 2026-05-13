@@ -1,0 +1,20 @@
+- name: 소개
+  href: index.md
+- name: 아키텍처
+  href: architecture/
+  homepage: architecture/overview.md
+- name: 개발자 가이드
+  href: developer-guide/
+  homepage: developer-guide/getting-started.md
+- name: API 가이드
+  href: api-guide/
+  homepage: api-guide/auth.md
+- name: 운영
+  href: operations/
+  homepage: operations/deployment.md
+- name: 이해관계자 가이드
+  href: stakeholder/
+  homepage: stakeholder/overview.md
+- name: API 레퍼런스
+  href: api/
+  homepage: api/index.md
