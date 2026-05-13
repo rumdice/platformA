@@ -242,3 +242,21 @@
 - [x] `Controllers/TicketController.cs` 삭제 (전체 데모/학습용 코드)
 - [x] `Controllers/QueueController.cs` — 주석 블록 제거, `BadRequest(ex.Message)` → 일반 메시지, `StartsWith("Bearer")` → `StartsWith("Bearer ")`
 - [x] `Hubs/QueueHub.cs` — base만 호출하는 빈 `OnDisconnectedAsync` 제거
+
+---
+
+## 스프린트 #19 (2026-05-13 ~)
+**목표**: K8s 배포 기반 구성 — Consts.cs 환경변수화 및 HTTPS 전용 Dockerfile 정비
+
+### 완료
+
+- [x] `Consts.cs` — 8개 상수 `static readonly` + `Environment.GetEnvironmentVariable()` fallback 전환 (GAME_SERVER_IP, GAME_SERVER_PORT, REDIS_CONNECTION_STRING, AUTH_API_URL, AUTH_API_REFRESH_URL, TICKET_API_URL, MATCH_API_URL, MATCH_HUB_URL)
+- [x] `DuplicateLoginScenario.cs` — 소켓 수명 버그 수정 (socket1/2를 RunAsync에서 소유, ConnectAndLoginAsync에 외부 소켓 주입)
+- [x] `Auth.API/Dockerfile` — HTTPS 전용 포트 7001, HTTP 비활성화
+- [x] `Matching.API/Dockerfile` — 신규 생성 (.NET 9.0, HTTPS 전용 포트 7002)
+- [x] `Ticketing.API/Dockerfile` — HTTPS 전용 포트 7003, HTTP 비활성화
+- [x] `Utils.API/Dockerfile` — HTTPS 전용 포트 7004, HTTP 비활성화
+- [x] `Game.Server/Dockerfile` — EXPOSE 7777 추가
+- [x] `docker/docker-compose.full.yml` — 신규 생성 (Redis 6-node cluster + MariaDB + 5개 서비스 전체 스택, TLS 인증서 볼륨 마운트)
+- [x] `docker/certs/.gitignore` — *.pfx 제외
+- [x] `.claude/skills/run-scenarios/SKILL.md` — 포트 업데이트 (7001/7002/7003/7004)
