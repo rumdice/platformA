@@ -71,12 +71,11 @@ kill_if_running() {
   fi
 }
 
-kill_if_running "Auth.API(https)"  7088
-kill_if_running "Auth.API(http)"   5097
-kill_if_running "Ticketing.API(https)" 7075
-kill_if_running "Ticketing.API(http)"  5282
-kill_if_running "Matching.API"     7007
-kill_if_running "Game.Server"      7777
+kill_if_running "Auth.API"     7001
+kill_if_running "Matching.API" 7002
+kill_if_running "Ticketing.API" 7003
+kill_if_running "Utils.API"    7004
+kill_if_running "Game.Server"  7777
 
 # 포트가 완전히 해제될 때까지 대기
 sleep 2
@@ -128,17 +127,22 @@ start_if_not_running() {
 
 start_if_not_running \
   "Auth.API" "$AUTH_DIR" "/tmp/auth_api.log" \
-  'check_http "https://localhost:7088/"' \
-  "--launch-profile https"
-
-start_if_not_running \
-  "Ticketing.API" "$TICKET_DIR" "/tmp/ticket_api.log" \
-  'check_http "https://localhost:7075/"' \
+  'check_http "https://localhost:7001/"' \
   "--launch-profile https"
 
 start_if_not_running \
   "Matching.API" "$MATCH_DIR" "/tmp/match_api.log" \
-  'check_http "https://localhost:7007/"' \
+  'check_http "https://localhost:7002/"' \
+  "--launch-profile https"
+
+start_if_not_running \
+  "Ticketing.API" "$TICKET_DIR" "/tmp/ticket_api.log" \
+  'check_http "https://localhost:7003/"' \
+  "--launch-profile https"
+
+start_if_not_running \
+  "Utils.API" "$SLN/PlatformA.Utils.API" "/tmp/utils_api.log" \
+  'check_http "https://localhost:7004/"' \
   "--launch-profile https"
 
 start_if_not_running \
@@ -248,12 +252,11 @@ echo "[완료] Redis 3개 마스터 노드 데이터 초기화 완료"
 ```bash
 echo ""
 echo "[정리] 서버 프로세스 종료 중..."
-kill_if_running "Auth.API(https)"      7088
-kill_if_running "Auth.API(http)"       5097
-kill_if_running "Ticketing.API(https)" 7075
-kill_if_running "Ticketing.API(http)"  5282
-kill_if_running "Matching.API"         7007
-kill_if_running "Game.Server"          7777
+kill_if_running "Auth.API"     7001
+kill_if_running "Matching.API" 7002
+kill_if_running "Ticketing.API" 7003
+kill_if_running "Utils.API"    7004
+kill_if_running "Game.Server"  7777
 sleep 2
 echo "[완료] 서버 종료 완료"
 ```

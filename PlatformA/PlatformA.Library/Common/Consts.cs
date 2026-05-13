@@ -69,23 +69,23 @@ namespace PlatformA.Library.Common
 
         public static readonly string AUTH_API_URL =
             Environment.GetEnvironmentVariable("AUTH_API_URL")
-            ?? "https://localhost:7088/api/Auth/login";
+            ?? "https://localhost:7001/api/Auth/login";
 
         public static readonly string AUTH_API_REFRESH_URL =
             Environment.GetEnvironmentVariable("AUTH_API_REFRESH_URL")
-            ?? "https://localhost:7088/api/Auth/refresh";
+            ?? "https://localhost:7001/api/Auth/refresh";
 
         public static readonly string TICKET_API_URL =
             Environment.GetEnvironmentVariable("TICKET_API_URL")
-            ?? "https://localhost:7075";
+            ?? "https://localhost:7003";
 
         public static readonly string MATCH_API_URL =
             Environment.GetEnvironmentVariable("MATCH_API_URL")
-            ?? "https://localhost:7007/api/GameMatch/RequestMatch";
+            ?? "https://localhost:7002/api/GameMatch/RequestMatch";
 
         public static readonly string MATCH_HUB_URL =
             Environment.GetEnvironmentVariable("MATCH_HUB_URL")
-            ?? "https://localhost:7007/hubs/matching";
+            ?? "https://localhost:7002/hubs/matching";
 
         // Redis Sorted Set 기반 매칭 대기열 (score = 입장 시각 UnixMs, 타임아웃 추적 가능)
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";

@@ -1,18 +1,23 @@
-# PlatformA — 통합 Docker Compose
+# PlatformA — 통합 Docker Compose (HTTPS 전용)
 #
 # 목적: 로컬 컨테이너 환경에서 전체 스택을 실행하여 K8s 배포를 검증한다.
-#       서비스 간 통신은 HTTP(8080)를 사용하며 HTTPS는 Ingress/ALB 에서 처리한다.
+#       API 서비스는 HTTPS 전용으로 동작하며, 인증서는 볼륨 마운트로 주입한다.
+#
+# ── 최초 실행 전 필수: 개발 인증서 내보내기 ────────────────────────────────
+#   PowerShell:
+#     dotnet dev-certs https --export-path ./docker/certs/devcert.pfx --password "localdev"
+#   이후 docker-compose 가 /https/devcert.pfx 를 각 컨테이너에 마운트한다.
 #
 # 시작:   docker-compose -f docker/docker-compose.full.yml up -d --build
 # 종료:   docker-compose -f docker/docker-compose.full.yml down
 # 초기화: docker-compose -f docker/docker-compose.full.yml down -v
 #
-# 호스트에서 DummyClient를 로컬 실행할 경우 아래 환경변수를 먼저 설정한다:
-#   AUTH_API_URL=http://localhost:7088/api/Auth/login
-#   AUTH_API_REFRESH_URL=http://localhost:7088/api/Auth/refresh
-#   TICKET_API_URL=http://localhost:7075
-#   MATCH_API_URL=http://localhost:7007/api/GameMatch/RequestMatch
-#   MATCH_HUB_URL=http://localhost:7007/hubs/matching
+# 호스트에서 DummyClient를 로컬 실행할 경우 환경변수 설정:
+#   AUTH_API_URL=https://localhost:7001/api/Auth/login
+#   AUTH_API_REFRESH_URL=https://localhost:7001/api/Auth/refresh
+#   TICKET_API_URL=https://localhost:7003
+#   MATCH_API_URL=https://localhost:7002/api/GameMatch/RequestMatch
+#   MATCH_HUB_URL=https://localhost:7002/hubs/matching
 #   GAME_SERVER_IP=127.0.0.1
 #   REDIS_CONNECTION_STRING=127.0.0.1:6381,127.0.0.1:6382,127.0.0.1:6383
 
@@ -157,7 +162,6 @@ services:
     networks:
       - platformA-net
 
-  # 클러스터 초기화 (최초 1회 실행 후 종료)
   redis-cluster-init:
     image: redis:latest
     container_name: redis-cluster-init
@@ -204,7 +208,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Auth.API ─────────────────────────────────────────────────────────────────
+  # ── Auth.API (HTTPS:7001) ────────────────────────────────────────────────────
   auth-api:
     build:
       context: ..
@@ -213,12 +217,15 @@ services:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_HTTP_PORTS: "8080"
       JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
       REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
       MYSQL_WEBAPP_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=pass1234"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
     ports:
-      - "7088:8080"
+      - "7001:7001"
+    volumes:
+      - ./certs:/https:ro
     depends_on:
       mariadb:
         condition: service_healthy
@@ -227,50 +234,7 @@ services:
     networks:
       - platformA-net
 
-  # ── Utils.API ────────────────────────────────────────────────────────────────
-  utils-api:
-    build:
-      context: ..
-      dockerfile: PlatformA.Utils.API/Dockerfile
-    container_name: utils-api
-    restart: always
-    environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_HTTP_PORTS: "8080"
-      REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
-      SNOWFLAKE_WORKER_ID: "1"
-      SNOWFLAKE_DATACENTER_ID: "1"
-    ports:
-      - "7006:8080"
-    depends_on:
-      redis-cluster-init:
-        condition: service_completed_successfully
-    networks:
-      - platformA-net
-
-  # ── Ticketing.API ────────────────────────────────────────────────────────────
-  ticketing-api:
-    build:
-      context: ..
-      dockerfile: PlatformA.Ticketing.API/Dockerfile
-    container_name: ticketing-api
-    restart: always
-    environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_HTTP_PORTS: "8080"
-      JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
-      REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
-      QUEUE_BASE_RATE: "50"
-      QUEUE_MAX_RATE: "500"
-    ports:
-      - "7075:8080"
-    depends_on:
-      redis-cluster-init:
-        condition: service_completed_successfully
-    networks:
-      - platformA-net
-
-  # ── Matching.API ─────────────────────────────────────────────────────────────
+  # ── Matching.API (HTTPS:7002) ────────────────────────────────────────────────
   matching-api:
     build:
       context: ..
@@ -279,12 +243,15 @@ services:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_HTTP_PORTS: "8080"
       JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
       REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
       MYSQL_WEBAPP_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=pass1234"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
     ports:
-      - "7007:8080"
+      - "7002:7002"
+    volumes:
+      - ./certs:/https:ro
     depends_on:
       mariadb:
         condition: service_healthy
@@ -293,7 +260,56 @@ services:
     networks:
       - platformA-net
 
-  # ── Game.Server ──────────────────────────────────────────────────────────────
+  # ── Ticketing.API (HTTPS:7003) ───────────────────────────────────────────────
+  ticketing-api:
+    build:
+      context: ..
+      dockerfile: PlatformA.Ticketing.API/Dockerfile
+    container_name: ticketing-api
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
+      REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
+      QUEUE_BASE_RATE: "50"
+      QUEUE_MAX_RATE: "500"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
+    ports:
+      - "7003:7003"
+    volumes:
+      - ./certs:/https:ro
+    depends_on:
+      redis-cluster-init:
+        condition: service_completed_successfully
+    networks:
+      - platformA-net
+
+  # ── Utils.API (HTTPS:7004) ───────────────────────────────────────────────────
+  utils-api:
+    build:
+      context: ..
+      dockerfile: PlatformA.Utils.API/Dockerfile
+    container_name: utils-api
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
+      SNOWFLAKE_WORKER_ID: "1"
+      SNOWFLAKE_DATACENTER_ID: "1"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
+    ports:
+      - "7004:7004"
+    volumes:
+      - ./certs:/https:ro
+    depends_on:
+      redis-cluster-init:
+        condition: service_completed_successfully
+    networks:
+      - platformA-net
+
+  # ── Game.Server (TCP:7777) ───────────────────────────────────────────────────
   game-server:
     build:
       context: ..

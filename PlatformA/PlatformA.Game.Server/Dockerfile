@@ -4,6 +4,7 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 USER $APP_UID
 WORKDIR /app
+EXPOSE 7777
 
 
 # 이 스테이지는 서비스 프로젝트를 빌드하는 데 사용됩니다.
