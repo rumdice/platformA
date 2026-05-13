@@ -46,12 +46,17 @@ namespace PlatformA.Library.Common
         // Active 유저 입장권 만료 시간: 이 시간 안에 게임 서버에 접속하지 않으면 입장권이 소멸됩니다.
         public const int ACTIVE_USER_TTL_SECONDS = 300; // 5분
 
-        // TODO: 접속정보들은 차후 config 파일 또는 aws SKS로 관리하도록 개선 필요
-        public const string GAME_SERVER_IP = "127.0.0.1";
-        public const int GAME_SERVER_PORT = 7777;
+        // 접속 정보: 환경변수로 주입 (로컬 기본값 유지, K8s/Docker는 ConfigMap/env로 오버라이드)
+        public static readonly string GAME_SERVER_IP =
+            Environment.GetEnvironmentVariable("GAME_SERVER_IP") ?? "127.0.0.1";
+
+        public static readonly int GAME_SERVER_PORT =
+            int.TryParse(Environment.GetEnvironmentVariable("GAME_SERVER_PORT"), out int gsp) ? gsp : 7777;
 
         // Redis Cluster 노드 목록 (Master 3개 — StackExchange.Redis가 Slave를 자동 감지)
-        public const string REDIS_CONNECTION_STRING = "127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373";
+        public static readonly string REDIS_CONNECTION_STRING =
+            Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING")
+            ?? "127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373";
 
 
         public static readonly string MYSQL_WEBAPP_CONNECTION =
@@ -62,13 +67,25 @@ namespace PlatformA.Library.Common
             Environment.GetEnvironmentVariable("MYSQL_LOGAPP_CONNECTION_STRING")
             ?? "Server=localhost;Port=3306;Database=db_LogApp;User=root;Password=pass1234";
 
-        public const string AUTH_API_URL = "https://localhost:7088/api/Auth/login";
-        public const string AUTH_API_REFRESH_URL = "https://localhost:7088/api/Auth/refresh";
+        public static readonly string AUTH_API_URL =
+            Environment.GetEnvironmentVariable("AUTH_API_URL")
+            ?? "https://localhost:7088/api/Auth/login";
 
-        public const string TICKET_API_URL = "https://localhost:7075";
+        public static readonly string AUTH_API_REFRESH_URL =
+            Environment.GetEnvironmentVariable("AUTH_API_REFRESH_URL")
+            ?? "https://localhost:7088/api/Auth/refresh";
 
-        public const string MATCH_API_URL = "https://localhost:7007/api/GameMatch/RequestMatch";
-        public const string MATCH_HUB_URL = "https://localhost:7007/hubs/matching";
+        public static readonly string TICKET_API_URL =
+            Environment.GetEnvironmentVariable("TICKET_API_URL")
+            ?? "https://localhost:7075";
+
+        public static readonly string MATCH_API_URL =
+            Environment.GetEnvironmentVariable("MATCH_API_URL")
+            ?? "https://localhost:7007/api/GameMatch/RequestMatch";
+
+        public static readonly string MATCH_HUB_URL =
+            Environment.GetEnvironmentVariable("MATCH_HUB_URL")
+            ?? "https://localhost:7007/hubs/matching";
 
         // Redis Sorted Set 기반 매칭 대기열 (score = 입장 시각 UnixMs, 타임아웃 추적 가능)
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
