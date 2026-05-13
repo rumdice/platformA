@@ -11,7 +11,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         public static async Task RunAsync()
         {
-            try { Console.Clear(); } catch { }
+            try
+            { Console.Clear(); }
+            catch { }
             Console.WriteLine("=== 🚦 대기열(Netfunnel) 시스템 부하 시뮬레이터 ===");
 
             // 기존 Ticketing.Test 안의 Main 함수에 있던 
