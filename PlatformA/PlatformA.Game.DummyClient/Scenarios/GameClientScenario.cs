@@ -9,7 +9,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
     {
         public static async Task RunAsync()
         {
-            try { Console.Clear(); } catch { }
+            try
+            { Console.Clear(); }
+            catch { }
             Console.WriteLine("══════════════════════════════════════════════════════");
             Console.WriteLine("   [시나리오 1] 게임 서버 직접 접속 테스트");
             Console.WriteLine("══════════════════════════════════════════════════════");
