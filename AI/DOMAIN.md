@@ -123,7 +123,7 @@ QueueWorkerService
 **규칙:**
 - 현재 1:1 (2인) 매칭만 지원
 - 매칭 큐는 FIFO (선착순)
-- Rating 기반 매칭 미구현 (BACKLOG #BACK-005)
+- Rating 기반 매칭 미구현
 - 매칭 성공 후 Game Server 접속은 클라이언트 책임
 
 ---
