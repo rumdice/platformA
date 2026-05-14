@@ -8,7 +8,7 @@
 ## 1. 패킷 추가 패턴 (Game Server)
 
 새 패킷을 추가할 때 반드시 이 3단계를 순서대로 수행.
-직렬화는 Google Protocol Buffers 3 (`Grpc.Tools`) 가 빌드 타임에 자동 생성한다. (ADR-003)
+직렬화는 Google Protocol Buffers 3 (`Grpc.Tools`) 가 빌드 타임에 자동 생성한다. (ADR-007)
 
 ### Step 1: proto 정의
 **파일**: `PlatformA.Library/Packets/Proto/packets.proto`

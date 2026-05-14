@@ -14,13 +14,8 @@ JWT 시크릿·DB 비밀번호를 환경변수 fallback 패턴으로 이전. ADR
 
 ## 높음 (기능 완성)
 
-### #BACK-002: Matching API Dockerfile 추가
-**배경**: Auth, Ticketing, Utils, Game Server는 Dockerfile 있으나 Matching API 없음
-**작업**:
-- `PlatformA.Matching.API/Dockerfile` 생성 (기존 패턴 참조)
-- Docker 이미지 빌드 검증
-**영향 범위**: Matching API만
-**예상 크기**: 소 (1시간)
+### ~~#BACK-002: Matching API Dockerfile 추가~~ ✅ 완료 (스프린트 #19, 2026-05-13)
+HTTPS 전용 포트 7002 Dockerfile 신규 생성. docker-compose.full.yml에도 포함.
 
 ### #BACK-003: 전체 스택 docker-compose.yml 작성
 **배경**: Redis는 docker-compose 있지만 API 서비스들은 없음

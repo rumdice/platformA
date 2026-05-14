@@ -1,7 +1,7 @@
 # TCP 패킷 프로토콜
 
 PlatformA 게임 서버는 TCP 소켓 위에서 Protobuf 기반 바이너리 프레이밍 프로토콜을 사용합니다.
-이 문서는 ADR-003(Protobuf 전환)과 ADR-005(Envelope 와이어 포맷)를 기반으로 작성됩니다.
+이 문서는 ADR-007(Protobuf 전환)과 ADR-005(Envelope 와이어 포맷)를 기반으로 작성됩니다.
 
 ---
 

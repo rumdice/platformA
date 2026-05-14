@@ -4,13 +4,13 @@
 
 ## 날짜: 2026-05-11
 
-## 부분 대체: ADR-003 (§ "TCP 헤더 변경 없음" 조항 폐기)
+## 부분 대체: ADR-007 (§ "TCP 헤더 변경 없음" 조항 폐기)
 
 ---
 
 ## 맥락
 
-ADR-003에서 Protobuf로 전환하면서 TCP 프레임 헤더를 의도적으로 그대로 유지했다:
+ADR-007에서 Protobuf로 전환하면서 TCP 프레임 헤더를 의도적으로 그대로 유지했다:
 
 ```
 기존(ADR-002/003): [ushort size: 2B LE][ushort packetId: 2B LE][Protobuf payload: NB]
@@ -83,4 +83,4 @@ message Packet {
 
 - **긍정**: packetId 수동 관리 제거; TCP 단편화 버그 수정; 새 패킷 추가 시 proto 파일 한 곳만 수정
 - **부정**: `PlatformA.Game.Server.Packet` 네임스페이스 이름이 `Packet` 클래스와 충돌 — 별칭 필요 (향후 네임스페이스 이름 변경으로 해소 가능)
-- **무효화**: ADR-003의 "TCP 헤더 4바이트 구조 유지" 조항은 이 결정으로 폐기됨
+- **무효화**: ADR-007의 "TCP 헤더 4바이트 구조 유지" 조항은 이 결정으로 폐기됨
