@@ -33,7 +33,7 @@
       }
     ],
     "output": "_site",
-    "template": ["modern", "templates/custom"],
+    "template": ["default", "templates/custom"],
     "globalMetadata": {
       "_appName": "PlatformA",
       "_appTitle": "PlatformA 개발자 문서",
