@@ -10,9 +10,9 @@ PlatformA는 두 가지 배포 방법을 지원합니다.
 
 | 서비스 | 로컬 개발 포트 | Docker Compose 포트 | 프로토콜 |
 |--------|--------------|-------------------|---------|
-| Auth API | 7088 (HTTPS) | 7001 (HTTPS) | HTTP/S |
-| Matching API | 5189 (HTTP) | 7002 (HTTPS) | HTTP/S + SignalR |
-| Ticketing API | 7075 (HTTPS) | 7003 (HTTPS) | HTTP/S + SignalR |
+| Auth API | 7001 (HTTPS) | 7001 (HTTPS) | HTTP/S |
+| Matching API | 7002 (HTTPS) | 7002 (HTTPS) | HTTP/S + SignalR |
+| Ticketing API | 7003 (HTTPS) | 7003 (HTTPS) | HTTP/S + SignalR |
 | Utils API | (launchSettings 참조) | 7004 (HTTPS) | HTTP/S |
 | Game Server | 7777 (TCP) | 7777 (TCP) | Binary TCP |
 | Redis 노드 1 | 6371 | 6381 | TCP |
@@ -149,15 +149,15 @@ docker exec -it redis-master-1 redis-cli -p 6371 cluster nodes
 cd PlatformA\PlatformA.MySqlDB.Lib
 dotnet ef database update --context DbWebAppContext
 
-# 4. Auth API 실행 (HTTPS :7088)
+# 4. Auth API 실행 (HTTPS :7001)
 cd PlatformA\PlatformA.Auth.API
 dotnet run
 
-# 5. Ticketing API 실행 (HTTPS :7075)
+# 5. Ticketing API 실행 (HTTPS :7003)
 cd PlatformA\PlatformA.Ticketing.API
 dotnet run
 
-# 6. Matching API 실행 (HTTP :5189)
+# 6. Matching API 실행 (HTTPS :7002)
 cd PlatformA\PlatformA.Matching.API
 dotnet run
 

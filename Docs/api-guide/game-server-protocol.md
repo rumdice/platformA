@@ -246,9 +246,9 @@ message SEnterRoom {
 ```mermaid
 sequenceDiagram
     participant C as 클라이언트
-    participant AuthAPI as Auth API<br/>(:7088 HTTPS)
-    participant TicketAPI as Ticketing API<br/>(:7075 HTTPS)
-    participant MatchAPI as Matching API<br/>(:5189 HTTP)
+    participant AuthAPI as Auth API<br/>(:7001 HTTPS)
+    participant TicketAPI as Ticketing API<br/>(:7003 HTTPS)
+    participant MatchAPI as Matching API<br/>(:7002 HTTPS)
     participant GS as 게임 서버<br/>(:7777 TCP)
     participant Redis as Redis Cluster
 

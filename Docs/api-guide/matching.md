@@ -8,7 +8,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| 개발 환경 기본 URL | `http://localhost:5189` |
+| 개발 환경 기본 URL | `https://localhost:7002` |
 | Docker Compose URL | `https://localhost:7002` |
 | 런타임 | .NET 9.0 |
 | SignalR Hub | `/hubs/matching` |
@@ -148,7 +148,7 @@ Bearer JWT로 인증 후 Redis 매칭 큐에 플레이어를 추가합니다.
 
 **연결 URL**
 ```
-ws://localhost:5189/hubs/matching
+wss://localhost:7002/hubs/matching
 ```
 
 **CORS 허용 오리진**

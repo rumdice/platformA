@@ -141,7 +141,7 @@ Refresh Token을 사용해 새 Access Token을 발급받습니다.
 
 ```bash
 # Refresh Token으로 재발급
-POST https://localhost:7088/api/Auth/refresh
+POST https://localhost:7001/api/Auth/refresh
 Content-Type: application/json
 {
   "refreshToken": "<refresh_token_value>"
@@ -189,12 +189,12 @@ echo $JWT_SECRET
 
 | 서비스 | 개발 포트 |
 |---|---|
-| Auth API | 7088 (HTTPS) |
-| Ticketing API | 7075 (HTTPS) |
-| Matching API | 5189 (HTTP) |
+| Auth API | 7001 (HTTPS) |
+| Ticketing API | 7003 (HTTPS) |
+| Matching API | 7002 (HTTPS) |
 | Game Server | 7777 (TCP) |
 
-> `Consts.cs`에 정의된 `AUTH_API_URL`, `TICKET_API_URL`, `MATCH_API_URL` 기본값은 개발 환경 기준으로 각각 7001, 7003, 7002 포트를 사용합니다. 이는 DummyClient가 서비스 URL을 참조할 때 적용되는 값입니다. 실제 서비스 리슨 포트와는 별개입니다.
+> `Consts.cs`에 정의된 `AUTH_API_URL`, `TICKET_API_URL`, `MATCH_API_URL` 기본값은 각각 7001, 7003, 7002 포트를 사용합니다. 환경변수로 재정의 가능합니다.
 
 ### 원인
 - 이전에 실행한 서비스가 종료되지 않고 포트를 점유하고 있음
@@ -203,8 +203,8 @@ echo $JWT_SECRET
 ### 해결 (Windows)
 
 ```powershell
-# 특정 포트를 점유하고 있는 프로세스 확인 (예: 7088 포트)
-netstat -ano | findstr :7088
+# 특정 포트를 점유하고 있는 프로세스 확인 (예: 7001 포트)
+netstat -ano | findstr :7001
 
 # PID로 프로세스 이름 확인
 tasklist /FI "PID eq <PID>"
@@ -224,7 +224,7 @@ Get-Process dotnet | Stop-Process -Force
 
 ```bash
 # 포트 점유 프로세스 확인
-lsof -i :7088
+lsof -i :7001
 
 # 프로세스 강제 종료
 kill -9 <PID>

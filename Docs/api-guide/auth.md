@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| 개발 환경 기본 URL | `https://localhost:7088` |
+| 개발 환경 기본 URL | `https://localhost:7001` |
 | Docker Compose URL | `https://localhost:7001` |
 | 런타임 | .NET 8.0 |
 | 인증 방식 | JWT (Access Token 15분, Refresh Token 7일) |

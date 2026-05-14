@@ -15,7 +15,7 @@
         │
         ├──────────────────────────────────────────────┐
         ▼                                              ▼
-[Auth API :7088]                              [Utils API :포트]
+[Auth API :7001]                              [Utils API :7004]
  - 로그인/로그아웃                             - URL 단축
  - JWT 발급 (Access 15분, Refresh 7일)        - IP 조회
  - BCrypt 비밀번호 검증                        - 클릭 통계
@@ -24,7 +24,7 @@
         │
         ├────────────────────────────────────────┐
         ▼                                        ▼
-[Ticketing API :7075]                  [Matching API :5189]
+[Ticketing API :7003]                  [Matching API :7002]
  - 대기열 진입/이탈/상태조회             - 매칭 요청 접수
  - SignalR Hub (/hubs/queue)            - 매칭 엔진 (백그라운드)
  - Rate Limit: 5req/s                   - SignalR Hub (/hubs/matching)
