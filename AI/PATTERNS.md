@@ -8,93 +8,71 @@
 ## 1. 패킷 추가 패턴 (Game Server)
 
 새 패킷을 추가할 때 반드시 이 3단계를 순서대로 수행.
+직렬화는 Google Protocol Buffers 3 (`Grpc.Tools`) 가 빌드 타임에 자동 생성한다. (ADR-003)
 
-### Step 1: PacketID 등록
-**파일**: `PlatformA.Library/Packets/Packet.cs`
+### Step 1: proto 정의
+**파일**: `PlatformA.Library/Packets/Proto/packets.proto`
 
-```csharp
-public enum PacketID : ushort
-{
-    C_Move = 1,
-    S_Move = 2,
-    C_Login = 3,
-    S_Login = 4,
-    C_EnterRoom = 5,
-    S_EnterRoom = 6,
-    // 여기에 추가
-    C_Chat = 7,
-    S_Chat = 8,
+```protobuf
+// 새 메시지 정의
+message C_Chat {
+    int32 room_id   = 1;
+    string message  = 2;
+}
+message S_Chat {
+    int32 room_id   = 1;
+    int32 sender_id = 2;
+    string message  = 3;
+}
+
+// Packet.oneof payload에 필드 추가
+message Packet {
+    oneof payload {
+        // 기존 필드 유지 ...
+        C_Chat c_chat = 7;
+        S_Chat s_chat = 8;
+    }
 }
 ```
 
-### Step 2: 패킷 구조체 정의
-**파일**: `PlatformA.Library/Packets/ChatPacket.cs` (새 파일)
+빌드 시 `Grpc.Tools`가 C# 클래스를 `obj/` 하위에 자동 생성한다.
 
-```csharp
-using PlatformA.Generator.Lib;
-
-[Packet]  // Source Generator가 Serialize/Deserialize 자동 생성
-public partial struct C_ChatPacket
-{
-    public int RoomId;
-    public int SenderId;
-    // 가변 길이 필드는 현재 미지원 — 고정 크기 필드만
-    
-    public const ushort Size = 8;  // 페이로드 바이트 크기 (수동 계산 필수)
-}
-
-[Packet]
-public partial struct S_ChatPacket
-{
-    public int RoomId;
-    public int SenderId;
-    
-    public const ushort Size = 8;
-}
-```
-
-> **Size 계산**: int = 4 bytes, float = 4 bytes, ushort = 2 bytes, byte = 1 byte
-
-### Step 3: 핸들러 등록
+### Step 2: 핸들러 등록
 **파일**: `PlatformA.Game.Server/Packet/PacketHandler.cs`
 
 ```csharp
-[PacketHandler((ushort)PacketID.C_Chat)]
-public static void Handle_C_Chat(GameSession session, ReadOnlySpan<byte> payload)
+[PacketHandler(Packet.PayloadOneofCase.CChat)]
+public static void Handle_C_Chat(GameSession session, Packet packet)
 {
-    // 1. 역직렬화 (Source Generator가 생성한 메서드)
-    C_ChatPacket req = new C_ChatPacket();
-    req.Deserialize(payload);
-    
-    // 2. GameRoom을 통해 처리 (스레드 안전)
+    C_Chat req = packet.CChat;
+
     GameRoom? room = session.Room;
     if (room == null) return;
-    
+
     room.Push(() =>
     {
-        // 3. 응답 패킷 조립
-        S_ChatPacket res = new S_ChatPacket()
+        S_Chat res = new S_Chat
         {
-            RoomId = req.RoomId,
+            RoomId   = req.RoomId,
             SenderId = session.SessionId,
+            Message  = req.Message,
         };
-        
-        ushort totalSize = (ushort)(4 + S_ChatPacket.Size);
-        byte[] sendBuffer = new byte[totalSize];
-        Span<byte> span = sendBuffer.AsSpan();
-        
-        BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(0, 2), totalSize);
-        BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(2, 2), (ushort)PacketID.S_Chat);
-        res.Serialize(span.Slice(4));
-        
-        // 4. 브로드캐스트 또는 단일 전송
-        room.Broadcast(sendBuffer);          // 방 전체
-        // session.SendAsync(sendBuffer);   // 특정 세션만
+
+        byte[] sendBuffer = PacketHandler.BuildResponsePacket(
+            new Packet { SChat = res });
+
+        room.Broadcast(sendBuffer);
     });
 }
 ```
 
 **금지**: `room.Push()` 밖에서 게임 상태 수정 — 레이스 컨디션 발생
+
+### Step 3: 빌드 확인
+```bash
+cd PlatformA && dotnet build PlatformA.sln
+```
+오류 없으면 완료 — C# 클래스는 빌드 타임에 자동 생성된다.
 
 ---
 

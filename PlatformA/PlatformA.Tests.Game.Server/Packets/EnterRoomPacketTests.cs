@@ -33,15 +33,5 @@ namespace PlatformA.Tests.Game.Server.Packets
             Assert.Equal(EnterRoomResultCode.EnterRoomNotFound, result.ResultCode);
         }
 
-        [Fact]
-        public void PacketID_EnumValues_AreCorrect()
-        {
-            Assert.Equal((ushort)1, (ushort)PacketID.C_Move);
-            Assert.Equal((ushort)2, (ushort)PacketID.S_Move);
-            Assert.Equal((ushort)3, (ushort)PacketID.C_Login);
-            Assert.Equal((ushort)4, (ushort)PacketID.S_Login);
-            Assert.Equal((ushort)5, (ushort)PacketID.C_EnterRoom);
-            Assert.Equal((ushort)6, (ushort)PacketID.S_EnterRoom);
-        }
     }
 }
