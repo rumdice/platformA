@@ -30,9 +30,9 @@ Authorization: Bearer <access_token>
 
 ---
 
-## Auth API (포트: 7088)
+## Auth API (포트: 7001)
 
-Base URL: `https://localhost:7088/api/Auth`
+Base URL: `https://localhost:7001/api/Auth`
 
 ### POST /login
 신규 유저 자동 등록 + JWT 발급. 기존 유저는 비밀번호 검증 후 발급.
@@ -105,9 +105,9 @@ Refresh Token을 Redis에서 즉시 삭제. Access Token은 자연 만료(15분)
 
 ---
 
-## Ticketing API (포트: 7075)
+## Ticketing API (포트: 7003)
 
-Base URL: `https://localhost:7075/api/queue`
+Base URL: `https://localhost:7003/api/queue`
 
 모든 엔드포인트 **Rate Limit**: 5회/초 (IP 단위)
 모든 엔드포인트 **인증 필요**: `Authorization: Bearer <token>`
@@ -186,9 +186,9 @@ Base URL: `https://localhost:7075/api/queue`
 
 ---
 
-## Matching API (포트: 5189)
+## Matching API (포트: 7002)
 
-Base URL: `http://localhost:5189/api/GameMatch`
+Base URL: `https://localhost:7002/api/GameMatch`
 
 ### POST /RequestMatch
 매칭 대기열 진입 요청. 즉시 응답 (매칭 결과는 SignalR로 비동기 수신).
@@ -251,9 +251,9 @@ Base URL: `http://localhost:5189/api/GameMatch`
 
 ---
 
-## Utils API
+## Utils API (포트: 7004)
 
-Base URL: `http://localhost:<port>`
+Base URL: `http://localhost:7004`
 
 ### GET /util/myip
 클라이언트 공인 IP 조회.

@@ -36,11 +36,11 @@ MYSQL_LOGAPP_CONNECTION = "Server=localhost;Port=3306;Database=db_LogApp;User=ro
 GAME_SERVER_IP   = "127.0.0.1"
 GAME_SERVER_PORT = 7777
 
-// Service URLs (클라이언트용)
-AUTH_API_URL    = "https://localhost:7088/api/Auth/login"
-TICKET_API_URL  = "https://localhost:7075"
-MATCH_API_URL   = "http://localhost:5189/api/GameMatch/RequestMatch"
-MATCH_HUB_URL   = "http://localhost:5189/hubs/matching"
+// Service URLs (클라이언트용 — run-scenarios 기준 포트)
+AUTH_API_URL    = "https://localhost:7001/api/Auth/login"
+TICKET_API_URL  = "https://localhost:7003"
+MATCH_API_URL   = "https://localhost:7002/api/GameMatch/RequestMatch"
+MATCH_HUB_URL   = "https://localhost:7002/hubs/matching"
 
 // Queue
 WAIT_QUEUE_MAX_SIZE    = 10000
@@ -53,13 +53,13 @@ ACTIVE_USER_TTL_SECONDS = 300   // 5분
 
 ## 서비스 포트 맵
 
-| 서비스 | 개발 포트 | Docker 포트 |
-|--------|---------|------------|
-| Auth API | 7088 (HTTPS) | 8080 |
-| Ticketing API | 7075 (HTTPS) | 8080 |
-| Matching API | 5189 (HTTP) | — (Dockerfile 없음) |
-| Utils API | — | 8080 |
-| Game Server | 7777 (TCP) | 7777 (TCP) |
+| 서비스 | 포트 | 비고 |
+|--------|------|------|
+| Auth API | 7001 (HTTPS) | run-scenarios 기준 |
+| Matching API | 7002 (HTTPS) | run-scenarios 기준 |
+| Ticketing API | 7003 (HTTPS) | run-scenarios 기준 |
+| Utils API | 7004 (HTTP) | run-scenarios 기준 |
+| Game Server | 7777 (TCP) | Binary 패킷 |
 
 ---
 
@@ -76,7 +76,7 @@ SELECT user, host FROM mysql.user;
 
 ```bash
 # EF Core Migration으로 테이블 자동 생성
-cd /home/user/platformA/PlatformA/PlatformA.MySqlDB.Lib
+cd PlatformA/PlatformA.MySqlDB.Lib
 dotnet ef database update --context DbWebAppContext
 dotnet ef database update --context DbLogAppContext
 ```
@@ -86,7 +86,7 @@ dotnet ef database update --context DbLogAppContext
 ## Redis Cluster 초기 설정
 
 ```bash
-cd /home/user/platformA/Redis
+cd PlatformA/docker/redis-cluster
 
 # 최초 실행 (클러스터 자동 구성됨)
 docker-compose up -d
@@ -105,22 +105,22 @@ docker exec redis-master-1 redis-cli -p 6371 cluster info
 ## 개발 환경 빠른 시작
 
 ```bash
-# 1. 저장소 클론 후
-git checkout claude/analyze-project-structure-oWGle
+# 1. 저장소 클론 후 main 브랜치 체크아웃
+git checkout main && git pull
 
 # 2. Redis 시작
-cd /home/user/platformA/Redis && docker-compose up -d
+cd PlatformA/docker/redis-cluster && docker-compose up -d
 
 # 3. MySQL 접속 확인 후 DB 생성
 mysql -u root -ppass1234 -e "CREATE DATABASE IF NOT EXISTS db_WebApp; CREATE DATABASE IF NOT EXISTS db_LogApp;"
 
 # 4. Migration 적용
-cd /home/user/platformA/PlatformA/PlatformA.MySqlDB.Lib
+cd PlatformA/PlatformA.MySqlDB.Lib
 dotnet ef database update --context DbWebAppContext
 dotnet ef database update --context DbLogAppContext
 
 # 5. 솔루션 빌드 확인
-cd /home/user/platformA/PlatformA
+cd PlatformA
 dotnet build PlatformA.sln
 ```
 

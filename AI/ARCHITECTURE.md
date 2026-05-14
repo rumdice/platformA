@@ -123,8 +123,8 @@
 
 1. **Redis Cluster 필수**: 단일 Redis 인스턴스 사용 금지 (ADR-001)
 2. **Binary 패킷 프로토콜**: Game Server 통신은 JSON 사용 금지 (ADR-002)
-3. **Source Generator 통한 패킷 코드 생성**: 수동 직렬화 코드 작성 금지 (ADR-002)
-4. **설정 중앙화**: 모든 상수는 `Consts.cs` 에서만 관리 (ADR-003)
+3. **Protobuf 기반 패킷 직렬화**: `packets.proto` 정의 → `Grpc.Tools` 빌드 타임 자동 생성. 수동 직렬화 코드 작성 금지 (ADR-003)
+4. **설정 중앙화**: 모든 상수는 `Consts.cs` 에서만 관리
 5. **JWT 무상태 인증**: 게임 서버는 MySQL 직접 접근 안 함
 6. **IDbContextFactory**: EF Core DbContext는 Factory 방식으로만 DI
 
@@ -133,9 +133,6 @@
 ## 프로젝트 의존성 그래프
 
 ```
-PlatformA.Generator.Lib (컴파일타임만)
-        │ (생성)
-        ▼
 PlatformA.Library
         │ (참조)
         ├── PlatformA.Auth.API
@@ -156,9 +153,10 @@ PlatformA.MySqlDB.Lib
 
 | 서비스 | 프로토콜 | 포트 | 비고 |
 |--------|---------|------|------|
-| Auth API | HTTPS | 7088 | 개발환경 |
-| Ticketing API | HTTPS | 7075 | 개발환경 |
-| Matching API | HTTP | 5189 | 개발환경 |
+| Auth API | HTTPS | 7001 | run-scenarios 기준 |
+| Matching API | HTTPS | 7002 | run-scenarios 기준 |
+| Ticketing API | HTTPS | 7003 | run-scenarios 기준 |
+| Utils API | HTTP | 7004 | run-scenarios 기준 |
 | Game Server | TCP | 7777 | Binary 패킷 |
 | Redis 마스터 1 | TCP | 6371 | |
 | Redis 마스터 2 | TCP | 6372 | |
