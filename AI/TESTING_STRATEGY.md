@@ -10,7 +10,7 @@
 | `PlatformA.Tests.Auth.API` | Auth API 컨트롤러 통합 + DTO 유닛 (스프린트 #3) |
 | `PlatformA.Tests.Game.Server` | Protobuf 패킷 round-trip (스프린트 #11) |
 
-**미구현** (BACKLOG #BACK-004): Ticketing API, Matching API 테스트 프로젝트
+**미구현**: Ticketing API, Matching API 테스트 프로젝트
 
 추가 검증 방법:
 - **기능 테스트**: `PlatformA.Game.DummyClient` 시나리오 실행 (`/run-scenarios`)
@@ -114,7 +114,7 @@ dotnet build PlatformA.sln
 
 ---
 
-## 향후 테스트 계획 (BACKLOG #BACK-004)
+## 향후 테스트 계획
 
 ### 단계별 도입 계획
 

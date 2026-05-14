@@ -184,7 +184,6 @@ Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear
 | 이 시스템은 어떻게 설계되었나? | `AI/ARCHITECTURE.md` |
 | 왜 이런 기술을 선택했나? | `AI/adr/` |
 | 지금 뭘 해야 하나? | `AI/SPRINT.md` |
-| 앞으로 뭘 해야 하나? | `AI/BACKLOG.md` |
 | 어떻게 빌드/배포하나? | `AI/RUNBOOK.md` |
 | 로컬 환경 어떻게 세팅하나? | `AI/ENVIRONMENT.md` |
 | API 스펙은 어떻게 되나? | `AI/API_CONTRACTS.md` |

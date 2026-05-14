@@ -72,7 +72,7 @@ return {members[1], members[3]}
 
 ## 보류 사항
 
-- MatchRecord Status 업데이트 (InProgress → Completed): Game.Server HTTP 콜백 구현 필요 — 결합도 증가 우려로 BACKLOG 등록
+- MatchRecord Status 업데이트 (InProgress → Completed): Game.Server HTTP 콜백 구현 필요 — 결합도 증가 우려로 보류
 - GameRoom ACK 보장: SignalR push 전 Game.Server에서 방 생성 완료 확인 — 복잡도 대비 발생 빈도 낮음
 
 ## 결과
