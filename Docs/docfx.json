@@ -42,7 +42,6 @@
       "_noIndex": false
     },
     "fileMetadata": {},
-    "postProcessors": [],
-    "dest": "_site"
+    "postProcessors": []
   }
 }
