@@ -1,6 +1,17 @@
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
-  window.addEventListener('load', function () {
+  document.addEventListener('DOMContentLoaded', function () {
+    // DocFX renders ```mermaid as <pre><code class="lang-mermaid"> or <code class="language-mermaid">
+    // Convert to <div class="mermaid"> so Mermaid.js can render them
+    document.querySelectorAll(
+      'pre code.lang-mermaid, pre code.language-mermaid'
+    ).forEach(function (code) {
+      var div = document.createElement('div');
+      div.className = 'mermaid';
+      div.textContent = code.textContent;
+      code.parentElement.replaceWith(div);
+    });
+
     mermaid.initialize({
       startOnLoad: true,
       theme: 'default',
