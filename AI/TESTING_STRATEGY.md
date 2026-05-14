@@ -84,12 +84,12 @@ curl -X POST https://localhost:7003/api/queue/leave \
 ```bash
 # 모든 API liveness 확인
 curl -f https://localhost:7001/healthz && echo "Auth: OK"
-curl -f http://localhost:7075/healthz && echo "Ticketing: OK"
+curl -f https://localhost:7003/healthz && echo "Ticketing: OK"
 curl -f https://localhost:7002/healthz && echo "Matching: OK"
 
 # readiness 확인 (Redis + DB 포함)
 curl https://localhost:7001/readyz
-curl http://localhost:7075/readyz
+curl https://localhost:7003/readyz
 ```
 
 ### Game Server 검증

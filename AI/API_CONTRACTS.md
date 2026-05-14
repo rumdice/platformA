@@ -251,6 +251,44 @@ Base URL: `https://localhost:7002/api/GameMatch`
 
 ---
 
+### POST /test-match _(내부 디버그 전용, 미사용)_
+매칭 결과를 수동으로 시뮬레이션하는 테스트용 엔드포인트. 실제 매칭 로직과 무관하며 실 서비스에서 제거 예정.
+
+**Request:**
+```json
+{ "user1Id": 1, "user2Id": 2 }
+```
+
+**Response 200:** `{ "message": "...", "roomId": 101 }`
+
+---
+
+## Orders API — 호가창 데모 (포트: 7002)
+
+Base URL: `https://localhost:7002/api/orders`
+
+> 주식 매칭 엔진 학습용 데모 컨트롤러. 게임 매칭과 무관한 독립 시스템.
+
+### POST /
+매수/매도 주문 접수. 호가창 매칭 엔진에 비동기 처리 위임.
+
+**Request:**
+```json
+{ "type": 0, "price": 50000.0, "quantity": 10 }
+```
+> `type`: 0=Buy, 1=Sell
+
+**Response 202:** `{ "orderId": 1, "message": "주문이 접수되었습니다." }`
+
+---
+
+### GET /book
+호가창 현재 상태 조회 (서버 콘솔 출력). 디버그 전용.
+
+**Response 200:** `"서버 콘솔(터미널)을 확인하세요."`
+
+---
+
 ## Utils API (포트: 7004)
 
 Base URL: `http://localhost:7004`

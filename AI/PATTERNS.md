@@ -256,7 +256,7 @@ modelBuilder.Entity<NewEntity>(entity =>
 
 ### Step 4: Migration 생성 및 적용
 ```bash
-cd /home/user/platformA/PlatformA/PlatformA.MySqlDB.Lib
+cd PlatformA/PlatformA.MySqlDB.Lib
 dotnet ef migrations add Add_NewEntity \
   --context DbWebAppContext \
   --output-dir Migrations/WebApp
