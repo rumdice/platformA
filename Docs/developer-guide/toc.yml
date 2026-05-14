@@ -2,3 +2,9 @@
   href: getting-started.md
 - name: 문서 기여 가이드
   href: docs-contributing.md
+- name: 코딩 패턴
+  href: coding-patterns.md
+- name: TCP 패킷 프로토콜
+  href: packet-protocol.md
+- name: Redis 패턴
+  href: redis-patterns.md
