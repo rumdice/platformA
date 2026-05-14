@@ -15,6 +15,3 @@
 - name: 이해관계자 가이드
   href: stakeholder/
   homepage: stakeholder/overview.md
-- name: API 레퍼런스
-  href: api/
-  homepage: api/index.md
