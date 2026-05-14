@@ -16,12 +16,12 @@ description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브�
 ## 리뷰 체크리스트
 
 ### 1. 패킷 추가 (Game Server)
-`AI/PATTERNS.md` 섹션 1 기준:
-- [ ] PacketID enum에 등록되었는가? (`PlatformA.Library/Packets/Packet.cs`)
-- [ ] `[Packet]` 어트리뷰트 + `partial struct` 구조인가?
-- [ ] `Size` 상수가 수동 계산으로 정확한가? (int=4, float=4, ushort=2, byte=1)
+`AI/PATTERNS.md` 섹션 1 기준 (ADR-007: Protobuf):
+- [ ] `packets.proto`에 message 정의 + `Packet.oneof` 필드 등록이 되었는가?
+- [ ] `PacketHandler.cs`에 `[PacketHandler]` 어트리뷰트로 핸들러가 등록되었는가?
 - [ ] 핸들러가 반드시 `room.Push()` 안에서 게임 상태를 수정하는가?
-- [ ] Source Generator 사용 (`Serialize`/`Deserialize`)하고 수동 직렬화 코드 없는가?
+- [ ] `BitConverter`, `BinaryReader`, `BinaryWriter` 등 수동 직렬화 코드가 없는가?
+- [ ] proto3 기본값 주의: 0인 enum/int 필드는 wire에 포함되지 않음을 인지했는가?
 
 ### 2. API 엔드포인트 추가
 `AI/PATTERNS.md` 섹션 2 기준:

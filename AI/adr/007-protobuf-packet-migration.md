@@ -1,4 +1,4 @@
-# ADR-003: 패킷 직렬화 — Google Protocol Buffers 전환
+# ADR-007: 패킷 직렬화 — Google Protocol Buffers 전환
 
 ## 상태: 확정
 
@@ -33,15 +33,6 @@ ADR-002에서 채택한 Custom Binary + Roslyn Source Generator 방식은 아래
 | `PlatformA.Library.csproj` | `Google.Protobuf 3.29.3` + `Grpc.Tools 2.67.0` 추가, `<Protobuf>` 아이템 등록 |
 | `Packets/Proto/packets.proto` | 신규 — 모든 메시지 + enum 정의 |
 
-### 불변 구성요소 (변경 없음)
-
-| 구성요소 | 이유 |
-|---------|------|
-| TCP 4바이트 헤더 (`ushort size | ushort packetId`) | 네트워크 레이어 코드 그대로 유지 |
-| `PacketID` enum 값 | 클라이언트와의 호환성 |
-| `PacketManager` 리플렉션 디스패치 | O(1) 런타임 성능 유지 |
-| `[PacketHandler]` 어트리뷰트 기반 핸들러 등록 | 구조 변경 없음 |
-
 ### proto3 파일 위치
 
 ```
@@ -60,20 +51,7 @@ byte[] payload = message.ToByteArray();
 var msg = CLogin.Parser.ParseFrom(buffer, offset, length);
 ```
 
-### 공통 응답 헬퍼 (PacketHandler.cs)
-
-```csharp
-private static byte[] BuildResponsePacket(PacketID id, IMessage message)
-{
-    byte[] payload = message.ToByteArray();
-    ushort size = (ushort)(4 + payload.Length);
-    byte[] buf = new byte[size];
-    BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(0, 2), size);
-    BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(2, 2), (ushort)id);
-    payload.CopyTo(buf, 4);
-    return buf;
-}
-```
+> **참고**: TCP 헤더 포맷은 ADR-005에서 이후 변경됨 (Protobuf Envelope 전환 — packetId 헤더 제거).
 
 ---
 
@@ -91,7 +69,7 @@ private static byte[] BuildResponsePacket(PacketID id, IMessage message)
 ## 결과 및 트레이드오프
 
 **이득:**
-- 패킷 정의가 `.proto` IDL 한 파일로 집중 — 새 패킷 추가 시 enum + proto 2곳만 수정
+- 패킷 정의가 `.proto` IDL 한 파일로 집중 — 새 패킷 추가 시 proto 1곳만 수정
 - DummyClient 시나리오 코드 간소화 (`BitConverter` 직접 조작 제거)
 - 언어 중립 IDL — 향후 Go/Unity 클라이언트 연동 시 proto 재사용 가능
 - `Parser.ParseFrom` 예외(`InvalidProtocolBufferException`)로 명시적 파싱 실패 처리
@@ -105,7 +83,17 @@ private static byte[] BuildResponsePacket(PacketID id, IMessage message)
 
 ## 새 패킷 추가 절차
 
-1. `packets.proto`에 `message` / `enum` 추가
-2. `Packet.cs`의 `PacketID` enum에 새 ID 추가
-3. `PacketHandler.cs`에 `[PacketHandler]` 핸들러 추가
-4. 해당 패킷 round-trip 테스트 추가
+현재 기준 (ADR-005 Envelope 전환 이후):
+
+1. `packets.proto`에 `message` 추가 + `Packet.oneof payload`에 필드 등록
+2. `PacketHandler.cs`에 `[PacketHandler(Packet.PayloadOneofCase.XXX)]` 핸들러 추가
+3. `dotnet build` — Grpc.Tools가 C# 클래스 자동 생성
+
+---
+
+## 변경 방법
+
+이 결정을 변경하려면:
+1. 새 ADR 작성 (`AI/adr/NNN-제목.md`)
+2. 사용자 승인 후 진행
+3. 이 ADR 상태를 `대체됨 (→ ADR-NNN)`으로 업데이트

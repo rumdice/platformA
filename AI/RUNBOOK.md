@@ -10,7 +10,7 @@
 - .NET SDK 8.0+ 설치
 - Docker & Docker Compose 설치
 - MySQL 8.0 실행 중 (로컬 또는 Docker)
-- Git 브랜치: `claude/analyze-project-structure-oWGle`
+- Git 브랜치: `main` (작업 시 `/plan` 스킬로 브랜치 생성)
 
 ---
 
@@ -18,7 +18,7 @@
 
 ```bash
 # 전체 솔루션 빌드
-cd /home/user/platformA/PlatformA
+cd PlatformA
 dotnet build PlatformA.sln
 
 # 특정 프로젝트만 빌드
@@ -39,7 +39,7 @@ dotnet build PlatformA.sln -c Release
 
 ```bash
 # Step 1: Redis 클러스터 시작
-cd /home/user/platformA/Redis
+cd PlatformA/docker/redis-cluster
 docker-compose up -d
 # 클러스터 초기화 완료 확인 (약 10초 대기)
 sleep 10
@@ -49,27 +49,27 @@ docker exec -it redis-master-1 redis-cli -p 6371 cluster nodes
 mysql -u root -ppass1234 -e "SHOW DATABASES;"
 
 # Step 3: DB 마이그레이션 적용 (최초 또는 새 마이그레이션 있을 때)
-cd /home/user/platformA/PlatformA/PlatformA.MySqlDB.Lib
+cd PlatformA/PlatformA.MySqlDB.Lib
 dotnet ef database update --context DbWebAppContext
 
-# Step 4: Auth API 실행 (포트 7088)
-cd /home/user/platformA/PlatformA/PlatformA.Auth.API
+# Step 4: Auth API 실행 (포트 7001)
+cd PlatformA/PlatformA.Auth.API
 dotnet run
 
-# Step 5: Ticketing API 실행 (포트 7075)
-cd /home/user/platformA/PlatformA/PlatformA.Ticketing.API
+# Step 5: Ticketing API 실행 (포트 7003)
+cd PlatformA/PlatformA.Ticketing.API
 dotnet run
 
-# Step 6: Matching API 실행 (포트 5189)
-cd /home/user/platformA/PlatformA/PlatformA.Matching.API
+# Step 6: Matching API 실행 (포트 7002)
+cd PlatformA/PlatformA.Matching.API
 dotnet run
 
 # Step 7: Game Server 실행 (포트 7777, TCP)
-cd /home/user/platformA/PlatformA/PlatformA.Game.Server
+cd PlatformA/PlatformA.Game.Server
 dotnet run
 
-# Step 8 (선택): Utils API 실행
-cd /home/user/platformA/PlatformA/PlatformA.Utils.API
+# Step 8 (선택): Utils API 실행 (포트 7004)
+cd PlatformA/PlatformA.Utils.API
 dotnet run
 ```
 
@@ -79,16 +79,16 @@ dotnet run
 
 ```bash
 # Auth API liveness
-curl -f http://localhost:7088/healthz
+curl -f https://localhost:7001/healthz
 
 # Auth API readiness (Redis + MySQL 확인)
-curl -f http://localhost:7088/readyz
+curl -f https://localhost:7001/readyz
 
 # Ticketing API readiness
-curl -f http://localhost:7075/readyz
+curl -f https://localhost:7003/readyz
 
 # Matching API readiness
-curl -f http://localhost:5189/readyz
+curl -f https://localhost:7002/readyz
 ```
 
 ---
@@ -96,7 +96,7 @@ curl -f http://localhost:5189/readyz
 ## 4. DB 마이그레이션
 
 ```bash
-cd /home/user/platformA/PlatformA/PlatformA.MySqlDB.Lib
+cd PlatformA/PlatformA.MySqlDB.Lib
 
 # 새 Migration 생성 (WebApp)
 dotnet ef migrations add <MigrationName> \
@@ -127,7 +127,7 @@ dotnet ef database update <이전Migration이름> --context DbWebAppContext
 
 ```bash
 # Redis 클러스터 시작
-cd /home/user/platformA/Redis
+cd PlatformA/docker/redis-cluster
 docker-compose up -d
 
 # Redis 클러스터 재시작 (기존 데이터 삭제)
@@ -152,7 +152,7 @@ redis-cli -p 6371 ZRANGE "{ticket:queue}:global" 0 -1 WITHSCORES
 ## 6. Docker 빌드
 
 ```bash
-cd /home/user/platformA/PlatformA
+cd PlatformA
 
 # Auth API
 docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
@@ -172,7 +172,7 @@ docker build -f PlatformA.Utils.API/Dockerfile -t platformA-utils:latest .
 ## 7. DummyClient 시나리오 실행
 
 ```bash
-cd /home/user/platformA/PlatformA/PlatformA.Game.DummyClient
+cd PlatformA/PlatformA.Game.DummyClient
 dotnet run
 ```
 
@@ -192,16 +192,13 @@ dotnet run
 # 현재 브랜치 확인
 git branch
 
-# 개발 브랜치로 이동 (항상 이 브랜치에서 작업)
-git checkout claude/analyze-project-structure-oWGle
-
 # 변경사항 커밋
 git add <파일>
 git commit -m "feat: 설명"
 
 # ─── push 전 필수 검증 ───────────────────────────────
 # Step 1: 전체 솔루션 빌드 (오류 0개 확인)
-cd /home/user/platformA/PlatformA
+cd PlatformA
 dotnet build PlatformA.sln
 
 # Step 2: 전체 테스트 실행 (실패 0개 확인)
@@ -209,7 +206,7 @@ dotnet test PlatformA.sln
 
 # Step 3: 둘 다 통과한 경우에만 push
 # ────────────────────────────────────────────────────
-git push -u origin claude/analyze-project-structure-oWGle
+git push -u origin <현재브랜치명>
 ```
 
 > **빌드 또는 테스트 실패 시 push 금지** — 오류 수정 후 Step 1부터 재실행
@@ -225,7 +222,7 @@ redis-cli -p 6371 ping
 redis-cli -p 6371 cluster info | grep cluster_state
 
 # 클러스터 재구성 (데이터 소실 주의)
-cd /home/user/platformA/Redis
+cd PlatformA/docker/redis-cluster
 docker-compose down -v && docker-compose up -d && sleep 15
 ```
 
@@ -239,10 +236,10 @@ dotnet ef database update <이전Migration> --context DbWebAppContext
 dotnet ef migrations remove --context DbWebAppContext
 ```
 
-### 빌드 오류: Source Generator
+### 빌드 오류: MSBuild 캐시 충돌
 ```bash
-# Generator 프로젝트 클린 빌드
-cd /home/user/platformA/PlatformA
-dotnet clean PlatformA.Generator.Lib/PlatformA.Generator.Lib.csproj
+# obj/ 디렉토리 클린 후 재빌드
+cd PlatformA
+dotnet clean PlatformA.sln
 dotnet build PlatformA.sln
 ```

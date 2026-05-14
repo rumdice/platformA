@@ -30,9 +30,9 @@ Authorization: Bearer <access_token>
 
 ---
 
-## Auth API (포트: 7088)
+## Auth API (포트: 7001)
 
-Base URL: `https://localhost:7088/api/Auth`
+Base URL: `https://localhost:7001/api/Auth`
 
 ### POST /login
 신규 유저 자동 등록 + JWT 발급. 기존 유저는 비밀번호 검증 후 발급.
@@ -105,9 +105,9 @@ Refresh Token을 Redis에서 즉시 삭제. Access Token은 자연 만료(15분)
 
 ---
 
-## Ticketing API (포트: 7075)
+## Ticketing API (포트: 7003)
 
-Base URL: `https://localhost:7075/api/queue`
+Base URL: `https://localhost:7003/api/queue`
 
 모든 엔드포인트 **Rate Limit**: 5회/초 (IP 단위)
 모든 엔드포인트 **인증 필요**: `Authorization: Bearer <token>`
@@ -186,9 +186,9 @@ Base URL: `https://localhost:7075/api/queue`
 
 ---
 
-## Matching API (포트: 5189)
+## Matching API (포트: 7002)
 
-Base URL: `http://localhost:5189/api/GameMatch`
+Base URL: `https://localhost:7002/api/GameMatch`
 
 ### POST /RequestMatch
 매칭 대기열 진입 요청. 즉시 응답 (매칭 결과는 SignalR로 비동기 수신).
@@ -251,9 +251,47 @@ Base URL: `http://localhost:5189/api/GameMatch`
 
 ---
 
-## Utils API
+### POST /test-match _(내부 디버그 전용, 미사용)_
+매칭 결과를 수동으로 시뮬레이션하는 테스트용 엔드포인트. 실제 매칭 로직과 무관하며 실 서비스에서 제거 예정.
 
-Base URL: `http://localhost:<port>`
+**Request:**
+```json
+{ "user1Id": 1, "user2Id": 2 }
+```
+
+**Response 200:** `{ "message": "...", "roomId": 101 }`
+
+---
+
+## Orders API — 호가창 데모 (포트: 7002)
+
+Base URL: `https://localhost:7002/api/orders`
+
+> 주식 매칭 엔진 학습용 데모 컨트롤러. 게임 매칭과 무관한 독립 시스템.
+
+### POST /
+매수/매도 주문 접수. 호가창 매칭 엔진에 비동기 처리 위임.
+
+**Request:**
+```json
+{ "type": 0, "price": 50000.0, "quantity": 10 }
+```
+> `type`: 0=Buy, 1=Sell
+
+**Response 202:** `{ "orderId": 1, "message": "주문이 접수되었습니다." }`
+
+---
+
+### GET /book
+호가창 현재 상태 조회 (서버 콘솔 출력). 디버그 전용.
+
+**Response 200:** `"서버 콘솔(터미널)을 확인하세요."`
+
+---
+
+## Utils API (포트: 7004)
+
+Base URL: `http://localhost:7004`
 
 ### GET /util/myip
 클라이언트 공인 IP 조회.

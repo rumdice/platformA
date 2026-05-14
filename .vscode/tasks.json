@@ -40,9 +40,9 @@
             "problemMatcher": []
         },
         {
-            "label": "clean-build: MSB3492 캐시 수정",
+            "label": "clean-build: 전체 클린 후 재빌드",
             "type": "shell",
-            "command": "dotnet clean PlatformA/PlatformA.Generator.Lib/PlatformA.Generator.Lib.csproj -q && dotnet clean PlatformA/PlatformA.sln -q && dotnet build PlatformA/PlatformA.sln",
+            "command": "dotnet clean PlatformA/PlatformA.sln -q && dotnet build PlatformA/PlatformA.sln",
             "group": "build",
             "presentation": {
                 "reveal": "always",
@@ -113,7 +113,7 @@
         {
             "label": "infra: Redis 시작 (Docker)",
             "type": "shell",
-            "command": "cd Redis && docker-compose up -d",
+            "command": "cd PlatformA/docker/redis-cluster && docker-compose up -d",
             "group": "none",
             "presentation": {
                 "reveal": "always",

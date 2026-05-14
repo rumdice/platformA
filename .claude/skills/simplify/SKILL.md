@@ -14,10 +14,10 @@ description: PlatformA PATTERNS.md 기준으로 변경된 코드의 품질을 �
 
 ## 검토 기준 (AI/PATTERNS.md)
 
-### 패킷 코드
-- `[Packet]` + `partial struct` 패턴이 아닌 수동 직렬화 코드가 있으면 Source Generator 방식으로 교체
+### 패킷 코드 (ADR-007: Protobuf)
+- `BitConverter`, `BinaryReader`, `BinaryWriter` 등 수동 직렬화 코드가 있으면 Protobuf 방식으로 교체
 - `room.Push()` 밖에서 게임 상태를 수정하는 코드 → `room.Push()` 안으로 이동
-- `Size` 상수가 실제 필드 크기와 일치하는지 재계산
+- `[Packet]` 어트리뷰트, `partial struct`, `Size` 상수는 더 이상 사용하지 않음 — 제거 대상
 
 ### DI / 서비스 구조
 - `new` 키워드로 직접 생성하는 서비스 인스턴스 → 생성자 DI로 교체

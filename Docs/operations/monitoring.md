@@ -17,9 +17,9 @@
 
 | 서비스 | Liveness | Readiness | 체크 항목 |
 |---|---|---|---|
-| Auth API | `http://localhost:7088/healthz` | `http://localhost:7088/readyz` | Redis + MariaDB (db_WebApp) |
-| Ticketing API | `http://localhost:7075/healthz` | `http://localhost:7075/readyz` | Redis |
-| Matching API | `http://localhost:5189/healthz` | `http://localhost:5189/readyz` | Redis |
+| Auth API | `https://localhost:7001/healthz` | `https://localhost:7001/readyz` | Redis + MariaDB (db_WebApp) |
+| Ticketing API | `https://localhost:7003/healthz` | `https://localhost:7003/readyz` | Redis |
+| Matching API | `https://localhost:7002/healthz` | `https://localhost:7002/readyz` | Redis |
 | Utils API | 헬스체크 미등록 | 헬스체크 미등록 | — |
 
 > Utils API(`PlatformA.Utils.API`)는 Program.cs에 헬스체크가 등록되어 있지 않습니다.
@@ -51,16 +51,16 @@
 
 ```bash
 # Auth API liveness 확인
-curl -f http://localhost:7088/healthz
+curl -f https://localhost:7001/healthz -k
 
 # Auth API readiness 확인 (Redis + MariaDB)
-curl -s http://localhost:7088/readyz | python -m json.tool
+curl -s https://localhost:7001/readyz -k | python -m json.tool
 
 # Ticketing API readiness 확인 (Redis)
-curl -s http://localhost:7075/readyz | python -m json.tool
+curl -s https://localhost:7003/readyz -k | python -m json.tool
 
 # Matching API readiness 확인 (Redis)
-curl -s http://localhost:5189/readyz | python -m json.tool
+curl -s https://localhost:7002/readyz -k | python -m json.tool
 ```
 
 ---
@@ -216,9 +216,9 @@ dotnet ef migrations list --context DbLogAppContext
 
 ```mermaid
 flowchart TD
-    LB[로드 밸런서 / 클라이언트] -->|HTTP| Auth[Auth API :7088]
-    LB -->|HTTP| Ticketing[Ticketing API :7075]
-    LB -->|HTTP| Matching[Matching API :5189]
+    LB[로드 밸런서 / 클라이언트] -->|HTTPS| Auth[Auth API :7001]
+    LB -->|HTTPS| Ticketing[Ticketing API :7003]
+    LB -->|HTTPS| Matching[Matching API :7002]
 
     Auth -->|/healthz| Liveness_A[Liveness 200 OK]
     Auth -->|/readyz| Readiness_A{Redis + MariaDB}

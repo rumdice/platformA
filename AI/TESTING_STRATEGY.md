@@ -4,10 +4,16 @@
 
 ## 현재 상태
 
-**유닛 테스트 프로젝트 없음** (기술 부채 — BACKLOG #BACK-004)
+| 테스트 프로젝트 | 범위 |
+|----------------|------|
+| `PlatformA.Tests.Utils.API` | Utils API 컨트롤러 통합 + 유틸리티 유닛 (스프린트 #2) |
+| `PlatformA.Tests.Auth.API` | Auth API 컨트롤러 통합 + DTO 유닛 (스프린트 #3) |
+| `PlatformA.Tests.Game.Server` | Protobuf 패킷 round-trip (스프린트 #11) |
 
-현재 테스트 방법:
-- **기능 테스트**: `PlatformA.Game.DummyClient` 시나리오 실행
+**미구현** (BACKLOG #BACK-004): Ticketing API, Matching API 테스트 프로젝트
+
+추가 검증 방법:
+- **기능 테스트**: `PlatformA.Game.DummyClient` 시나리오 실행 (`/run-scenarios`)
 - **수동 검증**: Swagger UI, curl, Postman
 
 ---
@@ -15,7 +21,7 @@
 ## DummyClient 시나리오 목록
 
 ```bash
-cd /home/user/platformA/PlatformA/PlatformA.Game.DummyClient
+cd PlatformA/PlatformA.Game.DummyClient
 dotnet run
 ```
 
@@ -37,13 +43,13 @@ dotnet run
 ### Auth API 검증
 ```bash
 # 로그인 (신규 유저 자동 등록)
-curl -X POST https://localhost:7088/api/Auth/login \
+curl -X POST https://localhost:7001/api/Auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"pass1234"}' \
   -k
 
 # Token Refresh
-curl -X POST https://localhost:7088/api/Auth/refresh \
+curl -X POST https://localhost:7001/api/Auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken":"<refresh_token>"}' \
   -k
@@ -51,7 +57,7 @@ curl -X POST https://localhost:7088/api/Auth/refresh \
 # Rate Limit 검증 (11번째 요청 → 429)
 for i in {1..11}; do
   curl -s -o /dev/null -w "%{http_code}\n" \
-    -X POST https://localhost:7088/api/Auth/login \
+    -X POST https://localhost:7001/api/Auth/login \
     -H "Content-Type: application/json" \
     -d '{"username":"testuser","password":"pass1234"}' -k
 done
@@ -62,28 +68,28 @@ done
 TOKEN="<access_token>"
 
 # 대기열 진입
-curl -X POST https://localhost:7075/api/queue/enter \
+curl -X POST https://localhost:7003/api/queue/enter \
   -H "Authorization: Bearer $TOKEN" -k
 
 # 상태 폴링
-curl -X GET https://localhost:7075/api/queue/status \
+curl -X GET https://localhost:7003/api/queue/status \
   -H "Authorization: Bearer $TOKEN" -k
 
 # 대기열 이탈
-curl -X POST https://localhost:7075/api/queue/leave \
+curl -X POST https://localhost:7003/api/queue/leave \
   -H "Authorization: Bearer $TOKEN" -k
 ```
 
 ### 헬스체크 검증
 ```bash
 # 모든 API liveness 확인
-curl -f http://localhost:7088/healthz && echo "Auth: OK"
-curl -f http://localhost:7075/healthz && echo "Ticketing: OK"
-curl -f http://localhost:5189/healthz && echo "Matching: OK"
+curl -f https://localhost:7001/healthz && echo "Auth: OK"
+curl -f https://localhost:7003/healthz && echo "Ticketing: OK"
+curl -f https://localhost:7002/healthz && echo "Matching: OK"
 
 # readiness 확인 (Redis + DB 포함)
-curl http://localhost:7088/readyz
-curl http://localhost:7075/readyz
+curl https://localhost:7001/readyz
+curl https://localhost:7003/readyz
 ```
 
 ### Game Server 검증
@@ -100,7 +106,7 @@ dotnet run --project PlatformA.Game.DummyClient
 모든 코드 변경 후 반드시:
 
 ```bash
-cd /home/user/platformA/PlatformA
+cd PlatformA
 dotnet build PlatformA.sln
 ```
 
@@ -123,7 +129,7 @@ PlatformA.Auth.API.Tests/
 2. `RedisRateLimiterService.IsAllowedAsync()` 슬라이딩 윈도우 로직
 3. `SnowflakeGenerator.NextId()` 유니크 보장
 4. `Base62Converter.Encode()` / `Decode()` 왕복
-5. 패킷 직렬화/역직렬화 왕복 (Source Generator 검증)
+5. 패킷 직렬화/역직렬화 왕복 (Protobuf round-trip 검증)
 
 **2단계: 통합 테스트**
 - Auth 흐름 end-to-end (TestContainers로 MySQL + Redis)
@@ -202,7 +208,7 @@ PlatformA.Auth.API.Tests/
 ### 실행 명령
 
 ```bash
-cd /home/user/platformA/PlatformA
+cd PlatformA
 dotnet test PlatformA.Tests.Utils.API/PlatformA.Tests.Utils.API.csproj -v normal
 
 # 커버리지 포함
@@ -272,7 +278,7 @@ dotnet test PlatformA.Tests.Utils.API/PlatformA.Tests.Utils.API.csproj \
 ### 실행 명령
 
 ```bash
-cd /home/user/platformA/PlatformA
+cd PlatformA
 dotnet test PlatformA.Tests.Auth.API/PlatformA.Tests.Auth.API.csproj -v normal
 
 # 전체 솔루션 테스트

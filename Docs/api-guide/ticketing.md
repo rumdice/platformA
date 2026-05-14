@@ -5,7 +5,7 @@ Redis Sorted Set 기반으로 대기열 순서를 관리하며, 입장 가능 �
 
 | 항목 | 값 |
 |------|-----|
-| 개발 환경 기본 URL | `https://localhost:7075` |
+| 개발 환경 기본 URL | `https://localhost:7003` |
 | Docker Compose URL | `https://localhost:7003` |
 | 런타임 | .NET 8.0 |
 | SignalR Hub | `/hubs/queue` |
@@ -131,7 +131,7 @@ Redis Sorted Set 기반으로 대기열 순서를 관리하며, 입장 가능 �
 
 **연결 URL**
 ```
-wss://localhost:7075/hubs/queue
+wss://localhost:7003/hubs/queue
 ```
 
 **서버 → 클라이언트 이벤트**

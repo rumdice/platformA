@@ -53,7 +53,7 @@ cd PlatformA && dotnet build PlatformA.sln -q
 ```
 
 빌드 실패 시 **즉시 중단**:
-> "빌드 오류가 있습니다. `/clean-build` 또는 `/build-check`로 먼저 빌드를 수정하세요."
+> "빌드 오류가 있습니다. `/build-check`로 먼저 빌드를 수정하세요."
 
 ---
 
