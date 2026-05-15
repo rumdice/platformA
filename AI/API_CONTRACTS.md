@@ -358,7 +358,7 @@ URL 단축. Snowflake ID → Base62 변환으로 고유 코드 생성.
 
 ## Game Server TCP 프로토콜 (포트: 7777)
 
-Binary 패킷. 자세한 내용은 `AI/PATTERNS.md` 참조.
+Binary 패킷. 자세한 내용은 `Docs/developer-guide/packet-protocol.md` 참조.
 
 ### 패킷 ID 목록
 
