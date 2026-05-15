@@ -91,10 +91,8 @@ docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
 
 ## 코드 변경 규칙
 
-> 도메인별 상세 규칙은 `.claude/rules/` 참조 (파일 작업 시 자동 로드됨)
-> - 패킷: `.claude/rules/packets.md`
-> - API 컨트롤러: `.claude/rules/api-controllers.md`
-> - DB Migration: `.claude/rules/ef-migrations.md`
+> 도메인별 상세 규칙은 `.claude/rules/` 참조 (C# 파일 작업 시 자동 로드됨)
+> - 코딩 패턴 전체 (패킷·API·Redis·EF Core·DTO·서비스·헬스체크): `.claude/rules/patterns.md`
 > - 테스트: `.claude/rules/tests.md`
 
 ### Redis 키 추가
@@ -143,7 +141,7 @@ dotnet test PlatformA.sln
 | 설계 방향 판단 필요 | **사용자에게 질문** — 임의 구현 금지 |
 | 기존 ADR과 충돌하는 요구 | ADR 내용 설명 후 사용자 승인 요청 |
 | 환경 문제 발생 | `AI/ENVIRONMENT.md` 참조 |
-| 패턴 불명확 | `AI/PATTERNS.md` 참조 |
+| 패턴 불명확 | `.claude/rules/patterns.md` 자동 로드됨 |
 | 보안 관련 변경 | 반드시 사용자 확인 후 진행 |
 | DB 데이터 삭제/초기화 | **반드시** 사용자 확인 후 진행 |
 
@@ -187,6 +185,6 @@ Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear
 | 어떻게 빌드/배포하나? | `AI/RUNBOOK.md` |
 | 로컬 환경 어떻게 세팅하나? | `AI/ENVIRONMENT.md` |
 | API 스펙은 어떻게 되나? | `AI/API_CONTRACTS.md` |
-| 코드는 어떤 패턴으로 작성하나? | `AI/PATTERNS.md` |
+| 코드는 어떤 패턴으로 작성하나? | `.claude/rules/patterns.md` (C# 파일 작업 시 자동 로드) |
 | 게임/비즈니스 규칙은? | `AI/DOMAIN.md` |
 | 테스트는 어떻게 하나? | `AI/TESTING_STRATEGY.md` |

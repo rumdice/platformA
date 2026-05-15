@@ -12,7 +12,7 @@ description: PlatformA PATTERNS.md 기준으로 변경된 코드의 품질을 �
 
 ---
 
-## 검토 기준 (AI/PATTERNS.md)
+## 검토 기준 (rules/patterns.md 자동 로드됨)
 
 ### 패킷 코드 (ADR-007: Protobuf)
 - `BitConverter`, `BinaryReader`, `BinaryWriter` 등 수동 직렬화 코드가 있으면 Protobuf 방식으로 교체

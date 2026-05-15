@@ -16,7 +16,7 @@ description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브�
 ## 리뷰 체크리스트
 
 ### 1. 패킷 추가 (Game Server)
-`AI/PATTERNS.md` 섹션 1 기준 (ADR-007: Protobuf):
+ADR-007: Protobuf 기준:
 - [ ] `packets.proto`에 message 정의 + `Packet.oneof` 필드 등록이 되었는가?
 - [ ] `PacketHandler.cs`에 `[PacketHandler]` 어트리뷰트로 핸들러가 등록되었는가?
 - [ ] 핸들러가 반드시 `room.Push()` 안에서 게임 상태를 수정하는가?
@@ -24,7 +24,6 @@ description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브�
 - [ ] proto3 기본값 주의: 0인 enum/int 필드는 wire에 포함되지 않음을 인지했는가?
 
 ### 2. API 엔드포인트 추가
-`AI/PATTERNS.md` 섹션 2 기준:
 - [ ] `AI/API_CONTRACTS.md`가 먼저 업데이트되었는가?
 - [ ] DI는 생성자 주입만 사용하는가? (`new` 직접 생성 금지)
 - [ ] JWT 검증 로직이 누락되지 않았는가? (인증 필요 엔드포인트)
@@ -32,14 +31,12 @@ description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브�
 - [ ] Rate Limit 필요 시 `[RedisRateLimit]` 어트리뷰트 적용되었는가?
 
 ### 3. DB 변경
-`AI/PATTERNS.md` 섹션 4 기준:
 - [ ] EF Core Migration이 생성되었는가? (직접 SQL 금지)
 - [ ] 테이블명이 snake_case인가?
 - [ ] TTL 없는 Redis 키는 없는가?
 - [ ] `IDbContextFactory` 방식으로 DbContext를 DI받는가?
 
 ### 4. Redis 사용
-`AI/PATTERNS.md` 섹션 3 기준:
 - [ ] 새 Redis 키가 `PlatformA.Library/Common/Consts.cs`에 상수로 등록되었는가?
 - [ ] 하드코딩된 키 문자열 없는가?
 - [ ] `RedisManager.Instance.ExecuteAsync()` 래핑 사용하는가?
@@ -50,7 +47,7 @@ description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브�
 - [ ] `appsettings.json`에 로그 레벨 외 설정이 추가되지 않았는가?
 
 ### 6. 서비스 경계
-`AI/ARCHITECTURE.md` 기준:
+`AI/ARCHITECTURE.md` 설계 원칙 기준:
 - [ ] 서비스 간 직접 HTTP 호출이 없는가? (Redis Pub/Sub 우선)
 - [ ] Game Server가 MySQL에 직접 접근하지 않는가?
 - [ ] 각 서비스가 자신의 책임 범위를 벗어나지 않는가?

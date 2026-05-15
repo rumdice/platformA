@@ -309,6 +309,4 @@ public class CustomHealthCheck : IHealthCheck
 
 ## 참조 문서
 
-- `AI/PATTERNS.md` — 원본 패턴 가이드 (실제 코드베이스에서 추출됨)
-- `.claude/rules/api-controllers.md` — API 컨트롤러 세부 규칙
-- `.claude/rules/ef-migrations.md` — EF Core Migration 규칙
+- `.claude/rules/patterns.md` — 전체 코딩 패턴 가이드 (C# 파일 작업 시 자동 로드)
