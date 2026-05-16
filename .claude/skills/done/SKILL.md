@@ -56,7 +56,10 @@ dotnet test PlatformA.sln -q
 테스트 실패 시 **즉시 중단**하고 실패 항목을 출력한다. push 금지.
 
 ### 5단계: 원격 push
+빌드·포맷·테스트 모두 통과한 뒤 마커를 생성하고 push한다.
+pre-push 훅이 마커를 감지하면 재검사를 건너뛴다 (이중 빌드 방지).
 ```bash
+echo "$(date +%s)" > /tmp/.platformA_done_verified
 git push
 ```
 

@@ -27,6 +27,17 @@ if [ "$CURRENT_BRANCH" = "main" ]; then
     exit 0
 fi
 
+# ── 2. /done 마커 확인 — 이미 검증됐으면 재검사 스킵 ───────────────────────
+MARKER="/tmp/.platformA_done_verified"
+if [ -f "$MARKER" ]; then
+    MARKER_AGE=$(( $(date +%s) - $(cat "$MARKER" 2>/dev/null || echo 0) ))
+    if [ "$MARKER_AGE" -lt 300 ]; then
+        rm -f "$MARKER"
+        exit 0  # /done이 300초 이내에 build+format+test 통과 확인
+    fi
+    rm -f "$MARKER"
+fi
+
 # dotnet 사용 가능 여부 확인
 if ! command -v dotnet &>/dev/null; then
     exit 0
@@ -45,7 +56,7 @@ fi
 
 cd "$SLN_DIR" || exit 0
 
-# ── 2. 전체 솔루션 빌드 ───────────────────────────────────────────────────
+# ── 3. 전체 솔루션 빌드 ───────────────────────────────────────────────────
 BUILD_OUTPUT=$(dotnet build PlatformA.sln -q 2>&1)
 BUILD_EXIT=$?
 
@@ -54,7 +65,7 @@ if [ $BUILD_EXIT -ne 0 ]; then
     exit 0
 fi
 
-# ── 3. 포맷 검사 (CI와 동일하게 whitespace → style 순서) ─────────────────
+# ── 4. 포맷 검사 (CI와 동일하게 whitespace → style 순서) ─────────────────
 WS_OUTPUT=$(dotnet format PlatformA.sln whitespace --verify-no-changes --no-restore 2>&1)
 WS_EXIT=$?
 
