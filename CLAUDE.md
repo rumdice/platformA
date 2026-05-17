@@ -132,7 +132,7 @@ cd PlatformA/PlatformA.Game.Server   && dotnet run  # :7777
 - [ ] `dotnet test` 전체 통과 ← **빌드 통과 후 실행**
 - [ ] 해당 기능을 DummyClient 시나리오로 검증 가능한 경우 검증
 - [ ] `AI/SPRINT.md` 해당 항목 체크
-- [ ] 관련 API 변경 시 `AI/API_CONTRACTS.md` 업데이트
+- [ ] 관련 API 변경 시 `/doc-writer api-guide` 실행으로 `Docs/api-guide/` 동기화
 - [ ] `/done` 실행 → PR 생성 완료
 
 ## Push 전 필수 빌드 검증 절차
@@ -202,6 +202,6 @@ Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear
 | 왜 이런 기술을 선택했나? | `AI/adr/` |
 | 지금 뭘 해야 하나? | `AI/SPRINT.md` |
 | 어떻게 빌드/실행하나? | 이 파일 **핵심 명령어 / 로컬 실행 순서** 섹션 |
-| API 스펙은 어떻게 되나? | `AI/API_CONTRACTS.md` |
+| API 스펙은 어떻게 되나? | `Docs/api-guide/` (소스에서 자동 생성, `/doc-writer api-guide` 로 동기화) |
 | 코드는 어떤 패턴으로 작성하나? | `.claude/rules/patterns.md` (C# 파일 작업 시 자동 로드) |
 | 테스트는 어떻게 하나? | `test-writer` 에이전트 + `/run-scenarios` 스킬 |

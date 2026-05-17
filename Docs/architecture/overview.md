@@ -73,8 +73,57 @@ graph TB
 2. **Binary 패킷 프로토콜** — Game Server 통신은 Protobuf Envelope (ADR-005)
 3. **설정 중앙화** — 모든 상수는 `Consts.cs`에서 환경변수로 관리 (ADR-003, ADR-004)
 4. **무상태 JWT 인증** — Game Server는 MySQL 직접 접근 안 함
-5. **Lua 스크립트 원자성** — Redis 멀티키 연산은 Lua 스크립트로 Race Condition 방지
-6. **JobQueue 단일 스레드** — GameRoom의 모든 작업은 순차 처리 (lock 불필요)
+5. **IDbContextFactory** — EF Core DbContext는 Factory 방식으로만 DI (`DbContext` 직접 주입 금지)
+6. **Lua 스크립트 원자성** — Redis 멀티키 연산은 Lua 스크립트로 Race Condition 방지
+7. **JobQueue 단일 스레드** — GameRoom의 모든 작업은 순차 처리 (lock 불필요)
+
+---
+
+## 서비스 경계 규칙
+
+각 서비스는 자신의 책임 범위 외 작업을 수행하면 안 된다.
+
+| 서비스 | 금지 사항 |
+|--------|---------|
+| **Auth API** | 게임 로직, 매칭 로직 처리 |
+| **Ticketing API** | 매칭 결과 처리, 게임 룸 생성 |
+| **Matching API** | 대기열 관리(Ticketing 영역), 직접 TCP 연결 |
+| **Game Server** | HTTP API 호출, MySQL 직접 접근 |
+| **Utils API** | 게임/인증/매칭 로직 |
+
+---
+
+## 프로젝트 의존성
+
+```
+PlatformA.Library
+        │ (참조)
+        ├── PlatformA.Auth.API
+        ├── PlatformA.Matching.API
+        ├── PlatformA.Ticketing.API
+        ├── PlatformA.Utils.API
+        └── PlatformA.Game.Server
+
+PlatformA.MySqlDB.Lib
+        │ (참조)
+        ├── PlatformA.Auth.API
+        └── PlatformA.Matching.API
+```
+
+---
+
+## 포트 맵
+
+| 서비스 | 프로토콜 | 포트 |
+|--------|---------|------|
+| Auth API | HTTPS | 7001 |
+| Matching API | HTTPS | 7002 |
+| Ticketing API | HTTPS | 7003 |
+| Utils API | HTTP | 7004 |
+| Game Server | TCP | 7777 |
+| Redis 마스터 1~3 | TCP | 6371~6373 |
+| Redis 레플리카 1~3 | TCP | 6374~6376 |
+| MySQL | TCP | 3306 |
 
 ---
 
@@ -84,6 +133,6 @@ graph TB
 |--------|----------|------|
 | Auth API | .NET 8.0 | |
 | Ticketing API | .NET 8.0 | |
-| Matching API | **NET 9.0** | 최신 성능 기능 사용 |
+| Matching API | **.NET 9.0** | 최신 성능 기능 사용 |
 | Game Server | .NET 8.0 | Console App (ASP.NET Core 아님) |
 | Utils API | .NET 8.0 | |
