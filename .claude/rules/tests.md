@@ -34,4 +34,4 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 
 ## 신규 테스트 작성 시
 - `test-writer` 에이전트 활용 권장 (기존 팩토리 패턴 정확히 재사용)
-- 새 API 프로젝트 테스트 추가 시 `AI/TESTING_STRATEGY.md` 업데이트 필수
+- 새 API 프로젝트 테스트 추가 시 `test-writer.md` 현황 테이블 업데이트

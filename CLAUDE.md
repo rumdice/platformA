@@ -70,8 +70,8 @@ cd PlatformA && dotnet build PlatformA.sln
 # 특정 프로젝트만 빌드
 dotnet build PlatformA/PlatformA.Auth.API/PlatformA.Auth.API.csproj
 
-# Redis 클러스터 시작
-cd Redis && docker-compose up -d
+# 빌드 캐시 오류(MSB3492) 해결
+cd PlatformA && dotnet clean PlatformA.sln && dotnet build PlatformA.sln
 
 # DB Migration 생성 (WebApp)
 cd PlatformA/PlatformA.MySqlDB.Lib
@@ -83,6 +83,27 @@ dotnet ef database update --context DbWebAppContext
 # Docker 이미지 빌드 (Auth API 예시)
 cd PlatformA
 docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
+```
+
+### 로컬 실행 순서 (의존성 순서 준수)
+
+```bash
+# 1. Redis 클러스터 시작
+cd PlatformA/docker/redis-cluster && docker-compose up -d
+
+# 2. MySQL DB 초기화 (최초 1회)
+mysql -u root -ppass1234 -e "CREATE DATABASE IF NOT EXISTS db_WebApp; CREATE DATABASE IF NOT EXISTS db_LogApp;"
+
+# 3. Migration 적용
+cd PlatformA/PlatformA.MySqlDB.Lib
+dotnet ef database update --context DbWebAppContext
+dotnet ef database update --context DbLogAppContext
+
+# 4. 서비스 실행 (각 터미널)
+cd PlatformA/PlatformA.Auth.API    && dotnet run   # :7001
+cd PlatformA/PlatformA.Ticketing.API && dotnet run  # :7003
+cd PlatformA/PlatformA.Matching.API  && dotnet run  # :7002
+cd PlatformA/PlatformA.Game.Server   && dotnet run  # :7777
 ```
 
 ---
@@ -138,7 +159,7 @@ dotnet test PlatformA.sln
 |------|------|
 | 설계 방향 판단 필요 | **사용자에게 질문** — 임의 구현 금지 |
 | 기존 ADR과 충돌하는 요구 | ADR 내용 설명 후 사용자 승인 요청 |
-| 환경 문제 발생 | `AI/ENVIRONMENT.md` 참조 |
+| 환경 문제 발생 | 이 파일 **로컬 실행 순서** 참조 |
 | 패턴 불명확 | `.claude/rules/patterns.md` 자동 로드됨 |
 | 보안 관련 변경 | 반드시 사용자 확인 후 진행 |
 | DB 데이터 삭제/초기화 | **반드시** 사용자 확인 후 진행 |
@@ -180,9 +201,7 @@ Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear
 | 이 시스템은 어떻게 설계되었나? | `AI/ARCHITECTURE.md` |
 | 왜 이런 기술을 선택했나? | `AI/adr/` |
 | 지금 뭘 해야 하나? | `AI/SPRINT.md` |
-| 어떻게 빌드/배포하나? | `AI/RUNBOOK.md` |
-| 로컬 환경 어떻게 세팅하나? | `AI/ENVIRONMENT.md` |
+| 어떻게 빌드/실행하나? | 이 파일 **핵심 명령어 / 로컬 실행 순서** 섹션 |
 | API 스펙은 어떻게 되나? | `AI/API_CONTRACTS.md` |
 | 코드는 어떤 패턴으로 작성하나? | `.claude/rules/patterns.md` (C# 파일 작업 시 자동 로드) |
-| 게임/비즈니스 규칙은? | `AI/DOMAIN.md` |
-| 테스트는 어떻게 하나? | `AI/TESTING_STRATEGY.md` |
+| 테스트는 어떻게 하나? | `test-writer` 에이전트 + `/run-scenarios` 스킬 |

@@ -28,12 +28,25 @@ PlatformA/
 │   ├── Helpers/AuthTestWebAppFactory.cs   ← Auth 통합 테스트 팩토리
 │   ├── Models/AuthModelValidationTests.cs ← DTO 유닛 테스트
 │   └── AuthControllerTests.cs
-└── PlatformA.Tests.Utils.API/
-    ├── Helpers/TestWebAppFactory.cs       ← Utils 통합 테스트 팩토리
-    ├── Base62ConverterTests.cs
-    ├── SnowflakeGeneratorTests.cs
-    └── UtilControllerTests.cs
+├── PlatformA.Tests.Utils.API/
+│   ├── Helpers/TestWebAppFactory.cs       ← Utils 통합 테스트 팩토리
+│   ├── Base62ConverterTests.cs
+│   ├── SnowflakeGeneratorTests.cs
+│   └── UtilControllerTests.cs
+└── PlatformA.Tests.Game.Server/           ← Protobuf 패킷 round-trip
 ```
+
+## 현재 테스트 현황
+
+| 프로젝트 | 상태 | 범위 |
+|---------|------|------|
+| `PlatformA.Tests.Utils.API` | ✅ 구현됨 | 컨트롤러 통합 + 유틸리티 유닛 |
+| `PlatformA.Tests.Auth.API` | ✅ 구현됨 | 컨트롤러 통합 + DTO 유닛 |
+| `PlatformA.Tests.Game.Server` | ✅ 구현됨 | Protobuf 패킷 round-trip |
+| `PlatformA.Tests.Ticketing.API` | ❌ 미구현 | — |
+| `PlatformA.Tests.Matching.API` | ❌ 미구현 | — |
+
+기능 시나리오 검증은 `/run-scenarios` 스킬로 DummyClient 1~8번을 자동 실행한다.
 
 ---
 
