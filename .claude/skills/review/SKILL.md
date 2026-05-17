@@ -47,7 +47,7 @@ ADR-007: Protobuf 기준:
 - [ ] `appsettings.json`에 로그 레벨 외 설정이 추가되지 않았는가?
 
 ### 6. 서비스 경계
-`AI/ARCHITECTURE.md` 설계 원칙 기준:
+`Docs/architecture/overview.md` 설계 원칙 기준:
 - [ ] 서비스 간 직접 HTTP 호출이 없는가? (Redis Pub/Sub 우선)
 - [ ] Game Server가 MySQL에 직접 접근하지 않는가?
 - [ ] 각 서비스가 자신의 책임 범위를 벗어나지 않는가?

@@ -28,8 +28,8 @@ allowed-tools: Agent Bash(dotnet *) Bash(ls *) Bash(mkdir *) Read Write Edit Glo
 | 섹션 | 소스 파일 | 생성 문서 |
 |------|----------|----------|
 | api-guide | `PlatformA.Auth.API/Controllers/AuthController.cs`<br>`PlatformA.Ticketing.API/Controllers/QueueController.cs`<br>`PlatformA.Matching.API/Controllers/GameMatchController.cs`<br>`PlatformA.Matching.API/Controllers/OrderController.cs`<br>`PlatformA.Utils.API/Controllers/UtilController.cs` | `Docs/api-guide/auth.md`<br>`Docs/api-guide/ticketing.md`<br>`Docs/api-guide/matching.md`<br>`Docs/api-guide/utils.md` |
-| operations | `k8s/` 매니페스트 전체<br>`PlatformA/docker/` 전체<br>`AI/RUNBOOK.md` | `Docs/operations/deployment.md`<br>`Docs/operations/monitoring.md` |
-| developer-guide | `.claude/rules/patterns.md`<br>`PlatformA.Library/Packets/Proto/packets.proto`<br>`AI/ARCHITECTURE.md`<br>`PlatformA.Library/Common/Consts.cs` | `Docs/developer-guide/coding-patterns.md`<br>`Docs/developer-guide/packet-protocol.md`<br>`Docs/developer-guide/redis-patterns.md` |
+| operations | `k8s/` 매니페스트 전체<br>`PlatformA/docker/` 전체<br>`Docs/operations/deployment.md` (기존) | `Docs/operations/deployment.md`<br>`Docs/operations/monitoring.md` |
+| developer-guide | `.claude/rules/patterns.md`<br>`PlatformA.Library/Packets/Proto/packets.proto`<br>`Docs/architecture/overview.md`<br>`PlatformA.Library/Common/Consts.cs` | `Docs/developer-guide/coding-patterns.md`<br>`Docs/developer-guide/packet-protocol.md`<br>`Docs/developer-guide/redis-patterns.md` |
 
 ### 1단계 — Agent로 문서 생성
 

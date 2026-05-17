@@ -21,7 +21,7 @@ tools:
 ### 1. 아키텍처 컨텍스트 파악
 
 먼저 아래 문서를 Read로 읽어 보안 결정의 배경을 파악한다:
-- `AI/ARCHITECTURE.md`
+- `Docs/architecture/overview.md`
 - `AI/adr/` 내 보안 관련 ADR
 
 ### 2. Auth / JWT 감사
