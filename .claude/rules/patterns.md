@@ -57,7 +57,7 @@ public static void Handle_C_Move(GameSession session, ProtoPacket packet)
 - Rate Limit 필요 액션: `[RedisRateLimit("policyName")]` 사용
 - **생성자 DI만 허용** — `new SomeService()` 직접 인스턴스화 절대 금지
 - `IDbContextFactory<TContext>` 패턴 사용 (`DbContext` 직접 주입 금지)
-- 엔드포인트 추가 전 `AI/API_CONTRACTS.md` 먼저 업데이트
+- 엔드포인트 추가·변경 후 `/doc-writer api-guide` 실행으로 `Docs/api-guide/` 동기화
 
 **JWT 추출 패턴** (인증 필요 엔드포인트):
 ```csharp

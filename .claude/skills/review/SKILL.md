@@ -24,7 +24,7 @@ ADR-007: Protobuf 기준:
 - [ ] proto3 기본값 주의: 0인 enum/int 필드는 wire에 포함되지 않음을 인지했는가?
 
 ### 2. API 엔드포인트 추가
-- [ ] `AI/API_CONTRACTS.md`가 먼저 업데이트되었는가?
+- [ ] 컨트롤러 변경 후 `/doc-writer api-guide` 실행으로 `Docs/api-guide/` 동기화되었는가?
 - [ ] DI는 생성자 주입만 사용하는가? (`new` 직접 생성 금지)
 - [ ] JWT 검증 로직이 누락되지 않았는가? (인증 필요 엔드포인트)
 - [ ] 에러 응답이 `{ Message = "..." }` 포맷을 따르는가?
@@ -55,7 +55,7 @@ ADR-007: Protobuf 기준:
 ### 7. Definition of Done
 - [ ] `dotnet build PlatformA.sln` 빌드 오류 없음
 - [ ] `dotnet test` 전체 통과
-- [ ] 관련 API 변경 시 `AI/API_CONTRACTS.md` 업데이트
+- [ ] 관련 API 변경 시 `/doc-writer api-guide` 실행
 - [ ] `AI/SPRINT.md` 해당 항목 체크
 
 ---
