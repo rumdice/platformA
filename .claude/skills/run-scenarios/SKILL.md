@@ -1,5 +1,6 @@
 ---
 name: run-scenarios
+schema_version: 1
 description: 시나리오 6(미구현)을 제외한 모든 DummyClient 시나리오(1~5, 7, 8)를 자동으로 실행한다. 인프라 체크 → 기존 서버 강제 종료 → 서버 자동 시작 → stdin 파이핑 실행 → Redis 정리 → 서버 종료 → 콘솔 리포트 순서로 진행한다.
 allowed-tools: Bash(docker *) Bash(dotnet *) Bash(curl *) Bash(printf *) Bash(timeout *) Bash(kill *) Bash(powershell *) Read
 ---

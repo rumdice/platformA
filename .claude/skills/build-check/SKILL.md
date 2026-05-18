@@ -1,5 +1,6 @@
 ---
 name: build-check
+schema_version: 1
 description: 현재 코드베이스 상태 빠른 점검. 빌드 오류 및 테스트 실패 여부를 보고한다. 언제든 실행 가능한 읽기 전용 상태 확인용.
 disable-model-invocation: true
 allowed-tools: Bash(dotnet *) Bash(git *)

@@ -1,5 +1,6 @@
 ---
 name: done
+schema_version: 1
 description: 현재 브랜치의 작업을 완료 처리한다. 미커밋 변경사항 커밋 → 빌드/테스트 검증 → 한글 PR 생성 → SPRINT.md 완료 체크 순서로 진행한다.
 disable-model-invocation: true
 allowed-tools: Bash(git *) Bash(dotnet *) Bash(gh *) Read Edit
@@ -102,7 +103,36 @@ EOF
 )"
 ```
 
-### 8단계: 완료 보고
+### 8단계: task JSON 완료 처리 및 cost-log 기록
+
+PR URL이 확보되면 아래 두 파일을 업데이트한다.
+
+**task JSON 업데이트** — 현재 브랜치와 매칭되는 AI/tasks/*.json 파일을 찾아 완료 처리:
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+if [ -n "$TASK_FILE" ]; then
+  NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
+  # status → done, completed_at → now, pr_url → PR URL 으로 수동 편집
+  # (Edit 도구 사용)
+fi
+```
+Edit 도구로 해당 JSON 파일의 `"status"`, `"completed_at"`, `"pr_url"` 필드를 업데이트한다.
+
+**cost-log.md 기록** — `AI/cost-log.md` 테이블 마지막 행에 항목 추가:
+```
+| {오늘날짜} | #{스프린트번호} | {PlanName} | claude-sonnet-4-6 | {S/M/L} | {메모} |
+```
+규모 기준: S(1-2 files), M(3-10 files), L(10+ files 또는 5+ 태스크)
+
+변경 후 커밋:
+```bash
+git add AI/tasks/ AI/cost-log.md
+git commit -m "완료: task 상태 및 비용 로그 업데이트"
+git push
+```
+
+### 9단계: 완료 보고
 ```
 PR: {PR URL}
 브랜치: {브랜치명}

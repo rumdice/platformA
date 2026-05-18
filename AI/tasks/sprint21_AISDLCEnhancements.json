@@ -1,0 +1,18 @@
+{
+  "sprint": 21,
+  "task": "AISDLCEnhancements",
+  "branch": "2026-05-18_AISDLCEnhancements",
+  "status": "in_progress",
+  "created_at": "2026-05-18T00:00:00Z",
+  "completed_at": null,
+  "pr_url": null,
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [
+    ".claude/skills/qa-failure/SKILL.md",
+    "PlatformA/PlatformA.Tests.Matching.API/",
+    "PlatformA/PlatformA.Tests.Ticketing.API/",
+    "AI/tasks/SCHEMA.md",
+    "AI/cost-log.md"
+  ]
+}

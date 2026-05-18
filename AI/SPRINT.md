@@ -284,3 +284,17 @@
 - [x] `PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj` — `GenerateDocumentationFile` 추가
 - [x] `PlatformA.Utils.API/PlatformA.Utils.API.csproj` — `GenerateDocumentationFile` 추가
 - [x] `dotnet build PlatformA.sln` 오류 0개 확인 (CS1591 경고 277개는 정상)
+
+---
+
+## 스프린트 #21 (2026-05-18 ~)
+**목표**: AI PipeLine 도입 초안작업
+
+### 진행 중
+
+- [ ] `.claude/skills/qa-failure/SKILL.md` — /qa-failure 스킬 신규 추가 (CI 실패 자동 분석)
+- [ ] `PlatformA.Tests.Matching.API` — GameMatchController 통합 테스트 8케이스
+- [ ] `PlatformA.Tests.Ticketing.API` — QueueController 통합 테스트 8케이스
+- [ ] `AI/tasks/` — 경량 작업 상태 JSON 구조 + /plan & /done 스킬 연동
+- [ ] `AI/cost-log.md` — AI 작업 비용 추적 로그 신규 추가
+- [ ] 8개 SKILL.md — `schema_version: 1` 추가

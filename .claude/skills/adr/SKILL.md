@@ -1,5 +1,6 @@
 ---
 name: adr
+schema_version: 1
 description: Architecture Decision Record(ADR)를 자동 채번하여 AI/adr/ 에 생성한다. 번호 자동 파악, 일관된 포맷 적용, LLM이 초안 내용을 작성한다. 사용법: /adr <결정 주제>
 allowed-tools: Bash(ls *) Read Write Edit
 ---

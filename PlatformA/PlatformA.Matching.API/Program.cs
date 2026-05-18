@@ -54,7 +54,7 @@ builder.Services.AddDbContextFactory<DbWebAppContext>(options =>
 {
     options.UseMySql(
         Consts.MYSQL_WEBAPP_CONNECTION,
-        ServerVersion.AutoDetect(Consts.MYSQL_WEBAPP_CONNECTION));
+        new MySqlServerVersion(new Version(8, 0, 0)));
     options.UseSnakeCaseNamingConvention();
 });
 
@@ -139,3 +139,5 @@ static Task WriteJsonResponse(HttpContext ctx, HealthReport report)
     }, new JsonSerializerOptions { WriteIndented = true });
     return ctx.Response.WriteAsync(result);
 }
+
+public partial class Program { }

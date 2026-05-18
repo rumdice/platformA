@@ -1,5 +1,6 @@
 ---
 name: review
+schema_version: 1
 description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브랜치 변경사항을 PlatformA 코딩 패턴, 아키텍처 원칙, Definition of Done 기준으로 검토한다.
 ---
 
