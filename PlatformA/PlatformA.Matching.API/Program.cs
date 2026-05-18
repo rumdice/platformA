@@ -139,3 +139,5 @@ static Task WriteJsonResponse(HttpContext ctx, HealthReport report)
     }, new JsonSerializerOptions { WriteIndented = true });
     return ctx.Response.WriteAsync(result);
 }
+
+public partial class Program { }

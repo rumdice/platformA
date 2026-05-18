@@ -1,5 +1,6 @@
 ---
 name: plan
+schema_version: 1
 description: 새 작업 계획을 수립한다. 현재 브랜치에 오픈 PR이 있으면 해당 브랜치에서 계속 작업한다. 그 외에는 무조건 main으로 이동 후 pull 받고 새 브랜치를 생성한다.
 disable-model-invocation: true
 allowed-tools: Bash(git *) Bash(gh *) Read Edit
@@ -83,6 +84,35 @@ git pull origin main
 ```bash
 git checkout -b {브랜치명}
 git push -u origin {브랜치명}
+```
+
+---
+
+### 3.5단계: task JSON 파일 초기화
+
+브랜치 생성 직후 `AI/tasks/` 디렉토리에 작업 상태 파일을 생성한다.
+스프린트 번호는 `AI/SPRINT.md`에서 `^## 스프린트 #` 줄 수를 세어 결정한다.
+
+```bash
+SPRINT_NUM=$(grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
+PLAN_NAME="{PlanName}"
+BRANCH="{브랜치명}"
+NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
+mkdir -p AI/tasks
+cat > "AI/tasks/sprint${SPRINT_NUM}_${PLAN_NAME}.json" << EOF
+{
+  "sprint": ${SPRINT_NUM},
+  "task": "${PLAN_NAME}",
+  "branch": "${BRANCH}",
+  "status": "in_progress",
+  "created_at": "${NOW}",
+  "completed_at": null,
+  "pr_url": null,
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": []
+}
+EOF
 ```
 
 ---

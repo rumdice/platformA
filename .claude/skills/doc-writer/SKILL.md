@@ -1,5 +1,6 @@
 ---
 name: doc-writer
+schema_version: 1
 description: 소스 코드를 분석하여 Docs/ 문서를 자동 생성·업데이트한다. api-guide, operations, developer-guide 섹션을 지원하며 생성 후 로컬 빌드·서빙까지 수행한다.
 allowed-tools: Agent Bash(dotnet *) Bash(ls *) Bash(mkdir *) Read Write Edit Glob Grep
 ---

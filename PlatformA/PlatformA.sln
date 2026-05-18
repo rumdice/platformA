@@ -27,6 +27,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Tests.Game.Server", "PlatformA.Tests.Game.Server\PlatformA.Tests.Game.Server.csproj", "{EBBCFE79-6F69-4C1F-8B35-1C08CDADA21A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Tests.Matching.API", "PlatformA.Tests.Matching.API\PlatformA.Tests.Matching.API.csproj", "{BF336877-E071-491A-82F5-6C98B4AFC047}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformA.Tests.Ticketing.API", "PlatformA.Tests.Ticketing.API\PlatformA.Tests.Ticketing.API.csproj", "{4DAD4445-CB2C-45E1-BC5D-A14E5E79351B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +81,14 @@ Global
 		{EBBCFE79-6F69-4C1F-8B35-1C08CDADA21A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBBCFE79-6F69-4C1F-8B35-1C08CDADA21A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBBCFE79-6F69-4C1F-8B35-1C08CDADA21A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF336877-E071-491A-82F5-6C98B4AFC047}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF336877-E071-491A-82F5-6C98B4AFC047}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF336877-E071-491A-82F5-6C98B4AFC047}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF336877-E071-491A-82F5-6C98B4AFC047}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DAD4445-CB2C-45E1-BC5D-A14E5E79351B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DAD4445-CB2C-45E1-BC5D-A14E5E79351B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DAD4445-CB2C-45E1-BC5D-A14E5E79351B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DAD4445-CB2C-45E1-BC5D-A14E5E79351B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
