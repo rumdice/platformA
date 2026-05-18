@@ -12,7 +12,7 @@ allowed-tools: Agent Bash(dotnet *) Bash(ls *) Bash(mkdir *) Read Write Edit Glo
 ```
 - `api-guide` — 컨트롤러 소스에서 REST API 명세 생성
 - `operations` — K8s/Docker 파일에서 배포 가이드 생성
-- `developer-guide` — PATTERNS.md, 패킷 프로토콜 등 개발 가이드 생성
+- `developer-guide` — `.claude/rules/patterns.md`, 패킷 프로토콜 등 개발 가이드 생성
 - `all` (기본값) — 위 세 가지 모두 수행
 
 인수가 없으면 `all`로 동작한다.

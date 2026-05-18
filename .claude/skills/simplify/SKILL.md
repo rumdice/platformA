@@ -1,6 +1,6 @@
 ---
 name: simplify
-description: PlatformA PATTERNS.md 기준으로 변경된 코드의 품질을 검토하고 개선한다. 패킷 직렬화, DI, Redis 래핑, EF Core 패턴 위반을 찾아 수정한다.
+description: .claude/rules/patterns.md 기준으로 변경된 코드의 품질을 검토하고 개선한다. 패킷 직렬화, DI, Redis 래핑, EF Core 패턴 위반을 찾아 수정한다.
 ---
 
 # PlatformA 코드 품질 개선
