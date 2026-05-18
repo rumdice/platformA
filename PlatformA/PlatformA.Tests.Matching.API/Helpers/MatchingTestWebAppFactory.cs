@@ -88,8 +88,8 @@ namespace PlatformA.Tests.Matching.API.Helpers
                 // 1. IDbContextFactory<DbWebAppContext> → InMemory 교체
                 var toRemove = services
                     .Where(d => d.ServiceType == typeof(IDbContextFactory<DbWebAppContext>)
-                             || d.ServiceType == typeof(DbWebAppContext)
-                             || d.ServiceType == typeof(DbContextOptions<DbWebAppContext>))
+                             || d.ServiceType == typeof(DbContextOptions<DbWebAppContext>)
+                             || d.ServiceType == typeof(DbContextOptions))
                     .ToList();
                 foreach (var d in toRemove)
                     services.Remove(d);
