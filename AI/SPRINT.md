@@ -306,8 +306,8 @@
 
 ### 진행 중
 
-- [ ] `.claude/skills/impact/SKILL.md` — /impact 스킬 신규 추가 (IMPACT_ANALYSIS 단계)
-- [ ] `.claude/skills/requirement/SKILL.md` — /requirement 스킬 신규 추가 (REQUIREMENT_ANALYSIS 단계)
-- [ ] `AI/tasks/SCHEMA.md` — 상태 머신 4단계 → 6단계 (analyzing/coding/testing 추가)
-- [ ] `.claude/skills/plan/SKILL.md` — 초기 status `in_progress` → `analyzing` 변경
-- [ ] `.claude/skills/done/SKILL.md` — 상태 전환(coding→testing→done/failed) + 비용 자동 계산 추가
+- [x] `.claude/skills/impact/SKILL.md` — /impact 스킬 신규 추가 (IMPACT_ANALYSIS 단계)
+- [x] `.claude/skills/requirement/SKILL.md` — /requirement 스킬 신규 추가 (REQUIREMENT_ANALYSIS 단계)
+- [x] `AI/tasks/SCHEMA.md` — 상태 머신 4단계 → 6단계 (analyzing/coding/testing 추가)
+- [x] `.claude/skills/plan/SKILL.md` — 초기 status `in_progress` → `analyzing` 변경
+- [x] `.claude/skills/done/SKILL.md` — 상태 전환(coding→testing→done/failed) + 비용 자동 계산 추가
