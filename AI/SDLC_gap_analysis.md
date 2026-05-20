@@ -1,6 +1,7 @@
 # AI SDLC 워크플로 갭 분석 보고서
 
 작성일: 2026-05-19  
+최종 갱신: 2026-05-21 (스프린트 #22 완료 반영)  
 작성 목적: 엔터프라이즈 AI SDLC 플랫폼 설계(PDF)와 현재 프로젝트 AI 워크플로 비교 → 개선 로드맵 수립
 
 ---
@@ -75,12 +76,14 @@ PENDING → ANALYZING → DESIGNING → CODING → TESTING → QA_ANALYZING → 
 
 ## 2. 현재 프로젝트 AI 워크플로 분석
 
-### 2.1 스킬 목록 (9종)
+### 2.1 스킬 목록 (11종)
 
 | 스킬 | 역할 |
 |------|------|
 | `/plan` | 브랜치 생성 + SPRINT.md 업데이트 + task JSON 초기화 |
-| `/done` | 빌드·포맷·테스트 → push → PR 생성 + cost-log 기록 |
+| `/done` | 빌드·포맷·테스트 → push → PR 생성 + cost-log 자동 기록 |
+| `/requirement` | 요구사항 분석 → 구현 명세 파일 생성 (REQUIREMENT_ANALYSIS) |
+| `/impact` | 변경 파일 위험도 분류 + 참조 관계 + 테스트 커버리지 (IMPACT_ANALYSIS) |
 | `/review` | 코드 리뷰 보고서 생성 |
 | `/simplify` | 복잡한 코드 단순화 리팩터링 |
 | `/qa-failure` | CI 실패 로그 분석 → BUILD/FORMAT/TEST 분류 → 수정 방향 제시 |
@@ -132,8 +135,8 @@ AI/
 | QA_FAILURE_ANALYSIS | `/qa-failure` | ✅ 완전 커버 |
 | CODE_REVIEW | `/review` | ✅ 완전 커버 |
 | DESIGN_REVIEW | `/adr` | ✅ 부분 커버 (ADR만, 설계 검토 없음) |
-| REQUIREMENT_ANALYSIS | — | ❌ 미구현 |
-| IMPACT_ANALYSIS | — | ❌ 미구현 |
+| REQUIREMENT_ANALYSIS | `/requirement` | ✅ 완전 커버 (2026-05-21) |
+| IMPACT_ANALYSIS | `/impact` | ✅ 완전 커버 (2026-05-21) |
 | TC_EXTRACTION | — | ❌ 미구현 (test-writer가 직접 생성) |
 
 ### 3.2 아키텍처 갭
@@ -142,8 +145,8 @@ AI/
 |------|---------|---------|-----|
 | **오케스트레이션** | n8n 자동 트리거 | 사용자 수동 실행 | 자동화 없음 |
 | **상태 DB** | PostgreSQL 6개 테이블 | JSON 파일 | 쿼리·집계 불가 |
-| **상태 머신** | 9단계 + 에러 분기 | 4단계 (pending/in_progress/done/failed) | 중간 단계 없음 |
-| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 수동 기록 | 실시간 추적 없음 |
+| **상태 머신** | 9단계 + 에러 분기 | 6단계 (analyzing/coding/testing/done/failed) | 부분 해소 (2026-05-21) |
+| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 자동 기록 (파일 수 기반 규모 계산) | 실시간 추적 없음 |
 | **다중 워커** | Worker 분리 + 헬스비트 | 단일 Claude Code 인스턴스 | 병렬 실행 없음 |
 | **Approval Gate** | 고위험 작업 인간 승인 | 없음 (모두 수동) | 게이트 없음 |
 | **LLM 라우터** | 태스크 복잡도별 모델 선택 | 단일 모델 고정 | 비용 최적화 없음 |
@@ -167,9 +170,9 @@ AI/
 
 ```
 0. HUMAN_PLAN          → /plan 스킬 (구현 완료 ✅)
-1. REQUIREMENT_ANALYSIS → 미구현 ❌
+1. REQUIREMENT_ANALYSIS → /requirement 스킬 (구현 완료 ✅ 2026-05-21)
 2. DESIGN_REVIEW       → /adr 스킬 (부분 구현 ⚠️)
-3. IMPACT_ANALYSIS     → 미구현 ❌
+3. IMPACT_ANALYSIS     → /impact 스킬 (구현 완료 ✅ 2026-05-21)
 4. CODE_FIX            → /plan + /done (구현 완료 ✅)
 5. TEST_CODE_GENERATION → test-writer 에이전트 (구현 완료 ✅)
 6. QA_FAILURE_ANALYSIS  → /qa-failure (구현 완료 ✅)
@@ -181,7 +184,7 @@ AI/
 | Phase | 목표 | 현재 상태 |
 |-------|------|---------|
 | Phase 1 | 모든 스킬/AI 문서 목적 명확화 | ✅ 완료 — CLAUDE.md, rules/, SPRINT.md, tasks/ 체계 수립 |
-| Phase 2 | PDF 개선사항 적용, 가장 큰 갭 발견 | 🔄 진행 중 — 갭 분석(이 문서), /qa-failure 추가, tests.md 업데이트 |
+| Phase 2 | PDF 개선사항 적용, 가장 큰 갭 발견 | 🔄 진행 중 — 단기 TODO 4종 완료 (스프린트 #22, PR #44): /impact·/requirement 추가, 상태 머신 6단계, 비용 자동 계산 |
 | Phase 3 | AI/Skill 프로세스 분석, 분리 준비 | ⬜ 미시작 — 상태 DB, 자동화 오케스트레이션 단계 |
 
 ---
@@ -190,12 +193,12 @@ AI/
 
 ### 6.1 단기 개선 (현재 스프린트 수준, 1~2주)
 
-| 우선순위 | 개선 항목 | 이유 |
-|---------|---------|------|
-| P0 | `/impact` 스킬 추가 | 변경 범위 파악이 없어 실수로 넓은 영향 작업 시작하는 경우 발생 |
-| P1 | 상태 머신 단계 세분화 | 현재 4단계로는 중간 실패 원인 구분 불가 → 5단계: pending/analyzing/coding/testing/done |
-| P2 | 비용 자동 기록 | `/done` 스킬에서 token 사용량 자동 추출 후 cost-log.md 업데이트 |
-| P3 | `/requirement` 스킬 추가 | 요구사항 → 구현 명세 변환을 AI가 보조하면 /plan 품질 향상 |
+| 우선순위 | 개선 항목 | 이유 | 상태 |
+|---------|---------|------|------|
+| P0 | `/impact` 스킬 추가 | 변경 범위 파악이 없어 실수로 넓은 영향 작업 시작하는 경우 발생 | ✅ 완료 (2026-05-21) |
+| P1 | 상태 머신 단계 세분화 | 4단계로는 중간 실패 원인 구분 불가 → 6단계: analyzing/coding/testing/done/failed | ✅ 완료 (2026-05-21) |
+| P2 | 비용 자동 기록 | `/done` 스킬에서 변경 파일 수 기반 규모 자동 계산 후 cost-log.md 업데이트 | ✅ 완료 (2026-05-21) |
+| P3 | `/requirement` 스킬 추가 | 요구사항 → 구현 명세 변환을 AI가 보조하면 /plan 품질 향상 | ✅ 완료 (2026-05-21) |
 
 ### 6.2 중기 개선 (Phase 2 완료 기준, 1~2개월)
 
@@ -237,5 +240,6 @@ AI/
 ## 요약
 
 **현재 워크플로는 PDF의 Phase 1 PoC 수준을 상회**하며, 핵심 CODE_FIX/TEST/QA 루프는 완성됨.  
-**가장 큰 갭 3가지**: ① 자동 오케스트레이션 없음, ② REQUIREMENT/IMPACT 분석 단계 없음, ③ 비용 자동 추적 없음.  
-**pipeline.txt Phase 2의 핵심 액션**: `/impact` 스킬 추가 + 상태 머신 5단계로 세분화 + 비용 자동 기록.
+**스프린트 #22 완료 (2026-05-21)**: REQUIREMENT_ANALYSIS·IMPACT_ANALYSIS 단계 스킬 추가, 상태 머신 6단계, 비용 자동 계산으로 단기 갭 4종 해소.  
+**남은 주요 갭**: ① 자동 오케스트레이션 없음 (Phase 3), ② DESIGN_REVIEW 부분 커버, ③ 실시간 비용 추적 없음.  
+**다음 단계 (pipeline.txt Phase 2 잔여)**: 중기 개선 — 스킬 실행 시간 추적, 주간 비용 리포트, /review 게이트 강화.

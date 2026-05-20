@@ -304,7 +304,7 @@
 ## 스프린트 #22 (2026-05-21 ~)
 **목표**: AI Pipeline 단기 개선 — /impact · /requirement 스킬 추가 및 상태 머신 6단계 전환
 
-### 진행 중
+### 완료
 
 - [x] `.claude/skills/impact/SKILL.md` — /impact 스킬 신규 추가 (IMPACT_ANALYSIS 단계)
 - [x] `.claude/skills/requirement/SKILL.md` — /requirement 스킬 신규 추가 (REQUIREMENT_ANALYSIS 단계)

@@ -38,7 +38,7 @@ Phase1 내 프로젝트의 AI 문서와 스킬의 사용 목적을 명확히 정
 3. 스킬과 AI 문서의 연관 관계 설명.
 4. 사용자의 작업공정 (workflow 설명)
 
-Phase2 (진행중)
+Phase2 (진행중 — 단기 TODO 4종 완료 2026-05-21, 스프린트 #22 PR #44)
 1. Phase1의 개선된 부분을 반영하여 2. PDF 문서와 비교한 이 프로젝트의 가장 큰 문제점 에 반영하고 갱신한다.
 
 Phase3  (진행예정)
@@ -59,18 +59,19 @@ Phase3  (진행예정)
 
 1. REQUIREMENT_ANALYSIS
 기능 : 0. USER_PLAN 단계에서 유저가 제출한 요구사항 계획(.md)을 분석한다.
-- 요구사항을 분석하고 검토하여 오류 및 누락이 있는지 체크하고 있다면 질문한다. 
+- 요구사항을 분석하고 검토하여 오류 및 누락이 있는지 체크하고 있다면 질문한다.
 - 요구사항의 분석 및 검토가 완료되면 사용자가 제출한 .md 계획 문서를 우선 사용자 글로벌 클로드 설정 C:\Users\rumdi\.claude\plans 경로에
 저장한다. (향후 DB 저장으로 전환한다)
 - 저장 포멧은 YYYY-mm-dd_TaskNumber_계획 추론 제목.md ex) 2026-05-14_001_RemoveGeneratorLib.md
 - 단일 사용자,혹은 여러 사용자가 동일한날에 동시에 다양한 계획을 동시에 제출할 수 있음을 염두해 두고 위와 같이 제목을 작성한다.
-- 현재는 /plan 스킬이 발동해야 위와같이 동작하는데 수정이 필요하다. 
+→ /requirement 스킬로 구현됨 (2026-05-21, 스프린트 #22)
 
 2. DESIGN_REVIEW
 기능 : 요구단계분석이 끝났다면 코드의 설계 방향을 제시한다.
 
 3. IMPACT_ANALYSIS
 기능 : 코드의 설계 방향대로 코드 수정시 수정대상의 파일/모듈 들을 파악하고 위험도,영향도를 평가한다.
+→ /impact 스킬로 구현됨 (2026-05-21, 스프린트 #22)
 
 4. CODE_FIX
 기능 : 실제로 코드를 수정한다.
@@ -95,29 +96,26 @@ TODO:
 
 [갭 분석 결과 개선 항목] (2026-05-19 기준, AI/SDLC_gap_analysis.md 참조)
 
-★ 단기 (Phase 2 내 — 스킬 추가/수정)
+★ 단기 (Phase 2 내 — 스킬 추가/수정) [✅ 전체 완료 2026-05-21, 스프린트 #22 PR #44]
 ------
-1. /impact 스킬 신규 추가 [P0]
+1. /impact 스킬 신규 추가 [P0] ✅ 완료
    - git diff + ripgrep으로 변경 영향 파일 자동 추출
    - 위험도 평가 (핵심 서비스 파일 여부, 테스트 커버리지 여부)
-   - /plan 직후 자동 실행되도록 CLAUDE.md 또는 /plan 스킬에 연동
    - IMPACT_ANALYSIS 단계(3번)를 이 스킬로 채운다
 
-2. /requirement 스킬 신규 추가 [P3]
+2. /requirement 스킬 신규 추가 [P3] ✅ 완료
    - USER_PLAN → 구현 명세(.md) 변환 보조
    - 요구사항 오류/누락 체크 후 질문
    - 완료 시 C:\Users\rumdi\.claude\plans\YYYY-MM-DD_NNN_제목.md 로 저장
    - REQUIREMENT_ANALYSIS 단계(1번)를 이 스킬로 채운다
 
-3. task JSON 상태 머신 세분화 [P1]
-   - 현재: pending / in_progress / done / failed (4단계)
-   - 목표: pending / analyzing / coding / testing / done / failed (6단계)
-   - /plan → analyzing, /done 빌드 전 → coding, 테스트 후 → testing, PR 생성 후 → done
-   - SCHEMA.md 업데이트 필요
+3. task JSON 상태 머신 세분화 [P1] ✅ 완료
+   - 완료: pending / analyzing / coding / testing / done / failed (6단계)
+   - /plan → analyzing, /done 시작 → coding, 테스트 통과 → testing, PR 생성 → done
+   - SCHEMA.md 업데이트 완료
 
-4. /done 스킬에 비용 자동 기록 연동 [P2]
+4. /done 스킬에 비용 자동 기록 연동 [P2] ✅ 완료
    - PR 생성 후 cost-log.md 에 행 자동 추가 (변경 파일 수로 규모 S/M/L/XL 자동 판단)
-   - 현재는 수동 기록 → 누락 위험
 
 ------
 
