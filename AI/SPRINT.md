@@ -298,3 +298,16 @@
 - [ ] `AI/tasks/` — 경량 작업 상태 JSON 구조 + /plan & /done 스킬 연동
 - [ ] `AI/cost-log.md` — AI 작업 비용 추적 로그 신규 추가
 - [ ] 8개 SKILL.md — `schema_version: 1` 추가
+
+---
+
+## 스프린트 #22 (2026-05-21 ~)
+**목표**: AI Pipeline 단기 개선 — /impact · /requirement 스킬 추가 및 상태 머신 6단계 전환
+
+### 진행 중
+
+- [x] `.claude/skills/impact/SKILL.md` — /impact 스킬 신규 추가 (IMPACT_ANALYSIS 단계)
+- [x] `.claude/skills/requirement/SKILL.md` — /requirement 스킬 신규 추가 (REQUIREMENT_ANALYSIS 단계)
+- [x] `AI/tasks/SCHEMA.md` — 상태 머신 4단계 → 6단계 (analyzing/coding/testing 추가)
+- [x] `.claude/skills/plan/SKILL.md` — 초기 status `in_progress` → `analyzing` 변경
+- [x] `.claude/skills/done/SKILL.md` — 상태 전환(coding→testing→done/failed) + 비용 자동 계산 추가

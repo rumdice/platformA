@@ -16,6 +16,19 @@ allowed-tools: Bash(git *) Bash(dotnet *) Bash(gh *) Read Edit
 
 ---
 
+## 헬퍼: task JSON 상태 업데이트
+
+아래 bash 스니펫을 각 전환 시점에 사용한다. `NEW_STATUS`와 추가 필드를 상황에 맞게 교체한다.
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+```
+
+TASK_FILE이 비어 있으면 task JSON이 없는 것이므로 해당 단계를 건너뛴다.
+
+---
+
 ## 수행 순서
 
 ### 사전 검사
@@ -33,13 +46,24 @@ git add -A
 git commit -m "{한글 커밋 메시지}"
 ```
 
+### 1.5단계: task 상태 → "coding"
+
+```bash
+# TASK_FILE 조회는 헬퍼 스니펫 참조
+if [ -n "$TASK_FILE" ]; then
+  # Edit 도구로 "status" 필드 값을 "coding" 으로 교체
+fi
+```
+
 ### 2단계: 빌드 검증
 ```bash
 # git 루트 기반으로 경로를 찾아 실행 (현재 디렉토리 무관)
 SLN=$(git rev-parse --show-toplevel)/PlatformA
 cd "$SLN" && dotnet build PlatformA.sln -q
 ```
-빌드 실패 시 **즉시 중단**하고 오류를 출력한다. push 금지.
+빌드 실패 시:
+- task JSON `"status"` → `"failed"`, `"last_error"` → 오류 요약으로 Edit 도구 업데이트
+- **즉시 중단**하고 오류를 출력한다. push 금지.
 
 ### 3단계: 포맷 검사
 ```bash
@@ -54,10 +78,19 @@ dotnet format PlatformA.sln style --verify-no-changes --no-restore
 ```bash
 dotnet test PlatformA.sln -q
 ```
-테스트 실패 시 **즉시 중단**하고 실패 항목을 출력한다. push 금지.
+테스트 실패 시:
+- task JSON `"status"` → `"failed"`, `"last_error"` → 실패 테스트명으로 Edit 도구 업데이트
+- **즉시 중단**하고 실패 항목을 출력한다. push 금지.
+
+### 4.5단계: task 상태 → "testing"
+
+빌드·포맷·테스트 모두 통과한 직후:
+```bash
+# Edit 도구로 "status" 필드 값을 "testing" 으로 교체
+```
 
 ### 5단계: 원격 push
-빌드·포맷·테스트 모두 통과한 뒤 마커를 생성하고 push한다.
+마커를 생성하고 push한다.
 pre-push 훅이 마커를 감지하면 재검사를 건너뛴다 (이중 빌드 방지).
 ```bash
 echo "$(date +%s)" > /tmp/.platformA_done_verified
@@ -103,27 +136,37 @@ EOF
 )"
 ```
 
-### 8단계: task JSON 완료 처리 및 cost-log 기록
+### 8단계: task JSON 완료 처리 및 cost-log 자동 기록
 
 PR URL이 확보되면 아래 두 파일을 업데이트한다.
 
-**task JSON 업데이트** — 현재 브랜치와 매칭되는 AI/tasks/*.json 파일을 찾아 완료 처리:
+**task JSON 업데이트** — Edit 도구로 `"status"` → `"done"`, `"completed_at"`, `"pr_url"` 업데이트:
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
 TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
-if [ -n "$TASK_FILE" ]; then
-  NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
-  # status → done, completed_at → now, pr_url → PR URL 으로 수동 편집
-  # (Edit 도구 사용)
-fi
+NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+# Edit 도구로 status="done", completed_at=NOW, pr_url=PR_URL 교체
 ```
-Edit 도구로 해당 JSON 파일의 `"status"`, `"completed_at"`, `"pr_url"` 필드를 업데이트한다.
 
-**cost-log.md 기록** — `AI/cost-log.md` 테이블 마지막 행에 항목 추가:
+**규모 자동 계산** — main 대비 변경 파일 수로 S/M/L/XL 결정:
+```bash
+FILE_COUNT=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -v '^$' | wc -l)
+if [ "$FILE_COUNT" -le 2 ]; then SIZE="S"
+elif [ "$FILE_COUNT" -le 10 ]; then SIZE="M"
+elif [ "$FILE_COUNT" -le 30 ]; then SIZE="L"
+else SIZE="XL"
+fi
+
+# 스프린트 번호 추출
+SPRINT_NUM=$(grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
+PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
+TODAY=$(date +%Y-%m-%d)
 ```
-| {오늘날짜} | #{스프린트번호} | {PlanName} | claude-sonnet-4-6 | {S/M/L} | {메모} |
+
+**cost-log.md 기록** — 테이블 마지막 행에 자동으로 추가 (Edit 도구 사용):
 ```
-규모 기준: S(1-2 files), M(3-10 files), L(10+ files 또는 5+ 태스크)
+| {TODAY} | #{SPRINT_NUM} | {PLAN_NAME} | claude-sonnet-4-6 | {SIZE} | {변경 내용 한 줄 요약} |
+```
 
 변경 후 커밋:
 ```bash
