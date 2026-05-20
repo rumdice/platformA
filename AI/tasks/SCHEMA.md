@@ -35,7 +35,7 @@ sprint{N}_{PlanName}.json
 | `sprint` | int | 스프린트 번호 |
 | `task` | string | 작업 PascalCase 이름 (브랜치명에서 날짜 제거) |
 | `branch` | string | 작업 브랜치명 |
-| `status` | string | `pending` \| `in_progress` \| `done` \| `failed` |
+| `status` | string | 아래 상태 머신 참조 |
 | `created_at` | ISO8601 | /plan 실행 시각 |
 | `completed_at` | ISO8601 \| null | /done 완료 시각 |
 | `pr_url` | string \| null | 생성된 PR URL |
@@ -43,10 +43,31 @@ sprint{N}_{PlanName}.json
 | `last_error` | string \| null | 마지막 실패 원인 |
 | `artifacts` | string[] | 생성된 주요 파일 목록 |
 
+## 상태 머신 (6단계)
+
+```
+pending → analyzing → coding → testing → done
+                                   ↓
+                                failed
+```
+
+| 상태 | 전환 시점 | 담당 스킬 |
+|------|---------|---------|
+| `pending` | task JSON 파일 생성 직후 (미시작) | — |
+| `analyzing` | /plan 브랜치 생성 완료 | `/plan` |
+| `coding` | /done 실행 시작 (빌드 전) | `/done` |
+| `testing` | 빌드·테스트 통과 (PR 생성 전) | `/done` |
+| `done` | PR 생성 완료 | `/done` |
+| `failed` | /done 빌드·테스트 실패 | `/done` |
+
 ## 스킬 연동
 
-- `/plan` 스킬: 브랜치 생성 후 `status: "in_progress"` 파일 자동 생성
-- `/done` 스킬: PR 생성 후 `status: "done"`, `completed_at`, `pr_url` 업데이트
+- `/plan` 스킬: 브랜치 생성 후 `status: "analyzing"` 파일 자동 생성
+- `/done` 스킬:
+  - 시작 시 → `status: "coding"`
+  - 테스트 통과 후 → `status: "testing"`
+  - PR 생성 후 → `status: "done"`, `completed_at`, `pr_url` 업데이트
+  - 실패 시 → `status: "failed"`, `last_error` 기록
 
 ## 향후 마이그레이션
 

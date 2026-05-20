@@ -1,0 +1,162 @@
+AI SDLC (PipeLine 도입)
+
+1. 작업 단계를 나눈다. (예시)
+-----
+0. HUMAN_PLAN
+1. REQUIREMENT_ANALYSIS
+2. DESIGN_REVIEW
+3. IMPACT_ANALYSIS
+4. CODE_FIX
+5. TEST_CODE_GENERATION
+6. QA_FAILURE_ANALYSIS
+7. PR_SUMMARY
+-----
+
+2. 실패를 기록한다
+-----
+각 공정의 db 기록을 활용한다.
+-----
+
+
+3. 역활 분리에 대한 결론
+-----
+DB 는 기억하고
+LLM은 판단하고
+CI/CD 는 검증하고
+n8n은 흐름을 제어한다 (나중에 도입 예정)
+-----
+
+
+PPT의 개선 사항 적용
+-----
+하나씩 사람(관리자 및 AI 감독자)가 이해하기 쉽게 천천히 진행한다.
+
+Phase1 내 프로젝트의 AI 문서와 스킬의 사용 목적을 명확히 정리한다. (완료된것 같다)
+나에게 설명하기 위한 목적으로 우선 어떤 수정도 하지 않는다.
+1. 모든 스킬에 대한 사용 용도 설명.
+2. 모든 AI 문서의 사용 용도 설명.
+3. 스킬과 AI 문서의 연관 관계 설명.
+4. 사용자의 작업공정 (workflow 설명)
+
+Phase2 (진행중)
+1. Phase1의 개선된 부분을 반영하여 2. PDF 문서와 비교한 이 프로젝트의 가장 큰 문제점 에 반영하고 갱신한다.
+
+Phase3  (진행예정)
+1. AI 및 Skill의 공정을 분석하고 공정이 큰 작업의 경우 분리를 준비한다.
+-----
+
+
+
+
+작업 단계를 나눈다. 각 단계는 순차적으로 진행된다. (작성중)
+
+0. USER_PLAN
+기능 : 유저가 요구사항을 제출하거나 생성해낸다.
+- 사용자(사람)이 어떤 모드에서던 LLM과 대화하여 어떠한 요구사항을 입력하고 구현을 위한 계획을 설립한다.(.md)
+- 또는 유저가 다른곳의 AI Agent 등을 이용하여 어떤 계획을 만들어와서 .md 형태의 명세서로 제출한다.
+- 현재 이 프로젝트의 경우 플렌모드에서 계획을 수립하거나 단순히 사용자가 요구 사항을 입력하면 계획을 짜주고, 브랜치를 계획에 맞게 생성하고 있다. 이 부분에 대한 수정이 필요하다. (REQUIREMENT_ANALYSIS 단계에서 진행)
+
+
+1. REQUIREMENT_ANALYSIS
+기능 : 0. USER_PLAN 단계에서 유저가 제출한 요구사항 계획(.md)을 분석한다.
+- 요구사항을 분석하고 검토하여 오류 및 누락이 있는지 체크하고 있다면 질문한다. 
+- 요구사항의 분석 및 검토가 완료되면 사용자가 제출한 .md 계획 문서를 우선 사용자 글로벌 클로드 설정 C:\Users\rumdi\.claude\plans 경로에
+저장한다. (향후 DB 저장으로 전환한다)
+- 저장 포멧은 YYYY-mm-dd_TaskNumber_계획 추론 제목.md ex) 2026-05-14_001_RemoveGeneratorLib.md
+- 단일 사용자,혹은 여러 사용자가 동일한날에 동시에 다양한 계획을 동시에 제출할 수 있음을 염두해 두고 위와 같이 제목을 작성한다.
+- 현재는 /plan 스킬이 발동해야 위와같이 동작하는데 수정이 필요하다. 
+
+2. DESIGN_REVIEW
+기능 : 요구단계분석이 끝났다면 코드의 설계 방향을 제시한다.
+
+3. IMPACT_ANALYSIS
+기능 : 코드의 설계 방향대로 코드 수정시 수정대상의 파일/모듈 들을 파악하고 위험도,영향도를 평가한다.
+
+4. CODE_FIX
+기능 : 실제로 코드를 수정한다.
+
+5. TEST_CASE_GENERATION
+기능 : 테스트 코드를 작성한다.
+
+6. BUILD_TEST
+빌드/테스트를 실행한다.
+
+7. QA_FAILURE_ANALYSIS
+실패 원인을 분석하고 재시도 여부를 판단한다
+
+8. PR_SUMMARY
+배포를 준비한다.
+
+-----
+
+
+-----
+TODO:
+
+[갭 분석 결과 개선 항목] (2026-05-19 기준, AI/SDLC_gap_analysis.md 참조)
+
+★ 단기 (Phase 2 내 — 스킬 추가/수정)
+------
+1. /impact 스킬 신규 추가 [P0]
+   - git diff + ripgrep으로 변경 영향 파일 자동 추출
+   - 위험도 평가 (핵심 서비스 파일 여부, 테스트 커버리지 여부)
+   - /plan 직후 자동 실행되도록 CLAUDE.md 또는 /plan 스킬에 연동
+   - IMPACT_ANALYSIS 단계(3번)를 이 스킬로 채운다
+
+2. /requirement 스킬 신규 추가 [P3]
+   - USER_PLAN → 구현 명세(.md) 변환 보조
+   - 요구사항 오류/누락 체크 후 질문
+   - 완료 시 C:\Users\rumdi\.claude\plans\YYYY-MM-DD_NNN_제목.md 로 저장
+   - REQUIREMENT_ANALYSIS 단계(1번)를 이 스킬로 채운다
+
+3. task JSON 상태 머신 세분화 [P1]
+   - 현재: pending / in_progress / done / failed (4단계)
+   - 목표: pending / analyzing / coding / testing / done / failed (6단계)
+   - /plan → analyzing, /done 빌드 전 → coding, 테스트 후 → testing, PR 생성 후 → done
+   - SCHEMA.md 업데이트 필요
+
+4. /done 스킬에 비용 자동 기록 연동 [P2]
+   - PR 생성 후 cost-log.md 에 행 자동 추가 (변경 파일 수로 규모 S/M/L/XL 자동 판단)
+   - 현재는 수동 기록 → 누락 위험
+
+------
+
+★ 중기 (Phase 2 완료 후 — 측정/가시성)
+------
+5. 스킬 실행 시간 추적
+   - task JSON 에 duration_sec 필드 추가 (completed_at - created_at)
+   - 어느 단계가 가장 오래 걸리는지 파악 → 자동화 우선순위 결정에 활용
+
+6. 주간 비용 요약 리포트 자동 생성
+   - /done 또는 별도 스킬에서 cost-log.md 집계
+   - AI/reports/cost_YYYY-WNN.md 형태로 생성
+
+7. /review 게이트 강화
+   - /done 실행 전 /review 결과를 반드시 표시하는 옵션 추가
+   - 고위험(XL 규모) 작업은 /review 없이 /done 실행 시 경고
+
+------
+
+★ 장기 (Phase 3 — 자동화 인프라)
+------
+8. PostgreSQL 상태 DB 도입
+   - cost-log.md → ai_model_runs 테이블 마이그레이션 (cost-log.md 에도 명시됨)
+   - ai_jobs + ai_job_steps 테이블로 단계별 이력 추적
+   - 현재 task JSON 파일 구조를 DB 스키마로 전환
+
+9. n8n 오케스트레이션 도입 (역할 분리 섹션 3번 계획과 일치)
+   - 사용자 수동 /plan, /done → n8n 자동 트리거로 전환
+   - webhook 수신 → 태스크 큐 등록 → AI Worker 실행 → GoCD 검증
+
+10. LLM 라우터
+    - 태스크 복잡도에 따라 모델 자동 선택
+    - 단순(S): haiku, 중간(M): sonnet, 복잡(L/XL): opus
+
+------
+
+★ 즉시 적용 (인프라 없이 가능)
+------
+- GitHub PR Required Review 설정 → Approval Gate 대체
+- DESIGN_REVIEW(2번) 단계를 /adr 스킬과 명시적으로 연결 (CLAUDE.md 규칙 추가)
+- BUILD_TEST(6번) 단계는 현재 /done 내부에서 자동 실행 중 → 별도 스킬 분리 검토
+

@@ -104,7 +104,7 @@ cat > "AI/tasks/sprint${SPRINT_NUM}_${PLAN_NAME}.json" << EOF
   "sprint": ${SPRINT_NUM},
   "task": "${PLAN_NAME}",
   "branch": "${BRANCH}",
-  "status": "in_progress",
+  "status": "analyzing",
   "created_at": "${NOW}",
   "completed_at": null,
   "pr_url": null,
