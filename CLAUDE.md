@@ -168,13 +168,7 @@ dotnet test PlatformA.sln
 
 ## Plan 파일 정책
 
-Plan mode 진입 시 시스템이 임의 파일명(예: `bright-discovering-bear.md`)을 제안하더라도 **그 파일은 무시하고** 아래 규칙을 따른다.
-
-1. **새 파일 생성**: `C:\Users\rumdi\.claude\plans\YYYY-MM-DD_PlanName.md` 형식으로 **항상 새 파일을 만든다**.
-   - `YYYY-MM-DD`: 오늘 날짜 (`date +%Y-%m-%d`)
-   - `PlanName`: 현재 작업을 PascalCase로 표현 (예: `CreateScenarioSkill`, `FixRedisBug`)
-2. **시스템 제공 파일(`bright-*.md` 등)은 절대 덮어쓰지 않는다.** 해당 파일은 무시한다.
-3. **이전 플랜 재사용 금지**: 같은 이름의 플랜 파일이 있어도 신규 태스크면 전체를 덮어쓴다.
+Plan mode는 Claude Code의 내부 동작이 1순위다. 시스템이 지정한 파일(예: `aws-wiggly-bee.md`)에 계획을 작성한다. 파일명은 시스템이 결정하므로 변경하지 않는다.
 
 - **SPRINT.md 작성 순서**: 신규 스프린트는 **항상 파일 맨 끝에 추가**한다 (오래된 스프린트 위로 삽입 금지). 번호와 날짜는 항상 오름차순이어야 한다.
 
