@@ -63,15 +63,25 @@ Phase3  (진행예정)
 
 스킬-단계 매핑:
 
-| 스킬 | 파이프라인 단계 |
-|------|--------------|
-| /requirement | 1 REQUIREMENT_ANALYSIS + 2 DESIGN_REVIEW |
-| /plan | 브랜치 준비 (0→1 전환) |
-| /impact | 3 IMPACT_ANALYSIS |
-| /start | 4 CODE_FIX 진입 |
-| /test-gen | 5 TEST_CASE_GENERATION |
-| /done | 6 BUILD_TEST |
-| /pr | 8 PR_SUMMARY |
+| 단계 | 이름 | 스킬 |
+|------|------|------|
+| 0 | USER_PLAN | — (수동) |
+| 1 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement |
+| 2 | PLAN_BRANCH | /plan |
+| 3 | IMPACT_ANALYSIS | /impact |
+| 4 | CODE_FIX_START | /start |
+| 5 | CODE_FIX | Claude Code 구현 |
+| 6 | TEST_CASE_GENERATION | /test-gen |
+| 7 | BUILD_TEST | /done |
+| 8 | CODE_REVIEW | /review (HIGH 위험도 필수) |
+| 9 | PR_SUMMARY | /pr |
+
+게이트 정책:
+- /test-gen: 소스 코드(.cs/.proto) 변경 시 /done 이전 실행 권장, /pr에서 강제 검사
+- /review: HIGH 위험도 작업(핵심 라이브러리·DB·인증·Redis) 시 /pr 이전 필수
+- /pr: test_generated/review_completed/impact 필드를 task JSON에서 읽어 게이트 판단
+- /done: BUILD_GATE만 담당 (커밋→빌드→포맷→테스트→push)
+- /pr: PR_SUMMARY + 완료 처리만 담당
 
 -----
 

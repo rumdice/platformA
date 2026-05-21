@@ -124,5 +124,41 @@ ls PlatformA/PlatformA.Tests.*/  2>/dev/null | head -30
 
 ---
 
+### 6단계 — task JSON 갱신
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+```
+
+TASK_FILE이 있으면 Edit 도구로 아래 두 필드를 갱신한다:
+
+**`impact` 필드** — 분석 결과를 저장한다:
+```json
+"impact": {
+  "risk": "{LOW|MEDIUM|HIGH}",
+  "changed_files": {N},
+  "high_risk_files": ["{파일명}", ...],
+  "medium_risk_files": ["{파일명}", ...],
+  "low_risk_files": ["{파일명}", ...],
+  "test_coverage": "{none|partial|full|not_required}",
+  "summary": "{종합 위험도} risk, {N}개 변경 파일"
+}
+```
+
+**`steps` 배열** — 기존 배열에 아래 항목을 추가한다:
+```json
+{
+  "name": "impact",
+  "status": "done",
+  "completed_at": "{ISO8601}",
+  "summary": "{종합 위험도} risk, {N}개 변경 파일"
+}
+```
+
+TASK_FILE이 없으면 이 단계를 건너뛴다.
+
+---
+
 다음 단계:
   /start  — 코딩 시작 선언 (task 상태 coding 전환 + 작업 지시서 출력)

@@ -112,7 +112,9 @@ cat > "AI/tasks/sprint${SPRINT_NUM}_${PLAN_NAME}.json" << EOF
   "last_error": null,
   "artifacts": [],
   "test_generated": false,
-  "review_completed": false
+  "review_completed": false,
+  "impact": null,
+  "steps": []
 }
 EOF
 ```

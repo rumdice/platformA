@@ -42,6 +42,61 @@ PR이 이미 존재하면 URL을 출력하고 중단한다:
 
 ---
 
+### 게이트 검사 (사전 검사 통과 후 실행)
+
+아래 검사를 순서대로 실행한다. **중단** 표시가 있으면 이후 단계를 실행하지 않는다.
+
+**검사 1 — task JSON 존재 여부**
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+```
+TASK_FILE이 없으면 경고하고 계속한다:
+> ⚠️ task JSON이 없습니다. `/plan`으로 시작된 작업이 아니면 게이트 검사를 건너뜁니다.
+
+이하 검사 2~5는 TASK_FILE이 있을 때만 실행한다.
+
+**검사 2 — 코드 변경 여부 판별**
+```bash
+CODE_CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null \
+  | grep -E '\.(cs|proto|csproj)$' | head -1)
+```
+CODE_CHANGED가 비어 있으면 검사 3·4를 건너뛴다 (문서/스킬만 변경).
+
+**검사 3 — 테스트 생성 여부 (코드 변경 시 필수)**
+```bash
+TEST_GEN=$(grep -o '"test_generated":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+```
+CODE_CHANGED가 있고 TEST_GEN이 `false`이면 **중단**한다:
+> ❌ /pr 중단: 코드 변경이 있지만 /test-gen이 실행되지 않았습니다.
+>    먼저 /test-gen을 실행하거나, 테스트가 불필요한 경우 task JSON에서 test_generated를 true로 수정하세요.
+
+**검사 4 — 고위험 조건 시 리뷰 완료 여부**
+```bash
+REVIEW_DONE=$(grep -o '"review_completed":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+
+HIGH_RISK_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null \
+  | grep -E 'PlatformA\.Library/|Migrations/|DbContext|Entities/|Auth|Token|Jwt|Redis.*Lock|LockManager' \
+  | head -5)
+
+CHANGED_COUNT=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -v '^$' | wc -l)
+```
+아래 조건 중 하나라도 해당하고 REVIEW_DONE이 `false`이면 **중단**한다:
+- HIGH_RISK_FILES가 비어 있지 않음
+- CHANGED_COUNT가 10 초과
+
+> ❌ /pr 중단: 고위험 변경(핵심 라이브러리·DB·인증·Redis)이 있지만 /review가 실행되지 않았습니다.
+>    먼저 /review를 실행하세요.
+
+**검사 5 — impact 미실행 경고 (코드 변경 시)**
+```bash
+IMPACT_NULL=$(grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1)
+```
+CODE_CHANGED가 있고 IMPACT_NULL이 있으면 경고하고 계속한다:
+> ⚠️ impact 미실행: 코드 변경이 있지만 /impact가 실행되지 않았습니다. 계속 진행합니다.
+
+---
+
 ### 1단계: SPRINT.md 완료 체크
 
 `AI/SPRINT.md`를 읽어 이번 브랜치에서 작업한 태스크 항목의 `- [ ]`를 `- [x]`로 변경한다.

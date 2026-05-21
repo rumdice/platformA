@@ -315,17 +315,31 @@
 
 ---
 
-## 스프린트 #24 (2026-05-22 ~)
-**목표**: AI_SDLC Stage 5 연동 및 데드코드 정리 — /test-gen 신규, /done 정리, SCHEMA 갱신
+## 스프린트 #25 (2026-05-22 ~)
+**목표**: AI_SDLC Gate 강화 — impact/test/review 결과를 task JSON 기반으로 /pr 단계에서 검사
 
 ### 진행 중
 
-- [ ] `.claude/skills/test-gen/SKILL.md` — /test-gen 스킬 신규 (Stage 5 TEST_CASE_GENERATION 연동)
-- [ ] `.claude/skills/done/SKILL.md` — 데드코드(6~9단계) 제거, description 수정
-- [ ] `AI/tasks/SCHEMA.md` — coding 담당 스킬 수정, test_generated·review_completed 필드 추가
-- [ ] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 신규 필드 추가
-- [ ] `.claude/skills/review/SKILL.md` — 완료 처리(review_completed 기록) 추가
-- [ ] `AI/AI_SDLC(pipeline).txt` — 워크플로·Phase2 갱신
+- [ ] `AI/tasks/SCHEMA.md` — impact·steps 필드 추가 및 예시 JSON 최신화
+- [ ] `.claude/skills/impact/SKILL.md` — impact 결과 task JSON 저장 (impact 필드 + steps 기록)
+- [ ] `.claude/skills/pr/SKILL.md` — test_generated·review_completed·impact 게이트 검사 추가
+- [ ] `.claude/skills/done/SKILL.md` — test-gen 미실행 경고 추가
+- [ ] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 impact·steps 필드 추가
+- [ ] `AI/AI_SDLC(pipeline).txt` — 단계 재번호 및 게이트 정책 반영
+
+---
+
+## 스프린트 #24 (2026-05-22 ~)
+**목표**: AI_SDLC Stage 5 연동 및 데드코드 정리 — /test-gen 신규, /done 정리, SCHEMA 갱신
+
+### 완료
+
+- [x] `.claude/skills/test-gen/SKILL.md` — /test-gen 스킬 신규 (Stage 5 TEST_CASE_GENERATION 연동)
+- [x] `.claude/skills/done/SKILL.md` — 데드코드(6~9단계) 제거, description 수정
+- [x] `AI/tasks/SCHEMA.md` — coding 담당 스킬 수정, test_generated·review_completed 필드 추가
+- [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 신규 필드 추가
+- [x] `.claude/skills/review/SKILL.md` — 완료 처리(review_completed 기록) 추가
+- [x] `AI/AI_SDLC(pipeline).txt` — 워크플로·Phase2 갱신
 
 ---
 

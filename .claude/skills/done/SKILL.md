@@ -46,6 +46,25 @@ git add -A
 git commit -m "{한글 커밋 메시지}"
 ```
 
+### 1.5단계: test-gen 미실행 경고
+
+코드 변경이 있고 test_generated가 false이면 경고를 출력한다 (중단하지 않음):
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+CODE_CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null \
+  | grep -E '\.(cs|proto|csproj)$' | head -1)
+TEST_GEN=$([ -n "$TASK_FILE" ] && grep -o '"test_generated":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1 || echo "true")
+```
+
+CODE_CHANGED가 있고 TEST_GEN이 `false`이면:
+> ⚠️ 경고: 코드 변경이 있지만 /test-gen이 실행되지 않았습니다.
+>    권장 흐름: /test-gen 실행 후 /done
+>    최종 PR 생성 전 /pr에서 강제 검사됩니다.
+
+경고를 출력한 뒤 계속 진행한다. BUILD_GATE는 중단하지 않는다.
+
 ### 2단계: 빌드 검증
 ```bash
 # git 루트 기반으로 경로를 찾아 실행 (현재 디렉토리 무관)
