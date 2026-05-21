@@ -49,7 +49,24 @@
             "Bash(dotnet run*)",
             "Bash(dotnet ef*)",
             "Bash(docker-compose*)",
-            "Bash(sleep*)"
+            "Bash(docker*)",
+            "Bash(sleep*)",
+            "Bash(dotnet clean*)",
+            "Bash(dotnet format*)",
+            "Bash(dotnet restore*)",
+            "Bash(dotnet sln*)",
+            "Bash(gh api*)",
+            "Bash(gh run*)",
+            "Bash(gh auth*)",
+            "Bash(git reset*)",
+            "Bash(git stash*)",
+            "Bash(git rm*)",
+            "Bash(export PATH*)",
+            "Bash(echo*)",
+            "Bash(date*)",
+            "Bash(cat*)",
+            "Bash(wc*)",
+            "Bash(grep*)"
         ]
     }
 }
