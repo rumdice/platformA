@@ -38,7 +38,7 @@ Phase1 내 프로젝트의 AI 문서와 스킬의 사용 목적을 명확히 정
 3. 스킬과 AI 문서의 연관 관계 설명.
 4. 사용자의 작업공정 (workflow 설명)
 
-Phase2 (진행중 — 단기 TODO 4종 완료 2026-05-21, 스프린트 #22 PR #44)
+Phase2 (완료 — 단기 TODO 4종 완료 2026-05-21 스프린트 #22 PR #44, /test-gen 추가 2026-05-22 스프린트 #24)
 1. Phase1의 개선된 부분을 반영하여 2. PDF 문서와 비교한 이 프로젝트의 가장 큰 문제점 에 반영하고 갱신한다.
 
 Phase3  (진행예정)
@@ -56,6 +56,7 @@ Phase3  (진행예정)
 /impact               → 영향 범위·위험도 분석 (코드 수정 전)
 /start                → task 상태 coding 전환 + 작업 지시서 출력
   (코딩)
+/test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수)
 /done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
 /pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
 ```
@@ -68,7 +69,8 @@ Phase3  (진행예정)
 | /plan | 브랜치 준비 (0→1 전환) |
 | /impact | 3 IMPACT_ANALYSIS |
 | /start | 4 CODE_FIX 진입 |
-| /done | 4 CODE_FIX 완료 + 6 BUILD_TEST |
+| /test-gen | 5 TEST_CASE_GENERATION |
+| /done | 6 BUILD_TEST |
 | /pr | 8 PR_SUMMARY |
 
 -----
@@ -133,7 +135,10 @@ Phase3  (진행예정)
 
 5. TEST_CASE_GENERATION
 기능 : 테스트 코드를 작성한다.
-→ test-writer 에이전트 활용 (.claude/rules/tests.md 패턴 준수)
+→ /test-gen 스킬로 구현 (2026-05-22, 스프린트 #24)
+   - /start 이후 /done 이전에 실행 (컨트롤러 변경 시 필수, 설정만 변경 시 선택)
+   - test-writer 에이전트를 sub-agent로 실행하여 xUnit 테스트 자동 생성
+   - task JSON에 test_generated 필드 기록
 
 6. BUILD_TEST
 빌드/테스트를 실행한다.
