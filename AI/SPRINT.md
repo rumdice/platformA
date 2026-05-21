@@ -318,14 +318,15 @@
 ## 스프린트 #24 (2026-05-22 ~)
 **목표**: AI_SDLC Stage 5 연동 및 데드코드 정리 — /test-gen 신규, /done 정리, SCHEMA 갱신
 
-### 진행 중
+### 완료
 
-- [ ] `.claude/skills/test-gen/SKILL.md` — /test-gen 스킬 신규 (Stage 5 TEST_CASE_GENERATION 연동)
-- [ ] `.claude/skills/done/SKILL.md` — 데드코드(6~9단계) 제거, description 수정
-- [ ] `AI/tasks/SCHEMA.md` — coding 담당 스킬 수정, test_generated·review_completed 필드 추가
-- [ ] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 신규 필드 추가
-- [ ] `.claude/skills/review/SKILL.md` — 완료 처리(review_completed 기록) 추가
-- [ ] `AI/AI_SDLC(pipeline).txt` — 워크플로·Phase2 갱신
+- [x] `.claude/skills/test-gen/SKILL.md` — /test-gen 스킬 신규 (Stage 5 TEST_CASE_GENERATION 연동)
+- [x] `.claude/skills/done/SKILL.md` — 데드코드(6~9단계) 제거, description 수정
+- [x] `AI/tasks/SCHEMA.md` — coding 담당 스킬 수정, test_generated·review_completed 필드 추가
+- [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 신규 필드 추가
+- [x] `.claude/skills/review/SKILL.md` — 완료 처리(review_completed 기록) 추가
+- [x] `AI/AI_SDLC(pipeline).txt` — 워크플로·Phase2 갱신
+- [x] `.claude/agents/test-writer.md` — Ticketing/Matching 테스트 현황 반영, 팩토리 패턴 추가 (FixTestWriterDoc)
 
 ---
 
