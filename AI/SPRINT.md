@@ -311,3 +311,4 @@
 - [x] `AI/tasks/SCHEMA.md` — 상태 머신 4단계 → 6단계 (analyzing/coding/testing 추가)
 - [x] `.claude/skills/plan/SKILL.md` — 초기 status `in_progress` → `analyzing` 변경
 - [x] `.claude/skills/done/SKILL.md` — 상태 전환(coding→testing→done/failed) + 비용 자동 계산 추가
+- [x] `PlatformA.Utils.API` — 코드 정리: 죽은 코드 제거, Redis 키 상수화(`Consts.cs`), SQLite 연결 문자열 외부화(`appsettings.json`)

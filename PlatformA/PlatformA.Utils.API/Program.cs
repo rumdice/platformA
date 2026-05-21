@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // sqlite 연결
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Redis — DI 팩토리
 builder.Services.AddSingleton<RedisManager>(sp =>
