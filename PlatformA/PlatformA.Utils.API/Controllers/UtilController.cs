@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PlatformA.Library.Common;
 using PlatformA.Library.Helper;
 using PlatformA.Utils.API.Models;
 using StackExchange.Redis;
@@ -88,9 +89,6 @@ namespace PlatformA.Utils.API.Controllers
                 return BadRequest("유효하지 않은 URL입니다."); // 400 Bad Request
             }
 
-            // 랜덤 코드 생성 (6자리)
-            //var shortCode = Guid.NewGuid().ToString().Substring(0, 6);
-
             // 중복 위험성이 높고 DB B-tree 인덱스 성능이 떨어지므로, Guid 를 Snowflake로 교체
             long newId = _snowflake.NextId();
 
@@ -116,14 +114,8 @@ namespace PlatformA.Utils.API.Controllers
         [HttpGet("/go/{code}")]
         public async Task<IActionResult> RedirectUrlAsync(string code)
         {
-            // 서버 메모리에서 찾기
-            //if (_urlDatabase.TryGetValue(code, out var originalUrl))
-            //{
-            //    return Redirect(originalUrl); // 302 Found (리다이렉트)
-            //}
-
-            string cacheKey = $"url:{code}"; // Redis 키 규칙 (예: url:Tx9z) 1. URL 정보 (원본 주소)
-            string statsKey = $"stats:{code}";  // 2. 조회수 정보 (숫자)
+            string cacheKey = string.Format(Consts.REDIS_SHORT_URL_KEY, code);
+            string statsKey = string.Format(Consts.REDIS_SHORT_URL_STATS_KEY, code);
 
             string? originalUrl = null;
 
@@ -164,7 +156,7 @@ namespace PlatformA.Utils.API.Controllers
 
             // 2. "이 코드(Tx9z)는 변경되었으니 나중에 DB에 저장해야 해"라고 명단(Set)에 적습니다.
             // dirty_codes라는 Set에 중복 없이 담깁니다.
-            await _redis.SetAddAsync("dirty_codes", code);
+            await _redis.SetAddAsync(Consts.REDIS_DIRTY_CODES_KEY, code);
 
             // 3. 일단 리다이렉트
             return Redirect(originalUrl);
@@ -183,7 +175,7 @@ namespace PlatformA.Utils.API.Controllers
                 return NotFound("코드를 찾을 수 없습니다.");
 
             // Redis에 최신 카운트가 있는지 확인
-            var redisCount = await _redis.StringGetAsync($"stats:{code}");
+            var redisCount = await _redis.StringGetAsync(string.Format(Consts.REDIS_SHORT_URL_STATS_KEY, code));
             int finalCount = urlItem.ClickCount; // 기본은 DB 값
 
             if (redisCount.HasValue && int.TryParse(redisCount, out int rCount))

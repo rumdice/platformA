@@ -91,5 +91,10 @@ namespace PlatformA.Library.Common
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
         public const int MATCH_TIMEOUT_SECONDS = 120; // 2분 초과 시 MatchTimeout 이벤트 push
 
+        // Utils.API — Short URL ({0}: 단축 코드)
+        public const string REDIS_SHORT_URL_KEY = "url:{0}";
+        public const string REDIS_SHORT_URL_STATS_KEY = "stats:{0}";
+        public const string REDIS_DIRTY_CODES_KEY = "dirty_codes";
+
     }
 }

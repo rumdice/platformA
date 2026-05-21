@@ -2,9 +2,7 @@ namespace PlatformA.Utils.API.Models.DB
 {
     public class ShortUrl
     {
-        //public int Id { get; set; } // 고유 번호 (PK) - 기존 코드
-
-        // [Key]와 [DatabaseGenerated(DatabaseGeneratedOption.None)]를 써서 
+        // [Key]와 [DatabaseGenerated(DatabaseGeneratedOption.None)]를 써서
         // "DB야, ID는 내가 만들어서 넣어줄 테니 건드리지 마(Auto Increment 끔)"라고 알려줍니다.
         [System.ComponentModel.DataAnnotations.Key]
         [System.ComponentModel.DataAnnotations.Schema.DatabaseGenerated(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None)]
