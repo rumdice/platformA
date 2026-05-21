@@ -63,3 +63,17 @@ ADR-007: Protobuf 기준:
 
 위 체크리스트를 기준으로 변경사항을 검토하고, 각 항목에 대해 **통과 / 위반 / 해당없음**으로 결과를 보고한다.
 위반 항목은 파일 경로와 라인 번호를 포함하여 구체적으로 설명한다.
+
+---
+
+## 완료 처리
+
+리뷰 결과 보고 후 task JSON에 리뷰 완료를 기록한다:
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+```
+
+TASK_FILE이 있으면 Edit 도구로 `"review_completed": false`를 `"review_completed": true`로 교체한다.
+없으면 이 단계를 건너뛴다.

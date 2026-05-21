@@ -42,6 +42,8 @@ sprint{N}_{PlanName}.json
 | `retry_count` | int | 재시도 횟수 |
 | `last_error` | string \| null | 마지막 실패 원인 |
 | `artifacts` | string[] | 생성된 주요 파일 목록 |
+| `test_generated` | boolean \| false | /test-gen 실행 완료 여부 |
+| `review_completed` | boolean \| false | /review 실행 완료 여부 |
 
 ## 상태 머신 (6단계)
 
@@ -55,7 +57,7 @@ pending → analyzing → coding → testing → done
 |------|---------|---------|
 | `pending` | task JSON 파일 생성 직후 (미시작) | — |
 | `analyzing` | /plan 브랜치 생성 완료 | `/plan` |
-| `coding` | /done 실행 시작 (빌드 전) | `/done` |
+| `coding` | /start 실행 완료 | `/start` |
 | `testing` | 빌드·테스트 통과 (PR 생성 전) | `/done` |
 | `done` | PR 생성 완료 | `/done` |
 | `failed` | /done 빌드·테스트 실패 | `/done` |
@@ -63,11 +65,13 @@ pending → analyzing → coding → testing → done
 ## 스킬 연동
 
 - `/plan` 스킬: 브랜치 생성 후 `status: "analyzing"` 파일 자동 생성
+- `/start` 스킬: `status: "coding"` 전환
+- `/test-gen` 스킬: `test_generated: true` 기록 (status 변경 없음)
+- `/review` 스킬: `review_completed: true` 기록 (status 변경 없음)
 - `/done` 스킬:
-  - 시작 시 → `status: "coding"`
   - 테스트 통과 후 → `status: "testing"`
-  - PR 생성 후 → `status: "done"`, `completed_at`, `pr_url` 업데이트
   - 실패 시 → `status: "failed"`, `last_error` 기록
+- `/pr` 스킬: `status: "done"`, `completed_at`, `pr_url` 업데이트
 
 ## 향후 마이그레이션
 
