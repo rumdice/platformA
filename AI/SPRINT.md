@@ -315,17 +315,16 @@
 
 ---
 
-## 스프린트 #25 (2026-05-22 ~)
-**목표**: AI_SDLC Gate 강화 — impact/test/review 결과를 task JSON 기반으로 /pr 단계에서 검사
+## 스프린트 #23 (2026-05-21 ~)
+**목표**: AI_SDLC 0~4단계 스킬 완성 — /start·/pr 신규 추가, /done 분리, /impact 버그 수정
 
-### 진행 중
+### 완료
 
-- [ ] `AI/tasks/SCHEMA.md` — impact·steps 필드 추가 및 예시 JSON 최신화
-- [ ] `.claude/skills/impact/SKILL.md` — impact 결과 task JSON 저장 (impact 필드 + steps 기록)
-- [ ] `.claude/skills/pr/SKILL.md` — test_generated·review_completed·impact 게이트 검사 추가
-- [ ] `.claude/skills/done/SKILL.md` — test-gen 미실행 경고 추가
-- [ ] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 impact·steps 필드 추가
-- [ ] `AI/AI_SDLC(pipeline).txt` — 단계 재번호 및 게이트 정책 반영
+- [x] `.claude/skills/impact/SKILL.md` — `allowed-tools` 에 `Bash(ls *)` 추가 (spec 파일 읽기 버그 수정)
+- [x] `.claude/skills/done/SKILL.md` — BUILD_GATE(커밋+빌드+테스트+push)만 담당하도록 슬림화
+- [x] `.claude/skills/pr/SKILL.md` — 신규: PR_SUMMARY 전담 (SPRINT+PR+task JSON+cost-log)
+- [x] `.claude/skills/start/SKILL.md` — 신규: CODE_FIX 진입점 (task coding 전환+작업 지시서)
+- [x] `AI/AI_SDLC(pipeline).txt` — 스킬 워크플로 순서도 + 단계별 스킬 매핑 테이블 추가
 
 ---
 
@@ -340,16 +339,18 @@
 - [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 신규 필드 추가
 - [x] `.claude/skills/review/SKILL.md` — 완료 처리(review_completed 기록) 추가
 - [x] `AI/AI_SDLC(pipeline).txt` — 워크플로·Phase2 갱신
+- [x] `.claude/agents/test-writer.md` — Ticketing/Matching 테스트 현황 반영, 팩토리 패턴 추가 (FixTestWriterDoc)
 
 ---
 
-## 스프린트 #23 (2026-05-21 ~)
-**목표**: AI_SDLC 0~4단계 스킬 완성 — /start·/pr 신규 추가, /done 분리, /impact 버그 수정
+## 스프린트 #25 (2026-05-22 ~)
+**목표**: AI_SDLC Gate 강화 — impact/test/review 결과를 task JSON 기반으로 /pr 단계에서 검사
 
 ### 완료
 
-- [x] `.claude/skills/impact/SKILL.md` — `allowed-tools` 에 `Bash(ls *)` 추가 (spec 파일 읽기 버그 수정)
-- [x] `.claude/skills/done/SKILL.md` — BUILD_GATE(커밋+빌드+테스트+push)만 담당하도록 슬림화
-- [x] `.claude/skills/pr/SKILL.md` — 신규: PR_SUMMARY 전담 (SPRINT+PR+task JSON+cost-log)
-- [x] `.claude/skills/start/SKILL.md` — 신규: CODE_FIX 진입점 (task coding 전환+작업 지시서)
-- [x] `AI/AI_SDLC(pipeline).txt` — 스킬 워크플로 순서도 + 단계별 스킬 매핑 테이블 추가
+- [x] `AI/tasks/SCHEMA.md` — impact·steps 필드 추가 및 예시 JSON 최신화
+- [x] `.claude/skills/impact/SKILL.md` — impact 결과 task JSON 저장 (impact 필드 + steps 기록)
+- [x] `.claude/skills/pr/SKILL.md` — test_generated·review_completed·impact 게이트 검사 추가
+- [x] `.claude/skills/done/SKILL.md` — test-gen 미실행 경고 추가
+- [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 impact·steps 필드 추가
+- [x] `AI/AI_SDLC(pipeline).txt` — 단계 재번호 및 게이트 정책 반영
