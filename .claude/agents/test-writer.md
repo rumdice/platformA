@@ -25,26 +25,35 @@ PlatformA 코드베이스의 xUnit 테스트를 생성하는 전문 에이전트
 ```
 PlatformA/
 ├── PlatformA.Tests.Auth.API/
-│   ├── Helpers/AuthTestWebAppFactory.cs   ← Auth 통합 테스트 팩토리
-│   ├── Models/AuthModelValidationTests.cs ← DTO 유닛 테스트
+│   ├── Helpers/AuthTestWebAppFactory.cs      ← Auth 통합 테스트 팩토리 (Reflection 주입)
+│   ├── Models/AuthModelValidationTests.cs    ← DTO 유닛 테스트
 │   └── AuthControllerTests.cs
 ├── PlatformA.Tests.Utils.API/
-│   ├── Helpers/TestWebAppFactory.cs       ← Utils 통합 테스트 팩토리
+│   ├── Helpers/TestWebAppFactory.cs          ← Utils 통합 테스트 팩토리 (직접 교체)
 │   ├── Base62ConverterTests.cs
 │   ├── SnowflakeGeneratorTests.cs
 │   └── UtilControllerTests.cs
-└── PlatformA.Tests.Game.Server/           ← Protobuf 패킷 round-trip
+├── PlatformA.Tests.Ticketing.API/
+│   ├── Helpers/TicketingTestWebAppFactory.cs ← Ticketing 통합 테스트 팩토리 (Reflection 주입)
+│   └── QueueControllerTests.cs
+├── PlatformA.Tests.Matching.API/
+│   ├── Helpers/MatchingTestWebAppFactory.cs  ← Matching 통합 테스트 팩토리 (Reflection 주입 + EF InMemory)
+│   └── GameMatchControllerTests.cs
+└── PlatformA.Tests.Game.Server/              ← Protobuf 패킷 round-trip
 ```
 
 ## 현재 테스트 현황
 
-| 프로젝트 | 상태 | 범위 |
-|---------|------|------|
-| `PlatformA.Tests.Utils.API` | ✅ 구현됨 | 컨트롤러 통합 + 유틸리티 유닛 |
-| `PlatformA.Tests.Auth.API` | ✅ 구현됨 | 컨트롤러 통합 + DTO 유닛 |
-| `PlatformA.Tests.Game.Server` | ✅ 구현됨 | Protobuf 패킷 round-trip |
-| `PlatformA.Tests.Ticketing.API` | ❌ 미구현 | — |
-| `PlatformA.Tests.Matching.API` | ❌ 미구현 | — |
+> **권위 있는 출처**: `.claude/rules/tests.md` 테이블이 이 표의 기준이다.
+> 새 테스트 프로젝트 추가 시 반드시 두 파일을 동시에 업데이트한다.
+
+| 프로젝트 | 상태 | 테스트 수 | Redis 패턴 | DB 패턴 |
+|---------|------|---------|-----------|--------|
+| `PlatformA.Tests.Auth.API` | ✅ 구현됨 | 19 | Reflection 주입 | InMemory SQLite |
+| `PlatformA.Tests.Utils.API` | ✅ 구현됨 | 29 | 직접 교체 | InMemory SQLite |
+| `PlatformA.Tests.Game.Server` | ✅ 구현됨 | 48 | — | — |
+| `PlatformA.Tests.Ticketing.API` | ✅ 구현됨 | 9 | Reflection 주입 | 없음 |
+| `PlatformA.Tests.Matching.API` | ✅ 구현됨 | 8 | Reflection 주입 | InMemory EF Core |
 
 기능 시나리오 검증은 `/run-scenarios` 스킬로 DummyClient 1~8번을 자동 실행한다.
 
@@ -64,6 +73,9 @@ PlatformA/
 ---
 
 ## Step 2: 기존 팩토리 확인
+
+**먼저** `.claude/rules/tests.md`를 Read로 읽어 현재 테스트 프로젝트 현황 테이블을 확인한다.
+이 파일이 어느 프로젝트가 구현됐는지 판단하는 **권위 있는 출처**다.
 
 Glob으로 `PlatformA/PlatformA.Tests.*/Helpers/*.cs`를 조회한다.
 - 팩토리가 이미 있으면 반드시 Read로 읽어 기존 Mock 설정을 파악한다.
@@ -116,6 +128,43 @@ svc.AddPolicy("login", permitLimit: 1000, window: TimeSpan.FromMinutes(1));
 // 새 [RedisRateLimit] 정책이 추가되면 여기에도 추가
 ```
 
+### Ticketing.API 팩토리 핵심 (Reflection 주입 패턴)
+
+Auth.API와 동일한 Reflection 주입을 사용하되, Rate Limit 정책이 다르고 DB가 없다:
+
+```csharp
+// Redis: Auth.API와 동일한 Reflection 주입
+services.AddSingleton<RedisManager>(_ =>
+{
+    var instance = RedisManager.Instance;
+    var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+    typeof(RedisManager).GetField("_redis", flags)!.SetValue(instance, MockRedis.Object);
+    typeof(RedisManager).GetField("_pipeline", flags)!.SetValue(instance, ResiliencePipeline.Empty);
+    return instance;
+});
+
+// Rate Limit: "queue" 정책을 허용 한도 높여 재등록
+svc.AddPolicy("queue", permitLimit: 1000, window: TimeSpan.FromMinutes(1));
+
+// IHostedService 전부 제거 (실제 Redis 연결 시도 차단)
+foreach (var d in services.Where(d => d.ServiceType == typeof(IHostedService)).ToList())
+    services.Remove(d);
+
+// DB 없음 — InMemory 설정 불필요
+```
+
+Mock 기본 설정:
+```csharp
+// ScriptEvaluateAsync → RedisResult.Create(1L) : Rate Limit 통과
+MockRedisDb.Setup(x => x.ScriptEvaluateAsync(...)).ReturnsAsync(RedisResult.Create(1L));
+// KeyExistsAsync → true : 토큰/키 존재
+MockRedisDb.Setup(x => x.KeyExistsAsync(...)).ReturnsAsync(true);
+```
+
+테스트 클래스: `QueueControllerTests(TicketingTestWebAppFactory)` — 9개
+
+---
+
 ### Utils.API 팩토리 핵심 (직접 교체 패턴)
 
 Utils API는 `IConnectionMultiplexer`를 직접 DI로 받으므로 Reflection 불필요:
@@ -137,6 +186,44 @@ services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={Guid.NewGuid():N}.db"));
 // CreateHost override에서 db.Database.EnsureCreated() 호출
 ```
+
+### Matching.API 팩토리 핵심 (Reflection 주입 + InMemory EF Core, net9.0)
+
+```csharp
+// Redis: Reflection 주입 (Auth/Ticketing과 동일)
+services.AddSingleton<RedisManager>(_ =>
+{
+    var instance = RedisManager.Instance;
+    var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+    typeof(RedisManager).GetField("_redis", flags)!.SetValue(instance, MockRedis.Object);
+    typeof(RedisManager).GetField("_pipeline", flags)!.SetValue(instance, ResiliencePipeline.Empty);
+    return instance;
+});
+
+// Rate Limit: 재등록 불필요 (Matching.API에 별도 정책 없음)
+
+// IHostedService 전부 제거
+foreach (var d in services.Where(d => d.ServiceType == typeof(IHostedService)).ToList())
+    services.Remove(d);
+
+// DB: InMemory EF Core (DbWebAppContext)
+services.AddDbContextFactory<DbWebAppContext>(options =>
+    options.UseInMemoryDatabase($"MatchingTestDb_{Guid.NewGuid():N}"));
+// CreateHost override에서 db.Database.EnsureCreated() 호출
+```
+
+Mock 기본 설정:
+```csharp
+// SortedSetRankAsync → 0L : 대기열 순위 응답
+MockRedisDb.Setup(x => x.SortedSetRankAsync(...)).ReturnsAsync(0L);
+// SortedSetLengthAsync → 1L : 대기열 길이 응답
+MockRedisDb.Setup(x => x.SortedSetLengthAsync(...)).ReturnsAsync(1L);
+```
+
+테스트 클래스: `GameMatchControllerTests(MatchingTestWebAppFactory)` — 8개
+> **주의**: Matching.API는 .NET 9.0 대상 — csproj `<TargetFramework>net9.0</TargetFramework>` 필수
+
+---
 
 ### 통합 테스트 클래스 구조
 
