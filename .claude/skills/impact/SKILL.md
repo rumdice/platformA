@@ -9,25 +9,33 @@ allowed-tools: Bash(git *) Bash(grep *) Bash(rg *) Read Glob
 
 ## 컨텍스트
 - 현재 브랜치: !`git branch --show-current`
-- main 대비 변경 파일: !`git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || echo "(변경 없음)"`
+- main 대비 변경 파일: !`git diff --name-only origin/main...HEAD 2>/dev/null || echo "(변경 없음)"`
 - 미커밋 변경 파일: !`git diff --name-only; git diff --name-only --cached`
+- 오늘 명세 파일: !`ls .claude/plan/$(date +%Y-%m-%d)_*.md 2>/dev/null || echo "(없음)"`
 
 ---
 
 ## 수행 순서
 
-### 1단계 — 변경 파일 수집
+### 1단계 — 분석 대상 파일 수집
 
-main 대비 변경된 파일과 미커밋 변경 파일을 합산하여 **전체 영향 파일 목록**을 만든다.
+**git diff가 있는 경우 (코드 수정 후)**: main 대비 변경 파일 + 미커밋 변경 파일을 합산한다.
 
 ```bash
-# main 대비 커밋된 변경
 git diff --name-only origin/main...HEAD 2>/dev/null
-
-# 미커밋 변경 (staged + unstaged)
 git diff --name-only
 git diff --name-only --cached
 ```
+
+**git diff가 없는 경우 (코드 수정 전 — /plan 직후)**: 오늘 명세 파일의 "영향 범위" 섹션을 읽어 예정 변경 파일 목록을 수집한다.
+
+```bash
+# 가장 최근 명세 파일 읽기
+ls .claude/plan/$(date +%Y-%m-%d)_*.md 2>/dev/null | sort | tail -1
+```
+
+명세 파일의 `## 영향 범위` 테이블에서 파일 경로를 추출하여 분석 대상으로 사용한다.
+분석 결과 앞에 `(사전 분석 — 코드 수정 전)` 레이블을 붙인다.
 
 ---
 
