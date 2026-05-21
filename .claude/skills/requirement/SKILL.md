@@ -175,6 +175,7 @@ mv ".claude/plan/{원본파일명}" ".claude/plan/processed/{YYYY-MM-DD}_{원본
 
 다음 단계:
   /plan {PlanName}  — 브랜치 생성 및 구현 계획 수립
+  이후: /impact → /start → 코딩 → /done → /pr
 ```
 
 ---
