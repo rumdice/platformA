@@ -121,3 +121,8 @@ ls PlatformA/PlatformA.Tests.*/  2>/dev/null | head -30
 | 🔴 HIGH | `/review` 스킬로 코드 리뷰 후 PR 생성 권장. DB 변경 시 `db-migrator` 에이전트 사용 |
 | 🟡 MEDIUM | 관련 테스트 통과 확인 필수. 영향 받는 API는 `/doc-writer api-guide` 로 문서 동기화 |
 | 🟢 LOW | 정상 `/done` 흐름으로 진행 가능 |
+
+---
+
+다음 단계:
+  /start  — 코딩 시작 선언 (task 상태 coding 전환 + 작업 지시서 출력)

@@ -2,7 +2,7 @@
 name: start
 schema_version: 1
 description: 코드 작성 시작을 선언한다. task 상태를 analyzing→coding으로 전환하고 명세 파일 기반 작업 지시서를 출력한다. /plan 완료 직후 코딩 시작 전 실행한다. CODE_FIX 단계 진입점.
-allowed-tools: Bash(git *) Bash(ls *) Read Edit
+allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Read Edit
 ---
 
 # 코딩 시작 선언 (CODE_FIX 진입)
