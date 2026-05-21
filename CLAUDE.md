@@ -39,8 +39,10 @@ YYYY-MM-DD_PlanName
 ```
 
 > **주의**: Plan mode(설계 승인)와 `/plan` 스킬(브랜치 생성)은 별개다.
-> Plan mode에서 승인 후 구현을 시작하기 전에 반드시 `/plan` 스킬을 실행하거나
-> 수동으로 작업 브랜치를 생성해야 한다.
+> Plan mode에서 승인 후 구현을 시작하기 전에 반드시 아래 순서를 따른다:
+> 1. `/requirement` — `.claude/plan/` 에 프로젝트 명세 파일 생성 (REQUIREMENT_ANALYSIS)
+> 2. `/plan PlanName` — 작업 브랜치 생성
+> 이 두 단계를 건너뛰고 바로 코딩을 시작하지 않는다.
 
 ### /plan 브랜치 결정 규칙
 
