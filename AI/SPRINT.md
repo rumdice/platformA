@@ -312,3 +312,16 @@
 - [x] `.claude/skills/plan/SKILL.md` — 초기 status `in_progress` → `analyzing` 변경
 - [x] `.claude/skills/done/SKILL.md` — 상태 전환(coding→testing→done/failed) + 비용 자동 계산 추가
 - [x] `PlatformA.Utils.API` — 코드 정리: 죽은 코드 제거, Redis 키 상수화(`Consts.cs`), SQLite 연결 문자열 외부화(`appsettings.json`)
+
+---
+
+## 스프린트 #23 (2026-05-21 ~)
+**목표**: AI_SDLC 0~4단계 스킬 완성 — /start·/pr 신규 추가, /done 분리, /impact 버그 수정
+
+### 완료
+
+- [x] `.claude/skills/impact/SKILL.md` — `allowed-tools` 에 `Bash(ls *)` 추가 (spec 파일 읽기 버그 수정)
+- [x] `.claude/skills/done/SKILL.md` — BUILD_GATE(커밋+빌드+테스트+push)만 담당하도록 슬림화
+- [x] `.claude/skills/pr/SKILL.md` — 신규: PR_SUMMARY 전담 (SPRINT+PR+task JSON+cost-log)
+- [x] `.claude/skills/start/SKILL.md` — 신규: CODE_FIX 진입점 (task coding 전환+작업 지시서)
+- [x] `AI/AI_SDLC(pipeline).txt` — 스킬 워크플로 순서도 + 단계별 스킬 매핑 테이블 추가

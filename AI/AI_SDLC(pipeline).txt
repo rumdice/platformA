@@ -48,6 +48,31 @@ Phase3  (진행예정)
 
 
 
+## 스킬 워크플로 (전체 순서)
+
+```
+/requirement          → 명세 파일 생성 (REQUIREMENT_ANALYSIS + DESIGN_REVIEW)
+/plan {PlanName}      → 브랜치 생성 + task JSON + SPRINT 등록
+/impact               → 영향 범위·위험도 분석 (코드 수정 전)
+/start                → task 상태 coding 전환 + 작업 지시서 출력
+  (코딩)
+/done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
+/pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
+```
+
+스킬-단계 매핑:
+
+| 스킬 | 파이프라인 단계 |
+|------|--------------|
+| /requirement | 1 REQUIREMENT_ANALYSIS + 2 DESIGN_REVIEW |
+| /plan | 브랜치 준비 (0→1 전환) |
+| /impact | 3 IMPACT_ANALYSIS |
+| /start | 4 CODE_FIX 진입 |
+| /done | 4 CODE_FIX 완료 + 6 BUILD_TEST |
+| /pr | 8 PR_SUMMARY |
+
+-----
+
 작업 단계를 나눈다. 각 단계는 순차적으로 진행된다. (작성중)
 
 0. USER_PLAN
@@ -101,18 +126,32 @@ Phase3  (진행예정)
 
 4. CODE_FIX
 기능 : 실제로 코드를 수정한다.
+→ /start 스킬로 진입 (2026-05-21, 스프린트 #23)
+   - task 상태 analyzing → coding 전환
+   - 명세 파일 기반 작업 지시서 출력
+   - 코딩은 LLM이 자유롭게 수행
 
 5. TEST_CASE_GENERATION
 기능 : 테스트 코드를 작성한다.
+→ test-writer 에이전트 활용 (.claude/rules/tests.md 패턴 준수)
 
 6. BUILD_TEST
 빌드/테스트를 실행한다.
+→ /done 스킬로 구현 (2026-05-21 리팩토링)
+   - 커밋 + 빌드 + 포맷 + 테스트 + push (BUILD_GATE)
+   - task 상태 coding → testing 전환
+   - PR 생성은 포함하지 않음 (반복 실행 안전)
 
 7. QA_FAILURE_ANALYSIS
-실패 원인을 분석하고 재시도 여부를 판단한다
+실패 원인을 분석하고 재시도 여부를 판단한다.
+→ /qa-failure 스킬 (미구현 — 스프린트 #21 진행 중)
 
 8. PR_SUMMARY
 배포를 준비한다.
+→ /pr 스킬로 구현 (2026-05-21, 스프린트 #23 신규)
+   - SPRINT.md 완료 체크 + PR 생성 + task JSON + cost-log
+   - 1회만 실행 (PR 중복 방지 사전 검사 포함)
+   - task 상태 testing → done 전환
 
 -----
 

@@ -2,7 +2,7 @@
 name: impact
 schema_version: 1
 description: 현재 브랜치의 변경 파일을 분석하여 영향 범위와 위험도를 평가한다. /plan 직후 또는 코드 수정 전 실행하여 IMPACT_ANALYSIS 단계를 수행한다.
-allowed-tools: Bash(git *) Bash(grep *) Bash(rg *) Read Glob
+allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Bash(rg *) Read Glob
 ---
 
 # /impact — 변경 영향 범위 분석
