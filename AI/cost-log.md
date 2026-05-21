@@ -25,3 +25,5 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-05-18 | #21 | AISDLCEnhancements | claude-sonnet-4-6 | L | PDF 갭 해소 5종 (스킬/테스트/구조화) |
 | 2026-05-21 | #22 | AddPipelineSkills | claude-sonnet-4-6 | M | /impact·/requirement 스킬 추가, 상태 머신 6단계, /done 비용 자동 계산 |
 | 2026-05-21 | #23 | RefactorSdlcSkills | claude-sonnet-4-6 | M | /start·/pr 신규, /done BUILD_GATE 분리, /requirement 경로·소스탐지 개선 |
+| 2026-05-22 | #24 | AddTestGenSkill | claude-sonnet-4-6 | M | /test-gen 신규, /done 데드코드 제거, SCHEMA 갱신, /review 완료 처리 추가 |
+| 2026-05-22 | #24 | FixTestWriterDoc | claude-sonnet-4-6 | S | test-writer.md — Ticketing/Matching 테스트 현황 반영 및 팩토리 패턴 추가 |
