@@ -105,8 +105,8 @@ Phase3  (진행예정)
 
 처리:
 - 요구사항을 분석하고 오류/누락이 있으면 질문한다.
-- 분석 완료 후 영구 명세 파일 생성: C:\Users\rumdi\.claude\plans\YYYY-MM-DD_NNN_PlanName.md
-  ex) 2026-05-21_001_FixRedisBug.md  (이력 보존됨)
+- 분석 완료 후 영구 명세 파일 생성: .claude/plan/YYYY-MM-DD_NNN_PlanName.md  (프로젝트 내 이력 보존)
+  ex) .claude/plan/2026-05-21_001_FixRedisBug.md
 - NNN은 당일 생성 파일 수 기반으로 자동 증가 (다수 계획 동시 제출 지원).
 - 명세 완료 후 /plan {PlanName} 으로 브랜치 생성 → 이후 단계 진행.
 
