@@ -362,5 +362,5 @@
 
 ### 진행 중
 
-- [ ] `.github/workflows/pr-merge-sync.yml` — PR 머지 감지 워크플로우
-- [ ] `.github/scripts/sync_merged_pr.py` — task JSON + SPRINT.md + cost-log 자동 갱신
+- [x] `.github/workflows/pr-merge-sync.yml` — PR 머지 감지 워크플로우
+- [x] `.github/scripts/sync_merged_pr.py` — task JSON + SPRINT.md + cost-log 자동 갱신
