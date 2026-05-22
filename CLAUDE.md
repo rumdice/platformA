@@ -172,6 +172,7 @@ dotnet test PlatformA.sln
 
 - `main` 브랜치에 직접 push ← **로컬/웹 모두 금지. 반드시 /plan → /done 워크플로 사용**
 - **작업 브랜치 없이 구현 시작** ← Plan mode 승인 후에도 브랜치가 없으면 먼저 생성
+- **Plan mode 승인 후 `/requirement` · `/plan` 없이 바로 코딩 시작** ← 승인은 설계 확정일 뿐, 구현 시작 전 반드시 두 단계 실행
 - Migration 없이 DB 스키마 변경
 - `Consts.cs` 외 위치에 설정값 하드코딩
 - 테스트/검증 없이 배포 명령 실행
