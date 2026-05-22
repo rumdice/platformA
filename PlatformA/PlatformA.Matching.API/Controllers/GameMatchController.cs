@@ -63,16 +63,6 @@ namespace PlatformA.Matching.API.Controllers
             return Ok(new { Rank = rank + 1, Total = total });
         }
 
-        /// <summary>
-        /// 테스트 API (미사용): 실제 매칭 로직은 RequestMatch + 백그라운드 워커가 처리.
-        /// </summary>
-        [HttpPost("test-match")]
-        public IActionResult TestMatch([FromBody] MatchTestRequest request)
-        {
-            Console.WriteLine($"[TestAPI] 매칭 테스트 요청 수신: User({request.User1Id}) & User({request.User2Id})");
-            return Ok(new { Message = "Matching event published to Redis!", RoomId = 101 });
-        }
-
         private int ExtractPlayerId()
         {
             string authHeader = Request.Headers["Authorization"].ToString();
@@ -83,9 +73,4 @@ namespace PlatformA.Matching.API.Controllers
         }
     }
 
-    public class MatchTestRequest
-    {
-        public int User1Id { get; set; }
-        public int User2Id { get; set; }
-    }
 }
