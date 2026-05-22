@@ -25,7 +25,15 @@ CURRENT_BRANCH=$(git branch --show-current)
 TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
 ```
 
-TASK_FILE이 비어 있으면 task JSON이 없는 것이므로 해당 단계를 건너뛴다.
+TASK_FILE이 비어 있으면 task JSON이 없는 것이다. 이 경우 **즉시 중단**하고 아래 메시지를 출력한다:
+
+> ❌ task JSON을 찾을 수 없습니다.
+>    SDLC 워크플로우가 누락되었습니다. 아래 순서로 먼저 진행하세요:
+>    1. `/requirement` — 요구사항 명세 생성
+>    2. `/plan PlanName` — 작업 브랜치 생성 + task JSON 초기화
+>    CLAUDE.md "절대 하지 말 것" 참조.
+
+단, `git diff --name-only origin/main...HEAD`에 `.cs`/`.proto`/`.csproj` 변경이 없고 문서·설정만 변경된 경우에는 경고 후 계속 진행한다.
 
 ---
 
