@@ -354,3 +354,13 @@
 - [x] `.claude/skills/done/SKILL.md` — test-gen 미실행 경고 추가
 - [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 impact·steps 필드 추가
 - [x] `AI/AI_SDLC(pipeline).txt` — 단계 재번호 및 게이트 정책 반영
+
+---
+
+## 스프린트 #26 (2026-05-22 ~)
+**목표**: PR 머지 자동 감지 — GitHub Actions로 task JSON·SPRINT.md·cost-log 자동 갱신
+
+### 진행 중
+
+- [ ] `.github/workflows/pr-merge-sync.yml` — PR 머지 감지 워크플로우
+- [ ] `.github/scripts/sync_merged_pr.py` — task JSON + SPRINT.md + cost-log 자동 갱신
