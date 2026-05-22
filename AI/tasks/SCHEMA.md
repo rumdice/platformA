@@ -9,22 +9,26 @@ SPRINT.md가 사람이 읽는 형식이라면, tasks/*.json은 스킬이 프로�
 sprint{N}_{PlanName}.json
 ```
 
-예: `sprint21_AISDLCEnhancements.json`, `sprint22_FixRedisBug.json`
+예: `sprint24_AddTestGenSkill.json`, `sprint25_ImproveSdlcGates.json`
 
 ## JSON 스키마
 
 ```json
 {
-  "sprint": 21,
-  "task": "AISDLCEnhancements",
-  "branch": "2026-05-18_AISDLCEnhancements",
-  "status": "in_progress",
-  "created_at": "2026-05-18T10:00:00Z",
+  "sprint": 25,
+  "task": "ImproveSdlcGates",
+  "branch": "2026-05-22_ImproveSdlcGates",
+  "status": "analyzing",
+  "created_at": "2026-05-22T00:00:00Z",
   "completed_at": null,
   "pr_url": null,
   "retry_count": 0,
   "last_error": null,
-  "artifacts": []
+  "artifacts": [],
+  "test_generated": false,
+  "review_completed": false,
+  "impact": null,
+  "steps": []
 }
 ```
 
@@ -37,13 +41,45 @@ sprint{N}_{PlanName}.json
 | `branch` | string | 작업 브랜치명 |
 | `status` | string | 아래 상태 머신 참조 |
 | `created_at` | ISO8601 | /plan 실행 시각 |
-| `completed_at` | ISO8601 \| null | /done 완료 시각 |
+| `completed_at` | ISO8601 \| null | /pr 완료 시각 |
 | `pr_url` | string \| null | 생성된 PR URL |
 | `retry_count` | int | 재시도 횟수 |
 | `last_error` | string \| null | 마지막 실패 원인 |
 | `artifacts` | string[] | 생성된 주요 파일 목록 |
 | `test_generated` | boolean \| false | /test-gen 실행 완료 여부 |
 | `review_completed` | boolean \| false | /review 실행 완료 여부 |
+| `impact` | object \| null | /impact 실행 결과 (아래 구조 참조) |
+| `steps` | object[] | 단계별 실행 이력 (아래 구조 참조) |
+
+### `impact` 필드 구조
+
+```json
+"impact": {
+  "risk": "LOW | MEDIUM | HIGH",
+  "changed_files": 0,
+  "high_risk_files": [],
+  "medium_risk_files": [],
+  "low_risk_files": [],
+  "test_coverage": "none | partial | full | not_required",
+  "summary": "영향 분석 요약"
+}
+```
+
+### `steps` 필드 구조
+
+```json
+"steps": [
+  {
+    "name": "impact | test-gen | review | done | pr",
+    "status": "done | failed | skipped",
+    "started_at": "2026-05-22T00:00:00Z",
+    "completed_at": "2026-05-22T00:01:00Z",
+    "summary": "단계 요약 (예: MEDIUM risk, 5 changed files)"
+  }
+]
+```
+
+향후 `ai_job_steps` 테이블로 마이그레이션 가능한 구조다.
 
 ## 상태 머신 (6단계)
 
@@ -58,22 +94,22 @@ pending → analyzing → coding → testing → done
 | `pending` | task JSON 파일 생성 직후 (미시작) | — |
 | `analyzing` | /plan 브랜치 생성 완료 | `/plan` |
 | `coding` | /start 실행 완료 | `/start` |
-| `testing` | 빌드·테스트 통과 (PR 생성 전) | `/done` |
-| `done` | PR 생성 완료 | `/done` |
+| `testing` | 빌드·테스트 통과 (push 후) | `/done` |
+| `done` | PR 생성 완료 | `/pr` |
 | `failed` | /done 빌드·테스트 실패 | `/done` |
 
 ## 스킬 연동
 
 - `/plan` 스킬: 브랜치 생성 후 `status: "analyzing"` 파일 자동 생성
 - `/start` 스킬: `status: "coding"` 전환
-- `/test-gen` 스킬: `test_generated: true` 기록 (status 변경 없음)
-- `/review` 스킬: `review_completed: true` 기록 (status 변경 없음)
-- `/done` 스킬:
-  - 테스트 통과 후 → `status: "testing"`
-  - 실패 시 → `status: "failed"`, `last_error` 기록
-- `/pr` 스킬: `status: "done"`, `completed_at`, `pr_url` 업데이트
+- `/impact` 스킬: `impact` 필드 갱신 + `steps[]` 기록
+- `/test-gen` 스킬: `test_generated: true` 기록 + `steps[]` 기록
+- `/review` 스킬: `review_completed: true` 기록 + `steps[]` 기록
+- `/done` 스킬: `status: "testing"` 전환 / 실패 시 `status: "failed"`, `last_error` 기록
+- `/pr` 스킬: `status: "done"`, `completed_at`, `pr_url` 업데이트 + `steps[]` 기록
 
 ## 향후 마이그레이션
 
-Phase 3(PostgreSQL 기반 모니터링) 도입 시 이 JSON 파일들을
-`ai_jobs` 테이블로 일괄 마이그레이션할 수 있다.
+Phase 3(PostgreSQL 기반 모니터링) 도입 시:
+- `tasks/*.json` → `ai_jobs` 테이블
+- `steps[]` 배열 → `ai_job_steps` 테이블 (job_id FK)
