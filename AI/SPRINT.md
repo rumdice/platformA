@@ -364,3 +364,17 @@
 
 - [x] `.github/workflows/pr-merge-sync.yml` — PR 머지 감지 워크플로우
 - [x] `.github/scripts/sync_merged_pr.py` — task JSON + SPRINT.md + cost-log 자동 갱신
+
+---
+
+## 스프린트 #27 (2026-05-26 ~)
+**목표**: AI_SDLC GitHub Actions Gate 강화 및 자동 리포트 기반 마련
+
+### 진행 중
+
+- [ ] `.github/workflows/sdlc-gate-check.yml` — PR 단계 AI_SDLC gate check 추가
+- [ ] `.github/scripts/check_sdlc_gate.py` — test/review/impact 검사 구현
+- [ ] `.github/scripts/sync_merged_pr.py` — steps[] 기록, cost-log 중복 방지, summary 출력
+- [ ] `AI/tasks/SCHEMA.md` — GitHub Actions 연동 섹션 추가
+- [ ] `.github/scripts/generate_sdlc_report.py` — 주간 SDLC 리포트 생성 스크립트
+- [ ] `AI/AI_SDLC(pipeline).txt` — GitHub Actions 단계(10, 11) 반영
