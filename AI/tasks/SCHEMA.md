@@ -91,6 +91,7 @@ sprint{N}_{PlanName}.json
 | `start` | `/start` 스킬 |
 | `test_gen` | `/test-gen` 스킬 |
 | `done` | `/done` 스킬 |
+| `qa_failure` | `/qa-failure` 스킬 |
 | `review` | `/review` 스킬 |
 | `pr` | `/pr` 스킬 |
 | `gate_check` | GitHub Actions `sdlc-gate-check.yml` |

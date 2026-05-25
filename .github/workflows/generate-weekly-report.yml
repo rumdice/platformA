@@ -1,0 +1,33 @@
+name: Weekly SDLC Report
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # 매주 월요일 09:00 UTC (한국 18:00)
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.BOT_PUSH_TOKEN }}
+
+      - name: Generate weekly SDLC report
+        run: python3 .github/scripts/generate_sdlc_report.py
+
+      - name: Commit and push report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet HEAD; then
+            echo "변경 없음 — 커밋 스킵"
+            exit 0
+          fi
+          git add AI/reports/
+          WEEK=$(python3 -c "from datetime import date; d=date.today(); print(f'{d.isocalendar()[0]}-W{d.isocalendar()[1]:02d}')")
+          git commit -m "docs: 주간 SDLC 리포트 자동 생성 ${WEEK}"
+          git push origin main

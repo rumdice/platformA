@@ -81,6 +81,31 @@ gh run view $RUN_ID --log-failed 2>&1 | head -200
 `fixable_by_ai: false`인 경우:
 - 원인 분석과 수동 수정에 필요한 정보를 제공한다
 
+### 6단계 — task JSON steps[] 기록
+
+분석 완료 후 현재 브랜치의 task JSON에 qa_failure 단계를 기록한다.
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+```
+
+TASK_FILE이 있으면 Edit 도구로 steps[] 배열에 아래 항목을 추가한다:
+
+```json
+{
+  "name": "qa_failure",
+  "status": "done",
+  "started_at": "<ISO8601 현재 시각>",
+  "completed_at": "<ISO8601 현재 시각>",
+  "summary": "<failure_type>: <error_summary 한 줄> — fixable_by_ai: <true|false>"
+}
+```
+
+status는 수정까지 완료된 경우 `"done"`, 수정 불가(사람 개입 필요)인 경우 `"failed"`로 기록한다.
+
+TASK_FILE이 없으면 이 단계를 건너뛴다.
+
 ---
 
 ## 실패 유형별 대응 가이드

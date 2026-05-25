@@ -8,6 +8,7 @@ GitHub Actions 'PR Merge — SDLC Task Sync' 워크플로우에서 호출된다.
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +19,7 @@ PR_NUMBER = os.environ.get("PR_NUMBER", "")
 CHANGED_FILES = int(os.environ.get("CHANGED_FILES", "0"))
 PR_TITLE = os.environ.get("PR_TITLE", "")
 GITHUB_STEP_SUMMARY = os.environ.get("GITHUB_STEP_SUMMARY", "")
+GH_TOKEN = os.environ.get("GH_TOKEN", "")
 
 
 def find_task_file(branch: str) -> Path | None:
@@ -97,7 +99,7 @@ def update_sprint_md(sprint_num: int) -> bool:
     return True
 
 
-def append_cost_log(sprint_num: int, task_name: str) -> bool:
+def append_cost_log(sprint_num: int, task_name: str, task_data: dict) -> bool:
     """cost-log.md 마지막 행에 추가. 동일 task_name 행이 이미 있으면 skip."""
     cost_log = Path("AI/cost-log.md")
     if not cost_log.exists():
@@ -120,13 +122,36 @@ def append_cost_log(sprint_num: int, task_name: str) -> bool:
     else:
         size = "XL"
 
+    # 위험도 추출 (task JSON impact.risk)
+    impact = task_data.get("impact")
+    risk = impact.get("risk", "") if isinstance(impact, dict) else ""
+
     today = datetime.now().strftime("%Y-%m-%d")
     note = PR_TITLE if PR_TITLE else f"PR #{PR_NUMBER}"
+    if risk:
+        note = f"{note} [risk:{risk}]"
+
     new_row = f"| {today} | #{sprint_num} | {task_name} | claude-sonnet-4-6 | {size} | {note} |"
 
     cost_log.write_text(content.rstrip() + "\n" + new_row + "\n", encoding="utf-8")
     print(f"[ok] cost-log.md row added: {new_row}")
     return True
+
+
+def post_pr_comment(body: str) -> None:
+    """PR에 댓글을 추가한다. GH_TOKEN이 없으면 skip."""
+    if not PR_NUMBER or not GH_TOKEN:
+        print("[skip] PR comment 스킵 (GH_TOKEN 또는 PR_NUMBER 없음)")
+        return
+    try:
+        env = {**os.environ, "GH_TOKEN": GH_TOKEN}
+        subprocess.run(
+            ["gh", "pr", "comment", PR_NUMBER, "--body", body],
+            check=True, capture_output=True, env=env
+        )
+        print(f"[ok] PR #{PR_NUMBER} comment 추가 완료")
+    except Exception as e:
+        print(f"[warn] PR comment 실패: {e}")
 
 
 def write_summary(lines: list[str]) -> None:
@@ -150,6 +175,12 @@ def main() -> None:
     if task_file is None:
         msg = f"No task JSON found for branch '{BRANCH}'. Skipped SDLC sync."
         print(f"[skip] {msg}")
+        comment_body = (
+            f"⚠️ **AI_SDLC 경고**: `{BRANCH}` 브랜치에 해당하는 task JSON이 없습니다.\n\n"
+            f"이 PR은 SDLC 파이프라인 없이 머지되었습니다. "
+            f"핫픽스·문서 변경이라면 무시하세요. 코드 변경이라면 `/plan`을 실행하지 않은 것입니다."
+        )
+        post_pr_comment(comment_body)
         write_summary([
             "## PR Merge SDLC Sync",
             f"- Branch: `{BRANCH}`  PR: `#{PR_NUMBER}`",
@@ -173,7 +204,7 @@ def main() -> None:
     # cost-log 추가 (/pr 스킬 미실행 경로에서만)
     cost_updated = False
     if was_pending and sprint_num is not None:
-        cost_updated = append_cost_log(sprint_num, task_name)
+        cost_updated = append_cost_log(sprint_num, task_name, data)
 
     print("Done.")
 

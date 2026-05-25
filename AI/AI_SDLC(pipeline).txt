@@ -166,8 +166,13 @@ Phase3  (진행예정)
    - PR 생성은 포함하지 않음 (반복 실행 안전)
 
 7. QA_FAILURE_ANALYSIS
-실패 원인을 분석하고 재시도 여부를 판단한다.
-→ /qa-failure 스킬 (미구현 — 스프린트 #21 진행 중)
+빌드·테스트 실패 원인을 분석하고 재시도 여부를 판단한다.
+→ /qa-failure 스킬로 구현 (2026-05-26, 스프린트 #28)
+   - /done 실패 시 실행: GitHub Actions 실패 런 로그 자동 수집
+   - BUILD / FORMAT / TEST 유형으로 분류
+   - fixable_by_ai: true 시 직접 수정 후 /done 재실행
+   - fixable_by_ai: false 시 원인·수동 수정 정보 제공
+   - task JSON steps[]에 qa_failure 기록 (status: done | failed)
 
 8. PR_SUMMARY
 배포를 준비한다.
