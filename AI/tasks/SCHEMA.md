@@ -70,7 +70,7 @@ sprint{N}_{PlanName}.json
 ```json
 "steps": [
   {
-    "name": "impact | test-gen | review | done | pr",
+    "name": "impact | test_gen | review | done | pr | gate_check | merge_sync",
     "status": "done | failed | skipped",
     "started_at": "2026-05-22T00:00:00Z",
     "completed_at": "2026-05-22T00:01:00Z",
@@ -80,6 +80,21 @@ sprint{N}_{PlanName}.json
 ```
 
 향후 `ai_job_steps` 테이블로 마이그레이션 가능한 구조다.
+
+### `steps[]` 권장 step name
+
+| step name | 실행 주체 |
+|-----------|----------|
+| `requirement` | `/requirement` 스킬 |
+| `plan` | `/plan` 스킬 |
+| `impact` | `/impact` 스킬 |
+| `start` | `/start` 스킬 |
+| `test_gen` | `/test-gen` 스킬 |
+| `done` | `/done` 스킬 |
+| `review` | `/review` 스킬 |
+| `pr` | `/pr` 스킬 |
+| `gate_check` | GitHub Actions `sdlc-gate-check.yml` |
+| `merge_sync` | GitHub Actions `pr-merge-sync.yml` |
 
 ## 상태 머신 (6단계)
 
@@ -107,6 +122,25 @@ pending → analyzing → coding → testing → done
 - `/review` 스킬: `review_completed: true` 기록 + `steps[]` 기록
 - `/done` 스킬: `status: "testing"` 전환 / 실패 시 `status: "failed"`, `last_error` 기록
 - `/pr` 스킬: `status: "done"`, `completed_at`, `pr_url` 업데이트 + `steps[]` 기록
+
+## GitHub Actions 연동
+
+다음 워크플로우가 task JSON을 읽거나 갱신한다.
+
+| Workflow | 역할 | 트리거 |
+|----------|------|--------|
+| `sdlc-gate-check.yml` | PR 생성/수정 시 test/review/impact 게이트 검사 | PR open/sync |
+| `pr-merge-sync.yml` | PR merge 후 status=done, completed_at, pr_url, SPRINT, cost-log 동기화 + `steps[]` merge_sync 기록 | PR merged |
+
+### 상태 책임 정리
+
+| 전환 | 담당 |
+|------|------|
+| `→ analyzing` | `/plan` 스킬 |
+| `→ coding` | `/start` 스킬 |
+| `→ testing` | `/done` 스킬 |
+| `→ done` | `/pr` 스킬 (1차) |
+| `→ done` (보정) | `pr-merge-sync.yml` (PR merge 후 `/pr` 미실행 경로) |
 
 ## 향후 마이그레이션
 

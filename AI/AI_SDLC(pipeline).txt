@@ -59,12 +59,14 @@ Phase3  (진행예정)
 /test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수)
 /done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
 /pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
+[GitHub Actions]      → sdlc-gate-check.yml  — PR 단계 SDLC 공정 자동 검사 (2차 방어선)
+[GitHub Actions]      → pr-merge-sync.yml    — 머지 후 task JSON·SPRINT·cost-log 자동 동기화
 ```
 
 스킬-단계 매핑:
 
-| 단계 | 이름 | 스킬 |
-|------|------|------|
+| 단계 | 이름 | 스킬 / 실행 주체 |
+|------|------|-----------------|
 | 0 | USER_PLAN | — (수동) |
 | 1 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement |
 | 2 | PLAN_BRANCH | /plan |
@@ -75,13 +77,19 @@ Phase3  (진행예정)
 | 7 | BUILD_TEST | /done |
 | 8 | CODE_REVIEW | /review (HIGH 위험도 필수) |
 | 9 | PR_SUMMARY | /pr |
+| 10 | PR_GATE_CHECK | GitHub Actions sdlc-gate-check.yml (2차 방어선) |
+| 11 | MERGE_SYNC | GitHub Actions pr-merge-sync.yml (사후 동기화) |
 
 게이트 정책:
 - /test-gen: 소스 코드(.cs/.proto) 변경 시 /done 이전 실행 권장, /pr에서 강제 검사
 - /review: HIGH 위험도 작업(핵심 라이브러리·DB·인증·Redis) 시 /pr 이전 필수
-- /pr: test_generated/review_completed/impact 필드를 task JSON에서 읽어 게이트 판단
+- /pr: test_generated/review_completed/impact 필드를 task JSON에서 읽어 게이트 판단 (1차 방어선)
 - /done: BUILD_GATE만 담당 (커밋→빌드→포맷→테스트→push)
-- /pr: PR_SUMMARY + 완료 처리만 담당
+- sdlc-gate-check.yml: PR 생성/수정 시 test/review/impact 공정 준수 자동 검사 (2차 방어선)
+  - task JSON 없는 PR(핫픽스/문서) → warning, 실패 아님
+  - 코드 변경 + test_generated=false → FAIL
+  - 고위험 경로 + impact=null 또는 review_completed=false → FAIL
+- pr-merge-sync.yml: PR 머지 후 task JSON·SPRINT.md·cost-log 자동 갱신 (사후 보완)
 
 -----
 
@@ -167,6 +175,26 @@ Phase3  (진행예정)
    - SPRINT.md 완료 체크 + PR 생성 + task JSON + cost-log
    - 1회만 실행 (PR 중복 방지 사전 검사 포함)
    - task 상태 testing → done 전환
+   - Claude Code 로컬 1차 방어선: test_generated/review_completed/impact 게이트 검사
+
+9. PR_GATE_CHECK
+PR 단계 SDLC 공정 준수를 자동으로 검사한다.
+→ GitHub Actions sdlc-gate-check.yml (2026-05-26, 스프린트 #27 신규)
+   - PR open/synchronize/reopened/ready_for_review 시 자동 실행
+   - GitHub PR 단계 2차 방어선: /pr 우회 또는 GitHub UI 직접 PR 생성 경로 커버
+   - task JSON 없는 PR(핫픽스/문서) → warning, 실패 아님 (exit 0)
+   - 코드 변경 있음 + test_generated=false → FAIL (exit 1)
+   - 고위험 경로 변경 + impact=null 또는 review_completed=false → FAIL (exit 1)
+   - GitHub Actions Job Summary에 게이트 결과 마크다운 출력
+
+10. MERGE_SYNC
+PR 머지 후 SDLC 상태를 자동으로 동기화한다.
+→ GitHub Actions pr-merge-sync.yml (2026-05-22, 스프린트 #26 신규 / 스프린트 #27 강화)
+   - PR merge 이벤트 시 자동 실행
+   - 머지 후 상태 정합성 사후 보완: /pr 미실행 경로도 커버
+   - task JSON: status=done, completed_at, pr_url 갱신 + steps[]에 merge_sync 기록
+   - SPRINT.md: 해당 스프린트 섹션 '- [ ]' → '- [x]' 체크
+   - cost-log.md: 중복 방지 후 행 추가 (변경 파일 수로 규모 S/M/L/XL 자동 판단)
 
 -----
 
