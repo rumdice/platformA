@@ -139,15 +139,16 @@ def append_cost_log(sprint_num: int, task_name: str, task_data: dict) -> bool:
         except Exception:
             pass
 
-    # consume_tokens: task JSON에서 읽기 (없으면 —)
+    # consume_tokens / cache_tokens: task JSON에서 읽기 (없으면 —)
     consume_tokens = task_data.get("consume_tokens") or "—"
+    cache_tokens = task_data.get("cache_tokens") or "—"
 
     today = datetime.now().strftime("%Y-%m-%d")
     note = PR_TITLE if PR_TITLE else f"PR #{PR_NUMBER}"
     if risk:
         note = f"{note} [risk:{risk}]"
 
-    new_row = f"| {today} | #{sprint_num} | {task_name} | claude-sonnet-4-6 | {size} | {duration_sec} | {consume_tokens} | {note} |"
+    new_row = f"| {today} | #{sprint_num} | {task_name} | claude-sonnet-4-6 | {size} | {duration_sec} | {consume_tokens} | {cache_tokens} | {note} |"
 
     cost_log.write_text(content.rstrip() + "\n" + new_row + "\n", encoding="utf-8")
     print(f"[ok] cost-log.md row added: {new_row}")

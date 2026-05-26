@@ -29,6 +29,7 @@ sprint{N}_{PlanName}.json
   "review_completed": false,
   "duration_sec": null,
   "consume_tokens": null,
+  "cache_tokens": null,
   "impact": null,
   "steps": []
 }
@@ -51,7 +52,8 @@ sprint{N}_{PlanName}.json
 | `test_generated` | boolean \| false | /test-gen 실행 완료 여부 |
 | `review_completed` | boolean \| false | /review 실행 완료 여부 |
 | `duration_sec` | int \| null | completed_at - created_at (초). /pr 완료 시 자동 계산. |
-| `consume_tokens` | int \| null | 작업에 소비된 총 토큰 수. 수동 입력 또는 Phase 3 자동화. |
+| `consume_tokens` | int \| null | 작업에 소비된 총 토큰 수 (input + output + cache_read + cache_creation). /pr 시 JSONL 자동 계산. |
+| `cache_tokens` | int \| null | cache_creation_input_tokens 단독. 캐시 비용 분석용. /pr 시 JSONL 자동 계산. |
 | `impact` | object \| null | /impact 실행 결과 (아래 구조 참조) |
 | `steps` | object[] | 단계별 실행 이력 (아래 구조 참조) |
 
@@ -101,16 +103,21 @@ sprint{N}_{PlanName}.json
 | `gate_check` | GitHub Actions `sdlc-gate-check.yml` |
 | `merge_sync` | GitHub Actions `pr-merge-sync.yml` |
 
-## consume_tokens 입력 가이드
+## consume_tokens / cache_tokens 자동 계산
 
-자동 수집 불가 → `/pr` 실행 전 task JSON에 수동 기입:
+`/pr` 스킬이 `.github/scripts/count_tokens.py`를 실행하여 자동 계산한다.
 
-```json
-"consume_tokens": 85000
+```bash
+# count_tokens.py 동작 방식
+# 1. ~/.claude/projects/<project-hash>/ 디렉토리 탐색
+# 2. 모든 *.jsonl 파일(메인 세션 + subagents/)에서 type=assistant 항목 추출
+# 3. created_at 이후 타임스탬프 필터링
+# 4. usage 필드 합산
+#    consume_tokens = input + output + cache_read + cache_creation
+#    cache_tokens   = cache_creation_input_tokens
 ```
 
-Claude Code 세션 토큰은 UI의 usage 표시 또는 API 응답 헤더에서 확인.
-Phase 3(PostgreSQL)에서 API 자동 수집으로 전환 예정.
+Phase 3(PostgreSQL) 도입 시 동일 로직으로 ai_model_runs 테이블에 기록.
 
 ## 상태 머신 (6단계)
 
