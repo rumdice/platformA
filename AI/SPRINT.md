@@ -387,9 +387,9 @@
 
 ### 진행 중
 
-- [ ] `AI/cost-log.md` — duration_sec / consume_tokens / cache_tokens 컬럼 추가
-- [ ] `AI/tasks/SCHEMA.md` — 세 필드 정의 추가, 자동 계산 가이드
-- [ ] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 세 필드 추가
-- [ ] `.claude/skills/pr/SKILL.md` — count_tokens.py 호출로 자동 계산 및 기록
-- [ ] `.github/scripts/sync_merged_pr.py` — append_cost_log() cache_tokens 컬럼 포함
-- [ ] `.github/scripts/count_tokens.py` — JSONL 파싱 토큰 자동 계산 스크립트 신규
+- [x] `AI/cost-log.md` — duration_sec / consume_tokens / cache_tokens 컬럼 추가
+- [x] `AI/tasks/SCHEMA.md` — 세 필드 정의 추가, 자동 계산 가이드
+- [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 세 필드 추가
+- [x] `.claude/skills/pr/SKILL.md` — count_tokens.py 호출로 자동 계산 및 기록
+- [x] `.github/scripts/sync_merged_pr.py` — append_cost_log() cache_tokens 컬럼 포함
+- [x] `.github/scripts/count_tokens.py` — JSONL 파싱 토큰 자동 계산 스크립트 신규
