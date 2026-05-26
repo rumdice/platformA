@@ -16,9 +16,10 @@ import pathlib
 import re
 import sys
 from datetime import datetime, timezone
+from typing import Optional, Tuple
 
 
-def get_project_dir() -> pathlib.Path | None:
+def get_project_dir() -> Optional[pathlib.Path]:
     """현재 CWD 기반으로 ~/.claude/projects/<hash>/ 경로를 반환한다."""
     home = pathlib.Path.home()
     cwd = os.getcwd()
@@ -46,14 +47,14 @@ def get_project_dir() -> pathlib.Path | None:
     return None
 
 
-def parse_timestamp(ts_str: str) -> datetime | None:
+def parse_timestamp(ts_str: str) -> Optional[datetime]:
     try:
         return datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
     except Exception:
         return None
 
 
-def count_tokens(created_at_str: str) -> tuple[int, int]:
+def count_tokens(created_at_str: str) -> Tuple[int, int]:
     """
     created_at 이후 모든 assistant 메시지 usage 합산.
     반환: (consume_tokens, cache_tokens)
