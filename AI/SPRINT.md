@@ -378,3 +378,18 @@
 - [x] `AI/tasks/SCHEMA.md` — GitHub Actions 연동 섹션 추가
 - [x] `.github/scripts/generate_sdlc_report.py` — 주간 SDLC 리포트 생성 스크립트
 - [x] `AI/AI_SDLC(pipeline).txt` — GitHub Actions 단계(10, 11) 반영
+
+
+---
+
+## 스프린트 #28 (2026-05-26 ~)
+**목표**: cost-log 메트릭 강화 — duration_sec / consume_tokens 컬럼 추가
+
+### 진행 중
+
+- [x] `AI/cost-log.md` — duration_sec / consume_tokens / cache_tokens 컬럼 추가
+- [x] `AI/tasks/SCHEMA.md` — 세 필드 정의 추가, 자동 계산 가이드
+- [x] `.claude/skills/plan/SKILL.md` — task JSON 템플릿에 세 필드 추가
+- [x] `.claude/skills/pr/SKILL.md` — count_tokens.py 호출로 자동 계산 및 기록
+- [x] `.github/scripts/sync_merged_pr.py` — append_cost_log() cache_tokens 컬럼 포함
+- [x] `.github/scripts/count_tokens.py` — JSONL 파싱 토큰 자동 계산 스크립트 신규

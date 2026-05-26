@@ -126,12 +126,29 @@ def append_cost_log(sprint_num: int, task_name: str, task_data: dict) -> bool:
     impact = task_data.get("impact")
     risk = impact.get("risk", "") if isinstance(impact, dict) else ""
 
+    # duration_sec: completed_at - created_at
+    duration_sec = "—"
+    created_at = task_data.get("created_at")
+    completed_at_val = task_data.get("completed_at")
+    if created_at and completed_at_val:
+        try:
+            fmt = "%Y-%m-%dT%H:%M:%SZ"
+            t0 = datetime.strptime(created_at, fmt).replace(tzinfo=timezone.utc)
+            t1 = datetime.strptime(completed_at_val, fmt).replace(tzinfo=timezone.utc)
+            duration_sec = str(int((t1 - t0).total_seconds()))
+        except Exception:
+            pass
+
+    # consume_tokens / cache_tokens: task JSON에서 읽기 (없으면 —)
+    consume_tokens = task_data.get("consume_tokens") or "—"
+    cache_tokens = task_data.get("cache_tokens") or "—"
+
     today = datetime.now().strftime("%Y-%m-%d")
     note = PR_TITLE if PR_TITLE else f"PR #{PR_NUMBER}"
     if risk:
         note = f"{note} [risk:{risk}]"
 
-    new_row = f"| {today} | #{sprint_num} | {task_name} | claude-sonnet-4-6 | {size} | {note} |"
+    new_row = f"| {today} | #{sprint_num} | {task_name} | claude-sonnet-4-6 | {size} | {duration_sec} | {consume_tokens} | {cache_tokens} | {note} |"
 
     cost_log.write_text(content.rstrip() + "\n" + new_row + "\n", encoding="utf-8")
     print(f"[ok] cost-log.md row added: {new_row}")

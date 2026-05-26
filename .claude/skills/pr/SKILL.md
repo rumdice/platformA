@@ -163,9 +163,47 @@ PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
 TODAY=$(date +%Y-%m-%d)
 ```
 
+**duration_sec 자동 계산** (task JSON의 created_at ~ 현재 시각):
+```bash
+CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
+NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+DURATION=$(python3 -c "
+from datetime import datetime, timezone
+fmt = '%Y-%m-%dT%H:%M:%SZ'
+try:
+    start = datetime.strptime('${CREATED_AT}', fmt).replace(tzinfo=timezone.utc)
+    end = datetime.strptime('${NOW}', fmt).replace(tzinfo=timezone.utc)
+    print(int((end - start).total_seconds()))
+except:
+    print('null')
+" 2>/dev/null || echo "null")
+```
+
+**consume_tokens / cache_tokens 자동 계산** (JSONL 파싱 — created_at 이후 누적):
+```bash
+TOKENS_RAW=$(python3 .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
+CONSUME_TOKENS=$(echo "$TOKENS_RAW" | grep "^consume_tokens=" | cut -d= -f2)
+CACHE_TOKENS=$(echo "$TOKENS_RAW" | grep "^cache_tokens=" | cut -d= -f2)
+CONSUME_TOKENS=${CONSUME_TOKENS:-null}
+CACHE_TOKENS=${CACHE_TOKENS:-null}
+```
+
+task JSON에 자동 계산 결과를 기록한 뒤 cost-log 행을 추가한다:
+```bash
+# task JSON 갱신 (python으로 JSON 파싱하여 필드 업데이트)
+python3 -c "
+import json, pathlib
+f = pathlib.Path('${TASK_FILE}')
+d = json.loads(f.read_text(encoding='utf-8'))
+d['consume_tokens'] = ${CONSUME_TOKENS} if '${CONSUME_TOKENS}' != 'null' else None
+d['cache_tokens'] = ${CACHE_TOKENS} if '${CACHE_TOKENS}' != 'null' else None
+f.write_text(json.dumps(d, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+" 2>/dev/null || true
+```
+
 `AI/cost-log.md` 테이블 마지막 행에 추가 (Edit 도구):
 ```
-| {TODAY} | #{SPRINT_NUM} | {PLAN_NAME} | claude-sonnet-4-6 | {SIZE} | {변경 내용 한 줄 요약} |
+| {TODAY} | #{SPRINT_NUM} | {PLAN_NAME} | claude-sonnet-4-6 | {SIZE} | {DURATION} | {CONSUME_TOKENS} | {CACHE_TOKENS} | {변경 내용 한 줄 요약} |
 ```
 
 변경 후 커밋:

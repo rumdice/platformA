@@ -1,0 +1,41 @@
+{
+  "sprint": 28,
+  "task": "AddCostLogMetrics",
+  "branch": "2026-05-26_AddCostLogMetrics",
+  "status": "done",
+  "created_at": "2026-05-26T00:00:00Z",
+  "completed_at": "2026-05-26T00:36:48Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/56",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [
+    "AI/cost-log.md",
+    "AI/tasks/SCHEMA.md",
+    ".claude/skills/plan/SKILL.md",
+    ".claude/skills/pr/SKILL.md",
+    ".github/scripts/sync_merged_pr.py",
+    ".github/scripts/count_tokens.py"
+  ],
+  "test_generated": false,
+  "review_completed": false,
+  "duration_sec": 2208,
+  "consume_tokens": 16096374,
+  "cache_tokens": 654245,
+  "impact": null,
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-05-26T00:00:00Z",
+      "completed_at": "2026-05-26T00:00:00Z",
+      "summary": "cost-log에 duration_sec, consume_tokens 컬럼 추가 — 5개 파일 수정"
+    },
+    {
+      "name": "pr",
+      "status": "done",
+      "started_at": "2026-05-26T00:36:48Z",
+      "completed_at": "2026-05-26T00:36:48Z",
+      "summary": "PR #56 생성, 빌드 ✔, 테스트 113개 통과, consume_tokens=16096374, cache_tokens=654245"
+    }
+  ]
+}
