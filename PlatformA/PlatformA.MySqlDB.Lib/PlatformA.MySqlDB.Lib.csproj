@@ -8,6 +8,8 @@
     <AssemblyName>PlatformA.MySqlDB.Lib</AssemblyName>
     <!-- SDK-style 프로젝트는 AssemblyInfo를 자동 생성하므로 기존 파일과 충돌 방지 -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

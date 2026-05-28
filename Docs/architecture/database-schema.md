@@ -46,52 +46,111 @@ erDiagram
 
 ## 테이블 명세
 
-### players (네이밍: `snake_case`)
+> **이 섹션은 `.github/scripts/generate_db_schema.py`로 자동 갱신됩니다.**
+
+### item
+
+> 테이블: item 플레이어 보유 아이템 정보.
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|
-| `id` | INT | PK, AUTO_INCREMENT | 플레이어 고유 ID |
-| `username` | VARCHAR(50) | NOT NULL, UNIQUE | 로그인 식별자 |
-| `password_hash` | VARCHAR(255) | NOT NULL | BCrypt 해시 |
-| `created_at` | DATETIME | NOT NULL | 계정 생성 시각 |
-
-**특이사항**: 신규 유저는 로그인 시도 시 자동 등록됩니다. (Auth API에서 처리)
-
----
-
-### player_stats
-
-| 컬럼 | 타입 | 제약 | 설명 |
-|------|------|------|------|
-| `player_id` | INT | PK, FK → players.id | 플레이어 ID |
-| `rating` | INT | NOT NULL, DEFAULT 1000 | ELO 레이팅 점수 |
-| `wins` | INT | NOT NULL, DEFAULT 0 | 승리 횟수 |
-| `losses` | INT | NOT NULL, DEFAULT 0 | 패배 횟수 |
+| `pid` | BIGINT | NOT NULL | pid BIGINT PK |
+| `tid` | BIGINT | NOT NULL | tid BIGINT (아이템 템플릿 ID) |
+| `name` | VARCHAR(255) | NOT NULL |  |
+| `uid` | BIGINT | NOT NULL | uid BIGINT (소유자 User.Pid) |
+| `grade` | INT | NOT NULL | grade INT |
 
 ---
 
 ### match_records
 
+> match_records.status 컬럼 값
+
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|
-| `id` | INT | PK, AUTO_INCREMENT | 매치 고유 ID |
-| `player1_id` | INT | FK → players.id | 매칭 플레이어 1 |
-| `player2_id` | INT | FK → players.id | 매칭 플레이어 2 |
-| `status` | VARCHAR(20) | NOT NULL | `Pending` / `InProgress` / `Completed` |
-| `started_at` | DATETIME | NOT NULL | 매칭 성사 시각 |
-| `ended_at` | DATETIME | NULL | 게임 종료 시각 |
-| `created_at` | DATETIME | NOT NULL | 레코드 생성 시각 |
-
-**상태 전이:**
-```mermaid
-stateDiagram-v2
-  [*] --> InProgress : 매칭 성사 (Matching API)
-  InProgress --> Completed : 게임 종료
-  InProgress --> [*] : 비정상 종료 (cleanup 태스크)
-```
+| `id` | BIGINT | PK, NOT NULL | id BIGINT AUTO_INCREMENT PK |
+| `player1_id` | INT | NOT NULL | player1_id INT NOT NULL (FK → players.id) |
+| `player2_id` | INT | NOT NULL | player2_id INT NOT NULL (FK → players.id) |
+| `winner_id` | INT | — | winner_id INT NULL (FK → players.id) |
+| `status` | MATCHSTATUS | NOT NULL | status TINYINT NOT NULL DEFAULT 0 |
+| `started_at` | DATETIME(6) | — | started_at DATETIME(6) NULL |
+| `ended_at` | DATETIME(6) | — | ended_at DATETIME(6) NULL |
+| `created_at` | DATETIME(6) | — | created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP |
+| `player1` | PLAYER | NOT NULL |  |
+| `player2` | PLAYER | NOT NULL |  |
+| `winner` | PLAYER | — |  |
 
 ---
 
+### players
+
+> 테이블: players 플랫폼 계정 정보. Auth.API 로그인/회원가입에서 사용합니다.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `id` | INT | PK, NOT NULL | id INT AUTO_INCREMENT PK |
+| `username` | VARCHAR(255) | NOT NULL |  |
+| `password_hash` | VARCHAR(255) | NOT NULL |  |
+| `created_at` | DATETIME(6) | — | created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP |
+| `1` | PLAYERSTAT | — | 1:N → match_records (player1 / player2) |
+
+---
+
+### player_stats
+
+> 테이블: player_stats 플레이어 누적 전적. players 와 1:1 관계입니다.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `id` | INT | PK, NOT NULL | id INT AUTO_INCREMENT PK |
+| `player_id` | INT | NOT NULL | player_id INT UNIQUE NOT NULL (FK → players.id) |
+| `total_games` | INT | NOT NULL | total_games INT DEFAULT 0 |
+| `wins` | INT | NOT NULL | wins INT DEFAULT 0 |
+| `losses` | INT | NOT NULL | losses INT DEFAULT 0 |
+| `updated_at` | DATETIME(6) | — | updated_at DATETIME(6) ON UPDATE CURRENT_TIMESTAMP |
+| `player` | PLAYER | NOT NULL |  |
+
+---
+
+### shop
+
+> 테이블: shop 상점 상품 정보.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `pid` | BIGINT | NOT NULL | pid BIGINT PK |
+| `tid` | BIGINT | NOT NULL | tid BIGINT (상품 템플릿 ID) |
+| `name` | VARCHAR(255) | NOT NULL |  |
+| `uid` | BIGINT | NOT NULL | uid BIGINT (소유자 User.Pid) |
+
+---
+
+### user
+
+> 테이블: user 게임 내 유저 정보.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `pid` | BIGINT | NOT NULL | pid BIGINT PK |
+| `uid` | BIGINT | NOT NULL | uid BIGINT (플랫폼 Player.Id 참조) |
+| `name` | VARCHAR(255) | NOT NULL |  |
+| `level` | INT | NOT NULL | level INT |
+
+---
+
+### access_logs
+
+> 유저의 인증 관련 행동 기록 (login / logout / refresh)
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| `id` | BIGINT | PK, NOT NULL |  |
+| `player_id` | INT | NOT NULL | / <summary>"login" | "logout" | "refresh"</summary> |
+| `action` | VARCHAR(255) | NOT NULL |  |
+| `ip_address` | VARCHAR(255) | — |  |
+| `created_at` | DATETIME(6) | — |  |
+
+---
 ## Migration 관리
 
 ```bash

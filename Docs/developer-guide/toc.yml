@@ -8,3 +8,5 @@
   href: packet-protocol.md
 - name: Redis 패턴
   href: redis-patterns.md
+- name: Game.Server 아키텍처
+  href: game-server-architecture.md
