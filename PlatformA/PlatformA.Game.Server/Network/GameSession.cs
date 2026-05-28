@@ -9,12 +9,18 @@ using ProtoPacket = PlatformA.Library.Packets.Packet;
 
 namespace PlatformA.Game.Server.Network
 {
+    /// <summary>
+    /// 클라이언트 연결 단위. <see cref="Session"/> 기반 TCP 파이프라인 위에서
+    /// 인증·방 입장·분산락 해제를 담당합니다.
+    /// </summary>
     public class GameSession : Session
     {
-        // 임시로 부여할 플레이어 ID (실제로는 로그인할 때 DB에서 가져오거나 자동 발급)
+        /// <summary>인증 완료 후 부여되는 플레이어 ID. 인증 전에는 0입니다.</summary>
         public int SessionId { get; set; }
-        public GameRoom? Room { get; set; } // 🚀 내가 속한 방 객체 기억하기
-        public string? LoginLockValue { get; set; } // 내가 획득한 분산락 고유값
+        /// <summary>현재 입장 중인 게임 방. 방 밖에서는 null입니다.</summary>
+        public GameRoom? Room { get; set; }
+        /// <summary>Redis 중복 로그인 방지 락의 고유값. 연결 종료 시 락 해제에 사용됩니다.</summary>
+        public string? LoginLockValue { get; set; }
 
         protected override void OnConnected(EndPoint endPoint)
         {

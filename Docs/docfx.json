@@ -8,7 +8,9 @@
             "PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj",
             "PlatformA.Matching.API/PlatformA.Matching.API.csproj",
             "PlatformA.Utils.API/PlatformA.Utils.API.csproj",
-            "PlatformA.Library/PlatformA.Library.csproj"
+            "PlatformA.Library/PlatformA.Library.csproj",
+            "PlatformA.MySqlDB.Lib/PlatformA.MySqlDB.Lib.csproj",
+            "PlatformA.Game.Server/PlatformA.Game.Server.csproj"
           ],
           "src": "../PlatformA"
         }

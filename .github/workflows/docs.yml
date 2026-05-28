@@ -6,6 +6,10 @@ on:
     paths:
       - "Docs/**"
       - "PlatformA/**/*.cs"
+      - "PlatformA/PlatformA.MySqlDB.Lib/**"
+      - "PlatformA/PlatformA.Game.Server/**"
+      - ".github/scripts/generate_api_docs.py"
+      - ".github/scripts/generate_db_schema.py"
   workflow_dispatch:
 
 permissions:
@@ -28,6 +32,12 @@ jobs:
 
       - name: Restore .NET packages
         run: dotnet restore PlatformA/PlatformA.sln
+
+      - name: Generate API-guide docs
+        run: python .github/scripts/generate_api_docs.py
+
+      - name: Generate DB schema doc
+        run: python .github/scripts/generate_db_schema.py
 
       - name: Build DocFX site
         run: docfx Docs/docfx.json

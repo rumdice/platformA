@@ -2,6 +2,10 @@ using System.Collections.Concurrent;
 
 namespace PlatformA.Game.Server.Core
 {
+    /// <summary>
+    /// 전체 게임 방의 생성·삭제·조회를 담당하는 Singleton 관리자.
+    /// <see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey,TValue}"/>로 멀티스레드 접근을 안전하게 처리합니다.
+    /// </summary>
     public class GameRoomManager
     {
         public static GameRoomManager Instance { get; } = new GameRoomManager();

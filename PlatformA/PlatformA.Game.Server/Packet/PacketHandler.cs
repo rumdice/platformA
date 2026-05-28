@@ -10,8 +10,14 @@ using ProtoPacket = PlatformA.Library.Packets.Packet;
 
 namespace PlatformA.Game.Server.Packet
 {
+    /// <summary>
+    /// 클라이언트로부터 수신한 Protobuf 패킷을 처리하는 핸들러 모음.
+    /// 각 메서드는 <see cref="PacketHandlerAttribute"/>로 등록되며
+    /// 게임 상태 변경은 반드시 <see cref="GameRoom.Push"/>를 통해 직렬화합니다.
+    /// </summary>
     public class PacketHandler
     {
+        /// <summary>클라이언트 이동 패킷(CMove)을 처리하고 방 전체에 SMove를 브로드캐스트합니다.</summary>
         [PacketHandler(ProtoPacket.PayloadOneofCase.CMove)]
         public static void Handle_C_Move(GameSession session, ProtoPacket packet)
         {
@@ -38,6 +44,7 @@ namespace PlatformA.Game.Server.Packet
             });
         }
 
+        /// <summary>방 입장 패킷(CEnterRoom)을 처리하고 입장 결과(SEnterRoom)를 응답합니다.</summary>
         [PacketHandler(ProtoPacket.PayloadOneofCase.CEnterRoom)]
         public static void Handle_C_EnterRoom(GameSession session, ProtoPacket packet)
         {
@@ -47,6 +54,7 @@ namespace PlatformA.Game.Server.Packet
             ProcessEnterRoom(session, packet.CEnterRoom.RoomId);
         }
 
+        /// <summary>로그인 패킷(CLogin)을 처리합니다. JWT 검증·중복 로그인 방지·방 입장을 순서대로 수행합니다.</summary>
         [PacketHandler(ProtoPacket.PayloadOneofCase.CLogin)]
         public static void Handle_C_LoginAsync(GameSession session, ProtoPacket packet)
         {

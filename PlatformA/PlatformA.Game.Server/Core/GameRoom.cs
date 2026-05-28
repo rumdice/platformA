@@ -3,18 +3,22 @@ using PlatformA.Library.Core;
 
 namespace PlatformA.Game.Server.Core
 {
+    /// <summary>
+    /// 게임 방 단위 상태 관리자. 입장·퇴장·브로드캐스트 모든 로직은
+    /// <see cref="JobQueue"/>를 통해 단일 스레드로 직렬화되므로 별도 lock 없이 안전합니다.
+    /// </summary>
     public class GameRoom
     {
-        // 방의 고유 ID
+        /// <summary>방 고유 ID. Matching.API에서 발급됩니다.</summary>
         public int RoomId { get; set; }
 
         // 룸에 접속한 유저 목록
         private List<GameSession> _sessions = new List<GameSession>();
 
-        // 🔥 이 방의 모든 로직을 한 줄로 세워줄 전담 매니저 (JobQueue)
+        // 이 방의 모든 로직을 한 줄로 세워줄 전담 매니저 (JobQueue)
         private JobQueue _jobQueue = new JobQueue();
 
-        // 외부(스레드 풀)에서 이 방에 일거리를 던질 때 무조건 이 함수를 거쳐야 함
+        /// <summary>외부 스레드에서 방 로직을 안전하게 예약합니다. 모든 게임 상태 변경은 이 메서드를 통해야 합니다.</summary>
         public void Push(Action job)
         {
             _jobQueue.Push(job);
@@ -25,13 +29,15 @@ namespace PlatformA.Game.Server.Core
         // 따라서 lock 구문 없이도 List를 안전하게 수정할 수 있습니다! (Zero-Lock)
         // ==========================================
 
+        /// <summary>플레이어를 방에 입장시킵니다. JobQueue 내부에서만 호출해야 합니다.</summary>
         public void Enter(GameSession session)
         {
             _sessions.Add(session);
-            session.Room = this; // 세션에게 "너 이 방에 들어왔어" 라고 알려줌
+            session.Room = this;
             Console.WriteLine($"[GameRoom] 유저 입장: {session.SessionId} (현재 인원: {_sessions.Count}명)");
         }
 
+        /// <summary>플레이어를 방에서 퇴장시킵니다. JobQueue 내부에서만 호출해야 합니다.</summary>
         public void Leave(GameSession session)
         {
             _sessions.Remove(session);
@@ -39,6 +45,7 @@ namespace PlatformA.Game.Server.Core
             Console.WriteLine($"[GameRoom] 유저 퇴장: {session.SessionId} (현재 인원: {_sessions.Count}명)");
         }
 
+        /// <summary>방 내 모든 플레이어에게 패킷을 비동기 전송합니다. Fire-and-Forget 방식으로 각 세션에 순차 발송합니다.</summary>
         public void Broadcast(byte[] packet)
         {
             foreach (var session in _sessions)
