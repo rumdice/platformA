@@ -9,7 +9,7 @@ allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Read Edit
 
 ## 컨텍스트
 - 현재 브랜치: !`git branch --show-current`
-- 오늘 명세 파일: !`ls .claude/plan/$(date +%Y-%m-%d)_*.md 2>/dev/null | sort | tail -1 || echo "(없음)"`
+- 오늘 명세 파일: !`python3 -c "import glob,datetime; t=datetime.date.today().strftime('%Y-%m-%d'); f=sorted(glob.glob('.claude/plan/'+t+'_*.md')); print(f[-1] if f else '(없음)')"`
 - 전체 명세 파일: !`ls .claude/plan/processed/ 2>/dev/null | sort -r | head -5 || echo "(없음)"`
 
 ---
