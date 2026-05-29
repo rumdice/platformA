@@ -96,8 +96,19 @@ CODE_CHANGED가 있고 IMPACT_NULL이 있으면 경고하고 계속한다:
 > ⚠️ impact 미실행: 코드 변경이 있지만 /impact가 실행되지 않았습니다. 계속 진행합니다.
 
 **검사 6 — requirement 미실행 경고 (코드 변경 시)**
-
-task JSON의 `steps[]`에 `"name": "requirement"` 항목이 없고 CODE_CHANGED가 있으면 경고하고 계속한다:
+```bash
+REQUIREMENT_DONE=$(python3 -c "
+import json, pathlib, sys
+try:
+    data = json.loads(pathlib.Path('${TASK_FILE}').read_text(encoding='utf-8'))
+    steps = data.get('steps', [])
+    done = any(s.get('name') == 'requirement' and s.get('status') == 'done' for s in steps)
+    print('true' if done else 'false')
+except Exception:
+    print('false')
+" 2>/dev/null || echo "false")
+```
+CODE_CHANGED가 있고 REQUIREMENT_DONE이 `false`이면 경고하고 계속한다:
 > ⚠️ /requirement 미실행: 코드 변경이 있지만 요구사항 분석(DESIGN_REVIEW)이 수행되지 않았습니다.
 >    ADR 검토가 생략되었을 수 있습니다. 계속 진행합니다.
 
