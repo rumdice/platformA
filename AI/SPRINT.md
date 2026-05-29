@@ -426,3 +426,11 @@
 - [x] 6개 `Dockerfile` — base image `8.0`/`9.0` → `10.0`
 - [x] `.github/workflows/ci.yml` — `dotnet-version: 9.0.x` → `10.0.x`
 - [x] .NET 10 breaking change 3건 수정 (RedisValue 오버로드 모호성 캐스팅, AuthTestWebAppFactory EF Core 9 다중 provider 검증 대응)
+
+### 진행 중
+
+- [ ] **빌드 수정**: `dotnet clean` + Grpc.Tools 최신 버전 업그레이드로 `_Protobuf_GatherStaleBatched` 오류 해소
+- [ ] **OpenAPI 현대화**: Swashbuckle 6.6.2 제거 → `Microsoft.AspNetCore.OpenApi` + `Scalar.AspNetCore` 도입 (Auth/Ticketing/Matching API)
+- [ ] **BearerSecuritySchemeTransformer**: 각 API 프로젝트에 신규 파일 추가, JWT 보안 스키마 등록
+- [ ] **C# 현대화**: `Directory.Build.props`에 `LangVersion=latest` 추가, Service/Controller primary constructors 적용, collection expressions 적용
+- [ ] **검증**: `dotnet build` 오류 0 + `dotnet test` 실패 0 + Scalar UI `/scalar/v1` 접근 확인
