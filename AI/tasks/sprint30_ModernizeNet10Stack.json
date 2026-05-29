@@ -23,6 +23,13 @@
       "started_at": "2026-05-29T23:21:44Z",
       "completed_at": "2026-05-29T23:21:44Z",
       "summary": ".NET 10 업그레이드 이후 빌드 수정, OpenAPI 현대화(Swashbuckle→Microsoft.AspNetCore.OpenApi+Scalar), C# primary constructors/collection expressions 적용으로 코드베이스를 .NET 10 생태계와 완전히 정렬한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-05-30T00:00:00Z",
+      "completed_at": "2026-05-30T00:00:00Z",
+      "summary": "빌드 복구(Grpc.Tools 업그레이드) + OpenAPI 현대화(Swashbuckle→OpenApi+Scalar, 3 API) + C# primary constructors 6개 클래스 + collection expressions. DESIGN_REVIEW: ✅ ADR 준수"
     }
   ]
 }
