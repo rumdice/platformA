@@ -32,17 +32,20 @@ YYYY-MM-DD_PlanName
 
 ### 표준 워크플로
 ```
-/plan 작업 설명    → main 이동 + pull → 브랜치 생성 → SPRINT.md 업데이트
-  (작업 수행)
-/done              → 빌드 → 포맷 → 테스트 → push → 한글 PR 생성 → SPRINT 완료 체크
+/plan 작업 설명    → 설명 분석 → 브랜치 생성 + task JSON 커밋 + SPRINT 등록  [Stage 1]
+/requirement       → 요구사항 상세 분석 + 명세 파일 생성 + 브랜치 커밋         [Stage 2]
+/impact            → 영향 범위·위험도 분석 (코드 수정 전)
+/start             → 코딩 시작 선언 (task 상태 coding 전환)
+  (코딩)
+/done              → 빌드 → 포맷 → 테스트 → push
+/pr                → SPRINT 완료 체크 + PR 생성 + cost-log
   (사용자가 GitHub에서 PR 머지)
 ```
 
-> **주의**: Plan mode(설계 승인)와 `/plan` 스킬(브랜치 생성)은 별개다.
-> Plan mode에서 승인 후 구현을 시작하기 전에 반드시 아래 순서를 따른다:
-> 1. `/requirement` — `.claude/plan/` 에 프로젝트 명세 파일 생성 (REQUIREMENT_ANALYSIS)
-> 2. `/plan PlanName` — 작업 브랜치 생성
-> 이 두 단계를 건너뛰고 바로 코딩을 시작하지 않는다.
+> **워크플로우 설계 원칙**:
+> - `/plan` (Stage 1): 사용자 입력을 분석하여 계획을 수립하고 브랜치·task JSON을 생성한다.
+> - `/requirement` (Stage 2): 브랜치 위에서 요구사항을 상세 분석하고 명세 파일을 브랜치에 커밋한다.
+> - 두 단계를 건너뛰고 바로 코딩을 시작하지 않는다 — task JSON이 브랜치에 없으면 gate-check가 FAIL한다.
 
 ### /plan 브랜치 결정 규칙
 

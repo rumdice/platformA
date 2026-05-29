@@ -97,7 +97,18 @@ def main() -> None:
     # task JSON 탐색
     task_file = find_task_file(BRANCH)
     if task_file is None:
-        warnings.append(f"task JSON not found for branch '{BRANCH}' (hotfix/docs PR — skipped)")
+        # task JSON 없음: 코드 변경 유무에 따라 FAIL / WARNING 분기
+        if code_changed and high_risk:
+            failures.append(
+                f"task JSON not found for branch '{BRANCH}': "
+                "고위험 코드 변경 PR은 /plan 스킬로 task JSON을 먼저 생성해야 합니다."
+            )
+        elif code_changed:
+            warnings.append(
+                f"task JSON not found for branch '{BRANCH}' "
+                "(코드 변경 있음 — /plan 실행 권장)"
+            )
+        # else: 코드 변경 없음 → 핫픽스/문서 PR, 경고 없이 통과
         task_data = {}
     else:
         task_data = json.loads(task_file.read_text(encoding="utf-8"))

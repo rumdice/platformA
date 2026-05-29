@@ -51,10 +51,10 @@ Phase3  (진행예정)
 ## 스킬 워크플로 (전체 순서)
 
 ```
-/requirement          → 명세 파일 생성 (REQUIREMENT_ANALYSIS + DESIGN_REVIEW)
-/plan {PlanName}      → 브랜치 생성 + task JSON + SPRINT 등록
+/plan {작업 설명}     → [Stage 1] 설명 분석 → PlanName 생성 → 브랜치 + task JSON 커밋 + SPRINT 등록
+/requirement          → [Stage 2] 요구사항 상세 분석 + 명세 파일 브랜치 커밋 + DESIGN_REVIEW
 /impact               → 영향 범위·위험도 분석 (코드 수정 전)
-/start                → task 상태 coding 전환 + 작업 지시서 출력
+/start                → task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력
   (코딩)
 /test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수)
 /done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
@@ -67,9 +67,9 @@ Phase3  (진행예정)
 
 | 단계 | 이름 | 스킬 / 실행 주체 |
 |------|------|-----------------|
-| 0 | USER_PLAN | — (수동) |
-| 1 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement |
-| 2 | PLAN_BRANCH | /plan |
+| 0 | USER_PLAN | — (Plan mode 또는 직접 입력) |
+| 1 | PLAN_BRANCH + 계획 분석 | /plan (Stage 1: 설명 분석 → 브랜치·task JSON 생성) |
+| 2 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement (Stage 2: 명세 브랜치 커밋) |
 | 3 | IMPACT_ANALYSIS | /impact |
 | 4 | CODE_FIX_START | /start |
 | 5 | CODE_FIX | Claude Code 구현 |
@@ -81,12 +81,15 @@ Phase3  (진행예정)
 | 11 | MERGE_SYNC | GitHub Actions pr-merge-sync.yml (사후 동기화) |
 
 게이트 정책:
+- /plan: task JSON을 브랜치에 즉시 커밋 → gate-check가 PR 생성 시점에 반드시 탐지 가능
+- /requirement: 명세 파일을 브랜치에 커밋 + task JSON steps[] 기록
 - /test-gen: 소스 코드(.cs/.proto) 변경 시 /done 이전 실행 권장, /pr에서 강제 검사
 - /review: HIGH 위험도 작업(핵심 라이브러리·DB·인증·Redis) 시 /pr 이전 필수
 - /pr: test_generated/review_completed/impact 필드를 task JSON에서 읽어 게이트 판단 (1차 방어선)
 - /done: BUILD_GATE만 담당 (커밋→빌드→포맷→테스트→push)
 - sdlc-gate-check.yml: PR 생성/수정 시 test/review/impact 공정 준수 자동 검사 (2차 방어선)
-  - task JSON 없는 PR(핫픽스/문서) → warning, 실패 아님
+  - task JSON 없음 + 고위험 코드 변경 → FAIL (핫픽스/문서 제외)
+  - task JSON 없음 + 일반 코드 변경 → WARNING
   - 코드 변경 + test_generated=false → FAIL
   - 고위험 경로 + impact=null 또는 review_completed=false → FAIL
 - pr-merge-sync.yml: PR 머지 후 task JSON·SPRINT.md·cost-log 자동 갱신 (사후 보완)
