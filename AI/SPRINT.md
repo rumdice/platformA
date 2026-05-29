@@ -385,7 +385,7 @@
 ## 스프린트 #28 (2026-05-26 ~)
 **목표**: cost-log 메트릭 강화 — duration_sec / consume_tokens 컬럼 추가
 
-### 진행 중
+### 완료
 
 - [x] `AI/cost-log.md` — duration_sec / consume_tokens / cache_tokens 컬럼 추가
 - [x] `AI/tasks/SCHEMA.md` — 세 필드 정의 추가, 자동 계산 가이드
@@ -393,3 +393,36 @@
 - [x] `.claude/skills/pr/SKILL.md` — count_tokens.py 호출로 자동 계산 및 기록
 - [x] `.github/scripts/sync_merged_pr.py` — append_cost_log() cache_tokens 컬럼 포함
 - [x] `.github/scripts/count_tokens.py` — JSONL 파싱 토큰 자동 계산 스크립트 신규
+
+---
+
+## 스프린트 #29 (2026-05-28 ~)
+**목표**: 문서화 자동화 개선 — api-guide·DB 스키마 자동 생성 + MySqlDB.Lib·Game.Server DocFX 추가
+
+### 완료
+
+- [x] `.github/scripts/generate_api_docs.py` — 컨트롤러 XML 주석·DTO·오류 패턴 파싱 → `Docs/api-guide/*.md` 4개 자동 갱신
+- [x] `.github/scripts/generate_db_schema.py` — Entity 클래스 파싱 → `Docs/architecture/database-schema.md` 테이블 명세 섹션 교체
+- [x] `.github/workflows/docs.yml` — 두 스크립트 스텝 추가, MySqlDB.Lib·Game.Server 경로 트리거 확장
+- [x] `Docs/docfx.json` — MySqlDB.Lib·Game.Server csproj 메타데이터 추가 (111개 API 파일)
+- [x] `PlatformA.MySqlDB.Lib`, `PlatformA.Game.Server` — `GenerateDocumentationFile=true`, `CS1591` 억제
+- [x] `PlatformA.Game.Server` — GameRoom·GameRoomManager·GameSession·PacketHandler XML 주석 추가
+- [x] `Docs/developer-guide/game-server-architecture.md` — TCP 구조·JobQueue·분산락 설계 문서 신규
+
+---
+
+## 스프린트 #30 (2026-05-29 ~)
+**목표**: .NET 8/9 → 10 전체 TFM 통일 — 빌드 실패 해소 및 SDK 통일
+
+### 완료
+
+- [x] `global.json` — SDK `9.0.100` → `10.0.300` (빌드 실패 즉시 해소)
+- [x] 13개 `.csproj` — TargetFramework `net8.0`/`net9.0` → `net10.0` 전체 통일
+- [x] `Pomelo.EntityFrameworkCore.MySql` 8.0.2 → 9.0.0 (10.x 미출시)
+- [x] `EFCore.NamingConventions` 8.0.3 → 9.0.0
+- [x] `Microsoft.EntityFrameworkCore.*` 8.0.x → 9.0.16 (Pomelo 제약으로 9.x 유지)
+- [x] `AspNetCore.HealthChecks.Redis` 8.0.1 → 9.0.0
+- [x] `Microsoft.AspNetCore.Mvc.Testing` → 10.0.8
+- [x] 6개 `Dockerfile` — base image `8.0`/`9.0` → `10.0`
+- [x] `.github/workflows/ci.yml` — `dotnet-version: 9.0.x` → `10.0.x`
+- [x] .NET 10 breaking change 3건 수정 (RedisValue 오버로드 모호성 캐스팅, AuthTestWebAppFactory EF Core 9 다중 provider 검증 대응)
