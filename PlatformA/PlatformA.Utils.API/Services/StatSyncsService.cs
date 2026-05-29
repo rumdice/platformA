@@ -63,7 +63,7 @@ namespace PlatformA.Utils.API.Services
                     // Redis에서 현재 조회수 가져오기
                     var currentCountVal = await dbRedis.StringGetAsync($"stats:{code}");
 
-                    if (currentCountVal.HasValue && int.TryParse(currentCountVal, out int count))
+                    if (currentCountVal.HasValue && int.TryParse((string?)currentCountVal, out int count))
                     {
                         // DB 업데이트 (이 부분은 벌크 업데이트로 더 최적화 가능하지만 일단 루프로 처리)
                         var urlItem = await dbContext.ShortUrls.FirstOrDefaultAsync(u => u.Code == code);

@@ -178,7 +178,7 @@ namespace PlatformA.Utils.API.Controllers
             var redisCount = await _redis.StringGetAsync(string.Format(Consts.REDIS_SHORT_URL_STATS_KEY, code));
             int finalCount = urlItem.ClickCount; // 기본은 DB 값
 
-            if (redisCount.HasValue && int.TryParse(redisCount, out int rCount))
+            if (redisCount.HasValue && int.TryParse((string?)redisCount, out int rCount))
             {
                 finalCount = rCount; // Redis 값이 있으면 그게 '진짜' 최신 값, 없으면 DB 값 그대로 사용
             }

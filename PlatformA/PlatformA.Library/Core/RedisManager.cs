@@ -160,7 +160,7 @@ namespace PlatformA.Library.Core
             {
                 try
                 {
-                    var matchEvent = JsonSerializer.Deserialize<MatchSuccessEvent>(message!);
+                    var matchEvent = JsonSerializer.Deserialize<MatchSuccessEvent>((string)message!);
                     if (matchEvent != null)
                     {
                         _logger.LogInformation(

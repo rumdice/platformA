@@ -127,7 +127,7 @@ return {members[1], members[3]}";
 
             foreach (var val in timeoutResult)
             {
-                if (int.TryParse(val, out int timedOutId))
+                if (int.TryParse((string?)val, out int timedOutId))
                 {
                     _logger.LogInformation("[Matching] 매칭 타임아웃 — UserId: {UserId}", timedOutId);
                     await _hubContext.Clients
@@ -145,8 +145,8 @@ return {members[1], members[3]}";
             if (popResult.Length < 2)
                 return;
 
-            if (int.TryParse(popResult[0], out int player1Id) &&
-                int.TryParse(popResult[1], out int player2Id))
+            if (int.TryParse((string?)popResult[0], out int player1Id) &&
+                int.TryParse((string?)popResult[1], out int player2Id))
             {
                 _ = ProcessMatchingAsync(player1Id, player2Id);
             }
