@@ -115,11 +115,31 @@ def main() -> None:
 
     test_generated = task_data.get("test_generated", None)
     review_completed = task_data.get("review_completed", None)
+    adr_required = task_data.get("adr_required", False)
     impact = task_data.get("impact", None)
     impact_risk = impact.get("risk", "UNKNOWN") if isinstance(impact, dict) else None
+    steps = task_data.get("steps", [])
+    requirement_done = any(
+        s.get("name") == "requirement" and s.get("status") == "done"
+        for s in steps
+    )
 
     # 게이트 검사 (코드 변경 없으면 전체 pass)
     if code_changed and task_file is not None:
+        # 검사 0: adr_required — /requirement DESIGN_REVIEW에서 신규 ADR 필요 판정
+        if adr_required is True:
+            failures.append(
+                "adr_required == true: DESIGN_REVIEW에서 신규 ADR이 필요하다고 판정되었습니다. "
+                "'/adr {주제}' 실행 후 task JSON의 adr_required를 false로 변경하세요."
+            )
+
+        # 검사 0.5: /requirement 미실행 경고 (코드 변경 시)
+        if not requirement_done:
+            warnings.append(
+                "/requirement 미실행: DESIGN_REVIEW(ADR 검토)가 수행되지 않았습니다. "
+                "아키텍처 결정이 누락되었을 수 있습니다."
+            )
+
         # 검사 1: test_generated
         if test_generated is False:
             failures.append("test_generated == false: 코드 변경이 있지만 /test-gen이 실행되지 않았습니다.")
@@ -159,6 +179,8 @@ def main() -> None:
     print(f"Task file:        {task_file or '(없음)'}")
     print(f"Code changed:     {'yes' if code_changed else 'no'}")
     print(f"High-risk paths:  {'yes' if high_risk else 'no'}")
+    print(f"requirement_done: {'yes' if requirement_done else 'no'}")
+    print(f"adr_required:     {adr_required}")
     print(f"test_generated:   {test_generated}")
     print(f"impact risk:      {impact_risk or '(null)'}")
     print(f"review_completed: {review_completed}")

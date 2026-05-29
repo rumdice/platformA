@@ -135,7 +135,7 @@ ls AI/adr/ 2>/dev/null | sort
 
 검토 항목:
 - 요구사항의 **접근 방식**이 기존 ADR과 충돌하는가?
-- 새로운 **설계 결정**이 필요한가?
+- 새로운 **설계 결정**이 필요한가? (기존 ADR에 없는 새 기술/패턴/버전 정책 도입 시)
 
 출력 형식:
 ```
@@ -145,10 +145,33 @@ ls AI/adr/ 2>/dev/null | sort
 |-----|---------|--------------|
 | ADR-NNN: 제목 | 관련 있음 / 없음 | {내용} |
 
-판정: ✅ 기존 ADR 준수 | ⚠️ ADR 충돌 있음 | 📝 신규 ADR 권장
+판정: ✅ 기존 ADR 준수 | ⚠️ ADR 충돌 있음 | 📝 신규 ADR 필요
 ```
 
-신규 ADR이 필요한 경우: `/adr {결정 주제}` 실행 후 명세 파일을 보완한다.
+**판정이 `📝 신규 ADR 필요`인 경우 — 자동 연계 (필수)**
+
+task JSON의 `adr_required` 필드를 `true`로 갱신한다 (Edit 도구):
+```json
+"adr_required": true
+```
+
+그 후 아래 메시지를 출력하고 **중단**한다. ADR 생성 없이 다음 단계로 진행하면
+`/pr`과 GitHub Actions gate-check가 PR을 차단한다:
+
+```
+⛔ DESIGN_REVIEW: 신규 ADR이 필요합니다.
+
+결정 주제: {ADR 주제}
+이유: {기존 ADR에 없는 새 결정 사항 요약}
+
+▶ 지금 실행하세요:
+  /adr {ADR 주제}
+
+ADR 생성 완료 후 task JSON에서 adr_required를 false로 변경하고
+/requirement를 다시 실행하거나 /start로 진행하세요.
+```
+
+ADR 충돌 시: 사용자에게 보고하고 요구사항 조정 여부를 확인한다.
 
 ---
 

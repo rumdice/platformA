@@ -95,6 +95,23 @@ IMPACT_NULL=$(grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1)
 CODE_CHANGED가 있고 IMPACT_NULL이 있으면 경고하고 계속한다:
 > ⚠️ impact 미실행: 코드 변경이 있지만 /impact가 실행되지 않았습니다. 계속 진행합니다.
 
+**검사 6 — requirement 미실행 경고 (코드 변경 시)**
+
+task JSON의 `steps[]`에 `"name": "requirement"` 항목이 없고 CODE_CHANGED가 있으면 경고하고 계속한다:
+> ⚠️ /requirement 미실행: 코드 변경이 있지만 요구사항 분석(DESIGN_REVIEW)이 수행되지 않았습니다.
+>    ADR 검토가 생략되었을 수 있습니다. 계속 진행합니다.
+
+**검사 7 — ADR 미생성 차단 (adr_required)**
+```bash
+ADR_REQUIRED=$(grep -o '"adr_required":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+```
+ADR_REQUIRED가 `true`이면 **중단**한다:
+> ❌ /pr 중단: DESIGN_REVIEW에서 신규 ADR이 필요하다고 판정되었지만 아직 생성되지 않았습니다.
+>
+>    1. /adr {결정 주제}  — ADR 파일 생성
+>    2. task JSON에서 adr_required를 false로 수정
+>    3. /pr 재실행
+
 ---
 
 ### 1단계: SPRINT.md 완료 체크

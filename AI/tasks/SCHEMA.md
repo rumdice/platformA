@@ -27,6 +27,7 @@ sprint{N}_{PlanName}.json
   "artifacts": [],
   "test_generated": false,
   "review_completed": false,
+  "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
@@ -51,6 +52,7 @@ sprint{N}_{PlanName}.json
 | `artifacts` | string[] | 생성된 주요 파일 목록 |
 | `test_generated` | boolean \| false | /test-gen 실행 완료 여부 |
 | `review_completed` | boolean \| false | /review 실행 완료 여부 |
+| `adr_required` | boolean \| false | /requirement DESIGN_REVIEW에서 신규 ADR 필요 판정 시 true. /pr·gate-check가 이 값을 읽어 ADR 생성 완료 전 PR을 차단한다. |
 | `duration_sec` | int \| null | completed_at - created_at (초). /pr 완료 시 자동 계산. |
 | `consume_tokens` | int \| null | 작업에 소비된 총 토큰 수 (input + output + cache_read + cache_creation). /pr 시 JSONL 자동 계산. |
 | `cache_tokens` | int \| null | cache_creation_input_tokens 단독. 캐시 비용 분석용. /pr 시 JSONL 자동 계산. |

@@ -111,6 +111,7 @@ cat > "AI/tasks/sprint${SPRINT_NUM}_${PLAN_NAME}.json" << EOF
   "artifacts": [],
   "test_generated": false,
   "review_completed": false,
+  "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
