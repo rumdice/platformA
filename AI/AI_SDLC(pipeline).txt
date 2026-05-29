@@ -96,113 +96,168 @@ Phase3  (진행예정)
 
 -----
 
-작업 단계를 나눈다. 각 단계는 순차적으로 진행된다. (작성중)
+작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-05-30, 스프린트 #31)
 
-0. USER_PLAN
-기능 : 유저가 요구사항을 제출하거나 생성해낸다.
-제출 경로는 아래 세 가지 중 하나이다:
+0. USER_PLAN  ←  /plan 스킬
+기능 : 사용자가 작업 설명을 입력하면 LLM이 분석하여 계획을 수립하고, 브랜치와 task JSON을 생성한다.
+→ /plan 스킬로 구현됨 (Stage 1)
 
-  경로 A — Plan mode (Claude Code 기본)
-  - 사용자가 Claude Code plan mode에 진입하여 LLM과 대화하며 계획을 수립한다.
-  - plan mode는 ~/.claude/plans/ 에 임시 파일을 생성한다 (이력 없음, 매번 덮어써짐).
-  - 사용자가 계획을 승인(ExitPlanMode)하면 stage 0 완료.
+  입력 방법:
+  - /plan {작업 설명}   — 텍스트로 직접 입력
+  - Plan mode 승인 후 /plan 실행 — LLM과 사전에 계획을 정제한 뒤 실행
 
-  경로 B — 외부 파일 제출 (외부 Agent, 기획서 등)
-  - 외부에서 작성한 계획 파일을 .claude/plan/ 디렉토리에 저장한다.
-  - 파일명은 자유롭게 지정 (예: temp_plan.md, feature-xyz.md).
-  - /requirement 실행 시 이 디렉토리를 1순위로 탐색한다.
-  - 처리 완료된 파일은 .claude/plan/processed/ 로 자동 이동된다.
+  처리:
+  - 사용자 설명을 분석하여 작업 목적·범위·구현 방향을 요약한다.
+  - PascalCase PlanName 생성 (예: AddRedisRateLimit, FixAuthTokenExpiry)
+  - 브랜치 생성: YYYY-MM-DD_PlanName
+  - task JSON 생성 및 브랜치에 즉시 커밋 (gate-check가 PR 생성 시 탐지 가능하도록)
+  - SPRINT.md 진행 중 섹션에 태스크 항목 추가 후 커밋
 
-  경로 C — 직접 입력
-  - /requirement 요구사항 텍스트 형식으로 직접 입력한다.
+  산출물:
+  - 브랜치: 2026-MM-DD_PlanName
+  - AI/tasks/sprint{N}_{PlanName}.json (status: analyzing, steps: [plan])
+  - AI/SPRINT.md 태스크 항목
 
 
-1. REQUIREMENT_ANALYSIS
-기능 : 0. USER_PLAN 단계의 계획을 분석하고 영구 명세 파일을 생성한다.
-→ /requirement 스킬로 구현됨 (2026-05-21, 스프린트 #22 / 개선)
+1. REQUIREMENT_ANALYSIS + DESIGN_REVIEW  ←  /requirement 스킬
+기능 : 브랜치 위에서 요구사항을 상세 분석하고 구현 명세 파일을 생성한다.
+       기존 ADR과 대조하여 신규 아키텍처 결정이 필요한지 판정한다.
+→ /requirement 스킬로 구현됨 (Stage 2, 2026-05-21 도입 / 2026-05-30 개선)
 
-소스 탐지 우선순위:
-  1순위: .claude/plan/*.md       — 외부 제출 파일
-  2순위: ~/.claude/plans/        — plan mode 임시 파일 (동적 탐지, 고정명 불참조)
-  3순위: /requirement [텍스트]   — 직접 입력
+  전제: /plan으로 브랜치와 task JSON이 이미 존재해야 한다.
 
-처리:
-- 요구사항을 분석하고 오류/누락이 있으면 질문한다.
-- 분석 완료 후 영구 명세 파일 생성: .claude/plan/YYYY-MM-DD_NNN_PlanName.md  (프로젝트 내 이력 보존)
-  ex) .claude/plan/2026-05-21_001_FixRedisBug.md
-- NNN은 당일 생성 파일 수 기반으로 자동 증가 (다수 계획 동시 제출 지원).
-- 명세 완료 후 /plan {PlanName} 으로 브랜치 생성 → 이후 단계 진행.
+  소스 탐지 우선순위:
+  1순위: .claude/plan/*.md       — 외부 제출 파일 (외부 Agent, 기획서 등)
+  2순위: ~/.claude/plans/        — plan mode 임시 파일 (날짜 접두사 없는 파일만)
+  3순위: task JSON의 plan summary — /plan에서 작성한 작업 목적 활용
+  4순위: $ARGUMENTS              — 직접 입력 텍스트
+
+  처리:
+  - 요구사항 분석: 목적·범위·제약·오류/누락 체크 (불명확 시 사용자에게 질문)
+  - 명세 파일 생성: .claude/plan/YYYY-MM-DD_NNN_PlanName.md
+  - DESIGN_REVIEW: 기존 ADR(AI/adr/) 목록과 대조
+    ✅ ADR 준수  → 진행
+    ⚠️ ADR 충돌  → 사용자에게 보고 후 요구사항 조정
+    📝 신규 ADR 필요  → task JSON의 adr_required = true 자동 갱신 + /adr 실행 안내 + 중단
+  - 명세 파일과 소스 파일 처리를 브랜치에 커밋 (git add .claude/plan/ && git commit)
+  - task JSON steps[]에 requirement 단계 기록
+
+  ADR 자동 연계 구조:
+  adr_required = true 설정 시:
+    → /pr 게이트가 PR 생성을 차단한다 (1차 방어)
+    → gate-check.yml이 GitHub Actions에서 FAIL한다 (2차 방어)
+  해소 방법: /adr {주제} 실행 → task JSON adr_required = false 수정 → 진행
+
+  산출물:
+  - .claude/plan/YYYY-MM-DD_NNN_PlanName.md (브랜치에 커밋)
+  - task JSON steps[]에 requirement 기록
+  - task JSON adr_required: false(정상) / true(ADR 필요)
+
 
 2. DESIGN_REVIEW
-기능 : 요구단계분석이 끝났다면 코드의 설계 방향을 제시한다.
-→ /requirement 스킬 5단계에 내장됨 (2026-05-21, 스프린트 #22 개선)
-   - 기존 ADR 목록과 대조하여 충돌 여부 검토
-   - 신규 설계 결정 필요 시 /adr 스킬로 연계
-   - 별도 스킬 불필요 (요구사항 분석과 동일 맥락에서 수행)
+기능 : /requirement 단계에 내장됨 (별도 스킬 없음)
+→ /requirement 스킬 5단계에서 수행
+   - AI/adr/ 목록을 순회하여 요구사항과 대조
+   - 신규 설계 결정이 필요하면 adr_required = true 자동 기록 후 /adr 연계
+   - 신규 ADR 없이 PR 생성 불가 (로컬 /pr + GitHub Actions 양쪽에서 차단)
 
-3. IMPACT_ANALYSIS
-기능 : 코드의 설계 방향대로 코드 수정시 수정대상의 파일/모듈 들을 파악하고 위험도,영향도를 평가한다.
-→ /impact 스킬로 구현됨 (2026-05-21, 스프린트 #22 개선)
-   - /plan 완료 보고에 다음 단계로 명시 (미실행 방지)
-   - 코드 수정 전(사전): 명세 파일 "영향 범위" 섹션 기반 분석
-   - 코드 수정 후(사후): git diff 기반 분석
 
-4. CODE_FIX
-기능 : 실제로 코드를 수정한다.
-→ /start 스킬로 진입 (2026-05-21, 스프린트 #23)
+3. IMPACT_ANALYSIS  ←  /impact 스킬
+기능 : 코드 수정 대상 파일·모듈을 파악하고 위험도·영향도를 평가한다.
+→ /impact 스킬로 구현됨 (2026-05-21, 스프린트 #22)
+   - /requirement 완료 보고에 다음 단계로 명시 (미실행 방지)
+   - 사전 분석: 명세 파일 "영향 범위" 섹션 기반
+   - 사후 분석: git diff 기반 (코드 수정 후 재실행 가능)
+   - 결과를 task JSON impact 필드에 저장 (risk: LOW/MEDIUM/HIGH)
+
+
+4. CODE_FIX_START  ←  /start 스킬
+기능 : 코딩 시작을 선언하고 task 상태를 전환한다.
+→ /start 스킬로 구현됨 (2026-05-21, 스프린트 #23)
    - task 상태 analyzing → coding 전환
-   - 명세 파일 기반 작업 지시서 출력
-   - 코딩은 LLM이 자유롭게 수행
+   - 현재 브랜치의 명세 파일을 읽어 작업 지시서 출력
+   - 명세 파일이 없으면 /requirement 실행을 안내하고 중단
 
-5. TEST_CASE_GENERATION
-기능 : 테스트 코드를 작성한다.
-→ /test-gen 스킬로 구현 (2026-05-22, 스프린트 #24)
-   - /start 이후 /done 이전에 실행 (컨트롤러 변경 시 필수, 설정만 변경 시 선택)
-   - test-writer 에이전트를 sub-agent로 실행하여 xUnit 테스트 자동 생성
-   - task JSON에 test_generated 필드 기록
 
-6. BUILD_TEST
-빌드/테스트를 실행한다.
-→ /done 스킬로 구현 (2026-05-21 리팩토링)
-   - 커밋 + 빌드 + 포맷 + 테스트 + push (BUILD_GATE)
+5. CODE_FIX
+기능 : 실제로 코드를 수정한다.
+→ LLM이 /start 출력의 작업 지시서를 따라 자유롭게 구현
+
+
+6. TEST_CASE_GENERATION  ←  /test-gen 스킬
+기능 : 변경된 Controller/DTO/Service에 대한 xUnit 테스트를 자동 생성한다.
+→ /test-gen 스킬로 구현됨 (2026-05-22, 스프린트 #24)
+   - /start 이후, /done 이전 실행
+   - 필수: 컨트롤러·DTO 변경 시 / 선택: 설정·인프라만 변경 시
+   - test-writer 에이전트를 sub-agent로 실행 (기존 팩토리 패턴 재사용)
+   - task JSON test_generated = true 기록
+
+
+7. BUILD_TEST  ←  /done 스킬
+기능 : 커밋 + 빌드 + 포맷 + 테스트 + push를 순서대로 실행한다.
+→ /done 스킬로 구현됨 (2026-05-21 리팩토링)
+   - BUILD_GATE만 담당 (PR 생성 없음 — 반복 실행 안전)
+   - 빌드/테스트 실패 시 push 금지
    - task 상태 coding → testing 전환
-   - PR 생성은 포함하지 않음 (반복 실행 안전)
 
-7. QA_FAILURE_ANALYSIS
-빌드·테스트 실패 원인을 분석하고 재시도 여부를 판단한다.
-→ /qa-failure 스킬로 구현 (2026-05-26, 스프린트 #28)
+
+8. QA_FAILURE_ANALYSIS  ←  /qa-failure 스킬
+기능 : 빌드·테스트 실패 원인을 분석하고 재시도 여부를 판단한다.
+→ /qa-failure 스킬로 구현됨 (2026-05-26, 스프린트 #28)
    - /done 실패 시 실행: GitHub Actions 실패 런 로그 자동 수집
    - BUILD / FORMAT / TEST 유형으로 분류
-   - fixable_by_ai: true 시 직접 수정 후 /done 재실행
-   - fixable_by_ai: false 시 원인·수동 수정 정보 제공
-   - task JSON steps[]에 qa_failure 기록 (status: done | failed)
+   - fixable_by_ai: true → 직접 수정 후 /done 재실행
+   - fixable_by_ai: false → 원인·수동 수정 정보 제공
+   - task JSON steps[]에 qa_failure 기록
 
-8. PR_SUMMARY
-배포를 준비한다.
-→ /pr 스킬로 구현 (2026-05-21, 스프린트 #23 신규)
-   - SPRINT.md 완료 체크 + PR 생성 + task JSON + cost-log
+
+9. PR_SUMMARY  ←  /pr 스킬
+기능 : PR을 생성하고 SPRINT·task JSON·cost-log를 완료 처리한다.
+→ /pr 스킬로 구현됨 (2026-05-21, 스프린트 #23 신규)
    - 1회만 실행 (PR 중복 방지 사전 검사 포함)
    - task 상태 testing → done 전환
-   - Claude Code 로컬 1차 방어선: test_generated/review_completed/impact 게이트 검사
 
-9. PR_GATE_CHECK
-PR 단계 SDLC 공정 준수를 자동으로 검사한다.
-→ GitHub Actions sdlc-gate-check.yml (2026-05-26, 스프린트 #27 신규)
-   - PR open/synchronize/reopened/ready_for_review 시 자동 실행
-   - GitHub PR 단계 2차 방어선: /pr 우회 또는 GitHub UI 직접 PR 생성 경로 커버
-   - task JSON 없는 PR(핫픽스/문서) → warning, 실패 아님 (exit 0)
-   - 코드 변경 있음 + test_generated=false → FAIL (exit 1)
-   - 고위험 경로 변경 + impact=null 또는 review_completed=false → FAIL (exit 1)
-   - GitHub Actions Job Summary에 게이트 결과 마크다운 출력
+   로컬 1차 방어선 게이트 (순서대로):
+   ① task JSON 존재 여부 확인
+   ② 코드 변경 여부 판별
+   ③ test_generated == false + 코드 변경 → 차단
+   ④ review_completed == false + 고위험 변경 → 차단
+   ⑤ impact == null + 코드 변경 → 경고
+   ⑥ requirement steps 미실행 + 코드 변경 → 경고 (ADR 검토 생략 가능성)
+   ⑦ adr_required == true → 차단 (/adr 실행 후 재시도)
 
-10. MERGE_SYNC
-PR 머지 후 SDLC 상태를 자동으로 동기화한다.
+
+10. PR_GATE_CHECK  ←  GitHub Actions sdlc-gate-check.yml
+기능 : PR 단계 SDLC 공정 준수를 자동으로 검사한다.
+→ GitHub Actions sdlc-gate-check.yml (2026-05-26, 스프린트 #27 신규 / 2026-05-30 강화)
+   - 트리거: PR open/synchronize/reopened/ready_for_review
+   - /pr 우회 또는 GitHub UI 직접 PR 생성 경로를 커버하는 2차 방어선
+
+   검사 항목:
+   ① task JSON 없음 + 고위험 코드 변경 → FAIL
+   ② task JSON 없음 + 일반 코드 변경 → WARNING
+   ③ adr_required == true → FAIL  ← 2026-05-30 추가
+   ④ requirement 미실행 + 코드 변경 → WARNING  ← 2026-05-30 추가
+   ⑤ test_generated == false + 코드 변경 → FAIL
+   ⑥ impact == null + 고위험 경로 → FAIL
+   ⑦ review_completed == false + 고위험 조건 → FAIL
+
+   출력: GitHub Actions Job Summary에 마크다운 결과 기록
+
+
+11. MERGE_SYNC  ←  GitHub Actions pr-merge-sync.yml
+기능 : PR 머지 후 SDLC 상태를 자동으로 동기화한다.
 → GitHub Actions pr-merge-sync.yml (2026-05-22, 스프린트 #26 신규 / 스프린트 #27 강화)
-   - PR merge 이벤트 시 자동 실행
-   - 머지 후 상태 정합성 사후 보완: /pr 미실행 경로도 커버
+   - 트리거: PR merge (pull_request closed + merged)
+   - /pr 미실행 경로도 사후 보완 (단, task JSON이 브랜치에 있어야 탐지 가능)
+
+   처리:
    - task JSON: status=done, completed_at, pr_url 갱신 + steps[]에 merge_sync 기록
    - SPRINT.md: 해당 스프린트 섹션 '- [ ]' → '- [x]' 체크
-   - cost-log.md: 중복 방지 후 행 추가 (변경 파일 수로 규모 S/M/L/XL 자동 판단)
+   - cost-log.md: 중복 방지 후 행 추가 (규모 S/M/L/XL 자동 판단)
+
+   주의: task JSON이 PR 머지 시점에 main에 없으면 skip 발생
+   → /plan이 task JSON을 브랜치에 즉시 커밋하므로 정상 워크플로에서는 항상 탐지 가능
 
 -----
 
@@ -271,6 +326,10 @@ TODO:
 ★ 즉시 적용 (인프라 없이 가능)
 ------
 - GitHub PR Required Review 설정 → Approval Gate 대체
-- DESIGN_REVIEW(2번) 단계를 /adr 스킬과 명시적으로 연결 (CLAUDE.md 규칙 추가)
+- DESIGN_REVIEW(2번) 단계를 /adr 스킬과 명시적으로 연결 ✅ 완료 (2026-05-30, 스프린트 #31)
+  → adr_required 필드 + /pr·gate-check 게이트 연계 구현
 - BUILD_TEST(6번) 단계는 현재 /done 내부에서 자동 실행 중 → 별도 스킬 분리 검토
+- /plan → /requirement 순서 확정 ✅ 완료 (2026-05-30, 스프린트 #31)
+  → USER_PLAN = /plan 스킬, task JSON 브랜치 즉시 커밋
+- gate-check: task JSON 없음 + 고위험 → WARNING→FAIL 격상 ✅ 완료 (2026-05-30, 스프린트 #31)
 
