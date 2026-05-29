@@ -3,7 +3,7 @@ name: workreport
 schema_version: 1
 description: 오늘 하루 작업 내용을 수집하여 AI/workreport/YYYY-MM-DD.md 리포트를 생성하고 main에 커밋한다. 일일 작업 마무리 시 실행한다.
 disable-model-invocation: false
-allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Bash(date *) Bash(cat *) Bash(python3 *) Bash(tail *) Bash(mkdir *) Read Write Edit
+allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Bash(date *) Bash(cat *) Bash(tail *) Bash(mkdir *) Read Write Edit
 ---
 
 # 일일 작업 리포트 생성
