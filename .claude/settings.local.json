@@ -30,6 +30,8 @@
       "PowerShell(Get-Command python3 2>&1)",
       "Bash(py .github/scripts/generate_api_docs.py)",
       "Bash(py .github/scripts/generate_db_schema.py)",
+      "Edit",
+      "Bash(*)",
       "PowerShell(Remove-Item -Recurse -Force Docs/_site -ErrorAction SilentlyContinue; $env:PATH = \"$env:PATH;$env:USERPROFILE\\\\.dotnet\\\\tools\"; docfx Docs/docfx.json 2>&1 | Select-Object -Last 40)",
       "PowerShell(Set-Location \"c:\\\\Users\\\\rumdi\\\\Desktop\\\\workspace\\\\platformA\"; $env:PATH = \"$env:PATH;$env:USERPROFILE\\\\.dotnet\\\\tools\"; docfx Docs/docfx.json 2>&1 | Select-Object -Last 40)"
     ]
