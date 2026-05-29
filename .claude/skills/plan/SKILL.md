@@ -11,7 +11,7 @@ allowed-tools: Bash(git *) Bash(gh *) Read Edit
 ## 컨텍스트
 - 오늘 날짜: !`date +%Y-%m-%d`
 - 현재 브랜치: !`git branch --show-current`
-- 현재 브랜치 PR 상태: !`export PATH="/c/Program Files/GitHub CLI:$PATH"; branch=$(git branch --show-current); if [ "$branch" = "main" ]; then echo "[]"; else gh pr list --head "$branch" --state open --json number,state,title --limit 1 2>/dev/null || echo "[]"; fi`
+- 현재 브랜치 PR 상태: !`python3 -c "import subprocess,os; env=dict(os.environ,PATH=os.environ.get('PATH','')+os.pathsep+'/c/Program Files/GitHub CLI'); b=subprocess.check_output(['git','branch','--show-current']).decode().strip(); r=subprocess.run(['gh','pr','list','--head',b,'--state','open','--json','number,state,title','--limit','1'],capture_output=True,text=True,env=env) if b and b!='main' else None; print((r.stdout.strip() or '[]') if r and r.returncode==0 else '[]')"`
 
 ## 사용자 작업 설명
 $ARGUMENTS

@@ -1,0 +1,72 @@
+{
+  "sprint": 30,
+  "task": "DotNet10Upgrade",
+  "branch": "2026-05-29_DotNet10Upgrade",
+  "status": "done",
+  "created_at": "2026-05-29T00:00:00Z",
+  "completed_at": "2026-05-29T00:00:00Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/58",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [
+    "global.json",
+    "PlatformA/PlatformA.Auth.API/PlatformA.Auth.API.csproj",
+    "PlatformA/PlatformA.Auth.API/Dockerfile",
+    "PlatformA/PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj",
+    "PlatformA/PlatformA.Ticketing.API/Dockerfile",
+    "PlatformA/PlatformA.Utils.API/PlatformA.Utils.API.csproj",
+    "PlatformA/PlatformA.Utils.API/Dockerfile",
+    "PlatformA/PlatformA.Game.Server/PlatformA.Game.Server.csproj",
+    "PlatformA/PlatformA.Game.Server/Dockerfile",
+    "PlatformA/PlatformA.Game.DummyClient/PlatformA.Game.DummyClient.csproj",
+    "PlatformA/PlatformA.Game.DummyClient/Dockerfile",
+    "PlatformA/PlatformA.Library/PlatformA.Library.csproj",
+    "PlatformA/PlatformA.MySqlDB.Lib/PlatformA.MySqlDB.Lib.csproj",
+    "PlatformA/PlatformA.Matching.API/PlatformA.Matching.API.csproj",
+    "PlatformA/PlatformA.Matching.API/Dockerfile",
+    "PlatformA/PlatformA.Tests.Auth.API/Helpers/AuthTestWebAppFactory.cs",
+    "PlatformA/PlatformA.Tests.Auth.API/PlatformA.Tests.Auth.API.csproj",
+    "PlatformA/PlatformA.Tests.Utils.API/PlatformA.Tests.Utils.API.csproj",
+    "PlatformA/PlatformA.Tests.Matching.API/PlatformA.Tests.Matching.API.csproj",
+    "PlatformA/PlatformA.Tests.Ticketing.API/PlatformA.Tests.Ticketing.API.csproj",
+    "PlatformA/PlatformA.Tests.Game.Server/PlatformA.Tests.Game.Server.csproj",
+    ".github/workflows/ci.yml"
+  ],
+  "test_generated": false,
+  "review_completed": false,
+  "duration_sec": null,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": {
+    "risk": "HIGH",
+    "changed_files": 26,
+    "high_risk_files": ["global.json", "PlatformA/**/*.csproj"],
+    "medium_risk_files": ["PlatformA/**/Dockerfile", ".github/workflows/ci.yml"],
+    "low_risk_files": [],
+    "test_coverage": "full",
+    "summary": "전체 TFM net10.0 통일 — 빌드 0오류, 테스트 113개 전부 통과. EF Core 9.x 유지(Pomelo 10.x 미출시). .NET 10 breaking change 3건 수정."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-05-29T00:00:00Z",
+      "completed_at": "2026-05-29T00:00:00Z",
+      "summary": "계획 검토 및 패키지 가용성 확인 — Pomelo 10.x 미출시로 EF Core 9.x 유지 결정"
+    },
+    {
+      "name": "done",
+      "status": "done",
+      "started_at": "2026-05-29T00:00:00Z",
+      "completed_at": "2026-05-29T00:00:00Z",
+      "summary": "빌드 0오류, 테스트 113개 통과 — .NET 10 breaking change 3건(RedisValue 캐스팅, AuthTestWebAppFactory) 수정"
+    },
+    {
+      "name": "pr",
+      "status": "done",
+      "started_at": "2026-05-29T00:00:00Z",
+      "completed_at": "2026-05-29T00:00:00Z",
+      "summary": "PR #58 생성 완료"
+    }
+  ]
+}

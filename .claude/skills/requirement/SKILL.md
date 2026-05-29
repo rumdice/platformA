@@ -16,7 +16,7 @@ allowed-tools: Bash(date *) Bash(ls *) Bash(mv *) Read Edit Write
 
 ## 컨텍스트
 - 오늘 날짜: !`date +%Y-%m-%d`
-- 오늘 날짜 기준 명세 파일: !`ls .claude/plan/$(date +%Y-%m-%d)_*.md 2>/dev/null || echo "(없음)"`
+- 오늘 날짜 기준 명세 파일: !`python3 -c "import glob,datetime; t=datetime.date.today().strftime('%Y-%m-%d'); f=sorted(glob.glob('.claude/plan/'+t+'_*.md')); print('\n'.join(f) if f else '(없음)')"`
 - 프로젝트 plan 제출 파일: !`ls .claude/plan/*.md 2>/dev/null | grep -v README | head -5 || echo "(없음)"`
 - plan mode 파일: !`ls ~/.claude/plans/*.md 2>/dev/null | grep -vE '/[0-9]{4}-[0-9]{2}-[0-9]{2}_' | head -1 || echo "(없음)"`
 
