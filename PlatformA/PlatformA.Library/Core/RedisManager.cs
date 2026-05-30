@@ -56,10 +56,8 @@ namespace PlatformA.Library.Core
                 options.ConnectRetry = 3;
                 options.KeepAlive = 10;
 
-                options.CommandMap = CommandMap.Create(new HashSet<string>
-                {
-                    // 특정 명령어 제한이 필요하다면 여기서 설정 (기본값은 전체 허용)
-                }, available: false);
+                // 특정 명령어 제한이 필요하다면 여기서 설정 (기본값은 전체 허용)
+                options.CommandMap = CommandMap.Create([], available: false);
 
                 // 클러스터 재연결: 500ms → 최대 10초 지수 백오프
                 options.ReconnectRetryPolicy = new ExponentialRetry(500, 10_000);

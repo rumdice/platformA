@@ -41,8 +41,8 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 
 | 프로젝트 | 프레임워크 | 테스트 수 | Redis 패턴 | DB 패턴 |
 |---------|-----------|---------|-----------|--------|
-| `PlatformA.Tests.Auth.API` | net8.0 | 19 | Reflection 주입 | InMemory SQLite |
-| `PlatformA.Tests.Utils.API` | net8.0 | 29 | 직접 교체 | InMemory SQLite |
-| `PlatformA.Tests.Game.Server` | net8.0 | 48 | — | — |
-| `PlatformA.Tests.Ticketing.API` | net8.0 | 9 | Reflection 주입 | 없음 |
-| `PlatformA.Tests.Matching.API` | net9.0 | 8 | Reflection 주입 | InMemory EF Core |
+| `PlatformA.Tests.Auth.API` | net10.0 | 23 | Reflection 주입 | InMemory SQLite |
+| `PlatformA.Tests.Utils.API` | net10.0 | 29 | 직접 교체 | InMemory SQLite |
+| `PlatformA.Tests.Game.Server` | net10.0 | 48 | — | — |
+| `PlatformA.Tests.Ticketing.API` | net10.0 | 13 | Reflection 주입 | 없음 |
+| `PlatformA.Tests.Matching.API` | net10.0 | 12 | Reflection 주입 | InMemory EF Core |

@@ -45,3 +45,11 @@ jobs:
         with:
           name: test-results
           path: ./test-results/*.trx
+
+      - name: Update task on CI failure
+        if: failure()
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 .github/scripts/mark_ci_failure.py 2>/dev/null || true

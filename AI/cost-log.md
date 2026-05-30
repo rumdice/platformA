@@ -32,3 +32,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-05-26 | #28 | AddCostLogMetrics | claude-sonnet-4-6 | M | 2208 | 16096374 | 654245 | feat: cost-log 메트릭 강화 — duration_sec/consume_tokens/cache_tokens 자동 계산 (PR #56) |
 | 2026-05-28 | #29 | DocAutomationImprovement | claude-sonnet-4-6 | L | — | — | — | feat: 문서화 자동화 — api-guide·DB 스키마 자동 생성 + MySqlDB.Lib·Game.Server DocFX 추가 (PR #57) |
 | 2026-05-29 | #30 | DotNet10Upgrade | claude-sonnet-4-6 | L | — | — | — | upgrade: .NET 8/9 → 10 전체 TFM 통일, Pomelo 9.0.0, EF Core 9.x, .NET 10 breaking change 3건 수정 (PR #58) |
+| 2026-05-30 | #30 | ModernizeNet10Stack | claude-sonnet-4-6 | L | 3192 | — | — | feat: OpenAPI 현대화(Swashbuckle→OpenApi+Scalar), C# primary constructors 6개, 스킬 python3→bash 수정 (PR #59) |

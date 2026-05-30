@@ -11,7 +11,7 @@ allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Bash(rg *) Read Glob
 - 현재 브랜치: !`git branch --show-current`
 - main 대비 변경 파일: !`git diff --name-only origin/main...HEAD 2>/dev/null || echo "(변경 없음)"`
 - 미커밋 변경 파일: !`git diff --name-only; git diff --name-only --cached`
-- 오늘 명세 파일: !`python3 -c "import glob,datetime; t=datetime.date.today().strftime('%Y-%m-%d'); f=sorted(glob.glob('.claude/plan/'+t+'_*.md')); print('\n'.join(f) if f else '(없음)')"`
+- 오늘 명세 파일: !`t=$(date +%Y-%m-%d); ls .claude/plan/${t}_*.md 2>/dev/null | sort || echo "(없음)"`
 
 ---
 

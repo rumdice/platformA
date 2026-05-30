@@ -44,3 +44,40 @@ jobs:
           git add AI/tasks/ AI/SPRINT.md AI/cost-log.md
           git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, SPRINT 체크 완료"
           git push
+
+  sync-task-abandoned:
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.BOT_PUSH_TOKEN }}
+
+      - name: Mark task as abandoned
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: python3 .github/scripts/sync_closed_pr.py
+
+      - name: Commit and push
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet HEAD; then
+            echo "변경 없음 — 커밋 스킵"
+            exit 0
+          fi
+          git add AI/tasks/
+          git commit -m "자동: PR #${PR_NUMBER} 미머지 종료 — task 상태 abandoned"
+          git push

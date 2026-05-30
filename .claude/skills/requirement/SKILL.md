@@ -2,7 +2,7 @@
 name: requirement
 schema_version: 1
 description: /plan 완료 후 브랜치에서 요구사항을 상세 분석하고 구현 명세(.md)를 생성한다. 명세 파일을 브랜치에 커밋하고 task JSON에 requirement 단계를 기록한다. 워크플로우 Stage 2.
-allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Bash(python3 *) Read Edit Write
+allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Read Edit Write
 ---
 
 # /requirement — 요구사항 상세 분석 및 명세 생성 (Stage 2)
@@ -18,8 +18,8 @@ allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Bash(python3 *) Read Edit Wri
 ## 컨텍스트
 - 현재 브랜치: !`git branch --show-current`
 - 오늘 날짜: !`date +%Y-%m-%d`
-- 오늘 날짜 기준 명세 파일: !`python3 -c "import glob,datetime; t=datetime.date.today().strftime('%Y-%m-%d'); f=sorted(glob.glob('.claude/plan/'+t+'_*.md')); print('\n'.join(f) if f else '(없음)')"`
-- 현재 브랜치 task JSON: !`python3 -c "import glob,json,subprocess; b=subprocess.check_output(['git','branch','--show-current']).decode().strip(); files=glob.glob('AI/tasks/sprint*.json'); match=[f for f in files if json.load(open(f)).get('branch')==b]; print(match[0] if match else '(없음)')"`
+- 오늘 날짜 기준 명세 파일: !`t=$(date +%Y-%m-%d); ls .claude/plan/${t}_*.md 2>/dev/null | sort || echo "(없음)"`
+- 현재 브랜치 task JSON: !`b=$(git branch --show-current); m="(없음)"; for f in AI/tasks/sprint*.json; do [ -f "$f" ] && grep -q "\"branch\": \"$b\"" "$f" 2>/dev/null && m="$f" && break; done; echo "$m"`
 - 외부 제출 파일: !`ls .claude/plan/*.md 2>/dev/null | grep -v README | head -3 || echo "(없음)"`
 - plan mode 파일: !`ls ~/.claude/plans/*.md 2>/dev/null | grep -vE '/[0-9]{4}-[0-9]{2}-[0-9]{2}_' | head -1 || echo "(없음)"`
 

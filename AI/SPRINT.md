@@ -426,3 +426,11 @@
 - [x] 6개 `Dockerfile` — base image `8.0`/`9.0` → `10.0`
 - [x] `.github/workflows/ci.yml` — `dotnet-version: 9.0.x` → `10.0.x`
 - [x] .NET 10 breaking change 3건 수정 (RedisValue 오버로드 모호성 캐스팅, AuthTestWebAppFactory EF Core 9 다중 provider 검증 대응)
+
+### 진행 중
+
+- [x] **빌드 수정**: session-start 훅 `-q` → `--verbosity minimal`, Game.Server 누락 패키지 추가
+- [x] **OpenAPI 현대화**: Swashbuckle 6.6.2 제거 → `Microsoft.AspNetCore.OpenApi 10.0.8` + `Scalar.AspNetCore 2.14.14` 도입 (Auth/Ticketing/Matching API)
+- [x] **BearerSecuritySchemeTransformer**: 각 API 프로젝트에 신규 파일 추가, JWT 보안 스키마 등록 (OpenApi 2.0 네임스페이스 대응)
+- [x] **C# 현대화**: `Directory.Build.props`에 `LangVersion=latest` 추가, Service/Controller primary constructors 6개, collection expression 적용
+- [x] **검증**: `dotnet build` 오류 0 + `dotnet test` 113/113 통과

@@ -9,16 +9,10 @@ namespace PlatformA.Ticketing.API.Services
     /// 게임 입장 대기열 서비스.
     /// 모든 Redis 명령은 RedisManager.ExecuteAsync를 통해 Polly 파이프라인이 적용됩니다.
     /// </summary>
-    public class QueueService
+    public class QueueService(RedisManager redisManager, ILogger<QueueService> logger)
     {
-        private readonly RedisManager _redisManager;
-        private readonly ILogger<QueueService> _logger;
-
-        public QueueService(RedisManager redisManager, ILogger<QueueService> logger)
-        {
-            _redisManager = redisManager;
-            _logger = logger;
-        }
+        private readonly RedisManager _redisManager = redisManager;
+        private readonly ILogger<QueueService> _logger = logger;
 
         /// <summary>
         /// 대기열 진입. ZCARD 체크 + ZADD를 Lua로 원자화 (Race Condition 제거).

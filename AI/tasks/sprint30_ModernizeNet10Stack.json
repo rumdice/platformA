@@ -1,0 +1,66 @@
+{
+  "sprint": 30,
+  "task": "ModernizeNet10Stack",
+  "branch": "2026-05-30_ModernizeNet10Stack",
+  "status": "done",
+  "created_at": "2026-05-29T23:21:44Z",
+  "completed_at": "2026-05-30T00:14:56Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/59",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": 3192,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": {
+    "risk": "MEDIUM",
+    "changed_files": 31,
+    "high_risk_files": [
+      "PlatformA.Library/Core/RedisManager.cs",
+      "PlatformA.Library/PlatformA.Library.csproj",
+      "Auth.API/Controllers/AuthController.cs",
+      "Auth.API/Filters/RedisRateLimitAttribute.cs",
+      "Auth.API/Services/RefreshTokenService.cs",
+      "Auth.API/Services/PlayerService.cs"
+    ],
+    "medium_risk_files": [
+      "Auth/Ticketing/Matching API/Program.cs x3",
+      "Matching.API/Services/EngineService.cs",
+      "Ticketing.API/Services/QueueService.cs",
+      "*/OpenApi/BearerSecuritySchemeTransformer.cs x3"
+    ],
+    "low_risk_files": [
+      "Directory.Build.props",
+      "*.csproj x4",
+      "session-start.sh",
+      ".claude/skills/ x6"
+    ],
+    "test_coverage": "full",
+    "summary": "MEDIUM risk, 31개 변경 파일. HIGH 파일 변경은 primary constructor/collection expression 등 동작 비변환. 113/113 테스트 통과."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-05-29T23:21:44Z",
+      "completed_at": "2026-05-29T23:21:44Z",
+      "summary": ".NET 10 업그레이드 이후 빌드 수정, OpenAPI 현대화(Swashbuckle→Microsoft.AspNetCore.OpenApi+Scalar), C# primary constructors/collection expressions 적용으로 코드베이스를 .NET 10 생태계와 완전히 정렬한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-05-30T00:00:00Z",
+      "completed_at": "2026-05-30T00:00:00Z",
+      "summary": "빌드 복구(Grpc.Tools 업그레이드) + OpenAPI 현대화(Swashbuckle→OpenApi+Scalar, 3 API) + C# primary constructors 6개 클래스 + collection expressions. DESIGN_REVIEW: ✅ ADR 준수"
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-05-30T00:20:00Z",
+      "summary": "MEDIUM risk, 31개 변경 파일. HIGH 분류 변경은 모두 동작 비변환(primary constructor/collection expression). 113/113 테스트 통과 확인."
+    }
+  ]
+}

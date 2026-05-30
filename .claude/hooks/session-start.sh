@@ -49,13 +49,13 @@ echo ""
 echo "[빌드 상태 확인]"
 if command -v dotnet &>/dev/null && [ -d "$SLN_DIR" ]; then
     cd "$SLN_DIR" || exit 0
-    BUILD_OUTPUT=$(dotnet build PlatformA.sln -q 2>&1)
+    BUILD_OUTPUT=$(dotnet build PlatformA.sln --verbosity minimal 2>&1)
     BUILD_EXIT=$?
     if [ $BUILD_EXIT -eq 0 ]; then
         echo "  ✔ dotnet build — 성공"
     else
         echo "  ✘ dotnet build — 실패"
-        echo "$BUILD_OUTPUT" | grep -E "error|Error" | head -10 | sed 's/^/    /'
+        echo "$BUILD_OUTPUT" | grep -E "error CS|error NU|error MSB[^4]" | head -10 | sed 's/^/    /'
     fi
 else
     echo "  [skip] dotnet 명령 또는 솔루션 디렉터리를 찾을 수 없습니다."

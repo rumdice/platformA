@@ -10,7 +10,7 @@ allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Bash(mkdir *) Bash(python3 *)
 ## 컨텍스트
 - 오늘 날짜: !`date +%Y-%m-%d`
 - 현재 브랜치: !`git branch --show-current`
-- 현재 브랜치 PR 상태: !`python3 -c "import subprocess,os; env=dict(os.environ,PATH=os.environ.get('PATH','')+os.pathsep+'/c/Program Files/GitHub CLI'); b=subprocess.check_output(['git','branch','--show-current']).decode().strip(); r=subprocess.run(['gh','pr','list','--head',b,'--state','open','--json','number,state,title','--limit','1'],capture_output=True,text=True,env=env) if b and b!='main' else None; print((r.stdout.strip() or '[]') if r and r.returncode==0 else '[]')"`
+- 현재 브랜치 PR 상태: !`export PATH="$PATH:/c/Program Files/GitHub CLI"; b=$(git branch --show-current); if [ -n "$b" ] && [ "$b" != "main" ]; then gh pr list --head "$b" --state open --json number,state,title --limit 1 2>/dev/null || echo "[]"; else echo "[]"; fi`
 
 ## 사용자 작업 설명
 $ARGUMENTS
