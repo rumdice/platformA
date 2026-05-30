@@ -23,6 +23,13 @@
       "started_at": "2026-05-30T01:11:02Z",
       "completed_at": "2026-05-30T01:11:02Z",
       "summary": ".NET 버전·테스트 수 하드코딩 제거 — csproj·테스트 파일 동적 파싱으로 Docs/index.md·overview.md 자동 갱신."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-05-30T01:20:00Z",
+      "completed_at": "2026-05-30T01:20:00Z",
+      "summary": "generate_doc_meta.py 신규, generate_api_docs.py csproj 동적 파싱, index.md·overview.md 마커 기반 갱신. DESIGN_REVIEW: ✅ ADR-003 준수"
     }
   ]
 }
