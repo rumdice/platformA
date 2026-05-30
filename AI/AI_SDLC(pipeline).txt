@@ -80,19 +80,25 @@ Phase3  (진행예정)
 | 10 | PR_GATE_CHECK | GitHub Actions sdlc-gate-check.yml (2차 방어선) |
 | 11 | MERGE_SYNC | GitHub Actions pr-merge-sync.yml (사후 동기화) |
 
-게이트 정책:
+게이트 정책 (2026-05-30 강화):
 - /plan: task JSON을 브랜치에 즉시 커밋 → gate-check가 PR 생성 시점에 반드시 탐지 가능
 - /requirement: 명세 파일을 브랜치에 커밋 + task JSON steps[] 기록
-- /test-gen: 소스 코드(.cs/.proto) 변경 시 /done 이전 실행 권장, /pr에서 강제 검사
-- /review: HIGH 위험도 작업(핵심 라이브러리·DB·인증·Redis) 시 /pr 이전 필수
+- /test-gen: 소스 코드(.cs/.proto) 변경 시 /done 이전 실행 필수 (미실행 시 /done 차단)
+- /impact: 코드 변경 시 /done 이전 실행 필수 (미실행 시 /done 차단, /pr도 차단)
+- /review: 코드 변경 시 /done 이전 실행 필수 (미실행 시 /done 차단)
+- /done: SDLC 사전검사(test-gen·impact·review) → BUILD_GATE (커밋→빌드→포맷→테스트→push)
 - /pr: test_generated/review_completed/impact 필드를 task JSON에서 읽어 게이트 판단 (1차 방어선)
-- /done: BUILD_GATE만 담당 (커밋→빌드→포맷→테스트→push)
+  ① test_generated=false + 코드 변경 → 차단
+  ② review_completed=false + 고위험·다수변경 → 차단
+  ③ impact=null + 코드 변경 → 차단 (경고 → 차단으로 강화)
 - sdlc-gate-check.yml: PR 생성/수정 시 test/review/impact 공정 준수 자동 검사 (2차 방어선)
   - task JSON 없음 + 고위험 코드 변경 → FAIL (핫픽스/문서 제외)
   - task JSON 없음 + 일반 코드 변경 → WARNING
   - 코드 변경 + test_generated=false → FAIL
   - 고위험 경로 + impact=null 또는 review_completed=false → FAIL
 - pr-merge-sync.yml: PR 머지 후 task JSON·SPRINT.md·cost-log 자동 갱신 (사후 보완)
+  + PR closed without merge → task status: abandoned (신규, 2026-05-30)
+- ci.yml: CI 빌드/포맷/테스트 실패 시 task JSON last_error 갱신 + PR 댓글 (신규, 2026-05-30)
 
 -----
 
@@ -221,8 +227,8 @@ Phase3  (진행예정)
    ① task JSON 존재 여부 확인
    ② 코드 변경 여부 판별
    ③ test_generated == false + 코드 변경 → 차단
-   ④ review_completed == false + 고위험 변경 → 차단
-   ⑤ impact == null + 코드 변경 → 경고
+   ④ review_completed == false + 고위험·다수변경 → 차단
+   ⑤ impact == null + 코드 변경 → 차단 (경고 → 차단으로 강화, 2026-05-30)
    ⑥ requirement steps 미실행 + 코드 변경 → 경고 (ADR 검토 생략 가능성)
    ⑦ adr_required == true → 차단 (/adr 실행 후 재시도)
 
