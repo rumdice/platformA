@@ -53,8 +53,8 @@ graph LR
 
 ## 기술 스택
 
-- **런타임**: .NET 8.0 / .NET 9.0 (Matching API)
+- **런타임**: <!-- RUNTIME_VERSION -->.NET 10.0<!-- /RUNTIME_VERSION -->
 - **데이터**: Redis 7 Cluster (6-node) · MariaDB (MySQL 8)
 - **프로토콜**: REST · SignalR · TCP Binary (Protobuf)
 - **인프라**: Docker Compose · Kubernetes (kind/EKS)
-- **테스트**: xUnit · 97개 테스트
+- **테스트**: xUnit · <!-- TEST_COUNT -->111개<!-- /TEST_COUNT --> 테스트

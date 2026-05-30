@@ -39,6 +39,9 @@ jobs:
       - name: Restore .NET packages
         run: dotnet restore PlatformA/PlatformA.sln
 
+      - name: Generate doc metadata (version + test count)
+        run: python .github/scripts/generate_doc_meta.py
+
       - name: Generate API-guide docs
         run: python .github/scripts/generate_api_docs.py
 

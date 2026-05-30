@@ -129,10 +129,12 @@ PlatformA.MySqlDB.Lib
 
 ## 런타임 버전
 
+<!-- RUNTIME_TABLE -->
 | 서비스 | .NET 버전 | 비고 |
 |--------|----------|------|
-| Auth API | .NET 8.0 | |
-| Ticketing API | .NET 8.0 | |
-| Matching API | **.NET 9.0** | 최신 성능 기능 사용 |
-| Game Server | .NET 8.0 | Console App (ASP.NET Core 아님) |
-| Utils API | .NET 8.0 | |
+| Auth API | .NET 10.0 |  |
+| Ticketing API | .NET 10.0 |  |
+| Matching API | .NET 10.0 |  |
+| Game Server | .NET 10.0 | Console App (ASP.NET Core 아님) |
+| Utils API | .NET 10.0 |  |
+<!-- /RUNTIME_TABLE -->
