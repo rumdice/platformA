@@ -13,8 +13,8 @@
   "review_completed": true,
   "adr_required": false,
   "duration_sec": 3192,
-  "consume_tokens": null,
-  "cache_tokens": null,
+  "consume_tokens": 98248083,
+  "cache_tokens": 1470418,
   "impact": {
     "risk": "MEDIUM",
     "changed_files": 31,

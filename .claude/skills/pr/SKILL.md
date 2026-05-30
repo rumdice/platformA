@@ -195,7 +195,7 @@ DURATION=$([ -n "$START_EPOCH" ] && [ -n "$END_EPOCH" ] && echo $((END_EPOCH - S
 
 **consume_tokens / cache_tokens 자동 계산** (JSONL 파싱 — created_at 이후 누적):
 ```bash
-TOKENS_RAW=$(python3 .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
+TOKENS_RAW=$(python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
 CONSUME_TOKENS=$(echo "$TOKENS_RAW" | grep "^consume_tokens=" | cut -d= -f2)
 CACHE_TOKENS=$(echo "$TOKENS_RAW" | grep "^cache_tokens=" | cut -d= -f2)
 CONSUME_TOKENS=${CONSUME_TOKENS:-null}
