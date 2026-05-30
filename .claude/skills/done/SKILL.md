@@ -77,7 +77,7 @@ CODE_CHANGED가 있고 TEST_GEN이 `false`이면:
 ```bash
 # git 루트 기반으로 경로를 찾아 실행 (현재 디렉토리 무관)
 SLN=$(git rev-parse --show-toplevel)/PlatformA
-cd "$SLN" && dotnet build PlatformA.sln -q
+cd "$SLN" && dotnet build PlatformA.sln --verbosity minimal
 ```
 빌드 실패 시:
 - task JSON `"status"` → `"failed"`, `"last_error"` → 오류 요약으로 Edit 도구 업데이트
