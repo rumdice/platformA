@@ -1,15 +1,10 @@
 name: Docs → GitHub Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI — Build & Test"]
+    types: [completed]
     branches: [main]
-    paths:
-      - "Docs/**"
-      - "PlatformA/**/*.cs"
-      - "PlatformA/PlatformA.MySqlDB.Lib/**"
-      - "PlatformA/PlatformA.Game.Server/**"
-      - ".github/scripts/generate_api_docs.py"
-      - ".github/scripts/generate_db_schema.py"
   workflow_dispatch:
 
 permissions:
@@ -17,15 +12,26 @@ permissions:
 
 jobs:
   build-and-deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect .NET version from csproj
+        id: dotnet-ver
+        run: |
+          VERSION=$(grep -rh '<TargetFramework>' PlatformA --include='*.csproj' \
+            | grep -oP 'net\K[\d.]+' | sort -V | tail -1)
+          echo "version=${VERSION}.x" >> "$GITHUB_OUTPUT"
+          echo "Detected .NET SDK: ${VERSION}.x"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0"
+          dotnet-version: ${{ steps.dotnet-ver.outputs.version }}
 
       - name: Install DocFX
         run: dotnet tool install -g docfx
