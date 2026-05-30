@@ -50,35 +50,41 @@ Phase3  (진행예정)
 
 ## 스킬 워크플로 (전체 순서)
 
+★ 표시는 건너뛰면 /done 또는 /pr에서 차단되는 필수 단계이다.
+
 ```
 /plan {작업 설명}     → [Stage 1] 설명 분석 → PlanName 생성 → 브랜치 + task JSON 커밋 + SPRINT 등록
 /requirement          → [Stage 2] 요구사항 상세 분석 + 명세 파일 브랜치 커밋 + DESIGN_REVIEW
-/impact               → 영향 범위·위험도 분석 (코드 수정 전)
+/impact               → ★ 영향 범위·위험도 분석 (코드 수정 전 또는 후)     ← 미실행 시 /done 차단
 /start                → task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력
   (코딩)
-/test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수)
-/done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
+/test-gen             → ★ test-writer 에이전트 실행, 테스트 케이스 자동 생성 ← 미실행 시 /done 차단
+/done                 → SDLC 사전검사(impact·test-gen·review) → 커밋 + 빌드 + 포맷 + 테스트 + push
+/review               → ★ 코드 리뷰 (패턴·보안·아키텍처 기준)              ← 미실행 시 /pr 차단
 /pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
 [GitHub Actions]      → sdlc-gate-check.yml  — PR 단계 SDLC 공정 자동 검사 (2차 방어선)
-[GitHub Actions]      → pr-merge-sync.yml    — 머지 후 task JSON·SPRINT·cost-log 자동 동기화
+[GitHub Actions]      → pr-merge-sync.yml    — 머지 성공: task JSON·SPRINT·cost-log 자동 동기화
+                                              — 머지 실패(PR 종료): task status → abandoned
+[GitHub Actions]      → ci.yml               — CI 빌드/포맷/테스트 실패: task last_error 갱신 + PR 댓글
 ```
 
 스킬-단계 매핑:
 
-| 단계 | 이름 | 스킬 / 실행 주체 |
-|------|------|-----------------|
-| 0 | USER_PLAN | — (Plan mode 또는 직접 입력) |
-| 1 | PLAN_BRANCH + 계획 분석 | /plan (Stage 1: 설명 분석 → 브랜치·task JSON 생성) |
-| 2 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement (Stage 2: 명세 브랜치 커밋) |
-| 3 | IMPACT_ANALYSIS | /impact |
-| 4 | CODE_FIX_START | /start |
-| 5 | CODE_FIX | Claude Code 구현 |
-| 6 | TEST_CASE_GENERATION | /test-gen |
-| 7 | BUILD_TEST | /done |
-| 8 | CODE_REVIEW | /review (HIGH 위험도 필수) |
-| 9 | PR_SUMMARY | /pr |
-| 10 | PR_GATE_CHECK | GitHub Actions sdlc-gate-check.yml (2차 방어선) |
-| 11 | MERGE_SYNC | GitHub Actions pr-merge-sync.yml (사후 동기화) |
+| 단계 | 이름 | 스킬 / 실행 주체 | 자동화 수준 |
+|------|------|-----------------|-----------|
+| 0 | USER_PLAN | — (Plan mode 또는 직접 입력) | 수동 |
+| 1 | PLAN_BRANCH + 계획 분석 | /plan (Stage 1: 설명 분석 → 브랜치·task JSON 생성) | 수동 |
+| 2 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement (Stage 2: 명세 브랜치 커밋) | 수동 |
+| 3 | IMPACT_ANALYSIS ★ | /impact | 수동 (미실행 시 /done 차단) |
+| 4 | CODE_FIX_START | /start | 수동 |
+| 5 | CODE_FIX | Claude Code 구현 | 수동 |
+| 6 | TEST_CASE_GENERATION ★ | /test-gen | 수동 (미실행 시 /done 차단) |
+| 7 | BUILD_TEST | /done | 수동 (SDLC 사전검사 포함) |
+| 8 | CODE_REVIEW ★ | /review | 수동 (미실행 시 /done 차단) |
+| 9 | PR_SUMMARY | /pr | 수동 |
+| 10 | PR_GATE_CHECK | GitHub Actions sdlc-gate-check.yml | **자동** (PR 이벤트) |
+| 11 | MERGE_SYNC | GitHub Actions pr-merge-sync.yml | **자동** (PR close 이벤트) |
+| 12 | CI_FAILURE_NOTIFY | GitHub Actions ci.yml | **자동** (CI 실패 이벤트) |
 
 게이트 정책 (2026-05-30 강화):
 - /plan: task JSON을 브랜치에 즉시 커밋 → gate-check가 PR 생성 시점에 반드시 탐지 가능
@@ -200,11 +206,21 @@ Phase3  (진행예정)
 
 
 7. BUILD_TEST  ←  /done 스킬
-기능 : 커밋 + 빌드 + 포맷 + 테스트 + push를 순서대로 실행한다.
-→ /done 스킬로 구현됨 (2026-05-21 리팩토링)
-   - BUILD_GATE만 담당 (PR 생성 없음 — 반복 실행 안전)
-   - 빌드/테스트 실패 시 push 금지
+기능 : SDLC 사전검사 후 커밋 + 빌드 + 포맷 + 테스트 + push를 순서대로 실행한다.
+→ /done 스킬로 구현됨 (2026-05-21 리팩토링, 2026-05-30 SDLC gate 강화)
+   - PR 생성 없음 — 반복 실행 안전
+   - 빌드/포맷/테스트 실패 시 push 금지
    - task 상태 coding → testing 전환
+   - disable-model-invocation: true — 순수 shell script, 모델 해석 없이 결정론적 실행
+
+   SDLC 사전검사 (push 전 로컬 gate, 코드 변경 시 필수):
+   A. test_generated=false → 즉시 차단 (/test-gen 실행 요구)
+   B. impact=null → 즉시 차단 (/impact 실행 요구)
+   C. review_completed=false → 즉시 차단 (/review 실행 요구)
+
+   ※ disable-model-invocation 이유:
+   "빌드/테스트 결과는 AI가 판단하지 않고 도구가 판단해야 한다."
+   Claude가 빌드 오류를 "이 정도는 무시해도 된다"고 해석하는 상황을 원천 차단함.
 
 
 8. QA_FAILURE_ANALYSIS  ←  /qa-failure 스킬
@@ -252,18 +268,29 @@ Phase3  (진행예정)
 
 
 11. MERGE_SYNC  ←  GitHub Actions pr-merge-sync.yml
-기능 : PR 머지 후 SDLC 상태를 자동으로 동기화한다.
-→ GitHub Actions pr-merge-sync.yml (2026-05-22, 스프린트 #26 신규 / 스프린트 #27 강화)
-   - 트리거: PR merge (pull_request closed + merged)
-   - /pr 미실행 경로도 사후 보완 (단, task JSON이 브랜치에 있어야 탐지 가능)
+기능 : PR 종료 시 결과에 따라 SDLC 상태를 자동으로 처리한다.
+→ GitHub Actions pr-merge-sync.yml (2026-05-22 신규 / 2026-05-30 머지 실패 감지 추가)
+   - 트리거: pull_request closed 이벤트 (merged 여부로 분기)
 
-   처리:
+   [성공 경로] merged == true:
    - task JSON: status=done, completed_at, pr_url 갱신 + steps[]에 merge_sync 기록
    - SPRINT.md: 해당 스프린트 섹션 '- [ ]' → '- [x]' 체크
    - cost-log.md: 중복 방지 후 행 추가 (규모 S/M/L/XL 자동 판단)
+   - /pr 미실행 경로도 사후 보완 (task JSON이 브랜치에 있어야 탐지 가능)
 
-   주의: task JSON이 PR 머지 시점에 main에 없으면 skip 발생
-   → /plan이 task JSON을 브랜치에 즉시 커밋하므로 정상 워크플로에서는 항상 탐지 가능
+   [실패 경로] merged == false (PR이 머지 없이 닫힌 경우):
+   - task JSON: status → abandoned, last_error 기록
+   - PR에 댓글 자동 추가: 재작업 방법 안내
+   - 재작업 방법: 브랜치 재오픈 또는 /plan으로 새 브랜치 생성
+
+
+12. CI_FAILURE_NOTIFY  ←  GitHub Actions ci.yml (if: failure())
+기능 : CI 빌드/포맷/테스트 실패 시 task 상태를 갱신하고 PR에 알림을 추가한다.
+→ ci.yml 'Update task on CI failure' 스텝 (2026-05-30 신규, mark_ci_failure.py)
+   - 트리거: ci.yml의 빌드·포맷·테스트 중 하나 이상 실패
+   - task JSON last_error 필드 갱신 (status는 변경하지 않음 — 재push로 자연히 해소)
+   - PR에 댓글 자동 추가: 실패 원인 확인 및 /qa-failure 실행 안내
+   - 중복 댓글 방지 (동일 실패 댓글이 이미 있으면 skip)
 
 -----
 
@@ -338,4 +365,16 @@ TODO:
 - /plan → /requirement 순서 확정 ✅ 완료 (2026-05-30, 스프린트 #31)
   → USER_PLAN = /plan 스킬, task JSON 브랜치 즉시 커밋
 - gate-check: task JSON 없음 + 고위험 → WARNING→FAIL 격상 ✅ 완료 (2026-05-30, 스프린트 #31)
+- /done SDLC gate 강화: test-gen·impact·review 경고→차단 ✅ 완료 (2026-05-30, 스프린트 #30)
+- /pr impact 검사: 경고→차단으로 강화 ✅ 완료 (2026-05-30, 스프린트 #30)
+- PR closed without merge 감지: sync-task-abandoned + sync_closed_pr.py ✅ 완료 (2026-05-30, 스프린트 #30)
+- CI 실패 시 task last_error 갱신: mark_ci_failure.py + ci.yml ✅ 완료 (2026-05-30, 스프린트 #30)
+- python3 Windows Store 스텁 오류: 6개 스킬 bash 대체 ✅ 완료 (2026-05-30, 스프린트 #30)
+- dotnet build -q false negative: --verbosity minimal로 변경 ✅ 완료 (2026-05-30, 스프린트 #30)
+
+현재 자동화 한계 (2026-05-30 기준):
+- 모든 스킬(/plan, /requirement, /impact, /start, /test-gen, /done, /review, /pr)은 사람 또는
+  Claude가 명시적으로 호출해야 실행된다 (자동 트리거 없음)
+- disable-model-invocation 스킬(/done, /pr)은 Claude가 Skill 도구로 자동 연결 불가
+- 완전 자동화는 Phase 3 (n8n 오케스트레이션) 도입 후 실현 가능
 
