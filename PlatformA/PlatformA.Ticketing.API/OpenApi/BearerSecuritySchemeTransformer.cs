@@ -10,7 +10,11 @@ namespace PlatformA.Ticketing.API.OpenApi
             OpenApiDocumentTransformerContext context,
             CancellationToken cancellationToken)
         {
-            document.Components ??= new OpenApiComponents();
+            document.Components ??= new OpenApiComponents
+            {
+                SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>()
+            };
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
             document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.Http,

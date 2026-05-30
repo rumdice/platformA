@@ -26,4 +26,10 @@
 		<ProjectReference Include="..\PlatformA.MySqlDB.Lib\PlatformA.MySqlDB.Lib.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>PlatformA.Tests.Matching.API</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>
