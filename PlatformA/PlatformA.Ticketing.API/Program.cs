@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using PlatformA.Ticketing.API.OpenApi;
-using Scalar.AspNetCore;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.RateLimit;
 using PlatformA.Ticketing.API.Hubs;
+using PlatformA.Ticketing.API.OpenApi;
 using PlatformA.Ticketing.API.Services;
 using PlatformA.Ticketing.API.Workers;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

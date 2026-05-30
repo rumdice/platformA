@@ -2,13 +2,13 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using PlatformA.Matching.API.OpenApi;
-using Scalar.AspNetCore;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
+using PlatformA.Matching.API.OpenApi;
 using PlatformA.Matching.API.Services;
 using PlatformA.MySqlDB.Lib.DBWebApp;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
