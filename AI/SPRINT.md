@@ -434,3 +434,16 @@
 - [x] **BearerSecuritySchemeTransformer**: 각 API 프로젝트에 신규 파일 추가, JWT 보안 스키마 등록 (OpenApi 2.0 네임스페이스 대응)
 - [x] **C# 현대화**: `Directory.Build.props`에 `LangVersion=latest` 추가, Service/Controller primary constructors 6개, collection expression 적용
 - [x] **검증**: `dotnet build` 오류 0 + `dotnet test` 113/113 통과
+
+---
+
+## 스프린트 #31 (2026-05-30 ~)
+**목표**: 문서 메타데이터 자동화 — .NET 버전·테스트 수를 코드에서 동적으로 읽어 문서 최신화
+
+### 진행 중
+
+- [ ] `generate_api_docs.py`: SERVICES 리스트의 하드코딩 `.NET 8.0/9.0` → csproj XML 파싱으로 동적 추출
+- [ ] `generate_doc_meta.py` 신규: 테스트 수(`[Fact]`/`[Theory]` 카운팅) + .NET 버전 → `Docs/index.md` 갱신
+- [ ] `Docs/architecture/overview.md`: 런타임 버전 테이블 마커 기반 자동 갱신
+- [ ] `docs.yml`: `generate_doc_meta.py` 실행 스텝 추가
+- [ ] 검증: `Docs/index.md`에 `.NET 10.0`, `125개 테스트` 반영 확인
