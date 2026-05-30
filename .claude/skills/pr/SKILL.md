@@ -88,12 +88,13 @@ CHANGED_COUNT=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -v '^
 > ❌ /pr 중단: 고위험 변경(핵심 라이브러리·DB·인증·Redis)이 있지만 /review가 실행되지 않았습니다.
 >    먼저 /review를 실행하세요.
 
-**검사 5 — impact 미실행 경고 (코드 변경 시)**
+**검사 5 — impact 미실행 차단 (코드 변경 시)**
 ```bash
 IMPACT_NULL=$(grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1)
 ```
-CODE_CHANGED가 있고 IMPACT_NULL이 있으면 경고하고 계속한다:
-> ⚠️ impact 미실행: 코드 변경이 있지만 /impact가 실행되지 않았습니다. 계속 진행합니다.
+CODE_CHANGED가 있고 IMPACT_NULL이 있으면 **중단**한다:
+> ❌ /pr 중단: 코드 변경이 있지만 /impact가 실행되지 않았습니다.
+>    먼저 /impact를 실행하거나, task JSON의 impact 필드를 수동으로 채운 뒤 /pr을 재실행하세요.
 
 **검사 6 — requirement 미실행 경고 (코드 변경 시)**
 ```bash

@@ -34,10 +34,12 @@ YYYY-MM-DD_PlanName
 ```
 /plan 작업 설명    → 설명 분석 → 브랜치 생성 + task JSON 커밋 + SPRINT 등록  [Stage 1]
 /requirement       → 요구사항 상세 분석 + 명세 파일 생성 + 브랜치 커밋         [Stage 2]
-/impact            → 영향 범위·위험도 분석 (코드 수정 전)
+/impact            → 영향 범위·위험도 분석 (코드 수정 전)                      ★ 필수
 /start             → 코딩 시작 선언 (task 상태 coding 전환)
   (코딩)
-/done              → 빌드 → 포맷 → 테스트 → push
+/test-gen          → 변경 코드 기반 테스트 케이스 자동 생성                    ★ 필수
+/done              → SDLC 사전검사(impact·test-gen·review) → 빌드 → 포맷 → 테스트 → push
+/review            → 코드 리뷰 (패턴·보안·아키텍처 기준)                       ★ 필수
 /pr                → SPRINT 완료 체크 + PR 생성 + cost-log
   (사용자가 GitHub에서 PR 머지)
 ```
@@ -46,6 +48,8 @@ YYYY-MM-DD_PlanName
 > - `/plan` (Stage 1): 사용자 입력을 분석하여 계획을 수립하고 브랜치·task JSON을 생성한다.
 > - `/requirement` (Stage 2): 브랜치 위에서 요구사항을 상세 분석하고 명세 파일을 브랜치에 커밋한다.
 > - 두 단계를 건너뛰고 바로 코딩을 시작하지 않는다 — task JSON이 브랜치에 없으면 gate-check가 FAIL한다.
+> - **★ 필수 단계**: `/impact`, `/test-gen`, `/review`를 건너뛰면 `/done`이 차단된다.
+>   `/done`이 gate-check와 동일한 조건을 로컬에서 먼저 검사하여 CI 실패를 방지한다.
 
 ### /plan 브랜치 결정 규칙
 
