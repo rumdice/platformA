@@ -16,16 +16,10 @@ namespace PlatformA.Auth.API.Services
     ///
     /// RedisManager.ExecuteAsync를 통해 Polly 회로차단기 + 재시도가 적용됩니다.
     /// </summary>
-    public class RefreshTokenService
+    public class RefreshTokenService(RedisManager redisManager, ILogger<RefreshTokenService> logger)
     {
-        private readonly RedisManager _redisManager;
-        private readonly ILogger<RefreshTokenService> _logger;
-
-        public RefreshTokenService(RedisManager redisManager, ILogger<RefreshTokenService> logger)
-        {
-            _redisManager = redisManager;
-            _logger = logger;
-        }
+        private readonly RedisManager _redisManager = redisManager;
+        private readonly ILogger<RefreshTokenService> _logger = logger;
 
         /// <summary>
         /// Refresh Token을 Redis에 저장합니다.

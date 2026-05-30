@@ -5,18 +5,12 @@ using PlatformA.MySqlDB.Lib.DBWebApp.Entities;
 
 namespace PlatformA.Auth.API.Services
 {
-    public class PlayerService
+    public class PlayerService(
+        IDbContextFactory<DbWebAppContext> contextFactory,
+        ILogger<PlayerService> logger)
     {
-        private readonly IDbContextFactory<DbWebAppContext> _contextFactory;
-        private readonly ILogger<PlayerService> _logger;
-
-        public PlayerService(
-            IDbContextFactory<DbWebAppContext> contextFactory,
-            ILogger<PlayerService> logger)
-        {
-            _contextFactory = contextFactory;
-            _logger = logger;
-        }
+        private readonly IDbContextFactory<DbWebAppContext> _contextFactory = contextFactory;
+        private readonly ILogger<PlayerService> _logger = logger;
 
         /// <summary>
         /// 로그인 처리.

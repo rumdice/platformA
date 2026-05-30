@@ -2,7 +2,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
+using PlatformA.Matching.API.OpenApi;
+using Scalar.AspNetCore;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
@@ -17,28 +18,9 @@ builder.Logging.AddLog4Net("log4net.config");
 
 // ── Services ──────────────────────────────────────────────────
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi(options =>
 {
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "JWT Access Token을 입력하세요. 예: eyJhbGci..."
-    });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            Array.Empty<string>()
-        }
-    });
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
 // Redis — DI 팩토리
@@ -98,8 +80,8 @@ _ = app.Services.GetRequiredService<RedisManager>();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

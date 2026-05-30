@@ -26,16 +26,10 @@ namespace PlatformA.Auth.API.Filters
         }
     }
 
-    internal class RedisRateLimitFilter : IAsyncResourceFilter
+    internal class RedisRateLimitFilter(RedisRateLimiterService service, string policyName) : IAsyncResourceFilter
     {
-        private readonly RedisRateLimiterService _service;
-        private readonly string _policyName;
-
-        public RedisRateLimitFilter(RedisRateLimiterService service, string policyName)
-        {
-            _service = service;
-            _policyName = policyName;
-        }
+        private readonly RedisRateLimiterService _service = service;
+        private readonly string _policyName = policyName;
 
         public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
         {

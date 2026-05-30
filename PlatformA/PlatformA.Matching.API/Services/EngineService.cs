@@ -8,26 +8,13 @@ namespace PlatformA.Matching.API.Services
     /// <summary>
     /// 주식 매도/매수 매칭 엔진을 백그라운드 서비스로 구현.
     /// </summary>
-    public class EngineService : BackgroundService
+    public class EngineService(ILogger<EngineService> logger, IHubContext<MatchingHub> hubContext) : BackgroundService
     {
-
-        private readonly OrderBook _orderBook;
-        private readonly Channel<Order> _orderChannel; // 고속 비동기 큐
-        private readonly ILogger<EngineService> _logger;
-        private readonly IHubContext<MatchingHub> _hubContext; // 방송 장비
-
-
-        public EngineService(ILogger<EngineService> logger, IHubContext<MatchingHub> hubContext)
-        {
-            _logger = logger;
-            _orderBook = new OrderBook(); // 주식 매도/매수 매칭 엔진 인스턴스 (이 안에는 lock이 없음!)
-
-            // 큐 옵션: SingleReader(읽는 놈은 나 하나) => 최적화 옵션
-            var options = new UnboundedChannelOptions { SingleReader = true, SingleWriter = false };
-            _orderChannel = Channel.CreateUnbounded<Order>(options);
-
-            _hubContext = hubContext;
-        }
+        private readonly OrderBook _orderBook = new(); // 주식 매도/매수 매칭 엔진 인스턴스 (이 안에는 lock이 없음!)
+        private readonly Channel<Order> _orderChannel = Channel.CreateUnbounded<Order>( // 고속 비동기 큐
+            new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
+        private readonly ILogger<EngineService> _logger = logger;
+        private readonly IHubContext<MatchingHub> _hubContext = hubContext; // 방송 장비
 
         // [Producer 역할] 컨트롤러가 호출함
         // 주문을 큐에 쏙 넣고 바로 리턴 (Fire-and-Forget)

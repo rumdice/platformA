@@ -8,21 +8,14 @@ namespace PlatformA.Auth.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController(
+        RefreshTokenService refreshTokenService,
+        PlayerService playerService,
+        ILogger<AuthController> logger) : ControllerBase
     {
-        private readonly RefreshTokenService _refreshTokenService;
-        private readonly PlayerService _playerService;
-        private readonly ILogger<AuthController> _logger;
-
-        public AuthController(
-            RefreshTokenService refreshTokenService,
-            PlayerService playerService,
-            ILogger<AuthController> logger)
-        {
-            _refreshTokenService = refreshTokenService;
-            _playerService = playerService;
-            _logger = logger;
-        }
+        private readonly RefreshTokenService _refreshTokenService = refreshTokenService;
+        private readonly PlayerService _playerService = playerService;
+        private readonly ILogger<AuthController> _logger = logger;
 
         /// <summary>
         /// POST /api/auth/login
