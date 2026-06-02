@@ -41,8 +41,8 @@ jobs:
             echo "변경 없음 — 커밋 스킵"
             exit 0
           fi
-          git add AI/tasks/ AI/SPRINT.md AI/cost-log.md
-          git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, SPRINT 체크 완료"
+          git add AI/tasks/ AI/SPRINT.md AI/cost-log.md .claude/plan/
+          git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, SPRINT 체크, plan 파일 archived"
           git push
 
   sync-task-abandoned:

@@ -155,6 +155,38 @@ def append_cost_log(sprint_num: int, task_name: str, task_data: dict) -> bool:
     return True
 
 
+def archive_plan_file(task_name: str) -> bool:
+    """task_name에 해당하는 .claude/plan/ 명세 파일을 processed/로 이동. idempotent."""
+    plan_dir = Path(".claude/plan")
+    processed_dir = plan_dir / "processed"
+    if not plan_dir.exists():
+        print("[skip] .claude/plan/ 디렉토리 없음")
+        return False
+
+    # YYYY-MM-DD_NNN_PlanName.md 또는 YYYY-MM-DD_PlanName.md 패턴 모두 탐색
+    matched: list[Path] = [
+        f for f in plan_dir.glob("*.md")
+        if f.name != "README.md" and f.stem.endswith(f"_{task_name}")
+    ]
+
+    if not matched:
+        print(f"[skip] .claude/plan/ 에서 '{task_name}' 명세 파일 없음")
+        return False
+
+    processed_dir.mkdir(exist_ok=True)
+    moved = []
+    for src in matched:
+        dst = processed_dir / src.name
+        if dst.exists():
+            print(f"[skip] 이미 이동됨: {src.name}")
+            continue
+        src.rename(dst)
+        moved.append(src.name)
+        print(f"[ok] plan 파일 archived: {src.name} → processed/")
+
+    return bool(moved)
+
+
 def post_pr_comment(body: str) -> None:
     """PR에 댓글을 추가한다. GH_TOKEN이 없으면 skip."""
     if not PR_NUMBER or not GH_TOKEN:
@@ -222,6 +254,9 @@ def main() -> None:
     if was_pending and sprint_num is not None:
         cost_updated = append_cost_log(sprint_num, task_name, data)
 
+    # plan 명세 파일 archived (항상 실행 — /pr 스킬 실행 여부 무관)
+    plan_archived = archive_plan_file(task_name)
+
     print("Done.")
 
     # GitHub Actions Job Summary
@@ -237,6 +272,7 @@ def main() -> None:
         f"| Status | `{status_before}` → `{status_after}` |",
         f"| SPRINT updated | {'✅ yes' if sprint_updated else '➖ no (already checked or not found)'} |",
         f"| cost-log updated | {'✅ yes' if cost_updated else '➖ no (skipped or already exists)'} |",
+        f"| plan file archived | {'✅ yes' if plan_archived else '➖ no (not found or already archived)'} |",
         f"| Warnings | None |",
     ])
 
