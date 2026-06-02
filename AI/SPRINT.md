@@ -468,8 +468,8 @@
 
 ### 진행 중
 
-- [ ] `JobQueue.cs`: `private object _lock` → `private readonly Lock _lock`
-- [ ] `SnowflakeGenerator.cs`: `private static readonly object _lock` → `private static readonly Lock _lock`
-- [ ] `SessionManager.cs`: `private readonly object _lock` → `private readonly Lock _lock`
-- [ ] `/test-gen`: JobQueue·SessionManager 스레드 안전성 테스트 케이스 생성
-- [ ] 검증: `dotnet build` 오류 0 + `dotnet test` 전체 통과
+- [x] `JobQueue.cs`: `private object _lock` → `private readonly Lock _lock`
+- [x] `SnowflakeGenerator.cs`: `private static readonly object _lock` → `private static readonly Lock _lock`
+- [x] `SessionManager.cs`: `private readonly object _lock` → `private readonly Lock _lock`
+- [x] `/test-gen`: JobQueue·SessionManager 스레드 안전성 테스트 케이스 생성
+- [x] 검증: `dotnet build` 오류 0 + `dotnet test` 전체 통과
