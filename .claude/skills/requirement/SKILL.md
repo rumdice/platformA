@@ -74,12 +74,15 @@ task JSON이 없으면 `/plan`을 먼저 실행하라고 안내하고 **중단**
 
 ### 2단계 — 태스크 번호 결정
 
-오늘 날짜로 이미 생성된 `.claude/plan/` 파일 수를 세어 다음 번호를 결정한다:
+오늘 날짜로 이미 생성된 `.claude/plan/` 파일 수를 세어 다음 번호를 결정한다.
+`processed/`로 이동된 당일 파일도 포함하여 중복 번호를 방지한다:
 
 ```python
 import glob, datetime
 t = datetime.date.today().strftime('%Y-%m-%d')
-existing = len(glob.glob(f'.claude/plan/{t}_*.md'))
+active = len(glob.glob(f'.claude/plan/{t}_*.md'))
+archived = len(glob.glob(f'.claude/plan/processed/{t}_*.md'))
+existing = active + archived
 task_num = f"{existing + 1:03d}"
 ```
 
