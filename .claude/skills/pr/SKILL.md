@@ -184,20 +184,15 @@ PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
 TODAY=$(date +%Y-%m-%d)
 ```
 
-**duration_sec 자동 계산** (task JSON의 created_at ~ 현재 시각):
+**duration_sec / consume_tokens / cache_tokens 자동 계산** (Python 단일 호출):
 ```bash
 CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
-NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-START_EPOCH=$(date -d "${CREATED_AT}" +%s 2>/dev/null || echo "")
-END_EPOCH=$(date -d "${NOW}" +%s 2>/dev/null || echo "")
-DURATION=$([ -n "$START_EPOCH" ] && [ -n "$END_EPOCH" ] && echo $((END_EPOCH - START_EPOCH)) || echo "null")
-```
-
-**consume_tokens / cache_tokens 자동 계산** (JSONL 파싱 — created_at 이후 누적):
-```bash
-TOKENS_RAW=$(python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
+TOKENS_RAW=$(python3 .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null \
+  || python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
+DURATION=$(echo "$TOKENS_RAW" | grep "^duration_sec=" | cut -d= -f2)
 CONSUME_TOKENS=$(echo "$TOKENS_RAW" | grep "^consume_tokens=" | cut -d= -f2)
 CACHE_TOKENS=$(echo "$TOKENS_RAW" | grep "^cache_tokens=" | cut -d= -f2)
+DURATION=${DURATION:-null}
 CONSUME_TOKENS=${CONSUME_TOKENS:-null}
 CACHE_TOKENS=${CACHE_TOKENS:-null}
 ```
