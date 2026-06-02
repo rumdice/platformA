@@ -15,7 +15,15 @@
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
-  "impact": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 2,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [".github/scripts/count_tokens.py", ".claude/skills/pr/SKILL.md"],
+    "test_coverage": "not_required",
+    "summary": "LOW risk, 2개 변경 파일 — 스크립트·스킬 파일만 수정, 프로덕션 코드 무영향"
+  },
   "steps": [
     {
       "name": "plan",
@@ -23,6 +31,12 @@
       "started_at": "2026-06-02T05:36:38Z",
       "completed_at": "2026-06-02T05:36:38Z",
       "summary": "date -d Windows 비호환 및 python PATH 누락으로 /pr cost-log 기록이 간헐적으로 실패하는 문제를 수정한다."
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-02T05:42:00Z",
+      "summary": "LOW risk, 2개 변경 파일 — 스크립트·스킬 파일만 수정, 프로덕션 코드 무영향"
     }
   ]
 }
