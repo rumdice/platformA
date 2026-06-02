@@ -36,3 +36,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-05-30 | #30 | AutoUpdateDocMeta | claude-sonnet-4-6 | M | 722 | — | — | feat: 문서 메타데이터 자동화 — .NET 버전·테스트 수 csproj 동적 파싱, generate_doc_meta.py 신규 (PR #60) |
 | 2026-06-02 | #32 | AutoDocProtoRedisKeys | claude-sonnet-4-6 | M | — | — | — | feat: proto·Redis 키스페이스 문서 자동화 — generate_proto_docs.py·generate_redis_key_docs.py 신규 (PR #61) |
 | 2026-06-02 | #33 | UpgradeToSystemThreadingLock | claude-sonnet-4-6 | S | — | — | — | feat: System.Threading.Lock 전환 — object _lock 3곳 교체 및 스레드 안전성 테스트 8개 추가 (PR #62) |
+| 2026-06-02 | #34 | FixCostLogCalcWindows | claude-sonnet-4-6 | S | 1556 | 7027484 | 83800 | fix: cost-log duration/token 계산 안정화 — date -d 제거, Python 단일 호출로 통합 (PR #63) |

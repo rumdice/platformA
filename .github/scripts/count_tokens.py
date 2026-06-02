@@ -1,8 +1,9 @@
 """
-JSONL 파싱으로 task 기간 토큰 소비량 자동 계산.
+JSONL 파싱으로 task 기간 duration·토큰 소비량 자동 계산.
 
 사용법: python3 count_tokens.py <created_at_iso8601>
 출력:
+  duration_sec=NNN     (created_at ~ 현재 시각 경과 초)
   consume_tokens=NNN   (input + output + cache_read + cache_creation 합산)
   cache_tokens=NNN     (cache_creation_input_tokens 단독 — 별도 비용 분석용)
 
@@ -54,10 +55,10 @@ def parse_timestamp(ts_str: str) -> Optional[datetime]:
         return None
 
 
-def count_tokens(created_at_str: str) -> Tuple[int, int]:
+def count_tokens(created_at_str: str) -> Tuple[int, int, int]:
     """
     created_at 이후 모든 assistant 메시지 usage 합산.
-    반환: (consume_tokens, cache_tokens)
+    반환: (duration_sec, consume_tokens, cache_tokens)
     consume_tokens = input + output + cache_read + cache_creation
     cache_tokens   = cache_creation_input_tokens
     """
@@ -65,11 +66,13 @@ def count_tokens(created_at_str: str) -> Tuple[int, int]:
         fmt = "%Y-%m-%dT%H:%M:%SZ"
         cutoff = datetime.strptime(created_at_str, fmt).replace(tzinfo=timezone.utc)
     except ValueError:
-        return (0, 0)
+        return (0, 0, 0)
+
+    duration_sec = int((datetime.now(timezone.utc) - cutoff).total_seconds())
 
     project_dir = get_project_dir()
     if project_dir is None:
-        return (0, 0)
+        return (duration_sec, 0, 0)
 
     total_input = total_output = total_cache_read = total_cache_creation = 0
 
@@ -96,7 +99,7 @@ def count_tokens(created_at_str: str) -> Tuple[int, int]:
 
     consume_tokens = total_input + total_output + total_cache_read + total_cache_creation
     cache_tokens = total_cache_creation
-    return (consume_tokens, cache_tokens)
+    return (duration_sec, consume_tokens, cache_tokens)
 
 
 def main() -> None:
@@ -106,7 +109,8 @@ def main() -> None:
         sys.exit(1)
 
     created_at = sys.argv[1]
-    consume, cache = count_tokens(created_at)
+    duration, consume, cache = count_tokens(created_at)
+    print(f"duration_sec={duration}")
     print(f"consume_tokens={consume}")
     print(f"cache_tokens={cache}")
 
