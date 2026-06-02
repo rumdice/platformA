@@ -455,8 +455,8 @@
 
 ### 진행 중
 
-- [ ] `generate_proto_docs.py` 신규: packets.proto 메시지·필드 파싱 → `Docs/developer-guide/packet-protocol.md` 마커 구간 자동 갱신
-- [ ] `generate_redis_key_docs.py` 신규: Consts.cs Redis 키 상수 파싱 → `Docs/architecture/redis-keyspace.md` 마커 구간 자동 갱신
-- [ ] `packet-protocol.md`, `redis-keyspace.md` 마커 삽입 (수동 1회)
-- [ ] `docs.yml` 두 스크립트 실행 스텝 추가
-- [ ] 검증: 스크립트 로컬 실행 후 문서 내용 정확성 확인
+- [x] `generate_proto_docs.py` 신규: packets.proto 메시지·필드 파싱 → `Docs/developer-guide/packet-protocol.md` 마커 구간 자동 갱신
+- [x] `generate_redis_key_docs.py` 신규: Consts.cs Redis 키 상수 파싱 → `Docs/architecture/redis-keyspace.md` 마커 구간 자동 갱신
+- [x] `packet-protocol.md`, `redis-keyspace.md` 마커 삽입 (수동 1회)
+- [x] `docs.yml` 두 스크립트 실행 스텝 추가
+- [x] 검증: 스크립트 로컬 실행 후 문서 내용 정확성 확인
