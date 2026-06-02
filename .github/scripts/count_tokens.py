@@ -72,6 +72,7 @@ def count_tokens(created_at_str: str) -> Tuple[int, int]:
         return (0, 0)
 
     total_input = total_output = total_cache_read = total_cache_creation = 0
+    latest_ts_before_cutoff: Optional[datetime] = None
 
     for jsonl_file in sorted(project_dir.rglob("*.jsonl")):
         try:
@@ -85,6 +86,8 @@ def count_tokens(created_at_str: str) -> Tuple[int, int]:
                     continue
                 ts = parse_timestamp(entry.get("timestamp", ""))
                 if ts is None or ts < cutoff:
+                    if ts is not None and (latest_ts_before_cutoff is None or ts > latest_ts_before_cutoff):
+                        latest_ts_before_cutoff = ts
                     continue
                 usage = entry.get("message", {}).get("usage", {})
                 total_input += usage.get("input_tokens", 0)
@@ -96,6 +99,18 @@ def count_tokens(created_at_str: str) -> Tuple[int, int]:
 
     consume_tokens = total_input + total_output + total_cache_read + total_cache_creation
     cache_tokens = total_cache_creation
+
+    # cutoff 이후 데이터가 0인데 cutoff 이전 데이터가 존재하면 created_at 오류 가능성 경고
+    if consume_tokens == 0 and latest_ts_before_cutoff is not None:
+        import sys as _sys
+        print(
+            f"WARNING: consume_tokens=0 but JSONL data exists up to "
+            f"{latest_ts_before_cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')} "
+            f"(cutoff={cutoff.strftime('%Y-%m-%dT%H:%M:%SZ')}). "
+            "Check task JSON created_at — it may be set past the actual session end.",
+            file=_sys.stderr,
+        )
+
     return (consume_tokens, cache_tokens)
 
 
