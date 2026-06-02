@@ -93,11 +93,8 @@ def main() -> None:
     print(f"[ok] task JSON status: {current_status} → abandoned ({task_file})")
 
     post_pr_comment(
-        f"⚠️ **AI_SDLC**: PR #{PR_NUMBER}이 머지 없이 닫혔습니다.\n\n"
-        f"task JSON `status`가 `abandoned`으로 변경되었습니다.\n\n"
-        f"재작업이 필요하면:\n"
-        f"1. 브랜치를 재오픈하거나 `/plan`으로 새 브랜치를 생성하세요.\n"
-        f"2. task JSON의 `status`를 `coding`으로 되돌리고 작업을 재시작하세요."
+        f"⚠️ **AI_SDLC**: PR #{PR_NUMBER} 미머지 종료 — 브랜치: `{BRANCH}`\n\n"
+        f"task JSON `status`: `{current_status}` → `abandoned` 기록됨."
     )
 
     write_summary([

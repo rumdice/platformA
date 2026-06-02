@@ -193,9 +193,8 @@ def main() -> None:
         msg = f"No task JSON found for branch '{BRANCH}'. Skipped SDLC sync."
         print(f"[skip] {msg}")
         comment_body = (
-            f"⚠️ **AI_SDLC 경고**: `{BRANCH}` 브랜치에 해당하는 task JSON이 없습니다.\n\n"
-            f"이 PR은 SDLC 파이프라인 없이 머지되었습니다. "
-            f"핫픽스·문서 변경이라면 무시하세요. 코드 변경이라면 `/plan`을 실행하지 않은 것입니다."
+            f"⚠️ **AI_SDLC**: PR #{PR_NUMBER} 머지 — `{BRANCH}` 브랜치에 task JSON 없음.\n\n"
+            f"SDLC 파이프라인 없이 머지되었습니다. task JSON이 생성되지 않은 작업입니다."
         )
         post_pr_comment(comment_body)
         write_summary([

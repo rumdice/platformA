@@ -76,14 +76,10 @@ def main() -> None:
     print(f"[ok] task JSON last_error 갱신: {task_file}")
 
     post_pr_comment(
-        f"❌ **CI 실패** — PR #{PR_NUMBER}\n\n"
-        f"빌드·포맷·테스트 중 하나가 실패했습니다. "
-        f"**Actions** 탭에서 실패 원인을 확인하고 수정 후 재push 하세요.\n\n"
-        f"**일반적인 해결 절차:**\n"
-        f"1. `/qa-failure` 스킬로 실패 원인 자동 분석\n"
-        f"2. 수정 후 커밋·push\n"
-        f"3. CI 자동 재실행 확인\n\n"
-        f"> task JSON `last_error` 필드가 갱신되었습니다."
+        f"❌ **CI 실패** — PR #{PR_NUMBER} / 브랜치: `{BRANCH}`\n\n"
+        f"빌드·포맷·테스트 중 하나 이상이 실패했습니다.\n\n"
+        f"- **Actions 탭**: 실패 단계 및 로그 확인\n"
+        f"- **task JSON `last_error`**: 실패 시각 기록됨"
     )
 
 

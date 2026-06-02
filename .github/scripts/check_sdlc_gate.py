@@ -23,6 +23,8 @@ BRANCH = os.environ.get("BRANCH", "")
 CHANGED_FILES_RAW = os.environ.get("CHANGED_FILES", "")
 GITHUB_STEP_SUMMARY = os.environ.get("GITHUB_STEP_SUMMARY", "")
 
+# task JSON(LLM /impact 결과)이 없는 경우에만 사용하는 fallback 판단 기준.
+# task JSON이 있으면 impact.risk 필드를 신뢰하고 이 패턴을 사용하지 않는다.
 HIGH_RISK_PATTERNS = [
     "PlatformA.Library/",
     "Migrations/",
@@ -152,9 +154,10 @@ def main() -> None:
                 warnings.append("impact == null: 코드 변경이 있지만 /impact가 실행되지 않았습니다.")
 
         # 검사 3: review_completed (고위험 조건 시 FAIL)
+        # task JSON이 있으므로 LLM의 /impact 판단(impact_risk)을 신뢰한다.
+        # HIGH_RISK_PATTERNS는 사용하지 않는다.
         needs_review = (
-            high_risk
-            or (isinstance(impact_risk, str) and impact_risk.upper() == "HIGH")
+            (isinstance(impact_risk, str) and impact_risk.upper() in ("HIGH", "MEDIUM"))
             or len(changed_files) > 10
         )
         if needs_review and review_completed is False:
