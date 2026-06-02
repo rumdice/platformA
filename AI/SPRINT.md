@@ -473,3 +473,15 @@
 - [x] `SessionManager.cs`: `private readonly object _lock` → `private readonly Lock _lock`
 - [x] `/test-gen`: JobQueue·SessionManager 스레드 안전성 테스트 케이스 생성
 - [x] 검증: `dotnet build` 오류 0 + `dotnet test` 전체 통과
+
+---
+
+## 스프린트 #34 (2026-06-02 ~)
+**목표**: `/pr` cost-log 기록 안정화 — Windows 환경에서 duration_sec·consume_tokens·cache_tokens가 간헐적으로 누락되는 문제 수정
+
+### 진행 중
+
+- [ ] `count_tokens.py`에 duration_sec 계산 통합 (date -d 제거)
+- [ ] `python` → `python3` 폴백 처리 또는 단일 스크립트 호출로 통합
+- [ ] `/pr` 스킬 4단계에서 date -d 의존 코드 제거, Python 단일 호출로 교체
+- [ ] 검증: 스크립트 로컬 실행 후 duration·tokens 값 정상 출력 확인
