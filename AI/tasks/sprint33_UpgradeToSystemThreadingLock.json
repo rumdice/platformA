@@ -2,10 +2,10 @@
   "sprint": 33,
   "task": "UpgradeToSystemThreadingLock",
   "branch": "2026-06-02_UpgradeToSystemThreadingLock",
-  "status": "analyzing",
+  "status": "done",
   "created_at": "2026-06-02T06:00:00Z",
-  "completed_at": null,
-  "pr_url": null,
+  "completed_at": "2026-06-02T05:00:00Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/62",
   "retry_count": 0,
   "last_error": null,
   "artifacts": [],
@@ -48,6 +48,13 @@
       "status": "done",
       "completed_at": "2026-06-02T06:10:00Z",
       "summary": "LOW risk, 3개 변경 파일. Library 내부 타입 선언만 교체. 서비스 코드 무관."
+    },
+    {
+      "name": "merge_sync",
+      "status": "done",
+      "started_at": "2026-06-02T05:00:00Z",
+      "completed_at": "2026-06-02T05:00:00Z",
+      "summary": "PR #62 merged — 수동 보완 (sync workflow push 실패로 인해)"
     }
   ]
 }
