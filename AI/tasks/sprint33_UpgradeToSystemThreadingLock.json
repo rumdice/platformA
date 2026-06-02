@@ -15,7 +15,19 @@
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
-  "impact": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 3,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      "PlatformA.Library/Core/JobQueue.cs",
+      "PlatformA.Library/Helper/SnowflakeGenerator.cs",
+      "PlatformA.Library/Network/SessionManager.cs"
+    ],
+    "test_coverage": "partial",
+    "summary": "LOW risk, 3개 변경 파일. Library 내부 타입 선언만 교체, 서비스 코드·API·DB·Redis 무관."
+  },
   "steps": [
     {
       "name": "plan",
@@ -30,6 +42,12 @@
       "started_at": "2026-06-02T06:05:00Z",
       "completed_at": "2026-06-02T06:05:00Z",
       "summary": "타입 선언 3곳만 교체, lock() 구문 유지, readonly 보정 포함. DESIGN_REVIEW: ✅ ADR 전체 준수, 신규 ADR 불필요."
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-02T06:10:00Z",
+      "summary": "LOW risk, 3개 변경 파일. Library 내부 타입 선언만 교체. 서비스 코드 무관."
     }
   ]
 }
