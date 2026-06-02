@@ -6,7 +6,7 @@ namespace PlatformA.Library.Core
         private Queue<Action> _jobQueue = new Queue<Action>();
 
         // 다수의 요청이 들어오므로 쓰레드 안전하게 잠금장치 필요.
-        private object _lock = new object();
+        private readonly Lock _lock = new();
 
         // 현재 누군가가 큐의 일거리를 처리하고 있는지 여부
         private bool _isExecuting = false;
