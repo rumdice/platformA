@@ -481,7 +481,7 @@
 
 ### 진행 중
 
-- [ ] `count_tokens.py`에 duration_sec 계산 통합 (date -d 제거)
-- [ ] `python` → `python3` 폴백 처리 또는 단일 스크립트 호출로 통합
-- [ ] `/pr` 스킬 4단계에서 date -d 의존 코드 제거, Python 단일 호출로 교체
-- [ ] 검증: 스크립트 로컬 실행 후 duration·tokens 값 정상 출력 확인
+- [x] `count_tokens.py`에 duration_sec 계산 통합 (date -d 제거)
+- [x] `python` → `python3` 폴백 처리 또는 단일 스크립트 호출로 통합
+- [x] `/pr` 스킬 4단계에서 date -d 의존 코드 제거, Python 단일 호출로 교체
+- [x] 검증: 스크립트 로컬 실행 후 duration·tokens 값 정상 출력 확인
