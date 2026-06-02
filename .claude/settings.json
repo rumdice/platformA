@@ -28,6 +28,9 @@
             "Bash(*)",
             "Edit(**)",
             "Write(**)"
+        ],
+        "additionalDirectories": [
+            "C:\\Users\\rumdi\\.claude\\plans"
         ]
     }
 }
