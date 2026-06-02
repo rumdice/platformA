@@ -179,7 +179,7 @@ elif [ "$FILE_COUNT" -le 30 ]; then SIZE="L"
 else SIZE="XL"
 fi
 
-SPRINT_NUM=$(grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
+SPRINT_NUM=$(grep -o '"sprint":[[:space:]]*[0-9]*' "${TASK_FILE}" 2>/dev/null | grep -o '[0-9]*' | head -1 || grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
 PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
 TODAY=$(date +%Y-%m-%d)
 ```
@@ -219,6 +219,27 @@ git add AI/tasks/ AI/cost-log.md
 git commit -m "완료: task 상태 및 비용 로그 업데이트"
 git push
 ```
+
+---
+
+### 4.5단계: plan 명세 파일 archived
+
+task 완료 시 해당 브랜치의 명세 파일(`.claude/plan/YYYY-MM-DD_NNN_PlanName.md`)을 `processed/`로 이동한다.
+
+```bash
+TODAY=$(date +%Y-%m-%d)
+PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
+SPEC_FILE=$(ls .claude/plan/${TODAY}_*_${PLAN_NAME}.md 2>/dev/null | head -1)
+if [ -n "$SPEC_FILE" ]; then
+    mkdir -p .claude/plan/processed
+    mv "$SPEC_FILE" ".claude/plan/processed/$(basename $SPEC_FILE)"
+    git add .claude/plan/
+    git commit -m "chore: ${PLAN_NAME} 명세 파일 archived"
+    git push
+fi
+```
+
+명세 파일이 없으면 이 단계를 건너뛴다 (경고 없음 — `/requirement`를 실행하지 않은 작업일 수 있음).
 
 ---
 

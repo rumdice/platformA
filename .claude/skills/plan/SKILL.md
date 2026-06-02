@@ -86,13 +86,28 @@ git push -u origin {브랜치명}
 
 ---
 
+### 3.2단계: 스프린트 번호 확정
+
+task JSON과 SPRINT.md가 항상 같은 번호를 공유하도록, **코드 작성 전에** 스프린트 번호를 확정한다.
+
+**원칙: `/plan` 1회 = 새 스프린트 항목 1개 신설.** 기존 스프린트에 태스크를 추가하지 않는다.
+
+```bash
+EXISTING=$(grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
+SPRINT_NUM=$((EXISTING + 1))
+```
+
+이 `SPRINT_NUM`을 3.5단계(task JSON 파일명·필드)와 4단계(SPRINT.md 헤더) 양쪽에서 동일하게 사용한다.
+**재계산 금지** — 두 단계 사이에 다른 커밋이 들어와 헤더 수가 바뀌어도 이 값을 그대로 쓴다.
+
+---
+
 ### 3.5단계: task JSON 파일 초기화 및 커밋
 
 브랜치 생성 직후 task JSON을 생성하고 **즉시 브랜치에 커밋**한다.
-스프린트 번호는 `AI/SPRINT.md`에서 `^## 스프린트 #` 줄 수를 세어 결정한다.
+`SPRINT_NUM`은 3.2단계에서 확정된 값을 그대로 사용한다 (재계산 금지).
 
 ```bash
-SPRINT_NUM=$(grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
 PLAN_NAME="{PlanName}"
 BRANCH="{브랜치명}"
 NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -137,7 +152,14 @@ git push
 
 ### 4단계: SPRINT.md 업데이트 및 커밋
 
-`AI/SPRINT.md`를 읽어 가장 최근 스프린트의 `### 진행 중` 섹션에 태스크를 추가한다.
+**Case A — 새 브랜치 (오픈 PR 없음)**: SPRINT.md 파일 **맨 끝**에 새 스프린트 항목을 추가한다.
+- 3.2단계에서 확정한 `SPRINT_NUM`을 헤더에 사용한다
+- **항상** 새 `## 스프린트 #{SPRINT_NUM}` 헤더를 생성한다 — 기존 스프린트에 추가 금지
+
+**Case B — 기존 브랜치 (오픈 PR 존재)**: 가장 최근 스프린트의 `### 진행 중` 섹션에 태스크를 추가한다.
+- 3.2·3.5단계를 건너뛰었으므로 task JSON에서 sprint 번호를 읽는다
+
+두 경우 모두:
 - 사용자 설명을 기반으로 구체적인 태스크 항목 2~5개를 `- [ ]` 형식으로 작성한다.
 - 항목은 검증 가능한 단위로 쪼갠다.
 
@@ -155,8 +177,8 @@ git push
 ✅ /plan 완료 — Stage 1: 브랜치·task JSON 초기화
 
 브랜치: {브랜치명}
-스프린트: #{SPRINT_NUM}
-task JSON: AI/tasks/sprint{N}_{PlanName}.json
+스프린트: #{SPRINT_NUM}  ← SPRINT.md의 새 헤더 번호와 동일
+task JSON: AI/tasks/sprint{SPRINT_NUM}_{PlanName}.json
 
 작업 요약:
   목적: {작업 목적}
