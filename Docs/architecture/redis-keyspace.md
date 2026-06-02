@@ -1,5 +1,24 @@
 # Redis 키스페이스
 
+## 키 상수 목록
+
+> 아래 표는 `Consts.cs`에서 자동 추출됩니다. 키 추가·변경은 `Consts.cs`에서만 하세요.
+
+<!-- REDIS_KEY_TABLE_START -->
+| 상수명 | 키 패턴 | TTL | 서비스 | 설명 |
+|---|---|---|---|---|
+| `REFRESH_TOKEN_KEY_PREFIX` | `refresh:{id}` | 7일 (604,800초) | Auth API |  |
+| `QUEUE_KEY` | `{ticket:queue}:global` | 없음 | Ticketing API | CRC16("{ticket:queue}") → 동일 슬롯 보장. |
+| `QUEUE_HEARTBEATS_KEY` | `{ticket:queue}:heartbeats` | 없음 | Ticketing API | CRC16("{ticket:queue}") → 동일 슬롯 보장. |
+| `ACTIVE_USER_KEY_PREFIX` | `ticket:active:user:{id}` | 5분 (300초) | Ticketing API | 사용법: $"{ACTIVE_USER_KEY_PREFIX}{userId}" |
+| `MATCH_QUEUE_KEY` | `queue:gamematch:1v1` | 없음 | Matching API | Redis Sorted Set 기반 매칭 대기열 (score = 입장 시각 UnixMs, 타임아웃 추적 가능) |
+| `REDIS_SHORT_URL_KEY` | `url:{0}` | 없음 | Utils API | Utils.API — Short URL ({0}: 단축 코드) |
+| `REDIS_SHORT_URL_STATS_KEY` | `stats:{0}` | 없음 | Utils API | Utils.API — Short URL ({0}: 단축 코드) |
+| `REDIS_DIRTY_CODES_KEY` | `dirty_codes` | 없음 | Utils API |  |
+<!-- REDIS_KEY_TABLE_END -->
+
+---
+
 ## 전체 키 맵
 
 ```mermaid

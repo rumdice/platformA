@@ -42,6 +42,12 @@ jobs:
       - name: Generate doc metadata (version + test count)
         run: python .github/scripts/generate_doc_meta.py
 
+      - name: Generate proto packet docs
+        run: python .github/scripts/generate_proto_docs.py
+
+      - name: Generate Redis keyspace docs
+        run: python .github/scripts/generate_redis_key_docs.py
+
       - name: Generate API-guide docs
         run: python .github/scripts/generate_api_docs.py
 
