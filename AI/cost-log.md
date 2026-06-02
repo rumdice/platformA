@@ -35,3 +35,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-05-30 | #30 | ModernizeNet10Stack | claude-sonnet-4-6 | L | 3192 | 98248083 | 1470418 | feat: OpenAPI 현대화(Swashbuckle→OpenApi+Scalar), C# primary constructors 6개, 스킬 python3→bash 수정 (PR #59) |
 | 2026-05-30 | #30 | AutoUpdateDocMeta | claude-sonnet-4-6 | M | 722 | — | — | feat: 문서 메타데이터 자동화 — .NET 버전·테스트 수 csproj 동적 파싱, generate_doc_meta.py 신규 (PR #60) |
 | 2026-06-02 | #32 | AutoDocProtoRedisKeys | claude-sonnet-4-6 | M | — | — | — | feat: proto·Redis 키스페이스 문서 자동화 — generate_proto_docs.py·generate_redis_key_docs.py 신규 (PR #61) |
+| 2026-06-02 | #33 | UpgradeToSystemThreadingLock | claude-sonnet-4-6 | S | — | 54429308 | 441668 | feat: object _lock → System.Threading.Lock 전환 3곳 + 스레드 안전성 테스트 추가 (PR #62) |
