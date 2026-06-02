@@ -5,7 +5,7 @@
 | 항목 | 값 |
 |------|-----|
 | 개발 환경 기본 URL | `https://localhost:7001` |
-| 런타임 | .NET 8.0 |
+| 런타임 | .NET 10.0 |
 | 인증 방식 | Bearer Token (JWT) — /api/Auth/login·logout·refresh 는 토큰 불필요 |
 
 ---

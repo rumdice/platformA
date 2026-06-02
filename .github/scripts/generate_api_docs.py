@@ -52,7 +52,7 @@ SERVICES = [
         "name": "Auth API",
         "output": "Docs/api-guide/auth.md",
         "port": 7001,
-        "runtime": get_dotnet_version("PlatformA/PlatformA.Auth.API/PlatformA.Auth.API.csproj", ".NET 8.0"),
+        "runtime": get_dotnet_version("PlatformA/PlatformA.Auth.API/PlatformA.Auth.API.csproj", ".NET 10.0"),
         "auth": "Bearer Token (JWT) — /api/Auth/login·logout·refresh 는 토큰 불필요",
         "description": "인증 및 JWT 토큰 생명주기를 담당하는 서비스입니다.",
         "extra": (
@@ -84,7 +84,7 @@ SERVICES = [
         "name": "Ticketing (Queue) API",
         "output": "Docs/api-guide/ticketing.md",
         "port": 7003,
-        "runtime": get_dotnet_version("PlatformA/PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj", ".NET 8.0"),
+        "runtime": get_dotnet_version("PlatformA/PlatformA.Ticketing.API/PlatformA.Ticketing.API.csproj", ".NET 10.0"),
         "auth": "Bearer Token (JWT) — Authorization 헤더 필요",
         "description": "게임 서버 입장 대기열 진입·상태·이탈을 담당하는 서비스입니다.",
         "extra": "",
@@ -97,7 +97,7 @@ SERVICES = [
         "name": "Matching API",
         "output": "Docs/api-guide/matching.md",
         "port": 7002,
-        "runtime": get_dotnet_version("PlatformA/PlatformA.Matching.API/PlatformA.Matching.API.csproj", ".NET 9.0"),
+        "runtime": get_dotnet_version("PlatformA/PlatformA.Matching.API/PlatformA.Matching.API.csproj", ".NET 10.0"),
         "auth": "Bearer Token (JWT) — Authorization 헤더 필요",
         "description": (
             "1v1 게임 매칭 대기열 및 주식 주문 처리를 담당하는 서비스입니다.\n"
@@ -120,7 +120,7 @@ SERVICES = [
         "name": "Utils API",
         "output": "Docs/api-guide/utils.md",
         "port": 7004,
-        "runtime": get_dotnet_version("PlatformA/PlatformA.Utils.API/PlatformA.Utils.API.csproj", ".NET 8.0"),
+        "runtime": get_dotnet_version("PlatformA/PlatformA.Utils.API/PlatformA.Utils.API.csproj", ".NET 10.0"),
         "auth": "없음 (공개 API)",
         "description": "IP 조회, URL 단축, 클릭 통계 등 유틸리티 기능을 제공합니다.",
         "extra": "",

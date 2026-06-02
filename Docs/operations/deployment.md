@@ -63,7 +63,7 @@ graph TD
 ### 사전 요구사항
 
 - Docker Desktop 설치 및 실행 중
-- .NET SDK 8.0 이상 (인증서 생성용)
+- .NET SDK 10.0 이상 (인증서 생성용)
 
 ### 1단계: 개발용 HTTPS 인증서 내보내기
 

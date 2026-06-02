@@ -187,7 +187,7 @@ services.AddDbContext<AppDbContext>(options =>
 // CreateHost override에서 db.Database.EnsureCreated() 호출
 ```
 
-### Matching.API 팩토리 핵심 (Reflection 주입 + InMemory EF Core, net9.0)
+### Matching.API 팩토리 핵심 (Reflection 주입 + InMemory EF Core, net10.0)
 
 ```csharp
 // Redis: Reflection 주입 (Auth/Ticketing과 동일)
@@ -221,7 +221,7 @@ MockRedisDb.Setup(x => x.SortedSetLengthAsync(...)).ReturnsAsync(1L);
 ```
 
 테스트 클래스: `GameMatchControllerTests(MatchingTestWebAppFactory)` — 8개
-> **주의**: Matching.API는 .NET 9.0 대상 — csproj `<TargetFramework>net9.0</TargetFramework>` 필수
+> **주의**: Matching.API는 .NET 10.0 대상 — csproj `<TargetFramework>net10.0</TargetFramework>` 필수
 
 ---
 
@@ -282,12 +282,12 @@ public void LoginRequest_ShortUsername_FailsValidation()
 
 대상 API의 `Program.cs`를 반드시 Read로 읽어 서비스 등록 방식을 파악한다.
 
-**csproj 템플릿** (`net8.0`을 대상 API의 TargetFramework에 맞춤):
+**csproj 템플릿** (`net10.0`을 대상 API의 TargetFramework에 맞춤):
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>

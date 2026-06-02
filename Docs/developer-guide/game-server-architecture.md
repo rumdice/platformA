@@ -6,7 +6,7 @@ REST API 없이 Protobuf 바이너리 패킷으로 클라이언트와 통신합�
 | 항목 | 값 |
 |------|---|
 | 포트 | 7777 (TCP) |
-| 런타임 | .NET 8.0 |
+| 런타임 | .NET 10.0 |
 | 패킷 포맷 | `[size: 2B LE] [Protobuf envelope]` |
 | 동시성 모델 | Lock-Free JobQueue |
 | 인증 | JWT (CLogin 패킷으로 전달) |

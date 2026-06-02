@@ -1,7 +1,7 @@
 # 게임 서버 프로토콜 (TCP)
 
 > **대상 독자**: 클라이언트 개발자, 서버 통합 담당자  
-> **서버 버전**: PlatformA Game Server (.NET 8.0)  
+> **서버 버전**: PlatformA Game Server (.NET 10.0)  
 > **최종 수정**: 2026-05-14
 
 ---

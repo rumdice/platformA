@@ -6,7 +6,7 @@ SignalR Hub(`/hubs/matching`)를 통해 매칭 결과(MatchFound / MatchTimeout)
 | 항목 | 값 |
 |------|-----|
 | 개발 환경 기본 URL | `https://localhost:7002` |
-| 런타임 | .NET 9.0 |
+| 런타임 | .NET 10.0 |
 | 인증 방식 | Bearer Token (JWT) — Authorization 헤더 필요 |
 
 ---
