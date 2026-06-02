@@ -34,7 +34,7 @@ def update_marker(content: str, marker: str, new_body: str) -> str:
     replacement = rf"\1\n{new_body}\n\2"
     updated, count = re.subn(pattern, replacement, content, flags=re.DOTALL)
     if count == 0:
-        print(f"[warn] 마커 {marker}_START/END를 찾지 못했습니다 — 교체 생략")
+        print(f"[warn] marker {marker}_START/END not found -- skipped")
     return updated
 
 
