@@ -23,6 +23,13 @@
       "started_at": "2026-06-02T06:00:00Z",
       "completed_at": "2026-06-02T06:00:00Z",
       "summary": "object _lock 3곳을 System.Threading.Lock으로 교체 — JobQueue·SnowflakeGenerator·SessionManager, .NET 10 컴파일러 최적화 활용."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-02T06:05:00Z",
+      "completed_at": "2026-06-02T06:05:00Z",
+      "summary": "타입 선언 3곳만 교체, lock() 구문 유지, readonly 보정 포함. DESIGN_REVIEW: ✅ ADR 전체 준수, 신규 ADR 불필요."
     }
   ]
 }
