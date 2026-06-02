@@ -460,3 +460,16 @@
 - [x] `packet-protocol.md`, `redis-keyspace.md` 마커 삽입 (수동 1회)
 - [x] `docs.yml` 두 스크립트 실행 스텝 추가
 - [x] 검증: 스크립트 로컬 실행 후 문서 내용 정확성 확인
+
+---
+
+## 스프린트 #33 (2026-06-02 ~)
+**목표**: `System.Threading.Lock` 전환 — object _lock 3곳을 .NET 10 전용 Lock 타입으로 교체
+
+### 진행 중
+
+- [ ] `JobQueue.cs`: `private object _lock` → `private readonly Lock _lock`
+- [ ] `SnowflakeGenerator.cs`: `private static readonly object _lock` → `private static readonly Lock _lock`
+- [ ] `SessionManager.cs`: `private readonly object _lock` → `private readonly Lock _lock`
+- [ ] `/test-gen`: JobQueue·SessionManager 스레드 안전성 테스트 케이스 생성
+- [ ] 검증: `dotnet build` 오류 0 + `dotnet test` 전체 통과
