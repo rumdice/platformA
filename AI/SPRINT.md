@@ -447,3 +447,16 @@
 - [x] `Docs/architecture/overview.md`: 런타임 버전 테이블 마커 기반 자동 갱신 (.NET 10.0)
 - [x] `docs.yml`: `generate_doc_meta.py` 실행 스텝 추가
 - [x] 검증: `Docs/index.md`에 `.NET 10.0`, `111개 테스트` 반영 확인
+
+---
+
+## 스프린트 #32 (2026-06-02 ~)
+**목표**: 문서화 자동화 확장 — proto·Redis 키 변경 시 패킷 프로토콜·키스페이스 문서 자동 갱신
+
+### 진행 중
+
+- [ ] `generate_proto_docs.py` 신규: packets.proto 메시지·필드 파싱 → `Docs/developer-guide/packet-protocol.md` 마커 구간 자동 갱신
+- [ ] `generate_redis_key_docs.py` 신규: Consts.cs Redis 키 상수 파싱 → `Docs/architecture/redis-keyspace.md` 마커 구간 자동 갱신
+- [ ] `packet-protocol.md`, `redis-keyspace.md` 마커 삽입 (수동 1회)
+- [ ] `docs.yml` 두 스크립트 실행 스텝 추가
+- [ ] 검증: 스크립트 로컬 실행 후 문서 내용 정확성 확인
