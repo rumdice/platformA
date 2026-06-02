@@ -43,6 +43,6 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 |---------|-----------|---------|-----------|--------|
 | `PlatformA.Tests.Auth.API` | net10.0 | 23 | Reflection 주입 | InMemory SQLite |
 | `PlatformA.Tests.Utils.API` | net10.0 | 29 | 직접 교체 | InMemory SQLite |
-| `PlatformA.Tests.Game.Server` | net10.0 | 48 | — | — |
+| `PlatformA.Tests.Game.Server` | net10.0 | 56 | — | — |
 | `PlatformA.Tests.Ticketing.API` | net10.0 | 13 | Reflection 주입 | 없음 |
 | `PlatformA.Tests.Matching.API` | net10.0 | 12 | Reflection 주입 | InMemory EF Core |

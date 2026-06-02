@@ -12,7 +12,7 @@ namespace PlatformA.Library.Network
         // 접속 중인 세션들을 담아둘 리스트
         // 🚨 [주의] 여러 유저가 동시에 접속/종료할 수 있으므로 반드시 동시성 제어(Lock)가 필요합니다!
         private readonly HashSet<Session> _sessions = new HashSet<Session>();
-        private readonly object _lock = new object();
+        private readonly Lock _lock = new();
 
         // 유저 입장
         public void Add(Session session)

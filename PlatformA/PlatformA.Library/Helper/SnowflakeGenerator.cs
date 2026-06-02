@@ -35,7 +35,7 @@ namespace PlatformA.Library.Helper
         private long _lastTimestamp = -1L;
 
         // 동시성 제어를 위한 락 (Lock)
-        private static readonly object _lock = new object();
+        private static readonly Lock _lock = new();
 
         public SnowflakeGenerator(long workerId, long datacenterId)
         {
