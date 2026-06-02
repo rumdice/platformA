@@ -1,0 +1,55 @@
+{
+  "sprint": 32,
+  "task": "AutoDocProtoRedisKeys",
+  "branch": "2026-06-02_AutoDocProtoRedisKeys",
+  "status": "analyzing",
+  "created_at": "2026-06-02T00:00:00Z",
+  "completed_at": null,
+  "pr_url": null,
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": false,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": null,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 5,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      ".github/scripts/generate_proto_docs.py (신규)",
+      ".github/scripts/generate_redis_key_docs.py (신규)",
+      ".github/workflows/docs.yml",
+      "Docs/developer-guide/packet-protocol.md",
+      "Docs/architecture/redis-keyspace.md"
+    ],
+    "test_coverage": "not_required",
+    "summary": "LOW risk, 5개 변경 파일. 문서 생성 스크립트·문서 파일만 변경, 서비스 코드 무관."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-02T00:00:00Z",
+      "completed_at": "2026-06-02T00:00:00Z",
+      "summary": "packets.proto·Consts.cs 파싱 스크립트를 추가하여 packet-protocol.md·redis-keyspace.md를 코드 변경 시 자동 갱신한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-02T00:10:00Z",
+      "completed_at": "2026-06-02T00:10:00Z",
+      "summary": "generate_proto_docs.py·generate_redis_key_docs.py 신규, 마커 기반 문서 구간 교체, docs.yml 연동. DESIGN_REVIEW: ✅ ADR-003·007 준수"
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-02T00:15:00Z",
+      "summary": "LOW risk, 5개 변경 파일. 문서 생성 스크립트·문서 파일만 변경. 서비스 코드 무관. test_generated 불필요."
+    }
+  ]
+}

@@ -48,40 +48,44 @@ message Packet {
 
 ## 패킷 목록
 
+<!-- PACKET_LIST_START -->
 ### 클라이언트 → 서버 (CXxx)
 
 | 패킷 | oneof tag | 필드 | 설명 |
 |---|---|---|---|
-| `CMove` | 1 | `float x, y, z` | 플레이어 이동 요청 |
-| `CLogin` | 3 | `int32 room_id`, `string jwt_token` | JWT 인증 후 입장 요청 |
-| `CEnterRoom` | 5 | `int32 room_id` | 다른 방으로 이동 요청 |
+| `CMove` | 1 | `float x`, `float y`, `float z` | 이동 요청 |
+| `CLogin` | 3 | `int32 room_id`, `string jwt_token` | 로그인 요청 |
+| `CEnterRoom` | 5 | `int32 room_id` | 방 이동 요청 |
 
 ### 서버 → 클라이언트 (SXxx)
 
 | 패킷 | oneof tag | 필드 | 설명 |
 |---|---|---|---|
-| `SMove` | 2 | `int32 player_id`, `float x, y, z` | 이동 브로드캐스트 |
+| `SMove` | 2 | `int32 player_id`, `float x`, `float y`, `float z` | 이동 브로드캐스트 |
 | `SLogin` | 4 | `LoginResultCode result_code`, `int32 player_id` | 로그인 결과 |
 | `SEnterRoom` | 6 | `EnterRoomResultCode result_code`, `int32 room_id` | 방 이동 결과 |
+<!-- PACKET_LIST_END -->
 
+<!-- ENUM_LIST_START -->
 ### 결과 코드 열거형
 
 **LoginResultCode**
 
 | 값 | 이름 | 설명 |
 |---|---|---|
-| 0 | `LOGIN_SUCCESS` | 로그인 성공 (proto3 기본값 — wire에 포함되지 않음) |
-| 1 | `LOGIN_INVALID_TOKEN` | JWT 토큰 검증 실패 |
-| 2 | `LOGIN_NOT_IN_QUEUE` | 대기열을 거치지 않은 불법 접속 |
-| 3 | `LOGIN_DUPLICATE` | 중복 로그인 차단 |
-| 4 | `LOGIN_ROOM_NOT_FOUND` | 입장할 방이 존재하지 않음 |
+| 0 | `LOGIN_SUCCESS` | (proto3 기본값 — wire에 포함되지 않음) |
+| 1 | `LOGIN_INVALID_TOKEN` |  |
+| 2 | `LOGIN_NOT_IN_QUEUE` |  |
+| 3 | `LOGIN_DUPLICATE` |  |
+| 4 | `LOGIN_ROOM_NOT_FOUND` |  |
 
 **EnterRoomResultCode**
 
 | 값 | 이름 | 설명 |
 |---|---|---|
-| 0 | `ENTER_ROOM_SUCCESS` | 방 이동 성공 (proto3 기본값) |
-| 1 | `ENTER_ROOM_NOT_FOUND` | 대상 방이 존재하지 않음 |
+| 0 | `ENTER_ROOM_SUCCESS` | (proto3 기본값 — wire에 포함되지 않음) |
+| 1 | `ENTER_ROOM_NOT_FOUND` |  |
+<!-- ENUM_LIST_END -->
 
 > **proto3 기본값 주의**: 값이 `0`인 enum 필드(예: `LOGIN_SUCCESS = 0`)는 wire에 포함되지 않습니다.
 > 수신 측은 필드 부재를 기본값(0 = 성공)으로 복원하므로 의미상 동일하지만, 혼동에 주의하세요.
