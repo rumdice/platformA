@@ -1,0 +1,28 @@
+{
+  "sprint": 42,
+  "task": "AutomateCiFailureDetection",
+  "branch": "2026-06-04_AutomateCiFailureDetection",
+  "status": "analyzing",
+  "created_at": "2026-06-04T08:28:22Z",
+  "completed_at": null,
+  "pr_url": null,
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": false,
+  "review_completed": false,
+  "adr_required": false,
+  "duration_sec": null,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": null,
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-04T08:28:22Z",
+      "completed_at": "2026-06-04T08:28:22Z",
+      "summary": "CI 실패(format/gate/build) 자동 감지·기록·수정 파이프라인 구축. /done 스킬 format 검증, auto-format.yml, record_failure.py, n8n GitHub 폴링 워크플로, session-start.sh ai_failures 조회."
+    }
+  ]
+}

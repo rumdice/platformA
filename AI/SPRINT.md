@@ -574,3 +574,17 @@
 - [x] `docker-compose.full.yml` + `docker/postgresql/docker-compose.yml` — sdlc-db-migrator 추가
 - [x] `.github/scripts/migrate_tasks_to_postgres.py --dry-run` 구현
 - [x] 검증: dotnet build + ef database update + dry-run 실행 확인
+
+---
+
+## 스프린트 #42 (2026-06-04 ~)
+**목표**: CI 실패 자동 감지·기록·수정 파이프라인 — n8n + PostgreSQL 기반 실패 추적 구축
+
+### 진행 중
+
+- [ ] `/done` 스킬 — `dotnet format --verify-no-changes` 검증 + 실패 시 자동 수정·재커밋
+- [ ] `.github/workflows/auto-format.yml` — CI format 실패 시 자동 fix 커밋·재실행
+- [ ] `.github/scripts/record_failure.py` — ai_failures PostgreSQL INSERT 헬퍼
+- [ ] `.github/scripts/check_sdlc_gate.py` 수정 — gate 실패 시 record_failure 기록
+- [ ] `.n8n/workflows/github-failure-monitor.json` — GitHub API 폴링 → 실패 감지 → PostgreSQL INSERT
+- [ ] `.claude/hooks/session-start.sh` 수정 — ai_failures 미해결 건 조회·표시
