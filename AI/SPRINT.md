@@ -547,3 +547,14 @@
 - [x] `docker/.env.example` — PostgreSQL/n8n 환경변수 섹션 추가
 - [x] `docker/sdlc/` 폴더 및 스크립트(.env, .env.example, setup-sdlc.ps1, setup-sdlc.sh) 제거
 - [x] 로컬 Docker 독립 실행 테스트 통과 (postgresql, n8n 각각)
+
+---
+
+## 스프린트 #40 (2026-06-03 ~)
+**목표**: ADR-008·009 소급 생성 + /requirement DESIGN_REVIEW 워크플로 개선
+
+### 진행 중
+
+- [ ] `AI/adr/008-n8n-event-orchestrator.md` — n8n 이벤트 오케스트레이터 채택 ADR 생성
+- [ ] `AI/adr/009-postgresql-sdlc-db.md` — PostgreSQL SDLC 전용 DB 채택 ADR 생성
+- [ ] `.claude/skills/requirement/SKILL.md` — DESIGN_REVIEW 5단계에 기술 도입 체크리스트 추가
