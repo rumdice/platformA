@@ -106,14 +106,37 @@ cd "$SLN" && dotnet build PlatformA.sln --verbosity minimal
 - task JSON `"status"` → `"failed"`, `"last_error"` → 오류 요약으로 Edit 도구 업데이트
 - **즉시 중단**하고 오류를 출력한다. push 금지.
 
-### 3단계: 포맷 검사
+### 3단계: 포맷 검사 및 자동 수정
+
+먼저 검증 모드로 실행한다:
 ```bash
+dotnet format PlatformA.sln whitespace --verify-no-changes --no-restore
+FORMAT_WHITESPACE=$?
+dotnet format PlatformA.sln style --verify-no-changes --no-restore
+FORMAT_STYLE=$?
+```
+
+**포맷 불일치가 없으면**: 그대로 4단계로 진행한다.
+
+**포맷 불일치가 있으면**: 자동 수정 후 재커밋한다 (수동 개입 없이 계속 진행):
+```bash
+# 자동 수정
+dotnet format PlatformA.sln whitespace --no-restore
+dotnet format PlatformA.sln style --no-restore
+
+# 변경사항 확인
+FORMAT_CHANGED=$(git diff --name-only)
+if [ -n "$FORMAT_CHANGED" ]; then
+  git add -A
+  git commit -m "chore: auto-fix dotnet format (whitespace/style)"
+fi
+
+# 재검증 — 이번에도 실패하면 중단
 dotnet format PlatformA.sln whitespace --verify-no-changes --no-restore
 dotnet format PlatformA.sln style --verify-no-changes --no-restore
 ```
-포맷 불일치 시 **즉시 중단**한다.
-수정 명령: `dotnet format PlatformA.sln whitespace --no-restore && dotnet format PlatformA.sln style --no-restore`
-수정 후 재커밋 → 3단계 재실행. push 금지.
+
+재검증 실패 시 **즉시 중단**하고 오류를 출력한다. push 금지.
 
 ### 4단계: 테스트 검증
 ```bash

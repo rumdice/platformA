@@ -1,0 +1,130 @@
+{
+  "name": "GitHub CI Failure Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 10 }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule (10분)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/rumdice/platformA/actions/runs",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "status", "value": "failure" },
+            { "name": "per_page", "value": "5" }
+          ]
+        },
+        "options": {
+          "response": { "response": { "responseFormat": "json" } }
+        }
+      },
+      "id": "github-get-failed-runs",
+      "name": "GitHub: 실패한 CI 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": { "httpHeaderAuth": { "id": "github-pat", "name": "GitHub PAT" } }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.workflow_runs",
+        "options": {}
+      },
+      "id": "split-runs",
+      "name": "각 실패 run 분리",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-recent",
+              "leftValue": "={{ new Date($json.created_at) > new Date(Date.now() - 15 * 60 * 1000) }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "filter-recent",
+      "name": "최근 15분 이내만",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/rumdice/platformA/actions/runs/{{ $json.id }}/jobs",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "github-get-jobs",
+      "name": "GitHub: Job 상세 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "credentials": { "httpHeaderAuth": { "id": "github-pat", "name": "GitHub PAT" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $json.body.jobs || [];\nconst run = $('split-runs').first().json;\nconst branch = run.head_branch;\nconst runId = run.id;\nconst runName = run.name;\n\n// 실패한 job의 steps에서 실패 유형 분류\nlet failureType = 'build_failed';\nlet fixable = false;\nlet logExcerpt = '';\n\nfor (const job of jobs) {\n  if (job.conclusion !== 'failure') continue;\n  for (const step of (job.steps || [])) {\n    if (step.conclusion !== 'failure') continue;\n    const stepName = (step.name || '').toLowerCase();\n    if (stepName.includes('format check (whitespace)') || stepName.includes('charset')) {\n      failureType = 'format_failed'; fixable = true;\n    } else if (stepName.includes('format check (style)')) {\n      failureType = 'style_failed'; fixable = true;\n    } else if (stepName.includes('test')) {\n      failureType = 'test_failed';\n    } else if (stepName.includes('gate-check') || stepName.includes('sdlc gate')) {\n      failureType = 'gate_failed';\n    }\n    logExcerpt = `Step: ${step.name} / Job: ${job.name}`;\n    break;\n  }\n  if (logExcerpt) break;\n}\n\nreturn [{\n  json: {\n    failure_type: failureType,\n    source: 'github_actions',\n    message: `CI 실패: ${runName} / branch: ${branch} / run_id: ${runId}`,\n    log_excerpt: logExcerpt,\n    fixable_by_ai: fixable,\n    metadata: JSON.stringify({ branch, run_id: runId, run_name: runName }),\n    branch\n  }\n}];"
+      },
+      "id": "classify-failure",
+      "name": "실패 분류",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO sdlc.ai_failures (failure_type, source, message, log_excerpt, fixable_by_ai, resolved, created_at, metadata)\nVALUES ($1, $2, $3, $4, $5, false, NOW(), $6::jsonb)\nON CONFLICT DO NOTHING",
+        "additionalFields": {
+          "queryParams": "={{ [$json.failure_type, $json.source, $json.message, $json.log_excerpt, $json.fixable_by_ai, $json.metadata] }}"
+        }
+      },
+      "id": "postgres-insert",
+      "name": "PostgreSQL: ai_failures INSERT",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1560, 300],
+      "credentials": { "postgres": { "id": "sdlc-postgres", "name": "SDLC PostgreSQL" } }
+    }
+  ],
+  "connections": {
+    "Schedule (10분)": { "main": [[{ "node": "GitHub: 실패한 CI 조회", "type": "main", "index": 0 }]] },
+    "GitHub: 실패한 CI 조회": { "main": [[{ "node": "각 실패 run 분리", "type": "main", "index": 0 }]] },
+    "각 실패 run 분리": { "main": [[{ "node": "최근 15분 이내만", "type": "main", "index": 0 }]] },
+    "최근 15분 이내만": { "main": [[{ "node": "GitHub: Job 상세 조회", "type": "main", "index": 0 }]] },
+    "GitHub: Job 상세 조회": { "main": [[{ "node": "실패 분류", "type": "main", "index": 0 }]] },
+    "실패 분류": { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "sdlc" }, { "name": "monitoring" }],
+  "_comment": {
+    "setup": [
+      "1. n8n UI > Settings > Credentials > 'GitHub PAT' (HTTP Header Auth, Authorization: Bearer ghp_...)",
+      "2. n8n UI > Settings > Credentials > 'SDLC PostgreSQL' (Host: postgres, Port: 5432, DB: platforma_sdlc, User: platforma)",
+      "3. n8n UI > Workflows > Import from file > .n8n/workflows/github-failure-monitor.json",
+      "4. 워크플로 활성화 (Toggle Active)"
+    ]
+  }
+}

@@ -61,6 +61,20 @@ else
     echo "  [skip] dotnet 명령 또는 솔루션 디렉터리를 찾을 수 없습니다."
 fi
 
+
+# 4. 미해결 CI 실패 조회 (PostgreSQL ai_failures, psycopg2 설치 시)
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
+if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ]; then
+    FAILURE_OUTPUT=$(python3 "$PROJECT_DIR/.github/scripts/record_failure.py" \
+        --list-unresolved --branch "$CURRENT_BRANCH" 2>/dev/null)
+    if echo "$FAILURE_OUTPUT" | grep -q "미해결 CI 실패"; then
+        echo ""
+        echo "[CI 실패 알림]"
+        echo "$FAILURE_OUTPUT" | sed 's/^/  /'
+        echo "  → 수정 후 /done 을 재실행하세요."
+    fi
+fi
+
 echo ""
 echo "============================================"
 echo ""
