@@ -43,3 +43,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-03 | #38 | FixPrArchiveDateDep | claude-sonnet-4-6 | S | 178 | 5558096 | 9268 | fix: /pr 4.5단계 명세 파일 archived 날짜 의존성 제거 — TODAY → PlanName 기반 검색 (PR #67) |
 | 2026-06-03 | #39 | RestructureDockerSdlcInfra | claude-sonnet-4-6 | L | — | — | — | refactor: docker/sdlc 폴더를 n8n·postgresql 독립 폴더로 분리, full compose 통합 |
 | 2026-06-03 | #40 | AddAdrAndImproveDesignReview | claude-sonnet-4-6 | M | — | — | — | docs: ADR-008(n8n)·ADR-009(PostgreSQL) 소급 생성 + DESIGN_REVIEW 워크플로 개선 |
+| 2026-06-03 | #41 | AddSdlcDbLib | claude-sonnet-4-6 | L | — | — | — | feat: PlatformA.SdlcDB.Lib — AI_SDLC Phase 3 PostgreSQL EF Core 상태 저장소 MVP [risk:HIGH] |

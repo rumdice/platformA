@@ -566,11 +566,11 @@
 
 ### 진행 중
 
-- [ ] `PlatformA.SdlcDB.Lib` 프로젝트 생성 + sln 등록 + csproj (Npgsql 9.x)
-- [ ] `AiJob` / `AiJobStep` / `AiFailure` / `AiModelRun` Entity 생성
-- [ ] `SdlcDbContext` + IDesignTimeDbContextFactory (sdlc 스키마 분리)
-- [ ] `InitialSdlcDb` EF Core Migration 생성
-- [ ] `Dockerfile.migrator` 생성 (CMD 패턴, dotnet-ef 9.*)
-- [ ] `docker-compose.full.yml` + `docker/postgresql/docker-compose.yml` — sdlc-db-migrator 추가
-- [ ] `.github/scripts/migrate_tasks_to_postgres.py --dry-run` 구현
-- [ ] 검증: dotnet build + ef database update + dry-run 실행 확인
+- [x] `PlatformA.SdlcDB.Lib` 프로젝트 생성 + sln 등록 + csproj (Npgsql 9.x)
+- [x] `AiJob` / `AiJobStep` / `AiFailure` / `AiModelRun` Entity 생성
+- [x] `SdlcDbContext` + IDesignTimeDbContextFactory (sdlc 스키마 분리)
+- [x] `InitialSdlcDb` EF Core Migration 생성
+- [x] `Dockerfile.migrator` 생성 (CMD 패턴, dotnet-ef 9.*)
+- [x] `docker-compose.full.yml` + `docker/postgresql/docker-compose.yml` — sdlc-db-migrator 추가
+- [x] `.github/scripts/migrate_tasks_to_postgres.py --dry-run` 구현
+- [x] 검증: dotnet build + ef database update + dry-run 실행 확인

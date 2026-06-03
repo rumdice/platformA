@@ -2,9 +2,9 @@
   "sprint": 41,
   "task": "AddSdlcDbLib",
   "branch": "2026-06-04_AddSdlcDbLib",
-  "status": "coding",
+  "status": "done",
   "created_at": "2026-06-04T07:55:52Z",
-  "completed_at": null,
+  "completed_at": "2026-06-03T23:24:38Z",
   "pr_url": "https://github.com/rumdice/platformA/pull/70",
   "retry_count": 0,
   "last_error": null,
@@ -60,6 +60,13 @@
       "status": "done",
       "completed_at": "2026-06-04T09:00:00Z",
       "summary": "HIGH risk (Migrations/Entities/Context 패턴), 실제 영향은 신규 sdlc 스키마 생성에 한정. 기존 게임 서비스 미영향."
+    },
+    {
+      "name": "merge_sync",
+      "status": "done",
+      "started_at": "2026-06-03T23:24:38Z",
+      "completed_at": "2026-06-03T23:24:38Z",
+      "summary": "PR #70 merged and SDLC state synchronized"
     }
   ]
 }
