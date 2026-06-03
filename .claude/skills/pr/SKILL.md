@@ -224,7 +224,7 @@ task 완료 시 해당 브랜치의 명세 파일(`.claude/plan/YYYY-MM-DD_NNN_P
 ```bash
 TODAY=$(date +%Y-%m-%d)
 PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
-SPEC_FILE=$(ls .claude/plan/${TODAY}_*_${PLAN_NAME}.md 2>/dev/null | head -1)
+SPEC_FILE=$(ls .claude/plan/*_${PLAN_NAME}.md 2>/dev/null | head -1)
 if [ -n "$SPEC_FILE" ]; then
     mkdir -p .claude/plan/processed
     mv "$SPEC_FILE" ".claude/plan/processed/$(basename $SPEC_FILE)"
