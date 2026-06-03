@@ -10,7 +10,7 @@
   "last_error": null,
   "artifacts": [],
   "test_generated": true,
-  "review_completed": false,
+  "review_completed": true,
   "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
