@@ -31,6 +31,13 @@
   },
   "steps": [
     {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-03T02:30:13Z",
+      "completed_at": "2026-06-03T02:30:13Z",
+      "summary": "PostgreSQL 16 + n8n을 docker/sdlc/ 폴더 패턴으로 설치, 기존 게임 인프라와 독립 운영. ADR-004 준수, 신규 ADR 불필요 (소급 기록)"
+    },
+    {
       "name": "impact",
       "status": "done",
       "completed_at": "2026-06-03T02:32:00Z",
