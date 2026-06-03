@@ -222,13 +222,13 @@ git push
 task 완료 시 해당 브랜치의 명세 파일(`.claude/plan/YYYY-MM-DD_NNN_PlanName.md`)을 `processed/`로 이동한다.
 
 ```bash
-TODAY=$(date +%Y-%m-%d)
+REPO_ROOT=$(git rev-parse --show-toplevel)
 PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
-SPEC_FILE=$(ls .claude/plan/*_${PLAN_NAME}.md 2>/dev/null | head -1)
+SPEC_FILE=$(ls "${REPO_ROOT}/.claude/plan/"*_${PLAN_NAME}.md 2>/dev/null | head -1)
 if [ -n "$SPEC_FILE" ]; then
-    mkdir -p .claude/plan/processed
-    mv "$SPEC_FILE" ".claude/plan/processed/$(basename $SPEC_FILE)"
-    git add .claude/plan/
+    mkdir -p "${REPO_ROOT}/.claude/plan/processed"
+    mv "$SPEC_FILE" "${REPO_ROOT}/.claude/plan/processed/$(basename $SPEC_FILE)"
+    git add "${REPO_ROOT}/.claude/plan/"
     git commit -m "chore: ${PLAN_NAME} 명세 파일 archived"
     git push
 fi

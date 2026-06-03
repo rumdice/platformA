@@ -18,9 +18,9 @@ allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Read Edit Write
 ## 컨텍스트
 - 현재 브랜치: !`git branch --show-current`
 - 오늘 날짜: !`date +%Y-%m-%d`
-- 오늘 날짜 기준 명세 파일: !`t=$(date +%Y-%m-%d); ls .claude/plan/${t}_*.md 2>/dev/null | sort || echo "(없음)"`
+- 오늘 날짜 기준 명세 파일: !`r=$(git rev-parse --show-toplevel); t=$(date +%Y-%m-%d); ls "${r}/.claude/plan/${t}_"*.md 2>/dev/null | sort || echo "(없음)"`
 - 현재 브랜치 task JSON: !`b=$(git branch --show-current); m="(없음)"; for f in AI/tasks/sprint*.json; do [ -f "$f" ] && grep -q "\"branch\": \"$b\"" "$f" 2>/dev/null && m="$f" && break; done; echo "$m"`
-- 외부 제출 파일: !`ls .claude/plan/*.md 2>/dev/null | grep -v README | head -3 || echo "(없음)"`
+- 외부 제출 파일: !`r=$(git rev-parse --show-toplevel); ls "${r}/.claude/plan/"*.md 2>/dev/null | grep -v README | head -3 || echo "(없음)"`
 - plan mode 파일: !`ls ~/.claude/plans/*.md 2>/dev/null | grep -vE '/[0-9]{4}-[0-9]{2}-[0-9]{2}_' | head -1 || echo "(없음)"`
 
 ---
@@ -77,13 +77,13 @@ task JSON이 없으면 `/plan`을 먼저 실행하라고 안내하고 **중단**
 오늘 날짜로 이미 생성된 `.claude/plan/` 파일 수를 세어 다음 번호를 결정한다.
 `processed/`로 이동된 당일 파일도 포함하여 중복 번호를 방지한다:
 
-```python
-import glob, datetime
-t = datetime.date.today().strftime('%Y-%m-%d')
-active = len(glob.glob(f'.claude/plan/{t}_*.md'))
-archived = len(glob.glob(f'.claude/plan/processed/{t}_*.md'))
-existing = active + archived
-task_num = f"{existing + 1:03d}"
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
+TODAY=$(date +%Y-%m-%d)
+ACTIVE=$(ls "${REPO_ROOT}/.claude/plan/${TODAY}_"*.md 2>/dev/null | wc -l)
+ARCHIVED=$(ls "${REPO_ROOT}/.claude/plan/processed/${TODAY}_"*.md 2>/dev/null | wc -l)
+EXISTING=$((ACTIVE + ARCHIVED))
+TASK_NUM=$(printf "%03d" $((EXISTING + 1)))
 ```
 
 ---
@@ -97,7 +97,7 @@ task JSON의 `task` 필드에서 PlanName을 읽는다.
 
 ### 4단계 — 구현 명세 파일 생성
 
-`.claude/plan/YYYY-MM-DD_NNN_PlanName.md` 형식으로 프로젝트 경로에 파일을 생성한다.
+`$(git rev-parse --show-toplevel)/.claude/plan/YYYY-MM-DD_NNN_PlanName.md` 형식으로 git 루트 기준 절대경로에 파일을 생성한다.
 
 파일 내용 구조:
 ```markdown
@@ -184,12 +184,13 @@ ADR 충돌 시: 사용자에게 보고하고 요구사항 조정 여부를 확�
 
 소스가 `.claude/plan/*.md` 외부 파일이었다면 먼저 이동한다:
 ```bash
-mv ".claude/plan/{원본파일명}" ".claude/plan/processed/{YYYY-MM-DD}_{원본파일명}"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+mv "${REPO_ROOT}/.claude/plan/{원본파일명}" "${REPO_ROOT}/.claude/plan/processed/{YYYY-MM-DD}_{원본파일명}"
 ```
 
 그 후 커밋:
 ```bash
-git add .claude/plan/
+git add "${REPO_ROOT}/.claude/plan/"
 git commit -m "요구사항: {PlanName} 명세 파일 생성"
 git push
 ```
