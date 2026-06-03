@@ -533,3 +533,17 @@
 
 - [x] `.claude/skills/pr/SKILL.md` 4.5단계 — `${TODAY}_*_${PLAN_NAME}` → `*_${PLAN_NAME}` 패턴으로 교체
 - [x] 검증: 날짜가 달라도 명세 파일이 `processed/`로 이동되는지 확인
+
+---
+
+## 스프린트 #39 (2026-06-03 ~)
+**목표**: n8n·PostgreSQL Docker 구조 재편 — sdlc 통합 폴더를 독립 폴더로 분리하고 full compose에 통합
+
+### 진행 중
+
+- [x] `docker/postgresql/docker-compose.yml` 생성 — 독립 실행용 PostgreSQL 16 (기본값 내장)
+- [x] `docker/n8n/docker-compose.yml` 생성 — 독립 실행용 n8n (SQLite 백엔드, postgres 의존 없음)
+- [x] `docker/docker-compose.full.yml` — postgres·n8n 서비스 및 볼륨 추가 (platformA-net 공유)
+- [x] `docker/.env.example` — PostgreSQL/n8n 환경변수 섹션 추가
+- [x] `docker/sdlc/` 폴더 및 스크립트(.env, .env.example, setup-sdlc.ps1, setup-sdlc.sh) 제거
+- [x] 로컬 Docker 독립 실행 테스트 통과 (postgresql, n8n 각각)

@@ -1,0 +1,39 @@
+# PlatformA — n8n (독립 실행용)
+#
+# 목적: 이벤트 오케스트레이터 n8n을 독립적으로 실행한다.
+#       SQLite 백엔드 사용 — PostgreSQL 의존성 없음.
+#       전체 스택(PostgreSQL 백엔드 포함)은 docker-compose.full.yml 을 사용한다.
+#
+# 시작:   docker compose -f docker/n8n/docker-compose.yml up -d
+# 종료:   docker compose -f docker/n8n/docker-compose.yml down
+# 초기화: docker compose -f docker/n8n/docker-compose.yml down -v
+#
+# n8n UI: http://localhost:5678  (admin / admin_dev_password)
+
+networks:
+  n8n-net:
+    driver: bridge
+
+volumes:
+  sdlc-n8n-data:
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: platforma-n8n
+    restart: always
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: admin_dev_password
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: "http://localhost:5678/"
+      GENERIC_TIMEZONE: Asia/Seoul
+    ports:
+      - "5678:5678"
+    volumes:
+      - sdlc-n8n-data:/home/node/.n8n
+    networks:
+      - n8n-net

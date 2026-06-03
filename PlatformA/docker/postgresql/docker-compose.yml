@@ -1,0 +1,38 @@
+# PlatformA — PostgreSQL 16 (독립 실행용)
+#
+# 목적: AI_SDLC 상태 저장소로 사용하는 PostgreSQL을 독립적으로 실행한다.
+#       전체 스택은 docker-compose.full.yml 을 사용한다.
+#
+# 시작:   docker compose -f docker/postgresql/docker-compose.yml up -d
+# 종료:   docker compose -f docker/postgresql/docker-compose.yml down
+# 초기화: docker compose -f docker/postgresql/docker-compose.yml down -v
+#
+# 접근:   psql -h localhost -p 5432 -U platforma -d platforma_sdlc
+
+networks:
+  postgresql-net:
+    driver: bridge
+
+volumes:
+  sdlc-postgres-data:
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: platforma-sdlc-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: platforma_sdlc
+      POSTGRES_USER: platforma
+      POSTGRES_PASSWORD: platforma_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - sdlc-postgres-data:/var/lib/postgresql/data
+    networks:
+      - postgresql-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platforma -d platforma_sdlc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
