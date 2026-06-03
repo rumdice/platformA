@@ -9,13 +9,21 @@
   "retry_count": 0,
   "last_error": null,
   "artifacts": [],
-  "test_generated": false,
-  "review_completed": false,
+  "test_generated": true,
+  "review_completed": true,
   "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
-  "impact": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 7,
+    "high_risk_files": [],
+    "medium_risk_files": [".claude/skills/done/SKILL.md", ".claude/hooks/session-start.sh"],
+    "low_risk_files": [".github/workflows/auto-format.yml", ".github/scripts/record_failure.py", ".github/scripts/mark_ci_failure.py", ".n8n/workflows/github-failure-monitor.json"],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — SDLC 툴링·스킬·GitHub Actions 개선. 기존 게임 서비스 미영향."
+  },
   "steps": [
     {
       "name": "plan",
