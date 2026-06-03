@@ -41,3 +41,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-03 | #36 | AddSdlcDockerInfra | claude-sonnet-4-6 | S | 830 | 10483470 | 32436 | feat: AI_SDLC Phase 3 인프라 Docker 설치 — PostgreSQL 16 + n8n, setup 스크립트, .env.example (PR #65) |
 | 2026-06-03 | #37 | FixRequirementEnforcement | claude-sonnet-4-6 | S | 1586 | 27779817 | 173949 | fix: /pr requirement 차단 강화 + sprint35·36 requirement 소급 기록 (PR #66) |
 | 2026-06-03 | #38 | FixPrArchiveDateDep | claude-sonnet-4-6 | S | 178 | 5558096 | 9268 | fix: /pr 4.5단계 명세 파일 archived 날짜 의존성 제거 — TODAY → PlanName 기반 검색 (PR #67) |
+| 2026-06-03 | #39 | RestructureDockerSdlcInfra | claude-sonnet-4-6 | L | — | — | — | refactor: docker/sdlc 폴더를 n8n·postgresql 독립 폴더로 분리, full compose 통합 |

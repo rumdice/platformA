@@ -2,9 +2,9 @@
   "sprint": 39,
   "task": "RestructureDockerSdlcInfra",
   "branch": "2026-06-03_RestructureDockerSdlcInfra",
-  "status": "coding",
+  "status": "done",
   "created_at": "2026-06-03T12:52:59Z",
-  "completed_at": null,
+  "completed_at": "2026-06-03T04:06:34Z",
   "pr_url": "https://github.com/rumdice/platformA/pull/68",
   "retry_count": 0,
   "last_error": null,
@@ -30,6 +30,13 @@
       "started_at": "2026-06-03T13:10:00Z",
       "completed_at": "2026-06-03T13:10:00Z",
       "summary": "docker/sdlc 통합 폴더를 postgresql/n8n 독립 폴더로 분리하고 full compose에 통합하는 명세 생성. DESIGN_REVIEW: ✅ ADR 준수 (C# 코드 무관, Docker 인프라 재편)."
+    },
+    {
+      "name": "merge_sync",
+      "status": "done",
+      "started_at": "2026-06-03T04:06:34Z",
+      "completed_at": "2026-06-03T04:06:34Z",
+      "summary": "PR #68 merged and SDLC state synchronized"
     }
   ]
 }
