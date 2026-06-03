@@ -41,6 +41,8 @@ volumes:
   redis-node-6-data:
   mariadb-data:
   utils-api-sqlite:
+  sdlc-postgres-data:
+  sdlc-n8n-data:
 
 services:
 
@@ -383,5 +385,62 @@ services:
       - ticketing-api
       - matching-api
       - game-server
+    networks:
+      - platformA-net
+
+  # ── PostgreSQL 16 (AI_SDLC 전용) ────────────────────────────────────────────
+  # 게임 서비스 MariaDB와 분리된 독립 인스턴스.
+  # n8n 내부 메타데이터도 이 DB를 사용한다 (n8n_ 접두사 스키마로 분리됨).
+  postgres:
+    image: postgres:16
+    container_name: platforma-sdlc-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-platforma_sdlc}
+      POSTGRES_USER: ${POSTGRES_USER:-platforma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platforma_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - sdlc-postgres-data:/var/lib/postgresql/data
+    networks:
+      - platformA-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-platforma} -d ${POSTGRES_DB:-platforma_sdlc}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── n8n (이벤트 오케스트레이터) ─────────────────────────────────────────────
+  # Git/CI/AI/알림 이벤트를 연결하는 워크플로 엔진.
+  # 내부 메타데이터는 postgres 의 n8n 스키마에 저장된다.
+  # UI: http://localhost:5678
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: platforma-n8n
+    restart: always
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB:-platforma_sdlc}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER:-platforma}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-platforma_dev_password}
+      DB_POSTGRESDB_SCHEMA: n8n
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER:-admin}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD:-admin_dev_password}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: "http://${N8N_HOST:-localhost}:5678/"
+      GENERIC_TIMEZONE: Asia/Seoul
+    ports:
+      - "5678:5678"
+    volumes:
+      - sdlc-n8n-data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - platformA-net
