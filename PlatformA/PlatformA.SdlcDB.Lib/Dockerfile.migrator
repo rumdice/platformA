@@ -1,0 +1,21 @@
+# EF Core 마이그레이션 자동화 컨테이너 (AI_SDLC PostgreSQL)
+# docker-compose의 sdlc-db-migrator 서비스에서 사용.
+# PostgreSQL healthy 확인 후 SdlcDbContext 마이그레이션을 적용하고 종료한다.
+#
+# 환경변수:
+#   SDLC_DB_CONNECTION — PostgreSQL 연결 문자열 (SdlcDbContext.Factory 참조)
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+WORKDIR /src
+
+COPY . .
+
+RUN dotnet restore "PlatformA.SdlcDB.Lib/PlatformA.SdlcDB.Lib.csproj"
+
+RUN dotnet tool install --global dotnet-ef --version "9.*"
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+WORKDIR /src/PlatformA.SdlcDB.Lib
+
+CMD ["dotnet", "ef", "database", "update", "--context", "SdlcDbContext"]
