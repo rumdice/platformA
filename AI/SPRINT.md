@@ -507,7 +507,7 @@
 
 ### 진행 중
 
-- [ ] `docker/sdlc/docker-compose.yml` — PostgreSQL 16 + n8n 서비스 정의
-- [ ] `docker/sdlc/.env.example` — SDLC 인프라 환경변수 템플릿
-- [ ] `docker/sdlc/setup-sdlc.sh` + `setup-sdlc.ps1` — 원터치 SDLC 스택 시작 스크립트
-- [ ] 검증: `docker compose up` 후 PostgreSQL 연결 및 n8n UI 접근 확인
+- [x] `docker/sdlc/docker-compose.yml` — PostgreSQL 16 + n8n 서비스 정의
+- [x] `docker/sdlc/.env.example` — SDLC 인프라 환경변수 템플릿
+- [x] `docker/sdlc/setup-sdlc.sh` + `setup-sdlc.ps1` — 원터치 SDLC 스택 시작 스크립트
+- [x] 검증: `docker compose up` 후 PostgreSQL 연결 및 n8n UI 접근 확인
