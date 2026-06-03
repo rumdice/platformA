@@ -37,3 +37,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-02 | #32 | AutoDocProtoRedisKeys | claude-sonnet-4-6 | M | — | — | — | feat: proto·Redis 키스페이스 문서 자동화 — generate_proto_docs.py·generate_redis_key_docs.py 신규 (PR #61) |
 | 2026-06-02 | #33 | UpgradeToSystemThreadingLock | claude-sonnet-4-6 | S | — | — | — | feat: System.Threading.Lock 전환 — object _lock 3곳 교체 및 스레드 안전성 테스트 8개 추가 (PR #62) |
 | 2026-06-02 | #34 | FixCostLogCalcWindows | claude-sonnet-4-6 | S | 1556 | 7027484 | 83800 | fix: cost-log duration/token 계산 안정화 — date -d 제거, Python 단일 호출로 통합 (PR #63) |
+| 2026-06-03 | #35 | SetupDockerOneClick | claude-sonnet-4-6 | M | 475 | 11804327 | 65899 | feat: Docker 원클릭 환경 구성 — setup 스크립트·DB 자동생성·EF 마이그레이션·.env 변수화·SQLite 볼륨·DummyClient profile (PR #64) |
