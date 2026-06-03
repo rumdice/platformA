@@ -23,6 +23,13 @@
       "started_at": "2026-06-03T13:15:18Z",
       "completed_at": "2026-06-03T13:15:18Z",
       "summary": "ADR-008(n8n)·ADR-009(PostgreSQL) 소급 생성 및 /requirement DESIGN_REVIEW에 기술 도입 체크리스트 추가로 판단 오류 재발 방지."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-03T13:20:00Z",
+      "completed_at": "2026-06-03T13:20:00Z",
+      "summary": "ADR-008·009 소급 생성 및 SKILL.md DESIGN_REVIEW 체크리스트 추가 명세 생성. DESIGN_REVIEW: ✅ ADR 준수 (이 작업 자체는 신규 기술 도입 없음)."
     }
   ]
 }
