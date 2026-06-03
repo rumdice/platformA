@@ -3,14 +3,18 @@
 # 목적: 로컬 컨테이너 환경에서 전체 스택을 실행하여 K8s 배포를 검증한다.
 #       API 서비스는 HTTPS 전용으로 동작하며, 인증서는 볼륨 마운트로 주입한다.
 #
-# ── 최초 실행 전 필수: 개발 인증서 내보내기 ────────────────────────────────
-#   PowerShell:
-#     dotnet dev-certs https --export-path ./docker/certs/devcert.pfx --password "localdev"
-#   이후 docker-compose 가 /https/devcert.pfx 를 각 컨테이너에 마운트한다.
+# ── 최초 실행 전 필수: setup 스크립트 실행 ──────────────────────────────────
+#   Linux/macOS:  chmod +x docker/setup.sh && ./docker/setup.sh
+#   Windows:      .\docker\setup.ps1
 #
-# 시작:   docker-compose -f docker/docker-compose.full.yml up -d --build
-# 종료:   docker-compose -f docker/docker-compose.full.yml down
-# 초기화: docker-compose -f docker/docker-compose.full.yml down -v
+#   setup 스크립트가 다음을 자동 처리합니다:
+#     1. docker/certs/devcert.pfx 개발 인증서 생성
+#     2. docker/.env 파일 생성 (.env.example 복사)
+#
+# 시작:   docker compose -f docker/docker-compose.full.yml up -d --build
+# 종료:   docker compose -f docker/docker-compose.full.yml down
+# 초기화: docker compose -f docker/docker-compose.full.yml down -v
+#         (볼륨 삭제 시 DB·Redis 데이터 전체 소멸 — 재시작 시 마이그레이션 재적용)
 #
 # 호스트에서 DummyClient를 로컬 실행할 경우 환경변수 설정:
 #   AUTH_API_URL=https://localhost:7001/api/Auth/login
@@ -20,6 +24,9 @@
 #   MATCH_HUB_URL=https://localhost:7002/hubs/matching
 #   GAME_SERVER_IP=127.0.0.1
 #   REDIS_CONNECTION_STRING=127.0.0.1:6381,127.0.0.1:6382,127.0.0.1:6383
+#
+# DummyClient 컨테이너 실행 (선택):
+#   docker compose -f docker/docker-compose.full.yml --profile testing up dummy-client
 
 networks:
   platformA-net:
@@ -33,6 +40,7 @@ volumes:
   redis-node-5-data:
   redis-node-6-data:
   mariadb-data:
+  utils-api-sqlite:
 
 services:
 
@@ -195,11 +203,12 @@ services:
     container_name: mariadb-full
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: pass1234
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-pass1234}
     ports:
       - "13306:3306"
     volumes:
       - mariadb-data:/var/lib/mysql
+      - ./mariadb/init:/docker-entrypoint-initdb.d:ro
     networks:
       - platformA-net
     healthcheck:
@@ -207,6 +216,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ── DB Migrator (일회성: EF Core 마이그레이션 자동 적용) ─────────────────────
+  db-migrator:
+    build:
+      context: ..
+      dockerfile: PlatformA.MySqlDB.Lib/Dockerfile.migrator
+    container_name: db-migrator
+    restart: "no"
+    environment:
+      WEBAPP_DB_CONNECTION: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=${MARIADB_ROOT_PASSWORD:-pass1234}"
+      LOGAPP_DB_CONNECTION: "Server=mariadb;Port=3306;Database=db_LogApp;User=root;Password=${MARIADB_ROOT_PASSWORD:-pass1234}"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - platformA-net
 
   # ── Auth.API (HTTPS:7001) ────────────────────────────────────────────────────
   auth-api:
@@ -217,11 +242,11 @@ services:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
+      JWT_SECRET: ${JWT_SECRET:-YourSuperSecretKeyForPlatformAMSA!@#123}
       REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
-      MYSQL_WEBAPP_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=pass1234"
+      MYSQL_WEBAPP_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=${MARIADB_ROOT_PASSWORD:-pass1234}"
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERT_PASSWORD:-localdev}
     ports:
       - "7001:7001"
     volumes:
@@ -230,6 +255,8 @@ services:
       mariadb:
         condition: service_healthy
       redis-cluster-init:
+        condition: service_completed_successfully
+      db-migrator:
         condition: service_completed_successfully
     networks:
       - platformA-net
@@ -243,11 +270,11 @@ services:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
+      JWT_SECRET: ${JWT_SECRET:-YourSuperSecretKeyForPlatformAMSA!@#123}
       REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
-      MYSQL_WEBAPP_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=pass1234"
+      MYSQL_WEBAPP_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=${MARIADB_ROOT_PASSWORD:-pass1234}"
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERT_PASSWORD:-localdev}
     ports:
       - "7002:7002"
     volumes:
@@ -256,6 +283,8 @@ services:
       mariadb:
         condition: service_healthy
       redis-cluster-init:
+        condition: service_completed_successfully
+      db-migrator:
         condition: service_completed_successfully
     networks:
       - platformA-net
@@ -269,12 +298,12 @@ services:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      JWT_SECRET: "YourSuperSecretKeyForPlatformAMSA!@#123"
+      JWT_SECRET: ${JWT_SECRET:-YourSuperSecretKeyForPlatformAMSA!@#123}
       REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
-      QUEUE_BASE_RATE: "50"
-      QUEUE_MAX_RATE: "500"
+      QUEUE_BASE_RATE: ${QUEUE_BASE_RATE:-50}
+      QUEUE_MAX_RATE: ${QUEUE_MAX_RATE:-500}
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERT_PASSWORD:-localdev}
     ports:
       - "7003:7003"
     volumes:
@@ -295,14 +324,16 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
-      SNOWFLAKE_WORKER_ID: "1"
-      SNOWFLAKE_DATACENTER_ID: "1"
+      SNOWFLAKE_WORKER_ID: ${SNOWFLAKE_WORKER_ID:-1}
+      SNOWFLAKE_DATACENTER_ID: ${SNOWFLAKE_DATACENTER_ID:-1}
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/devcert.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__Password: "localdev"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERT_PASSWORD:-localdev}
+      ConnectionStrings__DefaultConnection: "Data Source=/data/app.db"
     ports:
       - "7004:7004"
     volumes:
       - ./certs:/https:ro
+      - utils-api-sqlite:/data
     depends_on:
       redis-cluster-init:
         condition: service_completed_successfully
@@ -325,5 +356,32 @@ services:
     depends_on:
       redis-cluster-init:
         condition: service_completed_successfully
+    networks:
+      - platformA-net
+
+  # ── DummyClient (테스트용 — 기본 비활성, --profile testing 으로 실행) ────────
+  dummy-client:
+    build:
+      context: ..
+      dockerfile: PlatformA.Game.DummyClient/Dockerfile
+    container_name: dummy-client
+    profiles:
+      - testing
+    stdin_open: true
+    tty: true
+    environment:
+      AUTH_API_URL: "https://auth-api:7001/api/Auth/login"
+      AUTH_API_REFRESH_URL: "https://auth-api:7001/api/Auth/refresh"
+      TICKET_API_URL: "https://ticketing-api:7003"
+      MATCH_API_URL: "https://matching-api:7002/api/GameMatch/RequestMatch"
+      MATCH_HUB_URL: "https://matching-api:7002/hubs/matching"
+      GAME_SERVER_IP: "game-server"
+      GAME_SERVER_PORT: "7777"
+      REDIS_CONNECTION_STRING: "redis-node-1:6379,redis-node-2:6379,redis-node-3:6379"
+    depends_on:
+      - auth-api
+      - ticketing-api
+      - matching-api
+      - game-server
     networks:
       - platformA-net

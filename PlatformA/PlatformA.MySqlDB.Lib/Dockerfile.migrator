@@ -1,0 +1,26 @@
+# EF Core 마이그레이션 자동화 컨테이너
+# docker-compose.full.yml 의 db-migrator 서비스에서 사용.
+# MariaDB healthy 확인 후 DbWebAppContext·DbLogAppContext 마이그레이션을 순차 적용하고 종료한다.
+#
+# 환경변수:
+#   WEBAPP_DB_CONNECTION  — db_WebApp 연결 문자열 (DbWebAppContextFactory 참조)
+#   LOGAPP_DB_CONNECTION  — db_LogApp  연결 문자열 (DbLogAppContextFactory 참조)
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+WORKDIR /src
+
+# 솔루션 전체 복사 (MySqlDB.Lib 의존 프로젝트 포함)
+COPY . .
+
+RUN dotnet restore "PlatformA.MySqlDB.Lib/PlatformA.MySqlDB.Lib.csproj"
+
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+WORKDIR /src/PlatformA.MySqlDB.Lib
+
+CMD ["sh", "-c", \
+  "dotnet ef database update --context DbWebAppContext && \
+   dotnet ef database update --context DbLogAppContext && \
+   echo '[Migrator] All migrations applied successfully.'"]
