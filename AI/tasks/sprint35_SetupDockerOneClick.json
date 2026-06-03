@@ -33,6 +33,13 @@
   },
   "steps": [
     {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-03T02:11:53Z",
+      "completed_at": "2026-06-03T02:11:53Z",
+      "summary": "외부 사용자 Docker 원클릭 환경 — setup 스크립트·DB 자동생성·EF 마이그레이션·.env 파라미터화·SQLite 볼륨·DummyClient profile. ADR-004 준수, 신규 ADR 불필요 (소급 기록)"
+    },
+    {
       "name": "plan",
       "status": "done",
       "started_at": "2026-06-03T02:11:53Z",
