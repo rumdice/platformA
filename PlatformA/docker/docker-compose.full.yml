@@ -411,6 +411,21 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── SDLC DB Migrator (일회성: EF Core 마이그레이션 자동 적용) ─────────────────
+  sdlc-db-migrator:
+    build:
+      context: ..
+      dockerfile: PlatformA.SdlcDB.Lib/Dockerfile.migrator
+    container_name: sdlc-db-migrator
+    restart: "no"
+    environment:
+      SDLC_DB_CONNECTION: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-platforma_sdlc};Username=${POSTGRES_USER:-platforma};Password=${POSTGRES_PASSWORD:-platforma_dev_password}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - platformA-net
+
   # ── n8n (이벤트 오케스트레이터) ─────────────────────────────────────────────
   # Git/CI/AI/알림 이벤트를 연결하는 워크플로 엔진.
   # 내부 메타데이터는 postgres 의 n8n 스키마에 저장된다.

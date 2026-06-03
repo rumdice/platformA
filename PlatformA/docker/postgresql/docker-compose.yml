@@ -36,3 +36,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ── SDLC DB Migrator (일회성: EF Core 마이그레이션 자동 적용) ─────────────────
+  sdlc-db-migrator:
+    build:
+      context: ../..
+      dockerfile: PlatformA.SdlcDB.Lib/Dockerfile.migrator
+    container_name: sdlc-db-migrator
+    restart: "no"
+    environment:
+      SDLC_DB_CONNECTION: "Host=postgres;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - postgresql-net

@@ -1,0 +1,65 @@
+{
+  "sprint": 41,
+  "task": "AddSdlcDbLib",
+  "branch": "2026-06-04_AddSdlcDbLib",
+  "status": "coding",
+  "created_at": "2026-06-04T07:55:52Z",
+  "completed_at": null,
+  "pr_url": "https://github.com/rumdice/platformA/pull/70",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": null,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": {
+    "risk": "HIGH",
+    "changed_files": 18,
+    "high_risk_files": [
+      "PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJobStep.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Entities/AiFailure.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Entities/AiModelRun.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Migrations/20260603230110_InitialSdlcDb.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Migrations/20260603230110_InitialSdlcDb.Designer.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Migrations/SdlcDbContextModelSnapshot.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/SdlcDbContext.cs"
+    ],
+    "medium_risk_files": [
+      "PlatformA/PlatformA.SdlcDB.Lib/PlatformA.SdlcDB.Lib.csproj"
+    ],
+    "low_risk_files": [
+      "PlatformA/docker/docker-compose.full.yml",
+      "PlatformA/docker/postgresql/docker-compose.yml",
+      "PlatformA/PlatformA.sln",
+      ".github/scripts/migrate_tasks_to_postgres.py"
+    ],
+    "test_coverage": "not_required",
+    "summary": "HIGH risk (패턴 기준), 실제 영향은 신규 sdlc 스키마 생성에 한정. 기존 게임 서비스 미영향."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-04T07:55:52Z",
+      "completed_at": "2026-06-04T07:55:52Z",
+      "summary": "PlatformA.SdlcDB.Lib 신규 생성 — PostgreSQL EF Core 기반 AI_SDLC 상태 저장소. AiJob·AiJobStep·AiFailure·AiModelRun 4개 Entity, sdlc 스키마 분리, Dockerfile.migrator, docker-compose 통합, dry-run 마이그레이션 스크립트."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-04T08:00:00Z",
+      "completed_at": "2026-06-04T08:00:00Z",
+      "summary": "PlatformA.SdlcDB.Lib EF Core 신규 프로젝트 — 4개 Entity, sdlc 스키마 분리(n8n 충돌 방지), Dockerfile.migrator CMD 패턴, docker-compose 통합, dry-run 스크립트 명세 생성. DESIGN_REVIEW: ✅ ADR 준수 (ADR-009 범위 내 구현)."
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-04T09:00:00Z",
+      "summary": "HIGH risk (Migrations/Entities/Context 패턴), 실제 영향은 신규 sdlc 스키마 생성에 한정. 기존 게임 서비스 미영향."
+    }
+  ]
+}
