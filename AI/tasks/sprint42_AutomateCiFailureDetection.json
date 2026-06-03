@@ -1,0 +1,43 @@
+{
+  "sprint": 42,
+  "task": "AutomateCiFailureDetection",
+  "branch": "2026-06-04_AutomateCiFailureDetection",
+  "status": "coding",
+  "created_at": "2026-06-04T08:28:22Z",
+  "completed_at": null,
+  "pr_url": null,
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": null,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 7,
+    "high_risk_files": [],
+    "medium_risk_files": [".claude/skills/done/SKILL.md", ".claude/hooks/session-start.sh"],
+    "low_risk_files": [".github/workflows/auto-format.yml", ".github/scripts/record_failure.py", ".github/scripts/mark_ci_failure.py", ".n8n/workflows/github-failure-monitor.json"],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — SDLC 툴링·스킬·GitHub Actions 개선. 기존 게임 서비스 미영향."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-04T08:28:22Z",
+      "completed_at": "2026-06-04T08:28:22Z",
+      "summary": "CI 실패(format/gate/build) 자동 감지·기록·수정 파이프라인 구축. /done 스킬 format 검증, auto-format.yml, record_failure.py, n8n GitHub 폴링 워크플로, session-start.sh ai_failures 조회."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-04T09:35:00Z",
+      "completed_at": "2026-06-04T09:35:00Z",
+      "summary": "5레이어 자동화 파이프라인 명세 생성. DESIGN_REVIEW: ✅ ADR 준수 (n8n/PostgreSQL ADR-008/009 범위 내 활용, 신규 기술 도입 없음)."
+    }
+  ]
+}
