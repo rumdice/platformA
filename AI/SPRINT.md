@@ -493,9 +493,9 @@
 
 ### 진행 중
 
-- [ ] `docker/mariadb/init/01-create-databases.sql` — MariaDB 최초 기동 시 db_WebApp·db_LogApp 자동 생성
-- [ ] `PlatformA.MySqlDB.Lib/Dockerfile.migrator` — EF Core 마이그레이션 자동화 컨테이너
-- [ ] `docker-compose.full.yml` — db-migrator 서비스 추가, initdb.d 마운트, .env 변수화, SQLite 볼륨, DummyClient profile
-- [ ] `docker/setup.sh` + `docker/setup.ps1` — 인증서 생성 및 .env 초기화 자동화
-- [ ] `docker/.env.example` — 환경변수 템플릿
+- [x] `docker/mariadb/init/01-create-databases.sql` — MariaDB 최초 기동 시 db_WebApp·db_LogApp 자동 생성
+- [x] `PlatformA.MySqlDB.Lib/Dockerfile.migrator` — EF Core 마이그레이션 자동화 컨테이너
+- [x] `docker-compose.full.yml` — db-migrator 서비스 추가, initdb.d 마운트, .env 변수화, SQLite 볼륨, DummyClient profile
+- [x] `docker/setup.sh` + `docker/setup.ps1` — 인증서 생성 및 .env 초기화 자동화
+- [x] `docker/.env.example` — 환경변수 템플릿
 - [ ] 검증: `docker compose up` 후 모든 서비스 healthcheck 통과 확인
