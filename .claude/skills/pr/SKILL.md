@@ -96,14 +96,14 @@ CODE_CHANGED가 있고 IMPACT_NULL이 있으면 **중단**한다:
 > ❌ /pr 중단: 코드 변경이 있지만 /impact가 실행되지 않았습니다.
 >    먼저 /impact를 실행하거나, task JSON의 impact 필드를 수동으로 채운 뒤 /pr을 재실행하세요.
 
-**검사 6 — requirement 미실행 경고 (코드 변경 시)**
+**검사 6 — requirement 미실행 차단**
 ```bash
 REQ_COUNT=$(grep -A5 '"name": "requirement"' "${TASK_FILE}" 2>/dev/null | grep -c '"status": "done"' || echo "0")
 [ "${REQ_COUNT:-0}" -gt 0 ] && REQUIREMENT_DONE="true" || REQUIREMENT_DONE="false"
 ```
-CODE_CHANGED가 있고 REQUIREMENT_DONE이 `false`이면 경고하고 계속한다:
-> ⚠️ /requirement 미실행: 코드 변경이 있지만 요구사항 분석(DESIGN_REVIEW)이 수행되지 않았습니다.
->    ADR 검토가 생략되었을 수 있습니다. 계속 진행합니다.
+REQUIREMENT_DONE이 `false`이면 **중단**한다 (CODE_CHANGED 여부와 무관하게 항상 검사):
+> ❌ /pr 중단: /requirement가 실행되지 않았습니다.
+>    먼저 /requirement를 실행하거나, task JSON의 steps[]에 requirement 단계를 수동으로 추가하세요.
 
 **검사 7 — ADR 미생성 차단 (adr_required)**
 ```bash
