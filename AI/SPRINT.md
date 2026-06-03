@@ -514,6 +514,18 @@
 
 ---
 
+## 스프린트 #37 (2026-06-03 ~)
+**목표**: `/pr` requirement 차단 강화 + sprint35·36 requirement 소급 기록
+
+### 진행 중
+
+- [x] `.claude/skills/pr/SKILL.md` 검사 6 — CODE_CHANGED 무관하게 requirement 미실행 시 차단(❌)으로 강화
+- [x] `.claude/plan/2026-06-03_002_SetupDockerOneClick.md` — sprint35 요구사항 명세 소급 생성
+- [x] `AI/tasks/sprint35_SetupDockerOneClick.json` — requirement 단계 소급 추가
+- [x] sprint36(AddSdlcDockerInfra) requirement 소급: `.claude/plan/2026-06-03_001_AddSdlcDockerInfra.md`
+
+---
+
 ## 스프린트 #38 (2026-06-03 ~)
 **목표**: `/pr` 4.5단계 명세 파일 archived 날짜 의존성 제거
 
