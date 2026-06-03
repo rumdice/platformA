@@ -38,3 +38,5 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-02 | #33 | UpgradeToSystemThreadingLock | claude-sonnet-4-6 | S | — | — | — | feat: System.Threading.Lock 전환 — object _lock 3곳 교체 및 스레드 안전성 테스트 8개 추가 (PR #62) |
 | 2026-06-02 | #34 | FixCostLogCalcWindows | claude-sonnet-4-6 | S | 1556 | 7027484 | 83800 | fix: cost-log duration/token 계산 안정화 — date -d 제거, Python 단일 호출로 통합 (PR #63) |
 | 2026-06-03 | #35 | SetupDockerOneClick | claude-sonnet-4-6 | M | 475 | 11804327 | 65899 | feat: Docker 원클릭 환경 구성 — setup 스크립트·DB 자동생성·EF 마이그레이션·.env 변수화·SQLite 볼륨·DummyClient profile (PR #64) |
+| 2026-06-03 | #36 | AddSdlcDockerInfra | claude-sonnet-4-6 | S | 830 | 10483470 | 32436 | feat: AI_SDLC Phase 3 인프라 Docker 설치 — PostgreSQL 16 + n8n, setup 스크립트, .env.example (PR #65) |
+| 2026-06-03 | #37 | FixRequirementEnforcement | claude-sonnet-4-6 | S | 1586 | 27779817 | 173949 | fix: /pr requirement 차단 강화 + sprint35·36 requirement 소급 기록 (PR #66) |
