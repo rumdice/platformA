@@ -485,3 +485,17 @@
 - [x] `python` → `python3` 폴백 처리 또는 단일 스크립트 호출로 통합
 - [x] `/pr` 스킬 4단계에서 date -d 의존 코드 제거, Python 단일 호출로 교체
 - [x] 검증: 스크립트 로컬 실행 후 duration·tokens 값 정상 출력 확인
+
+---
+
+## 스프린트 #35 (2026-06-03 ~)
+**목표**: 외부 사용자 Docker 원클릭 환경 구성 — setup 스크립트 1회 실행 후 `docker compose up`으로 전체 스택 동작
+
+### 진행 중
+
+- [ ] `docker/mariadb/init/01-create-databases.sql` — MariaDB 최초 기동 시 db_WebApp·db_LogApp 자동 생성
+- [ ] `PlatformA.MySqlDB.Lib/Dockerfile.migrator` — EF Core 마이그레이션 자동화 컨테이너
+- [ ] `docker-compose.full.yml` — db-migrator 서비스 추가, initdb.d 마운트, .env 변수화, SQLite 볼륨, DummyClient profile
+- [ ] `docker/setup.sh` + `docker/setup.ps1` — 인증서 생성 및 .env 초기화 자동화
+- [ ] `docker/.env.example` — 환경변수 템플릿
+- [ ] 검증: `docker compose up` 후 모든 서비스 healthcheck 통과 확인
