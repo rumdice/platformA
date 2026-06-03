@@ -2,9 +2,9 @@
   "sprint": 40,
   "task": "AddAdrAndImproveDesignReview",
   "branch": "2026-06-03_AddAdrAndImproveDesignReview",
-  "status": "coding",
+  "status": "done",
   "created_at": "2026-06-03T13:15:18Z",
-  "completed_at": null,
+  "completed_at": "2026-06-03T04:26:06Z",
   "pr_url": "https://github.com/rumdice/platformA/pull/69",
   "retry_count": 0,
   "last_error": null,
@@ -30,6 +30,13 @@
       "started_at": "2026-06-03T13:20:00Z",
       "completed_at": "2026-06-03T13:20:00Z",
       "summary": "ADR-008·009 소급 생성 및 SKILL.md DESIGN_REVIEW 체크리스트 추가 명세 생성. DESIGN_REVIEW: ✅ ADR 준수 (이 작업 자체는 신규 기술 도입 없음)."
+    },
+    {
+      "name": "merge_sync",
+      "status": "done",
+      "started_at": "2026-06-03T04:26:06Z",
+      "completed_at": "2026-06-03T04:26:06Z",
+      "summary": "PR #69 merged and SDLC state synchronized"
     }
   ]
 }

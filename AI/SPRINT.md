@@ -555,6 +555,6 @@
 
 ### 진행 중
 
-- [ ] `AI/adr/008-n8n-event-orchestrator.md` — n8n 이벤트 오케스트레이터 채택 ADR 생성
-- [ ] `AI/adr/009-postgresql-sdlc-db.md` — PostgreSQL SDLC 전용 DB 채택 ADR 생성
-- [ ] `.claude/skills/requirement/SKILL.md` — DESIGN_REVIEW 5단계에 기술 도입 체크리스트 추가
+- [x] `AI/adr/008-n8n-event-orchestrator.md` — n8n 이벤트 오케스트레이터 채택 ADR 생성
+- [x] `AI/adr/009-postgresql-sdlc-db.md` — PostgreSQL SDLC 전용 DB 채택 ADR 생성
+- [x] `.claude/skills/requirement/SKILL.md` — DESIGN_REVIEW 5단계에 기술 도입 체크리스트 추가
