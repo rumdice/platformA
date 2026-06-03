@@ -499,3 +499,15 @@
 - [x] `docker/setup.sh` + `docker/setup.ps1` — 인증서 생성 및 .env 초기화 자동화
 - [x] `docker/.env.example` — 환경변수 템플릿
 - [x] 검증: `docker compose up` 후 모든 서비스 healthcheck 통과 확인
+
+---
+
+## 스프린트 #36 (2026-06-03 ~)
+**목표**: Phase 3 AI_SDLC 인프라 Docker 설치 — PostgreSQL(ai_sdlc 전용) + n8n 로컬 구동
+
+### 진행 중
+
+- [x] `docker/sdlc/docker-compose.yml` — PostgreSQL 16 + n8n 서비스 정의
+- [x] `docker/sdlc/.env.example` — SDLC 인프라 환경변수 템플릿
+- [x] `docker/sdlc/setup-sdlc.sh` + `setup-sdlc.ps1` — 원터치 SDLC 스택 시작 스크립트
+- [x] 검증: `docker compose up` 후 PostgreSQL 연결 및 n8n UI 접근 확인

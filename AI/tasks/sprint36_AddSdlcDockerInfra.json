@@ -1,0 +1,54 @@
+{
+  "sprint": 36,
+  "task": "AddSdlcDockerInfra",
+  "branch": "2026-06-03_AddSdlcDockerInfra",
+  "status": "done",
+  "created_at": "2026-06-03T02:30:13Z",
+  "completed_at": "2026-06-03T02:44:03Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/65",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": 830,
+  "consume_tokens": 10483470,
+  "cache_tokens": 32436,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 4,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      "docker/sdlc/docker-compose.yml",
+      "docker/sdlc/.env.example",
+      "docker/sdlc/setup-sdlc.sh",
+      "docker/sdlc/setup-sdlc.ps1"
+    ],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — Docker/인프라 파일만 추가, C# 프로덕션 코드 무영향"
+  },
+  "steps": [
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-03T02:30:13Z",
+      "completed_at": "2026-06-03T02:30:13Z",
+      "summary": "PostgreSQL 16 + n8n을 docker/sdlc/ 폴더 패턴으로 설치, 기존 게임 인프라와 독립 운영. ADR-004 준수, 신규 ADR 불필요 (소급 기록)"
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-03T02:32:00Z",
+      "summary": "LOW risk — Docker/인프라 파일만 추가, C# 프로덕션 코드 무영향"
+    },
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-03T02:30:13Z",
+      "completed_at": "2026-06-03T02:30:13Z",
+      "summary": "Phase 3 AI_SDLC용 PostgreSQL과 n8n을 기존 redis/mariadb와 동일한 docker/sdlc/ 폴더 패턴으로 Docker 설치한다."
+    }
+  ]
+}
