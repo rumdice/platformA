@@ -27,7 +27,9 @@
         "allow": [
             "Bash(*)",
             "Edit(**)",
-            "Write(**)"
+            "Write(**)",
+            "Edit(.claude/**)",
+            "Write(.claude/**)"
         ],
         "additionalDirectories": [
             "C:\\Users\\rumdi\\.claude\\plans"
