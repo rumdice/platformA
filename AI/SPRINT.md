@@ -519,5 +519,5 @@
 
 ### 진행 중
 
-- [ ] `.claude/skills/pr/SKILL.md` 4.5단계 — `${TODAY}_*_${PLAN_NAME}` → `*_${PLAN_NAME}` 패턴으로 교체
-- [ ] 검증: 날짜가 달라도 명세 파일이 `processed/`로 이동되는지 확인
+- [x] `.claude/skills/pr/SKILL.md` 4.5단계 — `${TODAY}_*_${PLAN_NAME}` → `*_${PLAN_NAME}` 패턴으로 교체
+- [x] 검증: 날짜가 달라도 명세 파일이 `processed/`로 이동되는지 확인
