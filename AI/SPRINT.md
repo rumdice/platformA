@@ -558,3 +558,19 @@
 - [x] `AI/adr/008-n8n-event-orchestrator.md` — n8n 이벤트 오케스트레이터 채택 ADR 생성
 - [x] `AI/adr/009-postgresql-sdlc-db.md` — PostgreSQL SDLC 전용 DB 채택 ADR 생성
 - [x] `.claude/skills/requirement/SKILL.md` — DESIGN_REVIEW 5단계에 기술 도입 체크리스트 추가
+
+---
+
+## 스프린트 #41 (2026-06-04 ~)
+**목표**: AI_SDLC Phase 3 PostgreSQL 상태 저장소 MVP — `PlatformA.SdlcDB.Lib` EF Core 기반 구축
+
+### 진행 중
+
+- [ ] `PlatformA.SdlcDB.Lib` 프로젝트 생성 + sln 등록 + csproj (Npgsql 9.x)
+- [ ] `AiJob` / `AiJobStep` / `AiFailure` / `AiModelRun` Entity 생성
+- [ ] `SdlcDbContext` + IDesignTimeDbContextFactory (sdlc 스키마 분리)
+- [ ] `InitialSdlcDb` EF Core Migration 생성
+- [ ] `Dockerfile.migrator` 생성 (CMD 패턴, dotnet-ef 9.*)
+- [ ] `docker-compose.full.yml` + `docker/postgresql/docker-compose.yml` — sdlc-db-migrator 추가
+- [ ] `.github/scripts/migrate_tasks_to_postgres.py --dry-run` 구현
+- [ ] 검증: dotnet build + ef database update + dry-run 실행 확인
