@@ -23,6 +23,13 @@
       "started_at": "2026-06-04T07:55:52Z",
       "completed_at": "2026-06-04T07:55:52Z",
       "summary": "PlatformA.SdlcDB.Lib 신규 생성 — PostgreSQL EF Core 기반 AI_SDLC 상태 저장소. AiJob·AiJobStep·AiFailure·AiModelRun 4개 Entity, sdlc 스키마 분리, Dockerfile.migrator, docker-compose 통합, dry-run 마이그레이션 스크립트."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-04T08:00:00Z",
+      "completed_at": "2026-06-04T08:00:00Z",
+      "summary": "PlatformA.SdlcDB.Lib EF Core 신규 프로젝트 — 4개 Entity, sdlc 스키마 분리(n8n 충돌 방지), Dockerfile.migrator CMD 패턴, docker-compose 통합, dry-run 스크립트 명세 생성. DESIGN_REVIEW: ✅ ADR 준수 (ADR-009 범위 내 구현)."
     }
   ]
 }
