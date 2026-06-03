@@ -9,7 +9,7 @@
   "retry_count": 0,
   "last_error": null,
   "artifacts": [],
-  "test_generated": false,
+  "test_generated": true,
   "review_completed": false,
   "adr_required": false,
   "duration_sec": null,
