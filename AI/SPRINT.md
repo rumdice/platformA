@@ -498,4 +498,4 @@
 - [x] `docker-compose.full.yml` — db-migrator 서비스 추가, initdb.d 마운트, .env 변수화, SQLite 볼륨, DummyClient profile
 - [x] `docker/setup.sh` + `docker/setup.ps1` — 인증서 생성 및 .env 초기화 자동화
 - [x] `docker/.env.example` — 환경변수 템플릿
-- [ ] 검증: `docker compose up` 후 모든 서비스 healthcheck 통과 확인
+- [x] 검증: `docker compose up` 후 모든 서비스 healthcheck 통과 확인
