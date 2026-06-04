@@ -44,3 +44,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-03 | #39 | RestructureDockerSdlcInfra | claude-sonnet-4-6 | L | — | — | — | refactor: docker/sdlc 폴더를 n8n·postgresql 독립 폴더로 분리, full compose 통합 |
 | 2026-06-03 | #40 | AddAdrAndImproveDesignReview | claude-sonnet-4-6 | M | — | — | — | docs: ADR-008(n8n)·ADR-009(PostgreSQL) 소급 생성 + DESIGN_REVIEW 워크플로 개선 |
 | 2026-06-03 | #41 | AddSdlcDbLib | claude-sonnet-4-6 | L | — | — | — | feat: PlatformA.SdlcDB.Lib — AI_SDLC Phase 3 PostgreSQL EF Core 상태 저장소 MVP [risk:HIGH] |
+| 2026-06-04 | #42 | AutomateCiFailureDetection | claude-sonnet-4-6 | M | — | — | — | feat: CI 실패 자동 감지·기록·수정 파이프라인 (n8n + PostgreSQL 기반) [risk:LOW] |

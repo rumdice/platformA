@@ -582,9 +582,9 @@
 
 ### 진행 중
 
-- [ ] `/done` 스킬 — `dotnet format --verify-no-changes` 검증 + 실패 시 자동 수정·재커밋
-- [ ] `.github/workflows/auto-format.yml` — CI format 실패 시 자동 fix 커밋·재실행
-- [ ] `.github/scripts/record_failure.py` — ai_failures PostgreSQL INSERT 헬퍼
-- [ ] `.github/scripts/check_sdlc_gate.py` 수정 — gate 실패 시 record_failure 기록
-- [ ] `.n8n/workflows/github-failure-monitor.json` — GitHub API 폴링 → 실패 감지 → PostgreSQL INSERT
-- [ ] `.claude/hooks/session-start.sh` 수정 — ai_failures 미해결 건 조회·표시
+- [x] `/done` 스킬 — `dotnet format --verify-no-changes` 검증 + 실패 시 자동 수정·재커밋
+- [x] `.github/workflows/auto-format.yml` — CI format 실패 시 자동 fix 커밋·재실행
+- [x] `.github/scripts/record_failure.py` — ai_failures PostgreSQL INSERT 헬퍼
+- [x] `.github/scripts/check_sdlc_gate.py` 수정 — gate 실패 시 record_failure 기록
+- [x] `.n8n/workflows/github-failure-monitor.json` — GitHub API 폴링 → 실패 감지 → PostgreSQL INSERT
+- [x] `.claude/hooks/session-start.sh` 수정 — ai_failures 미해결 건 조회·표시
