@@ -100,12 +100,12 @@ def list_unresolved(branch: str) -> list[dict]:
                 cur.execute("""
                     SELECT failure_type, message, created_at, metadata
                     FROM sdlc.ai_failures
-                    WHERE resolved = false AND metadata->>'branch' = %s::text
+                    WHERE resolved = false AND (metadata::jsonb)->>'branch' = %s
                     ORDER BY created_at DESC LIMIT 5
                 """, (branch,))
             else:
                 cur.execute("""
-                    SELECT failure_type, metadata->>'branch', message, created_at
+                    SELECT failure_type, (metadata::jsonb)->>'branch', message, created_at
                     FROM sdlc.ai_failures
                     WHERE resolved = false
                     ORDER BY created_at DESC LIMIT 10
