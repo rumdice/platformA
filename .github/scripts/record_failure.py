@@ -100,7 +100,7 @@ def list_unresolved(branch: str) -> list[dict]:
                 cur.execute("""
                     SELECT failure_type, message, created_at, metadata
                     FROM sdlc.ai_failures
-                    WHERE resolved = false AND metadata->>'branch' = %s
+                    WHERE resolved = false AND metadata->>'branch' = %s::text
                     ORDER BY created_at DESC LIMIT 5
                 """, (branch,))
             else:
@@ -130,7 +130,7 @@ def resolve(branch: str, failure_type: str) -> bool:
             cur.execute("""
                 UPDATE sdlc.ai_failures
                 SET resolved = true, resolved_at = %s
-                WHERE metadata->>'branch' = %s AND failure_type = %s AND resolved = false
+                WHERE metadata->>'branch' = %s::text AND failure_type = %s AND resolved = false
             """, (datetime.now(timezone.utc), branch, failure_type))
         conn.commit()
         print(f"[record_failure] ✓ 해결 처리: {failure_type} / {branch}")
