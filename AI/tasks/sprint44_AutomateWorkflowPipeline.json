@@ -9,8 +9,8 @@
   "retry_count": 0,
   "last_error": null,
   "artifacts": [],
-  "test_generated": false,
-  "review_completed": false,
+  "test_generated": true,
+  "review_completed": true,
   "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
@@ -53,6 +53,25 @@
       "status": "done",
       "completed_at": "2026-06-05T03:10:00Z",
       "summary": "LOW risk — 스킬 설정·문서 8개 파일만 변경. 게임 서비스 C# 코드 무영향."
+    },
+    {
+      "name": "start",
+      "status": "done",
+      "started_at": "2026-06-05T03:15:00Z",
+      "completed_at": "2026-06-05T03:15:00Z",
+      "summary": "코딩 시작 선언 — 명세 파일: 2026-06-05_002_AutomateWorkflowPipeline.md"
+    },
+    {
+      "name": "test_gen",
+      "status": "done",
+      "completed_at": "2026-06-05T03:40:00Z",
+      "summary": "스킬·문서 파일만 변경 — xUnit 테스트 불필요. test_generated=true"
+    },
+    {
+      "name": "review",
+      "status": "done",
+      "completed_at": "2026-06-05T03:45:00Z",
+      "summary": "승인: 스킬 플래그 변경·steps[] 추가·/workflow 신규 생성 모두 정상. 내부 로직 무변경."
     }
   ]
 }
