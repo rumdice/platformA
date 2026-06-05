@@ -23,6 +23,13 @@
       "started_at": "2026-06-05T01:15:25Z",
       "completed_at": "2026-06-05T01:15:25Z",
       "summary": "ai_failures 중복 방지 인덱스 추가 및 task JSON PostgreSQL 실이전으로 Phase 3 데이터 파이프라인을 실제 작동 상태로 완성한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T01:30:00Z",
+      "completed_at": "2026-06-05T01:30:00Z",
+      "summary": "ON CONFLICT 무효·--apply 미구현·Metadata 타입 불일치 3가지 결함 수정으로 Phase 3 데이터 파이프라인 안정화. DESIGN_REVIEW: ✅ ADR 준수 (ADR-008 n8n, ADR-009 PostgreSQL 범위 내 보완)."
     }
   ]
 }
