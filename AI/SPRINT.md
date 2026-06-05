@@ -631,3 +631,19 @@
 - [x] `.github/workflows/auto-fix.yml` — repository_dispatch → /qa-failure 자동 수정
 - [x] `.n8n/workflows/github-failure-monitor.json` — fixable_by_ai 필터 + dispatch 노드 추가
 - [x] `AI/AI_SDLC(pipeline).txt` — Phase3 완성도 ~90% 업데이트
+
+---
+
+## 스프린트 #48 (2026-06-05 ~)
+**목표**: PostgreSQL primary 전환 — task JSON 파일을 secondary로 강등, DB를 상태 진실원으로 격상
+
+### 진행 중
+
+- [ ] `.github/scripts/db_write.py` — 신규 헬퍼: ai_jobs INSERT/UPDATE, ai_job_steps INSERT (psycopg2, ON CONFLICT 지원, 파일 fallback)
+- [ ] `.claude/skills/plan/SKILL.md` — task JSON Write와 동시에 ai_jobs INSERT 추가
+- [ ] `.claude/skills/start/SKILL.md` — task JSON Edit(status→coding)과 동시에 ai_jobs UPDATE 추가
+- [ ] `.claude/skills/done/SKILL.md` — steps[] 기록과 동시에 ai_job_steps INSERT 추가
+- [ ] `.claude/skills/pr/SKILL.md` — task JSON status=done 갱신과 동시에 ai_jobs UPDATE 추가
+- [ ] `.claude/skills/test-gen/SKILL.md`, `review/SKILL.md`, `impact/SKILL.md` — steps[] → ai_job_steps INSERT 추가
+- [ ] 게이트 검사 SQL 전환: /pr 스킬의 grep 기반 검사를 DB SELECT로 교체 (파일 fallback 유지)
+- [ ] `migrate_tasks_to_postgres.py --apply` 실행하여 기존 45개 task JSON DB 이전 확인
