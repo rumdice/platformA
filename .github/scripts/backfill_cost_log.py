@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 
 def find_repo_root() -> Path:
@@ -29,14 +30,14 @@ def find_repo_root() -> Path:
         return Path.cwd()
 
 
-def find_task_json(repo_root: Path, sprint_num: int) -> Path | None:
+def find_task_json(repo_root: Path, sprint_num: int) -> Optional[Path]:
     """AI/tasks/sprint{N}_*.json 파일을 탐색한다."""
     pattern = str(repo_root / "AI" / "tasks" / f"sprint{sprint_num}_*.json")
     matches = glob.glob(pattern)
     return Path(matches[0]) if matches else None
 
 
-def get_created_at(task_file: Path) -> str | None:
+def get_created_at(task_file: Path) -> Optional[str]:
     """task JSON에서 created_at을 추출한다."""
     try:
         with open(task_file, encoding="utf-8") as f:

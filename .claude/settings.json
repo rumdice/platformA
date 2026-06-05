@@ -29,8 +29,8 @@
             "PowerShell(*)",
             "Edit(**)",
             "Write(**)",
-            "Edit(.claude/**)",
-            "Write(.claude/**)"
+            "Read(**)",
+            "Skill(*)"
         ],
         "additionalDirectories": [
             "C:\\Users\\rumdi\\.claude\\plans"
