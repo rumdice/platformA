@@ -2,20 +2,31 @@
   "sprint": 46,
   "task": "AddModelRunsIntegration",
   "branch": "2026-06-05_AddModelRunsIntegration",
-  "status": "analyzing",
+  "status": "coding",
   "created_at": "2026-06-05T04:14:00Z",
   "completed_at": null,
   "pr_url": null,
   "retry_count": 0,
   "last_error": null,
   "artifacts": [],
-  "test_generated": false,
+  "test_generated": true,
   "review_completed": false,
   "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
-  "impact": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 2,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      ".github/scripts/insert_model_run.py",
+      ".claude/skills/pr/SKILL.md"
+    ],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — C# 코드 무변경. Python 스크립트 신규 + 스킬 문서 수정."
+  },
   "steps": [
     {
       "name": "plan",
@@ -23,6 +34,32 @@
       "started_at": "2026-06-05T04:14:00Z",
       "completed_at": "2026-06-05T04:14:00Z",
       "summary": "/pr 스킬 완료 시 count_tokens.py 결과를 sdlc.ai_model_runs 테이블에 INSERT하여 비용 대시보드 데이터를 축적한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T04:20:00Z",
+      "completed_at": "2026-06-05T04:20:00Z",
+      "summary": "insert_model_run.py 신규 작성 + /pr SKILL.md 5단계 추가. DESIGN_REVIEW: ADR-009 범위 내, 신규 ADR 불필요."
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-05T04:25:00Z",
+      "summary": "LOW risk — C# 코드 무변경. Python 스크립트 신규 + 스킬 문서 수정."
+    },
+    {
+      "name": "start",
+      "status": "done",
+      "started_at": "2026-06-05T04:28:00Z",
+      "completed_at": "2026-06-05T04:28:00Z",
+      "summary": "코딩 시작 선언 — 명세 파일: 2026-06-05_004_AddModelRunsIntegration.md"
+    },
+    {
+      "name": "test_gen",
+      "status": "done",
+      "completed_at": "2026-06-05T04:35:00Z",
+      "summary": "불필요: C# 소스 코드 변경 없음 — Python 스크립트·스킬 문서만 수정"
     }
   ]
 }
