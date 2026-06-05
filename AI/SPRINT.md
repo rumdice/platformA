@@ -643,3 +643,16 @@
 - [x] `.claude/skills/pr/SKILL.md` — 4단계(cost-log 기록) 완료 후 insert_model_run.py 호출 추가
 - [x] 로컬 PostgreSQL 환경에서 실제 INSERT 검증 (ai_model_runs 행 확인)
 - [x] cost-log.md 병행 유지 확인 (DB 연결 실패 시에도 cost-log.md는 정상 기록)
+
+---
+
+## 스프린트 #47 (2026-06-05 ~)
+**목표**: LLM 라우터 — impact.risk 기반 Haiku/Sonnet/Opus 자동 선택
+
+### 진행 중
+
+- [x] `.github/scripts/get_task_risk.py` — 신규: task JSON의 impact.risk 읽어 출력 (LOW/MEDIUM/HIGH, 기본값 MEDIUM)
+- [x] `.claude/skills/workflow/SKILL.md` — /impact 완료 후 get_task_risk.py 호출 → `--model` 플래그 변수화하여 이후 스킬 호출에 적용
+- [x] `.github/workflows/auto-fix.yml` — failure_type별 모델 선택 (FORMAT→haiku, BUILD/TEST→sonnet)
+- [x] `.github/workflows/plan-file-trigger.yml` — 계획 파일 헤더 `risk:` 힌트 파싱 → 기본 모델 결정
+- [x] /workflow 스킬 체인에서 --model 플래그 전파 검증 (각 스킬 subprocess 호출 확인)

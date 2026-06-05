@@ -50,6 +50,25 @@ jobs:
         if: steps.detect.outputs.found == 'true'
         run: npm install -g @anthropic-ai/claude-code
 
+      - name: 계획 파일 위험도 파싱 및 모델 선택
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          PLAN_FILE="${{ steps.detect.outputs.plan_file }}"
+          RISK=$(head -10 "$PLAN_FILE" | grep -i "^risk:" | head -1 | cut -d: -f2 | tr -d ' ' | tr '[:lower:]' '[:upper:]' || echo "")
+          case "$RISK" in
+            LOW)
+              MODEL="claude-haiku-4-5-20251001"
+              ;;
+            HIGH)
+              MODEL="claude-opus-4-8"
+              ;;
+            *)
+              MODEL="claude-sonnet-4-6"
+              ;;
+          esac
+          echo "MODEL=$MODEL" >> $GITHUB_ENV
+          echo "Selected model: $MODEL (risk=$RISK)"
+
       - name: /workflow 자동 실행
         if: steps.detect.outputs.found == 'true'
         env:
@@ -58,4 +77,4 @@ jobs:
         run: |
           git config user.name "claude-code[bot]"
           git config user.email "claude-code[bot]@users.noreply.github.com"
-          claude --dangerously-skip-permissions -p "/workflow"
+          claude --model "${MODEL}" --dangerously-skip-permissions -p "/workflow"
