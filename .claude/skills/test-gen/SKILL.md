@@ -116,7 +116,20 @@ ls PlatformA/PlatformA.Tests.*/ 2>/dev/null
 
 ### 5단계: task JSON 갱신
 
-TASK_FILE이 있으면 Edit 도구로 `"test_generated": false`를 `"test_generated": true`로 교체한다.
+TASK_FILE이 있으면 Edit 도구로 아래 두 가지를 갱신한다:
+
+1. `"test_generated": false` → `"test_generated": true`
+
+2. `steps[]` 배열에 아래 항목을 추가한다:
+```json
+{
+  "name": "test_gen",
+  "status": "done",
+  "completed_at": "{ISO8601 현재 시각}",
+  "summary": "{결과}: {테스트 대상 파일 수}개 파일 분석, {생성 완료/불필요} 판정"
+}
+```
+
 없으면 이 단계를 건너뛴다.
 
 ---
