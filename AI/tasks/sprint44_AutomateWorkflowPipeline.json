@@ -15,7 +15,24 @@
   "duration_sec": null,
   "consume_tokens": null,
   "cache_tokens": null,
-  "impact": null,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 8,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      ".claude/skills/done/SKILL.md",
+      ".claude/skills/pr/SKILL.md",
+      ".claude/skills/review/SKILL.md",
+      ".claude/skills/start/SKILL.md",
+      ".claude/skills/test-gen/SKILL.md",
+      ".claude/skills/workflow/SKILL.md",
+      "CLAUDE.md",
+      "AI/AI_SDLC(pipeline).txt"
+    ],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — 스킬 설정·문서 파일만 변경. 게임 서비스 C# 코드 무영향."
+  },
   "steps": [
     {
       "name": "plan",
@@ -30,6 +47,12 @@
       "started_at": "2026-06-05T03:00:00Z",
       "completed_at": "2026-06-05T03:00:00Z",
       "summary": "스킬 5개 수정(disable-model-invocation 해제, steps[] 추가, allowed-tools 보완) + /workflow 오케스트레이터 신규 생성. DESIGN_REVIEW: ✅ ADR 준수."
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-05T03:10:00Z",
+      "summary": "LOW risk — 스킬 설정·문서 8개 파일만 변경. 게임 서비스 C# 코드 무영향."
     }
   ]
 }
