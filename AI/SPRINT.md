@@ -610,8 +610,8 @@
 
 ### 진행 중
 
-- [ ] `/done` · `/pr` — `disable-model-invocation: true` → `false` (Claude Skill 도구 호출 허용)
-- [ ] `/review` — `allowed-tools` 선언 추가 + `steps[]` 기록 로직 추가
-- [ ] `/start` · `/test-gen` — `steps[]` 기록 로직 추가
-- [ ] `/workflow` 오케스트레이터 스킬 신규 생성 (plan → pr 전체 체인)
-- [ ] `CLAUDE.md` · `AI/AI_SDLC(pipeline).txt` — 자동화 모드 문서화
+- [x] `/done` · `/pr` — `disable-model-invocation: true` → `false` (Claude Skill 도구 호출 허용)
+- [x] `/review` — `allowed-tools` 선언 추가 + `steps[]` 기록 로직 추가
+- [x] `/start` · `/test-gen` — `steps[]` 기록 로직 추가
+- [x] `/workflow` 오케스트레이터 스킬 신규 생성 (plan → pr 전체 체인)
+- [x] `CLAUDE.md` · `AI/AI_SDLC(pipeline).txt` — 자동화 모드 문서화

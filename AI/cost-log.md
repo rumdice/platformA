@@ -46,3 +46,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-03 | #41 | AddSdlcDbLib | claude-sonnet-4-6 | L | — | — | — | feat: PlatformA.SdlcDB.Lib — AI_SDLC Phase 3 PostgreSQL EF Core 상태 저장소 MVP [risk:HIGH] |
 | 2026-06-04 | #42 | AutomateCiFailureDetection | claude-sonnet-4-6 | M | — | — | — | feat: CI 실패 자동 감지·기록·수정 파이프라인 (n8n + PostgreSQL 기반) [risk:LOW] |
 | 2026-06-05 | #43 | StabilizeSdlcPhase3DataFlow | claude-sonnet-4-6 | L | — | — | — | feat: AI_SDLC Phase 3 데이터 흐름 안정화 — ai_failures 중복 방지 및 task JSON DB 이전 [risk:HIGH] |
+| 2026-06-05 | #44 | AutomateWorkflowPipeline | claude-sonnet-4-6 | L | — | — | — | feat: 워크플로 완전 자동화 기반 구축 — /workflow 오케스트레이터 + 스킬 차단 요인 제거 [risk:LOW] |
