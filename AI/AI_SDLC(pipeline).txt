@@ -41,8 +41,31 @@ Phase1 내 프로젝트의 AI 문서와 스킬의 사용 목적을 명확히 정
 Phase2 (완료 — 단기 TODO 4종 완료 2026-05-21 스프린트 #22 PR #44, /test-gen 추가 2026-05-22 스프린트 #24)
 1. Phase1의 개선된 부분을 반영하여 2. PDF 문서와 비교한 이 프로젝트의 가장 큰 문제점 에 반영하고 갱신한다.
 
-Phase3  (진행예정)
-1. AI 및 Skill의 공정을 분석하고 공정이 큰 작업의 경우 분리를 준비한다.
+Phase3  (진행 중 — 약 55% 완료, 2026-06-05 기준)
+
+완료:
+  [완료] PostgreSQL 상태 저장소 (SdlcDB.Lib — Sprint #41, PR #70)
+      - ai_jobs / ai_job_steps / ai_failures / ai_model_runs 테이블
+      - sdlc 스키마 분리 (n8n 충돌 방지)
+      - Dockerfile.migrator + docker-compose 통합
+  [완료] n8n CI 실패 감지 파이프라인 (Sprint #42, PR #71)
+      - /done 스킬 format 자동 검증 + 수정 커밋
+      - auto-format.yml: CI format 실패 시 자동 fix 커밋 재실행
+      - mark_ci_failure.py: 실패 유형 분류 + task JSON last_error + PR 댓글
+      - n8n GitHub CI Failure Monitor: 10분 폴링 → ai_failures INSERT
+      - session-start.sh: 미해결 ai_failures 조회 표시
+  [완료] ai_failures 중복 방지 + task JSON PostgreSQL 이전 (Sprint #43, PR #72)
+      - EF Core Migration: partial unique index (git_hub_run_id, git_hub_job_id, failure_type) WHERE NOT NULL
+      - AiFailure: Metadata jsonb 타입 변환, GitHub identity 컬럼 5개 추가
+      - migrate_tasks_to_postgres.py --apply: 24개 task JSON → sdlc.ai_jobs 이전 (멱등성)
+      - record_failure.py: GitHub identity 컬럼 지원 + ON CONFLICT
+      - n8n INSERT: git_hub_run_id/git_hub_job_id 직접 컬럼 + ON CONFLICT 정합
+
+미완 (Phase 3 핵심 루프):
+  [미완] n8n → Claude API 호출 → 자동 수정 커밋 → CI 재실행 루프
+  [미완] build/test 실패 자동 수정
+  [미완] PR 자동 머지
+  [미완] LLM 라우터 (Haiku/Sonnet/Opus 복잡도별 선택)
 -----
 
 
@@ -61,6 +84,9 @@ Phase3  (진행예정)
 /pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
 [GitHub Actions]      → sdlc-gate-check.yml  — PR 단계 SDLC 공정 자동 검사 (2차 방어선)
 [GitHub Actions]      → pr-merge-sync.yml    — 머지 후 task JSON·SPRINT·cost-log 자동 동기화
+[GitHub Actions ci]   → 실패 시 mark_ci_failure.py → task JSON last_error + PR 댓글 + AI_SDLC_FAILURE_RECORD 마커
+[GitHub Actions]      → auto-format.yml — CI format 실패 시 자동 fix 커밋 후 재실행
+[n8n]                 → GitHub CI Failure Monitor (10분 폴링) → sdlc.ai_failures INSERT (ON CONFLICT 중복 방지)
 ```
 
 스킬-단계 매핑:
@@ -102,7 +128,7 @@ Phase3  (진행예정)
 
 -----
 
-작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-05-30, 스프린트 #31)
+작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-06-05, 스프린트 #43)
 
 0. USER_PLAN  ←  /plan 스킬
 기능 : 사용자가 작업 설명을 입력하면 LLM이 분석하여 계획을 수립하고, 브랜치와 task JSON을 생성한다.
@@ -314,16 +340,18 @@ TODO:
 
 ★ 장기 (Phase 3 — 자동화 인프라)
 ------
-8. PostgreSQL 상태 DB 도입
-   - cost-log.md → ai_model_runs 테이블 마이그레이션 (cost-log.md 에도 명시됨)
-   - ai_jobs + ai_job_steps 테이블로 단계별 이력 추적
-   - 현재 task JSON 파일 구조를 DB 스키마로 전환
+8. PostgreSQL 상태 DB 도입 [완료 — Sprint #41, #43]
+   - ai_jobs + ai_job_steps + ai_failures + ai_model_runs 테이블 구현
+   - ai_failures: partial unique index + ON CONFLICT 중복 방지
+   - migrate_tasks_to_postgres.py --apply: task JSON → PostgreSQL 이전
+   - 미완: cost-log.md → ai_model_runs 연동, PostgreSQL을 primary source로 전환
 
-9. n8n 오케스트레이션 도입 (역할 분리 섹션 3번 계획과 일치)
-   - 사용자 수동 /plan, /done → n8n 자동 트리거로 전환
-   - webhook 수신 → 태스크 큐 등록 → AI Worker 실행 → GoCD 검증
+9. n8n 오케스트레이션 도입 [부분 완료 — Sprint #42, #43]
+   - GitHub CI Failure Monitor: 10분 폴링 → 실패 감지 → ai_failures INSERT
+   - 미완: n8n → Claude API 호출 → 자동 수정 커밋 루프
+   - 미완: webhook 수신 → 태스크 큐 등록 → AI Worker 실행
 
-10. LLM 라우터
+10. LLM 라우터 [미구현]
     - 태스크 복잡도에 따라 모델 자동 선택
     - 단순(S): haiku, 중간(M): sonnet, 복잡(L/XL): opus
 

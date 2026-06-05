@@ -1,7 +1,7 @@
 # AI SDLC 워크플로 갭 분석 보고서
 
 작성일: 2026-05-19  
-최종 갱신: 2026-05-21 (스프린트 #22 완료 반영)  
+최종 갱신: 2026-06-05 (스프린트 #43 완료 반영 — Phase 3 진행 중 ~55%)  
 작성 목적: 엔터프라이즈 AI SDLC 플랫폼 설계(PDF)와 현재 프로젝트 AI 워크플로 비교 → 개선 로드맵 수립
 
 ---
@@ -81,16 +81,24 @@ PENDING → ANALYZING → DESIGNING → CODING → TESTING → QA_ANALYZING → 
 | 스킬 | 역할 |
 |------|------|
 | `/plan` | 브랜치 생성 + SPRINT.md 업데이트 + task JSON 초기화 |
-| `/done` | 빌드·포맷·테스트 → push → PR 생성 + cost-log 자동 기록 |
-| `/requirement` | 요구사항 분석 → 구현 명세 파일 생성 (REQUIREMENT_ANALYSIS) |
-| `/impact` | 변경 파일 위험도 분류 + 참조 관계 + 테스트 커버리지 (IMPACT_ANALYSIS) |
+| `/requirement` | 요구사항 분석 → 구현 명세 파일 생성 + DESIGN_REVIEW (Sprint #22) |
+| `/impact` | 변경 파일 위험도 분류 + 참조 관계 + 테스트 커버리지 (Sprint #22) |
+| `/start` | task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력 (Sprint #23) |
+| `/done` | 빌드·포맷·테스트 → push (format 검증 포함 Sprint #42) |
+| `/pr` | PR 생성 + SPRINT 완료 체크 + cost-log 자동 기록 (Sprint #23) |
+| `/test-gen` | 변경 코드 기반 xUnit 테스트 자동 생성 (Sprint #24) |
 | `/review` | 코드 리뷰 보고서 생성 |
-| `/simplify` | 복잡한 코드 단순화 리팩터링 |
-| `/qa-failure` | CI 실패 로그 분석 → BUILD/FORMAT/TEST 분류 → 수정 방향 제시 |
+| `/qa-failure` | CI 실패 로그 분석 → BUILD/FORMAT/TEST 분류 → 수정 방향 제시 (Sprint #28) |
+| `/workreport` | 일일 작업 리포트 자동 생성 (AI/workreport/) |
 | `/doc-writer` | API 가이드 문서 자동 생성 |
 | `/adr` | ADR(Architecture Decision Record) 작성 |
+| `/simplify` | 복잡한 코드 단순화 리팩터링 |
 | `/run-scenarios` | DummyClient 시나리오 검증 |
-| `/clean-build` | dotnet clean → build 캐시 오류 해결 |
+| `[auto-format.yml]` | CI format 실패 시 자동 fix 커밋 재실행 (Sprint #42) |
+| `[n8n CI Monitor]` | GitHub API 폴링 → ai_failures INSERT, 중복 방지 (Sprint #42, #43) |
+| `[mark_ci_failure.py]` | CI 실패 유형 분류 + task JSON last_error + PR 댓글 (Sprint #42) |
+| `[migrate_tasks_to_postgres.py]` | task JSON → sdlc.ai_jobs/ai_job_steps 이전 (Sprint #43) |
+| `[record_failure.py]` | ai_failures 수동 기록, GitHub identity + ON CONFLICT 지원 (Sprint #43) |
 
 ### 2.2 상태 추적 구조
 
@@ -143,16 +151,17 @@ AI/
 
 | 항목 | PDF 설계 | 현재 상태 | 갭 |
 |------|---------|---------|-----|
-| **오케스트레이션** | n8n 자동 트리거 | 사용자 수동 실행 | 자동화 없음 |
-| **상태 DB** | PostgreSQL 6개 테이블 | JSON 파일 | 쿼리·집계 불가 |
-| **상태 머신** | 9단계 + 에러 분기 | 6단계 (analyzing/coding/testing/done/failed) | 부분 해소 (2026-05-21) |
-| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 자동 기록 (파일 수 기반 규모 계산) | 실시간 추적 없음 |
-| **다중 워커** | Worker 분리 + 헬스비트 | 단일 Claude Code 인스턴스 | 병렬 실행 없음 |
-| **Approval Gate** | 고위험 작업 인간 승인 | 없음 (모두 수동) | 게이트 없음 |
-| **LLM 라우터** | 태스크 복잡도별 모델 선택 | 단일 모델 고정 | 비용 최적화 없음 |
-| **보안** | 컨테이너 격리, 화이트리스트 | 없음 | 보안 경계 없음 |
-| **롤백** | 자동 롤백 (Phase 4) | git revert 수동 | 자동 복구 없음 |
-| **모니터링** | 대시보드, 비용 알림 | 없음 | 가시성 없음 |
+| **오케스트레이션** | n8n 자동 트리거 | 사용자 수동 실행 | △ n8n CI 감지·기록 완료 (Sprint #42, #43). AI Worker 트리거 미구현 |
+| **상태 DB** | PostgreSQL 6개 테이블 | JSON 파일 | △ 4개 테이블 구현(ai_jobs/steps/failures/model_runs, Sprint #41, #43). JSON과 병행 운용 중 |
+| **CI 실패 기록** | (PDF 없음) | 없음 | ✅ mark_ci_failure.py + n8n + ai_failures 중복 방지 (Sprint #42, #43) |
+| **상태 머신** | 9단계 + 에러 분기 | 6단계 | 6단계 유지 (analyzing/coding/testing/done/failed/abandoned) |
+| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 자동 기록 (파일 수 기반) | cost-log.md 유지 (ai_model_runs 스키마 존재하나 연동 없음) |
+| **다중 워커** | Worker 분리 + 헬스비트 | 단일 Claude Code 인스턴스 | 동일 (단일 인스턴스) |
+| **Approval Gate** | 고위험 작업 인간 승인 | 없음 | △ sdlc-gate-check.yml이 SDLC 공정 준수 자동 검사로 부분 대체 |
+| **LLM 라우터** | 태스크 복잡도별 모델 선택 | 단일 모델 고정 | 동일 (미구현) |
+| **보안** | 컨테이너 격리, 화이트리스트 | 없음 | 동일 (미구현) |
+| **롤백** | 자동 롤백 (Phase 4) | git revert 수동 | 동일 (수동) |
+| **모니터링** | 대시보드, 비용 알림 | 없음 | session-start.sh 미해결 실패 알림 추가 (Sprint #42) |
 
 ### 3.3 현재 워크플로의 강점
 
@@ -184,8 +193,8 @@ AI/
 | Phase | 목표 | 현재 상태 |
 |-------|------|---------|
 | Phase 1 | 모든 스킬/AI 문서 목적 명확화 | ✅ 완료 — CLAUDE.md, rules/, SPRINT.md, tasks/ 체계 수립 |
-| Phase 2 | PDF 개선사항 적용, 가장 큰 갭 발견 | 🔄 진행 중 — 단기 TODO 4종 완료 (스프린트 #22, PR #44): /impact·/requirement 추가, 상태 머신 6단계, 비용 자동 계산 |
-| Phase 3 | AI/Skill 프로세스 분석, 분리 준비 | ⬜ 미시작 — 상태 DB, 자동화 오케스트레이션 단계 |
+| Phase 2 | PDF 개선사항 적용, 가장 큰 갭 발견 | ✅ 완료 — Sprint #22~31: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, 비용 자동 기록, gate-check 강화 |
+| Phase 3 | 자동화 인프라 구축 | 🔄 진행 중 (~55%) — PostgreSQL 인프라(Sprint #41), n8n CI 감지(Sprint #42), ai_failures 중복 방지 + task JSON 이전(Sprint #43). 미완: n8n→AI Worker 루프, LLM 라우터, 자동 머지 |
 
 ---
 
@@ -239,7 +248,19 @@ AI/
 
 ## 요약
 
-**현재 워크플로는 PDF의 Phase 1 PoC 수준을 상회**하며, 핵심 CODE_FIX/TEST/QA 루프는 완성됨.  
-**스프린트 #22 완료 (2026-05-21)**: REQUIREMENT_ANALYSIS·IMPACT_ANALYSIS 단계 스킬 추가, 상태 머신 6단계, 비용 자동 계산으로 단기 갭 4종 해소.  
-**남은 주요 갭**: ① 자동 오케스트레이션 없음 (Phase 3), ② DESIGN_REVIEW 부분 커버, ③ 실시간 비용 추적 없음.  
-**다음 단계 (pipeline.txt Phase 2 잔여)**: 중기 개선 — 스킬 실행 시간 추적, 주간 비용 리포트, /review 게이트 강화.
+**현재 워크플로는 PDF의 Phase 2 Pilot 수준 진입**. 핵심 CODE_FIX/TEST/QA 루프 완성 + PostgreSQL 상태 DB + n8n CI 감지 파이프라인 구동 중.
+
+**Phase 2 완료 (Sprint #22~31, 2026-05-21~30)**: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, SDLC gate check 강화, ADR 연계, PR 머지 자동 동기화.
+
+**Phase 3 진행 중 (~55%, Sprint #41~43, 2026-06-03~05)**:
+- 완료: PostgreSQL SdlcDB.Lib 4개 테이블 (Sprint #41)
+- 완료: n8n CI 실패 감지 + format 자동 수정 파이프라인 (Sprint #42)
+- 완료: ai_failures 중복 방지(partial unique index) + task JSON DB 이전 (Sprint #43)
+
+**남은 주요 갭 (Phase 3 미완)**:
+① n8n → Claude API 피드백 루프 (실패 감지 → 자동 수정 → CI 재실행)
+② build/test 실패 자동 수정 (format만 현재 자동화됨)
+③ LLM 라우터 (복잡도별 Haiku/Sonnet/Opus 선택)
+④ PostgreSQL primary source 전환 (현재 JSON과 병행)
+
+**2026-06-05 갱신**: SDLC_gap_analysis.md 전면 재평가 완료.
