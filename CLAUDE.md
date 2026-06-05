@@ -30,7 +30,15 @@ YYYY-MM-DD_PlanName
 - `PlanName`: 사용자 설명에서 Claude가 PascalCase로 자동 생성 (최대 30자)
 - 카운터 접미사(`_N`) 없음 — 같은 날 여러 작업은 PlanName으로 구분
 
-### 표준 워크플로
+### 자동화 워크플로 (권장)
+```
+/workflow 작업 설명   → plan부터 pr까지 전체 파이프라인 자동 실행 [완전 자동화]
+  또는
+.claude/plan/에 계획 .md 파일 배치 후 /workflow 실행
+  (사용자가 GitHub에서 PR 검토 후 머지)
+```
+
+### 수동 워크플로 (단계별 실행)
 ```
 /plan 작업 설명    → 설명 분석 → 브랜치 생성 + task JSON 커밋 + SPRINT 등록  [Stage 1]
 /requirement       → 요구사항 상세 분석 + 명세 파일 생성 + 브랜치 커밋         [Stage 2]

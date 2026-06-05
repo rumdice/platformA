@@ -2,6 +2,7 @@
 name: review
 schema_version: 1
 description: PlatformA 프로젝트 코드 리뷰. PR 번호 또는 현재 브랜치 변경사항을 PlatformA 코딩 패턴, 아키텍처 원칙, Definition of Done 기준으로 검토한다.
+allowed-tools: Bash(git *) Bash(grep *) Read Edit
 ---
 
 # PlatformA 코드 리뷰
@@ -75,5 +76,18 @@ CURRENT_BRANCH=$(git branch --show-current)
 TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
 ```
 
-TASK_FILE이 있으면 Edit 도구로 `"review_completed": false`를 `"review_completed": true`로 교체한다.
+TASK_FILE이 있으면 Edit 도구로 아래 두 가지를 갱신한다:
+
+1. `"review_completed": false` → `"review_completed": true`
+
+2. `steps[]` 배열에 아래 항목을 추가한다:
+```json
+{
+  "name": "review",
+  "status": "done",
+  "completed_at": "{ISO8601 현재 시각}",
+  "summary": "{종합 판정 — 승인/조건부 승인/반려}: {주요 발견 사항 1줄}"
+}
+```
+
 없으면 이 단계를 건너뛴다.

@@ -73,14 +73,24 @@ Phase3  (진행 중 — 약 55% 완료, 2026-06-05 기준)
 
 ## 스킬 워크플로 (전체 순서)
 
+### 자동화 모드 (권장)
+```
+/workflow {작업 설명} → [완전 자동화] plan → requirement → impact → start → 코딩 → test-gen → done → review → pr
+  또는
+.claude/plan/에 계획 .md 배치 후 /workflow → 동일 파이프라인 자동 실행
+  (사람이 할 일: PR 검토 + 머지만)
+```
+
+### 수동 모드 (단계별)
 ```
 /plan {작업 설명}     → [Stage 1] 설명 분석 → PlanName 생성 → 브랜치 + task JSON 커밋 + SPRINT 등록
 /requirement          → [Stage 2] 요구사항 상세 분석 + 명세 파일 브랜치 커밋 + DESIGN_REVIEW
 /impact               → 영향 범위·위험도 분석 (코드 수정 전)
-/start                → task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력
+/start                → task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력 + steps[] 기록
   (코딩)
-/test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수)
+/test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수) + steps[] 기록
 /done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
+/review               → 코드 리뷰 + steps[] 기록
 /pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
 [GitHub Actions]      → sdlc-gate-check.yml  — PR 단계 SDLC 공정 자동 검사 (2차 방어선)
 [GitHub Actions]      → pr-merge-sync.yml    — 머지 후 task JSON·SPRINT·cost-log 자동 동기화
@@ -93,6 +103,7 @@ Phase3  (진행 중 — 약 55% 완료, 2026-06-05 기준)
 
 | 단계 | 이름 | 스킬 / 실행 주체 |
 |------|------|-----------------|
+| A | FULL_PIPELINE | /workflow (0~9 전체 자동화 — 자동화 모드 진입점) |
 | 0 | USER_PLAN | — (Plan mode 또는 직접 입력) |
 | 1 | PLAN_BRANCH + 계획 분석 | /plan (Stage 1: 설명 분석 → 브랜치·task JSON 생성) |
 | 2 | REQUIREMENT_ANALYSIS + DESIGN_REVIEW | /requirement (Stage 2: 명세 브랜치 커밋) |

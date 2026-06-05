@@ -16,14 +16,28 @@ allowed-tools: Bash(git *) Bash(ls *) Bash(grep *) Read Edit
 
 ## 수행 순서
 
-### 1단계: task JSON 상태 → "coding"
+### 1단계: task JSON 상태 → "coding" + steps[] 기록
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
 TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
 ```
 
-TASK_FILE이 있으면 Edit 도구로 `"status"` 필드를 `"coding"`으로 교체한다.
+TASK_FILE이 있으면 Edit 도구로 아래 두 가지를 갱신한다:
+
+1. `"status"` 필드를 `"coding"`으로 교체한다.
+
+2. `steps[]` 배열에 아래 항목을 추가한다:
+```json
+{
+  "name": "start",
+  "status": "done",
+  "started_at": "{ISO8601 현재 시각}",
+  "completed_at": "{ISO8601 현재 시각}",
+  "summary": "코딩 시작 선언 — 명세 파일: {탐지된 명세 파일명 또는 '없음'}"
+}
+```
+
 없으면 해당 단계를 건너뛴다.
 
 ---

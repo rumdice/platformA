@@ -2,7 +2,7 @@
 name: done
 schema_version: 1
 description: 현재 브랜치의 BUILD_GATE를 수행한다. 미커밋 변경사항 커밋 → 빌드/포맷/테스트 검증 → push 순서로 진행한다. PR 생성은 /pr 스킬이 담당한다.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash(git *) Bash(dotnet *) Bash(grep *) Read Edit
 ---
 
