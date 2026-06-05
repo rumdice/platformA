@@ -1,0 +1,59 @@
+{
+  "sprint": 43,
+  "task": "StabilizeSdlcPhase3DataFlow",
+  "branch": "2026-06-05_StabilizeSdlcPhase3DataFlow",
+  "status": "testing",
+  "created_at": "2026-06-05T01:15:25Z",
+  "completed_at": null,
+  "pr_url": "https://github.com/rumdice/platformA/pull/72",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": null,
+  "consume_tokens": null,
+  "cache_tokens": null,
+  "impact": {
+    "risk": "HIGH",
+    "changed_files": 8,
+    "high_risk_files": [
+      "PlatformA/PlatformA.SdlcDB.Lib/Entities/AiFailure.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/SdlcDbContext.cs",
+      "PlatformA/PlatformA.SdlcDB.Lib/Migrations/*AddGitHubFailureIdentity*"
+    ],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      ".github/scripts/migrate_tasks_to_postgres.py",
+      ".github/scripts/record_failure.py",
+      ".n8n/workflows/github-failure-monitor.json",
+      "Docs/operations/ai-sdlc-n8n-failure-monitor.md",
+      "Docs/operations/toc.yml"
+    ],
+    "test_coverage": "not_required",
+    "summary": "HIGH risk (EF Core Migration + AlterColumn + partial unique index), 실제 파급은 SdlcDB.Lib 내부 한정. 기존 게임 서비스 무영향."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-05T01:15:25Z",
+      "completed_at": "2026-06-05T01:15:25Z",
+      "summary": "ai_failures 중복 방지 인덱스 추가 및 task JSON PostgreSQL 실이전으로 Phase 3 데이터 파이프라인을 실제 작동 상태로 완성한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T01:30:00Z",
+      "completed_at": "2026-06-05T01:30:00Z",
+      "summary": "ON CONFLICT 무효·--apply 미구현·Metadata 타입 불일치 3가지 결함 수정으로 Phase 3 데이터 파이프라인 안정화. DESIGN_REVIEW: ✅ ADR 준수 (ADR-008 n8n, ADR-009 PostgreSQL 범위 내 보완)."
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-05T01:40:00Z",
+      "summary": "HIGH risk (EF Core Migration + AlterColumn + partial unique index), 실제 파급은 SdlcDB.Lib 내부 한정. 기존 게임 서비스 무영향."
+    }
+  ]
+}

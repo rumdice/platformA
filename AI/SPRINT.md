@@ -588,3 +588,17 @@
 - [x] `.github/scripts/check_sdlc_gate.py` 수정 — gate 실패 시 record_failure 기록
 - [x] `.n8n/workflows/github-failure-monitor.json` — GitHub API 폴링 → 실패 감지 → PostgreSQL INSERT
 - [x] `.claude/hooks/session-start.sh` 수정 — ai_failures 미해결 건 조회·표시
+
+---
+
+## 스프린트 #43 (2026-06-05 ~)
+**목표**: AI_SDLC Phase 3 데이터 흐름 안정화 — ai_failures 중복 방지, task JSON DB 이전, n8n INSERT 보완
+
+### 진행 중
+
+- [ ] `AiFailure` Entity: `GitHubRunId`/`GitHubJobId`/`CommitSha`/`Branch` 컬럼 추가, `Metadata` `text` → `jsonb`
+- [ ] EF Core Migration: `AddGitHubFailureIdentity` + partial unique index `(github_run_id, github_job_id, failure_type) WHERE NOT NULL`
+- [ ] `migrate_tasks_to_postgres.py --apply` 구현 — ai_jobs/ai_job_steps upsert (psycopg2)
+- [ ] `record_failure.py`: `--run-id`/`--job-id`/`--commit-sha` 인수 추가, ON CONFLICT 지원
+- [ ] n8n `github-failure-monitor.json`: INSERT에 `github_run_id`/`github_job_id` 직접 컬럼 추가
+- [ ] `Docs/operations/ai-sdlc-n8n-failure-monitor.md` 신규 작성

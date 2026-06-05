@@ -15,5 +15,10 @@ namespace PlatformA.SdlcDB.Lib.Entities
         public DateTimeOffset? ResolvedAt { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public string? Metadata { get; set; }
+        public long? GitHubRunId { get; set; }
+        public long? GitHubJobId { get; set; }
+        public string? WorkflowName { get; set; }
+        public string? CommitSha { get; set; }
+        public string? Branch { get; set; }
     }
 }

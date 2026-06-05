@@ -59,6 +59,15 @@ namespace PlatformA.SdlcDB.Lib
                 entity.Property(e => e.FailureType).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Source).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Metadata).HasColumnType("jsonb");
+                entity.Property(e => e.CommitSha).HasMaxLength(40);
+                entity.Property(e => e.Branch).HasMaxLength(200);
+                entity.HasIndex(e => new { e.GitHubRunId, e.GitHubJobId, e.FailureType })
+                      .HasDatabaseName("ux_ai_failures_github_job_failure")
+                      .IsUnique()
+                      .HasFilter("git_hub_run_id IS NOT NULL AND git_hub_job_id IS NOT NULL");
+                entity.HasIndex(e => e.Branch).HasDatabaseName("ix_ai_failures_branch");
+                entity.HasIndex(e => e.CommitSha).HasDatabaseName("ix_ai_failures_commit_sha");
                 entity.HasOne(e => e.Job)
                       .WithMany(e => e.Failures)
                       .HasForeignKey(e => e.JobId)
