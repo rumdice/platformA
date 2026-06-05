@@ -23,6 +23,13 @@
       "started_at": "2026-06-05T02:19:56Z",
       "completed_at": "2026-06-05T02:19:56Z",
       "summary": "Claude가 사람 개입 없이 plan부터 PR 생성까지 완전 자동으로 실행할 수 있도록 스킬 차단 요인을 제거하고 /workflow 오케스트레이터를 신규 생성한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T03:00:00Z",
+      "completed_at": "2026-06-05T03:00:00Z",
+      "summary": "스킬 5개 수정(disable-model-invocation 해제, steps[] 추가, allowed-tools 보완) + /workflow 오케스트레이터 신규 생성. DESIGN_REVIEW: ✅ ADR 준수."
     }
   ]
 }
