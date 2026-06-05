@@ -615,3 +615,19 @@
 - [x] `/start` · `/test-gen` — `steps[]` 기록 로직 추가
 - [x] `/workflow` 오케스트레이터 스킬 신규 생성 (plan → pr 전체 체인)
 - [x] `CLAUDE.md` · `AI/AI_SDLC(pipeline).txt` — 자동화 모드 문서화
+
+---
+
+## 스프린트 #45 (2026-06-05 ~)
+**목표**: Phase 3 자동화 완성 — /done steps[] 보완, 계획 파일 Push 자동 트리거, CI 실패 자동 수정 루프, cost-log 역산
+
+### 진행 중
+
+- [x] `.claude/skills/done/SKILL.md` — 4.5단계에 steps[] 기록 추가 (`"name": "done"` 항목)
+- [x] `.claude/skills/pr/SKILL.md` — python3 → python 우선 순서 변경 (Windows Store stub 회피)
+- [x] `.github/scripts/count_tokens.py` — 디버그 모드 환경변수 추가
+- [x] `.github/scripts/backfill_cost_log.py` — Sprint #39-#44 누락 토큰 역산 스크립트 신규 생성
+- [x] `.github/workflows/plan-file-trigger.yml` — 계획 파일 Push → /workflow 자동 실행
+- [x] `.github/workflows/auto-fix.yml` — repository_dispatch → /qa-failure 자동 수정
+- [x] `.n8n/workflows/github-failure-monitor.json` — fixable_by_ai 필터 + dispatch 노드 추가
+- [x] `AI/AI_SDLC(pipeline).txt` — Phase3 완성도 ~90% 업데이트

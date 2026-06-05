@@ -41,7 +41,7 @@ Phase1 내 프로젝트의 AI 문서와 스킬의 사용 목적을 명확히 정
 Phase2 (완료 — 단기 TODO 4종 완료 2026-05-21 스프린트 #22 PR #44, /test-gen 추가 2026-05-22 스프린트 #24)
 1. Phase1의 개선된 부분을 반영하여 2. PDF 문서와 비교한 이 프로젝트의 가장 큰 문제점 에 반영하고 갱신한다.
 
-Phase3  (진행 중 — 약 55% 완료, 2026-06-05 기준)
+Phase3  (진행 중 — 약 90% 완료, 2026-06-05 기준)
 
 완료:
   [완료] PostgreSQL 상태 저장소 (SdlcDB.Lib — Sprint #41, PR #70)
@@ -60,12 +60,22 @@ Phase3  (진행 중 — 약 55% 완료, 2026-06-05 기준)
       - migrate_tasks_to_postgres.py --apply: 24개 task JSON → sdlc.ai_jobs 이전 (멱등성)
       - record_failure.py: GitHub identity 컬럼 지원 + ON CONFLICT
       - n8n INSERT: git_hub_run_id/git_hub_job_id 직접 컬럼 + ON CONFLICT 정합
+  [완료] 내부 파이프라인 완전 자동화 (Sprint #44, PR #73)
+      - /workflow 오케스트레이터 스킬 신규: plan→pr 전체 체인 자동 실행
+      - disable-model-invocation: false → 모든 스킬에서 Claude LLM 호출 허용
+      - steps[] 기록: /start · /test-gen · /review · /done 각 단계 실행 이력 저장
+  [완료] 외부 트리거 + CI 자동 수정 루프 (Sprint #45, PR #74)
+      - plan-file-trigger.yml: .claude/plan/*.md 파일 Push → /workflow 자동 실행
+      - auto-fix.yml: repository_dispatch(ai-auto-fix) → /qa-failure 자동 수정
+      - n8n fixable_by_ai 필터 + GitHub dispatch 노드: fixable 실패 → 자동 트리거 연결
+      - /done steps[] 기록 추가
+      - count_tokens.py python 우선 순서 수정 + 디버그 모드
+      - backfill_cost_log.py: Sprint #39-#44 누락 토큰 역산 스크립트
 
-미완 (Phase 3 핵심 루프):
-  [미완] n8n → Claude API 호출 → 자동 수정 커밋 → CI 재실행 루프
-  [미완] build/test 실패 자동 수정
+미완 (잔여 ~10%):
   [미완] PR 자동 머지
   [미완] LLM 라우터 (Haiku/Sonnet/Opus 복잡도별 선택)
+  [미완] PostgreSQL primary source 전환 (cost-log.md → ai_model_runs 연동)
 -----
 
 
@@ -139,7 +149,7 @@ Phase3  (진행 중 — 약 55% 완료, 2026-06-05 기준)
 
 -----
 
-작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-06-05, 스프린트 #43)
+작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-06-05, 스프린트 #45)
 
 0. USER_PLAN  ←  /plan 스킬
 기능 : 사용자가 작업 설명을 입력하면 LLM이 분석하여 계획을 수립하고, 브랜치와 task JSON을 생성한다.
