@@ -634,6 +634,18 @@
 
 ---
 
+## 스프린트 #46 (2026-06-05 ~)
+**목표**: ai_model_runs 연동 — /pr 완료 시 토큰 사용량을 PostgreSQL에 자동 기록
+
+### 진행 중
+
+- [x] `.github/scripts/insert_model_run.py` — 신규 작성: count_tokens.py 결과 + task JSON → sdlc.ai_model_runs INSERT (psycopg2, 연결 실패 시 경고 후 계속)
+- [x] `.claude/skills/pr/SKILL.md` — 4단계(cost-log 기록) 완료 후 insert_model_run.py 호출 추가
+- [x] 로컬 PostgreSQL 환경에서 실제 INSERT 검증 (ai_model_runs 행 확인)
+- [x] cost-log.md 병행 유지 확인 (DB 연결 실패 시에도 cost-log.md는 정상 기록)
+
+---
+
 ## 스프린트 #48 (2026-06-05 ~)
 **목표**: PostgreSQL primary 전환 — task JSON 파일을 secondary로 강등, DB를 상태 진실원으로 격상
 
