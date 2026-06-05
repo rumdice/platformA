@@ -217,6 +217,20 @@ git push
 
 ---
 
+### 4.2단계: ai_model_runs 기록 (선택)
+
+4단계에서 계산한 `CREATED_AT`을 사용하여 `sdlc.ai_model_runs`에 토큰 사용량을 기록한다.
+PostgreSQL 미실행이거나 psycopg2가 없어도 `|| true`로 흐름을 차단하지 않는다.
+
+```bash
+CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
+python .github/scripts/insert_model_run.py \
+  --branch "$(git branch --show-current)" \
+  --created-at "${CREATED_AT}" 2>/dev/null || true
+```
+
+---
+
 ### 4.5단계: plan 명세 파일 archived
 
 task 완료 시 해당 브랜치의 명세 파일(`.claude/plan/YYYY-MM-DD_NNN_PlanName.md`)을 `processed/`로 이동한다.
