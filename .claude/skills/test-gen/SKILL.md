@@ -132,6 +132,16 @@ TASK_FILE이 있으면 Edit 도구로 아래 두 가지를 갱신한다:
 
 없으면 이 단계를 건너뛴다.
 
+TASK_FILE이 있으면 PostgreSQL dual-write 시도 (선택 — 연결 실패 시 무시):
+```bash
+python .github/scripts/db_write.py \
+  --action insert-step \
+  --branch "${CURRENT_BRANCH}" \
+  --step-name "test_gen" \
+  --step-status "done" \
+  --step-summary "테스트 생성 완료" 2>/dev/null || true
+```
+
 ---
 
 ### 6단계: 완료 보고

@@ -162,6 +162,22 @@ dotnet test PlatformA.sln -q
 }
 ```
 
+### 4.7단계: PostgreSQL dual-write (선택)
+
+steps[] 기록 완료 직후 ai_job_steps에 done 단계 기록 시도:
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${CURRENT_BRANCH}" \
+  --status "testing" 2>/dev/null || true
+python .github/scripts/db_write.py \
+  --action insert-step \
+  --branch "${CURRENT_BRANCH}" \
+  --step-name "done" \
+  --step-status "done" \
+  --step-summary "빌드: 성공, 테스트 통과, push 완료" 2>/dev/null || true
+```
+
 ### 5단계: 원격 push
 마커를 생성하고 push한다.
 pre-push 훅이 마커를 감지하면 재검사를 건너뛴다 (이중 빌드 방지).

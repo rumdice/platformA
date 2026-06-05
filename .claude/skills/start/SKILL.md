@@ -40,6 +40,14 @@ TASK_FILE이 있으면 Edit 도구로 아래 두 가지를 갱신한다:
 
 없으면 해당 단계를 건너뛴다.
 
+TASK_FILE이 있으면 PostgreSQL dual-write 시도 (선택 — 연결 실패 시 무시):
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${CURRENT_BRANCH}" \
+  --status "coding" 2>/dev/null || true
+```
+
 ---
 
 ### 2단계: 명세 파일 탐색
