@@ -3,7 +3,7 @@ name: pr
 schema_version: 1
 description: 브랜치 push 이후 PR을 생성하고 SPRINT.md 완료 체크, task JSON 상태 갱신, cost-log 기록을 수행한다. /done 이후에 실행한다. PR_SUMMARY 단계를 담당한다.
 disable-model-invocation: false
-allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Read Edit
+allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Bash(python *) Bash(python3 *) Read Edit
 ---
 
 # PR 생성 및 완료 처리 (PR_SUMMARY)
