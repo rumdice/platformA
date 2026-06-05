@@ -2,19 +2,19 @@
   "sprint": 46,
   "task": "AddModelRunsIntegration",
   "branch": "2026-06-05_AddModelRunsIntegration",
-  "status": "testing",
+  "status": "done",
   "created_at": "2026-06-05T04:14:00Z",
-  "completed_at": null,
-  "pr_url": null,
+  "completed_at": "2026-06-05T04:33:34Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/75",
   "retry_count": 0,
   "last_error": null,
   "artifacts": [],
   "test_generated": true,
-  "review_completed": false,
+  "review_completed": true,
   "adr_required": false,
-  "duration_sec": null,
-  "consume_tokens": null,
-  "cache_tokens": null,
+  "duration_sec": 1168,
+  "consume_tokens": 15469790,
+  "cache_tokens": 272980,
   "impact": {
     "risk": "LOW",
     "changed_files": 2,
@@ -66,6 +66,12 @@
       "status": "done",
       "completed_at": "2026-06-05T04:45:00Z",
       "summary": "빌드: 성공, 테스트: 133개 통과, push 완료 — 2026-06-05_AddModelRunsIntegration"
+    },
+    {
+      "name": "review",
+      "status": "done",
+      "completed_at": "2026-06-05T04:50:00Z",
+      "summary": "승인: C# 코드 변경 없음, Python 스크립트 품질·에러 처리 검토 완료"
     }
   ]
 }
