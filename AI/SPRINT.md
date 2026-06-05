@@ -631,3 +631,16 @@
 - [x] `.github/workflows/auto-fix.yml` — repository_dispatch → /qa-failure 자동 수정
 - [x] `.n8n/workflows/github-failure-monitor.json` — fixable_by_ai 필터 + dispatch 노드 추가
 - [x] `AI/AI_SDLC(pipeline).txt` — Phase3 완성도 ~90% 업데이트
+
+---
+
+## 스프린트 #47 (2026-06-05 ~)
+**목표**: LLM 라우터 — impact.risk 기반 Haiku/Sonnet/Opus 자동 선택
+
+### 진행 중
+
+- [ ] `.github/scripts/get_task_risk.py` — 신규: task JSON의 impact.risk 읽어 출력 (LOW/MEDIUM/HIGH, 기본값 MEDIUM)
+- [ ] `.claude/skills/workflow/SKILL.md` — /impact 완료 후 get_task_risk.py 호출 → `--model` 플래그 변수화하여 이후 스킬 호출에 적용
+- [ ] `.github/workflows/auto-fix.yml` — failure_type별 모델 선택 (FORMAT→haiku, BUILD/TEST→sonnet)
+- [ ] `.github/workflows/plan-file-trigger.yml` — 계획 파일 헤더 `risk:` 힌트 파싱 → 기본 모델 결정
+- [ ] /workflow 스킬 체인에서 --model 플래그 전파 검증 (각 스킬 subprocess 호출 확인)
