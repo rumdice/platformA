@@ -639,7 +639,7 @@
 
 ### 진행 중
 
-- [ ] `.github/scripts/insert_model_run.py` — 신규 작성: count_tokens.py 결과 + task JSON → sdlc.ai_model_runs INSERT (psycopg2, 연결 실패 시 경고 후 계속)
-- [ ] `.claude/skills/pr/SKILL.md` — 4단계(cost-log 기록) 완료 후 insert_model_run.py 호출 추가
-- [ ] 로컬 PostgreSQL 환경에서 실제 INSERT 검증 (ai_model_runs 행 확인)
-- [ ] cost-log.md 병행 유지 확인 (DB 연결 실패 시에도 cost-log.md는 정상 기록)
+- [x] `.github/scripts/insert_model_run.py` — 신규 작성: count_tokens.py 결과 + task JSON → sdlc.ai_model_runs INSERT (psycopg2, 연결 실패 시 경고 후 계속)
+- [x] `.claude/skills/pr/SKILL.md` — 4단계(cost-log 기록) 완료 후 insert_model_run.py 호출 추가
+- [x] 로컬 PostgreSQL 환경에서 실제 INSERT 검증 (ai_model_runs 행 확인)
+- [x] cost-log.md 병행 유지 확인 (DB 연결 실패 시에도 cost-log.md는 정상 기록)
