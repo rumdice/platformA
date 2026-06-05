@@ -56,11 +56,16 @@ def get_conn():
         return None
 
 
-def record(failure_type: str, branch: str, message: str, fixable: bool = False) -> bool:
-    """
-    ai_failures에 INSERT한다. branch는 metadata jsonb에 저장한다.
-    (AiFailure 엔티티에 branch 컬럼이 없으므로 metadata 활용)
-    """
+def record(
+    failure_type: str,
+    branch: str,
+    message: str,
+    fixable: bool = False,
+    github_run_id: int | None = None,
+    github_job_id: int | None = None,
+    commit_sha: str | None = None,
+    workflow_name: str | None = None,
+) -> bool:
     conn = get_conn()
     if conn is None:
         return False
@@ -69,8 +74,12 @@ def record(failure_type: str, branch: str, message: str, fixable: bool = False) 
         with conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO sdlc.ai_failures
-                    (failure_type, source, message, fixable_by_ai, resolved, created_at, metadata)
-                VALUES (%s, %s, %s, %s, false, %s, %s)
+                    (failure_type, source, message, fixable_by_ai, resolved, created_at,
+                     metadata, branch, git_hub_run_id, git_hub_job_id, commit_sha, workflow_name)
+                VALUES (%s, %s, %s, %s, false, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (git_hub_run_id, git_hub_job_id, failure_type)
+                WHERE git_hub_run_id IS NOT NULL AND git_hub_job_id IS NOT NULL
+                DO NOTHING
             """, (
                 failure_type,
                 "ci_github_actions",
@@ -78,6 +87,11 @@ def record(failure_type: str, branch: str, message: str, fixable: bool = False) 
                 fixable,
                 datetime.now(timezone.utc),
                 meta,
+                branch or None,
+                github_run_id,
+                github_job_id,
+                commit_sha,
+                workflow_name,
             ))
         conn.commit()
         print(f"[record_failure] ✓ 기록: {failure_type} / {branch}")
@@ -90,7 +104,6 @@ def record(failure_type: str, branch: str, message: str, fixable: bool = False) 
 
 
 def list_unresolved(branch: str) -> list[dict]:
-    """metadata->>'branch' 로 브랜치별 미해결 실패를 조회한다."""
     conn = get_conn()
     if conn is None:
         return []
@@ -100,12 +113,15 @@ def list_unresolved(branch: str) -> list[dict]:
                 cur.execute("""
                     SELECT failure_type, message, created_at, metadata
                     FROM sdlc.ai_failures
-                    WHERE resolved = false AND (metadata::jsonb)->>'branch' = %s
+                    WHERE resolved = false
+                      AND (branch = %s OR (metadata::jsonb)->>'branch' = %s)
                     ORDER BY created_at DESC LIMIT 5
-                """, (branch,))
+                """, (branch, branch))
             else:
                 cur.execute("""
-                    SELECT failure_type, (metadata::jsonb)->>'branch', message, created_at
+                    SELECT failure_type,
+                           COALESCE(branch, (metadata::jsonb)->>'branch'),
+                           message, created_at
                     FROM sdlc.ai_failures
                     WHERE resolved = false
                     ORDER BY created_at DESC LIMIT 10
@@ -121,7 +137,6 @@ def list_unresolved(branch: str) -> list[dict]:
 
 
 def resolve(branch: str, failure_type: str) -> bool:
-    """metadata->>'branch' 기준으로 해결 처리한다."""
     conn = get_conn()
     if conn is None:
         return False
@@ -130,8 +145,9 @@ def resolve(branch: str, failure_type: str) -> bool:
             cur.execute("""
                 UPDATE sdlc.ai_failures
                 SET resolved = true, resolved_at = %s
-                WHERE metadata->>'branch' = %s::text AND failure_type = %s AND resolved = false
-            """, (datetime.now(timezone.utc), branch, failure_type))
+                WHERE (branch = %s OR (metadata::jsonb)->>'branch' = %s)
+                  AND failure_type = %s AND resolved = false
+            """, (datetime.now(timezone.utc), branch, branch, failure_type))
         conn.commit()
         print(f"[record_failure] ✓ 해결 처리: {failure_type} / {branch}")
         return True
@@ -151,6 +167,10 @@ def main() -> None:
     parser.add_argument("--list-unresolved", action="store_true", help="미해결 실패 조회")
     parser.add_argument("--resolve", action="store_true", help="실패 해결 처리")
     parser.add_argument("--json", action="store_true", help="JSON 출력")
+    parser.add_argument("--run-id", type=int, default=None, help="GitHub Actions run ID")
+    parser.add_argument("--job-id", type=int, default=None, help="GitHub Actions job ID")
+    parser.add_argument("--commit-sha", default=None, help="커밋 SHA")
+    parser.add_argument("--workflow", default=None, help="워크플로 이름")
     args = parser.parse_args()
 
     if args.list_unresolved:
@@ -167,7 +187,13 @@ def main() -> None:
     elif args.resolve:
         resolve(args.branch, args.failure_type or "")
     elif args.failure_type:
-        record(args.failure_type, args.branch, args.message, args.fixable)
+        record(
+            args.failure_type, args.branch, args.message, args.fixable,
+            github_run_id=args.run_id,
+            github_job_id=args.job_id,
+            commit_sha=args.commit_sha,
+            workflow_name=args.workflow,
+        )
     else:
         parser.print_help()
 
