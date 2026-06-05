@@ -602,3 +602,16 @@
 - [x] `record_failure.py`: `--run-id`/`--job-id`/`--commit-sha` 인수 추가, ON CONFLICT 지원
 - [x] n8n `github-failure-monitor.json`: INSERT에 `github_run_id`/`github_job_id` 직접 컬럼 추가
 - [x] `Docs/operations/ai-sdlc-n8n-failure-monitor.md` 신규 작성
+
+---
+
+## 스프린트 #44 (2026-06-05 ~)
+**목표**: 워크플로 완전 자동화 기반 구축 — 스킬 차단 요인 제거 + /workflow 오케스트레이터 신규 생성
+
+### 진행 중
+
+- [ ] `/done` · `/pr` — `disable-model-invocation: true` → `false` (Claude Skill 도구 호출 허용)
+- [ ] `/review` — `allowed-tools` 선언 추가 + `steps[]` 기록 로직 추가
+- [ ] `/start` · `/test-gen` — `steps[]` 기록 로직 추가
+- [ ] `/workflow` 오케스트레이터 스킬 신규 생성 (plan → pr 전체 체인)
+- [ ] `CLAUDE.md` · `AI/AI_SDLC(pipeline).txt` — 자동화 모드 문서화
