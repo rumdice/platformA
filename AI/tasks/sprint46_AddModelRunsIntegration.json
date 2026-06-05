@@ -2,7 +2,7 @@
   "sprint": 46,
   "task": "AddModelRunsIntegration",
   "branch": "2026-06-05_AddModelRunsIntegration",
-  "status": "coding",
+  "status": "testing",
   "created_at": "2026-06-05T04:14:00Z",
   "completed_at": null,
   "pr_url": null,
@@ -60,6 +60,12 @@
       "status": "done",
       "completed_at": "2026-06-05T04:35:00Z",
       "summary": "불필요: C# 소스 코드 변경 없음 — Python 스크립트·스킬 문서만 수정"
+    },
+    {
+      "name": "done",
+      "status": "done",
+      "completed_at": "2026-06-05T04:45:00Z",
+      "summary": "빌드: 성공, 테스트: 133개 통과, push 완료 — 2026-06-05_AddModelRunsIntegration"
     }
   ]
 }
