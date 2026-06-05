@@ -623,11 +623,11 @@
 
 ### 진행 중
 
-- [ ] `.claude/skills/done/SKILL.md` — 4.5단계에 steps[] 기록 추가 (`"name": "done"` 항목)
-- [ ] `.claude/skills/pr/SKILL.md` — python3 → python 우선 순서 변경 (Windows Store stub 회피)
-- [ ] `.github/scripts/count_tokens.py` — 디버그 모드 환경변수 추가
-- [ ] `.github/scripts/backfill_cost_log.py` — Sprint #39-#44 누락 토큰 역산 스크립트 신규 생성
-- [ ] `.github/workflows/plan-file-trigger.yml` — 계획 파일 Push → /workflow 자동 실행
-- [ ] `.github/workflows/auto-fix.yml` — repository_dispatch → /qa-failure 자동 수정
-- [ ] `.n8n/workflows/github-failure-monitor.json` — fixable_by_ai 필터 + dispatch 노드 추가
-- [ ] `AI/AI_SDLC(pipeline).txt` — Phase3 완성도 ~90% 업데이트
+- [x] `.claude/skills/done/SKILL.md` — 4.5단계에 steps[] 기록 추가 (`"name": "done"` 항목)
+- [x] `.claude/skills/pr/SKILL.md` — python3 → python 우선 순서 변경 (Windows Store stub 회피)
+- [x] `.github/scripts/count_tokens.py` — 디버그 모드 환경변수 추가
+- [x] `.github/scripts/backfill_cost_log.py` — Sprint #39-#44 누락 토큰 역산 스크립트 신규 생성
+- [x] `.github/workflows/plan-file-trigger.yml` — 계획 파일 Push → /workflow 자동 실행
+- [x] `.github/workflows/auto-fix.yml` — repository_dispatch → /qa-failure 자동 수정
+- [x] `.n8n/workflows/github-failure-monitor.json` — fixable_by_ai 필터 + dispatch 노드 추가
+- [x] `AI/AI_SDLC(pipeline).txt` — Phase3 완성도 ~90% 업데이트
