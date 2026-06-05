@@ -631,3 +631,15 @@
 - [x] `.github/workflows/auto-fix.yml` — repository_dispatch → /qa-failure 자동 수정
 - [x] `.n8n/workflows/github-failure-monitor.json` — fixable_by_ai 필터 + dispatch 노드 추가
 - [x] `AI/AI_SDLC(pipeline).txt` — Phase3 완성도 ~90% 업데이트
+
+---
+
+## 스프린트 #46 (2026-06-05 ~)
+**목표**: ai_model_runs 연동 — /pr 완료 시 토큰 사용량을 PostgreSQL에 자동 기록
+
+### 진행 중
+
+- [ ] `.github/scripts/insert_model_run.py` — 신규 작성: count_tokens.py 결과 + task JSON → sdlc.ai_model_runs INSERT (psycopg2, 연결 실패 시 경고 후 계속)
+- [ ] `.claude/skills/pr/SKILL.md` — 4단계(cost-log 기록) 완료 후 insert_model_run.py 호출 추가
+- [ ] 로컬 PostgreSQL 환경에서 실제 INSERT 검증 (ai_model_runs 행 확인)
+- [ ] cost-log.md 병행 유지 확인 (DB 연결 실패 시에도 cost-log.md는 정상 기록)
