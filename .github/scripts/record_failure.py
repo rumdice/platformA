@@ -21,6 +21,7 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from typing import Optional
 
 CONN = os.environ.get(
     "SDLC_DB_CONNECTION",
@@ -61,10 +62,10 @@ def record(
     branch: str,
     message: str,
     fixable: bool = False,
-    github_run_id: int | None = None,
-    github_job_id: int | None = None,
-    commit_sha: str | None = None,
-    workflow_name: str | None = None,
+    github_run_id: Optional[int] = None,
+    github_job_id: Optional[int] = None,
+    commit_sha: Optional[str] = None,
+    workflow_name: Optional[str] = None,
 ) -> bool:
     conn = get_conn()
     if conn is None:
@@ -74,9 +75,10 @@ def record(
         with conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO sdlc.ai_failures
-                    (failure_type, source, message, fixable_by_ai, resolved, created_at,
-                     metadata, branch, git_hub_run_id, git_hub_job_id, commit_sha, workflow_name)
-                VALUES (%s, %s, %s, %s, false, %s, %s, %s, %s, %s, %s, %s)
+                    (failure_type, source, message, fixable_by_ai, retry_count, resolved,
+                     created_at, metadata, branch, git_hub_run_id, git_hub_job_id,
+                     commit_sha, workflow_name)
+                VALUES (%s, %s, %s, %s, 0, false, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (git_hub_run_id, git_hub_job_id, failure_type)
                 WHERE git_hub_run_id IS NOT NULL AND git_hub_job_id IS NOT NULL
                 DO NOTHING
@@ -94,7 +96,7 @@ def record(
                 workflow_name,
             ))
         conn.commit()
-        print(f"[record_failure] ✓ 기록: {failure_type} / {branch}")
+        print(f"[record_failure] OK: {failure_type} / {branch}")
         return True
     except Exception as e:
         print(f"[record_failure] INSERT 실패: {e}", file=sys.stderr)
@@ -149,7 +151,7 @@ def resolve(branch: str, failure_type: str) -> bool:
                   AND failure_type = %s AND resolved = false
             """, (datetime.now(timezone.utc), branch, branch, failure_type))
         conn.commit()
-        print(f"[record_failure] ✓ 해결 처리: {failure_type} / {branch}")
+        print(f"[record_failure] OK resolved: {failure_type} / {branch}")
         return True
     except Exception as e:
         print(f"[record_failure] UPDATE 실패: {e}", file=sys.stderr)
