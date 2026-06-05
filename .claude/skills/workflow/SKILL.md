@@ -77,6 +77,21 @@ Skill 도구로 `/impact`를 호출한다.
 
 ---
 
+### 3.5단계: LLM 모델 선택 (정보 출력)
+
+/impact 완료 직후 task JSON의 risk를 읽어 권장 모델을 출력한다.
+대화형 세션에서는 현재 모델을 변경할 수 없으나, GitHub Actions 참조 및 로그 목적으로 출력한다.
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+MODEL_OUT=$(python .github/scripts/get_task_risk.py --branch "${CURRENT_BRANCH}" 2>/dev/null || echo "MODEL=claude-sonnet-4-6")
+echo "$MODEL_OUT"
+```
+
+출력 예시: `MODEL=claude-haiku-4-5-20251001 (LOW risk — GitHub Actions 실행 시 이 모델 사용 권장)`
+
+---
+
 ### 4단계: /start 실행
 
 Skill 도구로 `/start`를 호출한다.

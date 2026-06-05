@@ -38,6 +38,23 @@ jobs:
       - name: Claude Code CLI 설치
         run: npm install -g @anthropic-ai/claude-code
 
+      - name: 모델 선택 (failure_type 기반)
+        run: |
+          FAILURE_TYPE="${{ github.event.client_payload.failure_type }}"
+          case "$FAILURE_TYPE" in
+            FORMAT)
+              MODEL="claude-haiku-4-5-20251001"
+              ;;
+            BUILD|TEST)
+              MODEL="claude-sonnet-4-6"
+              ;;
+            *)
+              MODEL="claude-sonnet-4-6"
+              ;;
+          esac
+          echo "MODEL=$MODEL" >> $GITHUB_ENV
+          echo "Selected model: $MODEL (failure_type=$FAILURE_TYPE)"
+
       - name: /qa-failure 자동 실행
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -47,4 +64,4 @@ jobs:
         run: |
           git config user.name "claude-code[bot]"
           git config user.email "claude-code[bot]@users.noreply.github.com"
-          claude --dangerously-skip-permissions -p "/qa-failure --run-id ${RUN_ID}"
+          claude --model "${MODEL}" --dangerously-skip-permissions -p "/qa-failure --run-id ${RUN_ID}"

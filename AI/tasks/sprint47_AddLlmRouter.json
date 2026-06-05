@@ -1,0 +1,79 @@
+{
+  "sprint": 47,
+  "task": "AddLlmRouter",
+  "branch": "2026-06-05_AddLlmRouter",
+  "status": "done",
+  "created_at": "2026-06-05T04:14:58Z",
+  "completed_at": "2026-06-05T05:10:00Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/76",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": 1859,
+  "consume_tokens": 23429700,
+  "cache_tokens": 347374,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 4,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      ".github/scripts/get_task_risk.py",
+      ".github/workflows/auto-fix.yml",
+      ".github/workflows/plan-file-trigger.yml",
+      ".claude/skills/workflow/SKILL.md"
+    ],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — C# 코드 무변경. Python 스크립트 신규 + GitHub Actions 수정 + 스킬 문서 수정."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-05T04:14:58Z",
+      "completed_at": "2026-06-05T04:14:58Z",
+      "summary": "task의 impact.risk(LOW/MEDIUM/HIGH)에 따라 Haiku/Sonnet/Opus를 자동 선택하는 LLM 라우터를 /workflow 스킬, auto-fix.yml, plan-file-trigger.yml에 적용한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T04:40:00Z",
+      "completed_at": "2026-06-05T04:40:00Z",
+      "summary": "명세 파일 생성: get_task_risk.py 신규 + auto-fix.yml/plan-file-trigger.yml/workflow SKILL.md 수정. DESIGN_REVIEW: ✅ ADR 준수, 신규 ADR 불필요"
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-05T04:42:00Z",
+      "summary": "LOW risk — C# 코드 무변경. 4개 파일 변경 예정 (Python 신규 + 워크플로우 2개 수정 + 스킬 문서 수정)"
+    },
+    {
+      "name": "start",
+      "status": "done",
+      "started_at": "2026-06-05T04:43:00Z",
+      "completed_at": "2026-06-05T04:43:00Z",
+      "summary": "코딩 시작 선언 — 명세 파일: 2026-06-05_005_AddLlmRouter.md"
+    },
+    {
+      "name": "test_gen",
+      "status": "done",
+      "completed_at": "2026-06-05T04:55:00Z",
+      "summary": "불필요: C# 소스 코드 변경 없음 — Python 스크립트·GitHub Actions·스킬 문서만 수정"
+    },
+    {
+      "name": "done",
+      "status": "done",
+      "completed_at": "2026-06-05T05:00:00Z",
+      "summary": "빌드: 성공, 테스트: 133개 통과, push 완료 — 2026-06-05_AddLlmRouter"
+    },
+    {
+      "name": "review",
+      "status": "done",
+      "completed_at": "2026-06-05T05:05:00Z",
+      "summary": "승인: C# 코드 변경 없음. Python 라우터·GitHub Actions·스킬 문서 품질 검토 완료"
+    }
+  ]
+}
