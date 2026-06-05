@@ -46,15 +46,28 @@ PR이 이미 존재하면 URL을 출력하고 중단한다:
 
 아래 검사를 순서대로 실행한다. **중단** 표시가 있으면 이후 단계를 실행하지 않는다.
 
-**검사 1 — task JSON 존재 여부**
+**검사 0 — PostgreSQL 게이트 사전 조회 (선택)**
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
+DB_GATES=$(python .github/scripts/db_write.py --action get-gates --branch "${CURRENT_BRANCH}" 2>/dev/null || echo "")
+# DB 응답이 있으면 파싱 (없으면 grep fallback 사용)
+if [ -n "$DB_GATES" ]; then
+  DB_TEST_GEN=$(echo "$DB_GATES" | grep "^test_generated=" | cut -d= -f2)
+  DB_REVIEW=$(echo "$DB_GATES" | grep "^review_completed=" | cut -d= -f2)
+  DB_IMPACT=$(echo "$DB_GATES" | grep "^impact_done=" | cut -d= -f2)
+  DB_REQ=$(echo "$DB_GATES" | grep "^requirement_done=" | cut -d= -f2)
+  DB_ADR=$(echo "$DB_GATES" | grep "^adr_required=" | cut -d= -f2)
+fi
+```
+
+**검사 1 — task JSON 존재 여부**
+```bash
 TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
 ```
 TASK_FILE이 없으면 경고하고 계속한다:
 > ⚠️ task JSON이 없습니다. `/plan`으로 시작된 작업이 아니면 게이트 검사를 건너뜁니다.
 
-이하 검사 2~5는 TASK_FILE이 있을 때만 실행한다.
+이하 검사 2~5는 TASK_FILE이 있을 때만 실행한다. DB_GATES가 있으면 DB 값을 우선 사용한다.
 
 **검사 2 — 코드 변경 여부 판별**
 ```bash
@@ -164,6 +177,20 @@ EOF
 ```bash
 NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 # Edit 도구로 status="done", completed_at=NOW, pr_url={PR_URL} 교체
+```
+
+task JSON 갱신 완료 후 PostgreSQL dual-write 시도 (선택 — 연결 실패 시 무시):
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "$(git branch --show-current)" \
+  --status "done" 2>/dev/null || true
+python .github/scripts/db_write.py \
+  --action insert-step \
+  --branch "$(git branch --show-current)" \
+  --step-name "pr" \
+  --step-status "done" \
+  --step-summary "PR 생성 완료" 2>/dev/null || true
 ```
 
 ---

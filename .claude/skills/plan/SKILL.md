@@ -146,6 +146,15 @@ EOF
 git add "AI/tasks/sprint${SPRINT_NUM}_${PLAN_NAME}.json"
 git commit -m "계획[1/2]: ${PLAN_NAME} task JSON 초기화"
 git push
+
+# PostgreSQL dual-write (선택 — 연결 실패 시 무시)
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${BRANCH}" \
+  --sprint "${SPRINT_NUM}" \
+  --task "${PLAN_NAME}" \
+  --status "analyzing" \
+  --created-at "${NOW}" 2>/dev/null || true
 ```
 
 ---

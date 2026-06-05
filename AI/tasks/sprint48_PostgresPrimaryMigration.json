@@ -1,0 +1,83 @@
+{
+  "sprint": 48,
+  "task": "PostgresPrimaryMigration",
+  "branch": "2026-06-05_PostgresPrimaryMigration",
+  "status": "done",
+  "created_at": "2026-06-05T04:15:51Z",
+  "completed_at": "2026-06-05T05:55:00Z",
+  "pr_url": "https://github.com/rumdice/platformA/pull/77",
+  "retry_count": 0,
+  "last_error": null,
+  "artifacts": [],
+  "test_generated": true,
+  "review_completed": true,
+  "adr_required": false,
+  "duration_sec": 3027,
+  "consume_tokens": 33948347,
+  "cache_tokens": 490813,
+  "impact": {
+    "risk": "LOW",
+    "changed_files": 8,
+    "high_risk_files": [],
+    "medium_risk_files": [],
+    "low_risk_files": [
+      ".github/scripts/db_write.py",
+      ".claude/skills/plan/SKILL.md",
+      ".claude/skills/start/SKILL.md",
+      ".claude/skills/done/SKILL.md",
+      ".claude/skills/pr/SKILL.md",
+      ".claude/skills/test-gen/SKILL.md",
+      ".claude/skills/review/SKILL.md",
+      ".claude/skills/impact/SKILL.md"
+    ],
+    "test_coverage": "not_required",
+    "summary": "LOW risk — C# 코드 무변경. Python 스크립트 신규 + 7개 스킬 문서 수정 (dual-write 추가)."
+  },
+  "steps": [
+    {
+      "name": "plan",
+      "status": "done",
+      "started_at": "2026-06-05T04:15:51Z",
+      "completed_at": "2026-06-05T04:15:51Z",
+      "summary": "task JSON 파일을 secondary로 전환하고 PostgreSQL ai_jobs/ai_job_steps를 primary로 격상한다. /plan·/start·/done·/pr 등 7개 스킬의 파일 읽기/쓰기를 DB 읽기/쓰기로 교체하고 파일을 fallback으로 유지한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T05:20:00Z",
+      "completed_at": "2026-06-05T05:20:00Z",
+      "summary": "명세 파일 생성: db_write.py 신규 + 7개 SKILL.md dual-write 추가 + /pr 게이트 검사 SQL 전환. DESIGN_REVIEW: ✅ ADR-009 준수"
+    },
+    {
+      "name": "impact",
+      "status": "done",
+      "completed_at": "2026-06-05T05:22:00Z",
+      "summary": "LOW risk — C# 코드 무변경. Python 스크립트 신규 + 7개 스킬 문서 수정."
+    },
+    {
+      "name": "start",
+      "status": "done",
+      "started_at": "2026-06-05T05:23:00Z",
+      "completed_at": "2026-06-05T05:23:00Z",
+      "summary": "코딩 시작 선언 — 명세 파일: 2026-06-05_006_PostgresPrimaryMigration.md"
+    },
+    {
+      "name": "test_gen",
+      "status": "done",
+      "completed_at": "2026-06-05T05:40:00Z",
+      "summary": "불필요: C# 소스 코드 변경 없음 — Python 스크립트·스킬 문서만 수정"
+    },
+    {
+      "name": "done",
+      "status": "done",
+      "completed_at": "2026-06-05T05:45:00Z",
+      "summary": "빌드: 성공, 테스트: 133개 통과, push 완료 — 2026-06-05_PostgresPrimaryMigration"
+    },
+    {
+      "name": "review",
+      "status": "done",
+      "completed_at": "2026-06-05T05:50:00Z",
+      "summary": "승인: C# 코드 변경 없음. db_write.py 3가지 액션 검토 완료, 7개 스킬 dual-write 비파괴적 추가 확인"
+    }
+  ]
+}

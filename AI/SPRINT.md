@@ -656,3 +656,19 @@
 - [x] `.github/workflows/auto-fix.yml` — failure_type별 모델 선택 (FORMAT→haiku, BUILD/TEST→sonnet)
 - [x] `.github/workflows/plan-file-trigger.yml` — 계획 파일 헤더 `risk:` 힌트 파싱 → 기본 모델 결정
 - [x] /workflow 스킬 체인에서 --model 플래그 전파 검증 (각 스킬 subprocess 호출 확인)
+
+---
+
+## 스프린트 #48 (2026-06-05 ~)
+**목표**: PostgreSQL primary 전환 — task JSON 파일을 secondary로 강등, DB를 상태 진실원으로 격상
+
+### 진행 중
+
+- [x] `.github/scripts/db_write.py` — 신규 헬퍼: ai_jobs INSERT/UPDATE, ai_job_steps INSERT (psycopg2, ON CONFLICT 지원, 파일 fallback)
+- [x] `.claude/skills/plan/SKILL.md` — task JSON Write와 동시에 ai_jobs INSERT 추가
+- [x] `.claude/skills/start/SKILL.md` — task JSON Edit(status→coding)과 동시에 ai_jobs UPDATE 추가
+- [x] `.claude/skills/done/SKILL.md` — steps[] 기록과 동시에 ai_job_steps INSERT 추가
+- [x] `.claude/skills/pr/SKILL.md` — task JSON status=done 갱신과 동시에 ai_jobs UPDATE 추가
+- [x] `.claude/skills/test-gen/SKILL.md`, `review/SKILL.md`, `impact/SKILL.md` — steps[] → ai_job_steps INSERT 추가
+- [x] 게이트 검사 SQL 전환: /pr 스킬의 grep 기반 검사를 DB SELECT로 교체 (파일 fallback 유지)
+- [x] `migrate_tasks_to_postgres.py --apply` 실행하여 기존 45개 task JSON DB 이전 확인

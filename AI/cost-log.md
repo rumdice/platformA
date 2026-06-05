@@ -50,3 +50,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-05 | #45 | CompletePhase3Automation | claude-sonnet-4-6 | L | 1166 | 13077872 | 259111 | feat: Phase3 자동화 완성 — 외부 트리거 + CI 자동 수정 루프 + cost-log 역산 인프라 [risk:LOW] |
 | 2026-06-05 | #46 | AddModelRunsIntegration | claude-sonnet-4-6 | M | 1168 | 15469790 | 272980 | feat: /pr 완료 시 sdlc.ai_model_runs 자동 기록 — insert_model_run.py 신규 + /pr SKILL.md 4.2단계 추가 [risk:LOW] |
 | 2026-06-05 | #47 | AddLlmRouter | claude-sonnet-4-6 | M | 1859 | 23429700 | 347374 | feat: LLM 라우터 — impact.risk 기반 Haiku/Sonnet/Opus 자동 선택 (get_task_risk.py 신규 + 워크플로우 2개 수정) [risk:LOW] |
+| 2026-06-05 | #48 | PostgresPrimaryMigration | claude-sonnet-4-6 | L | 3027 | 33948347 | 490813 | feat: PostgreSQL primary 전환 — db_write.py 신규 + 7개 스킬 dual-write 추가 [risk:LOW] |
