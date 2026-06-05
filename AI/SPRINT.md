@@ -596,9 +596,9 @@
 
 ### 진행 중
 
-- [ ] `AiFailure` Entity: `GitHubRunId`/`GitHubJobId`/`CommitSha`/`Branch` 컬럼 추가, `Metadata` `text` → `jsonb`
-- [ ] EF Core Migration: `AddGitHubFailureIdentity` + partial unique index `(github_run_id, github_job_id, failure_type) WHERE NOT NULL`
-- [ ] `migrate_tasks_to_postgres.py --apply` 구현 — ai_jobs/ai_job_steps upsert (psycopg2)
-- [ ] `record_failure.py`: `--run-id`/`--job-id`/`--commit-sha` 인수 추가, ON CONFLICT 지원
-- [ ] n8n `github-failure-monitor.json`: INSERT에 `github_run_id`/`github_job_id` 직접 컬럼 추가
-- [ ] `Docs/operations/ai-sdlc-n8n-failure-monitor.md` 신규 작성
+- [x] `AiFailure` Entity: `GitHubRunId`/`GitHubJobId`/`CommitSha`/`Branch` 컬럼 추가, `Metadata` `text` → `jsonb`
+- [x] EF Core Migration: `AddGitHubFailureIdentity` + partial unique index `(github_run_id, github_job_id, failure_type) WHERE NOT NULL`
+- [x] `migrate_tasks_to_postgres.py --apply` 구현 — ai_jobs/ai_job_steps upsert (psycopg2)
+- [x] `record_failure.py`: `--run-id`/`--job-id`/`--commit-sha` 인수 추가, ON CONFLICT 지원
+- [x] n8n `github-failure-monitor.json`: INSERT에 `github_run_id`/`github_job_id` 직접 컬럼 추가
+- [x] `Docs/operations/ai-sdlc-n8n-failure-monitor.md` 신규 작성
