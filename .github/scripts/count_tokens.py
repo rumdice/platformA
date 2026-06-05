@@ -108,6 +108,10 @@ def main() -> None:
         print("cache_tokens=null")
         sys.exit(1)
 
+    if os.environ.get("COUNT_TOKENS_DEBUG"):
+        print(f"[DEBUG] python={sys.executable}", file=sys.stderr)
+        print(f"[DEBUG] project_dir={get_project_dir()}", file=sys.stderr)
+
     created_at = sys.argv[1]
     duration, consume, cache = count_tokens(created_at)
     print(f"duration_sec={duration}")

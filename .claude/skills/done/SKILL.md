@@ -146,11 +146,20 @@ dotnet test PlatformA.sln -q
 - task JSON `"status"` → `"failed"`, `"last_error"` → 실패 테스트명으로 Edit 도구 업데이트
 - **즉시 중단**하고 실패 항목을 출력한다. push 금지.
 
-### 4.5단계: task 상태 → "testing"
+### 4.5단계: task 상태 → "testing" + steps[] 기록
 
-빌드·포맷·테스트 모두 통과한 직후:
-```bash
-# Edit 도구로 "status" 필드 값을 "testing" 으로 교체
+빌드·포맷·테스트 모두 통과한 직후 Edit 도구로 아래 두 가지를 갱신한다:
+
+1. `"status"` 필드를 `"testing"`으로 교체한다.
+
+2. `steps[]` 배열에 아래 항목을 추가한다:
+```json
+{
+  "name": "done",
+  "status": "done",
+  "completed_at": "{ISO8601 현재 시각}",
+  "summary": "빌드: 성공, 테스트: N개 통과, push 완료 — {브랜치명}"
+}
 ```
 
 ### 5단계: 원격 push

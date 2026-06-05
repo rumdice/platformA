@@ -187,8 +187,8 @@ TODAY=$(date +%Y-%m-%d)
 **duration_sec / consume_tokens / cache_tokens 자동 계산** (Python 단일 호출):
 ```bash
 CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
-TOKENS_RAW=$(python3 .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null \
-  || python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
+TOKENS_RAW=$(python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null \
+  || python3 .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
 DURATION=$(echo "$TOKENS_RAW" | grep "^duration_sec=" | cut -d= -f2)
 CONSUME_TOKENS=$(echo "$TOKENS_RAW" | grep "^consume_tokens=" | cut -d= -f2)
 CACHE_TOKENS=$(echo "$TOKENS_RAW" | grep "^cache_tokens=" | cut -d= -f2)

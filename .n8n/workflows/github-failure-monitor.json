@@ -106,6 +106,48 @@
       "typeVersion": 2.5,
       "position": [1560, 300],
       "credentials": { "postgres": { "id": "sdlc-postgres", "name": "SDLC PostgreSQL" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.filter(item => item.json.fixable_by_ai === true);"
+      },
+      "id": "fixable-filter",
+      "name": "fixable_by_ai 필터",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/rumdice/platformA/dispatches",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Accept", "value": "application/vnd.github+json" },
+            { "name": "X-GitHub-Api-Version", "value": "2022-11-28" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "event_type", "value": "ai-auto-fix" },
+            {
+              "name": "client_payload",
+              "value": "={{ JSON.stringify({ failure_id: $json.id, failure_type: $json.failure_type, branch: $json.branch, run_id: $json.git_hub_run_id, message: $json.message }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "github-dispatch",
+      "name": "GitHub: repository_dispatch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 300],
+      "credentials": { "httpHeaderAuth": { "id": "github-pat", "name": "GitHub PAT" } }
     }
   ],
   "connections": {
@@ -114,7 +156,9 @@
     "각 실패 run 분리": { "main": [[{ "node": "최근 15분 이내만", "type": "main", "index": 0 }]] },
     "최근 15분 이내만": { "main": [[{ "node": "GitHub: Job 상세 조회", "type": "main", "index": 0 }]] },
     "GitHub: Job 상세 조회": { "main": [[{ "node": "실패 분류", "type": "main", "index": 0 }]] },
-    "실패 분류": { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] }
+    "실패 분류": { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] },
+    "PostgreSQL: ai_failures INSERT": { "main": [[{ "node": "fixable_by_ai 필터", "type": "main", "index": 0 }]] },
+    "fixable_by_ai 필터": { "main": [[{ "node": "GitHub: repository_dispatch", "type": "main", "index": 0 }]] }
   },
   "active": false,
   "settings": { "executionOrder": "v1" },

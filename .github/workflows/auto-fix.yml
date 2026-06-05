@@ -1,0 +1,50 @@
+name: Auto Fix — AI CI Failure Repair
+
+on:
+  repository_dispatch:
+    types: [ai-auto-fix]
+
+jobs:
+  auto-fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 페이로드 확인
+        run: |
+          echo "failure_id: ${{ github.event.client_payload.failure_id }}"
+          echo "failure_type: ${{ github.event.client_payload.failure_type }}"
+          echo "branch: ${{ github.event.client_payload.branch }}"
+          echo "run_id: ${{ github.event.client_payload.run_id }}"
+
+      - name: .NET 설치
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Node.js 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Claude Code CLI 설치
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: /qa-failure 자동 실행
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FAILURE_TYPE: ${{ github.event.client_payload.failure_type }}
+          RUN_ID: ${{ github.event.client_payload.run_id }}
+        run: |
+          git config user.name "claude-code[bot]"
+          git config user.email "claude-code[bot]@users.noreply.github.com"
+          claude --dangerously-skip-permissions -p "/qa-failure --run-id ${RUN_ID}"
