@@ -48,3 +48,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-05 | #43 | StabilizeSdlcPhase3DataFlow | claude-sonnet-4-6 | L | 9586 | 89250601 | 1500220 | feat: AI_SDLC Phase 3 데이터 흐름 안정화 — ai_failures 중복 방지 및 task JSON DB 이전 [risk:HIGH] |
 | 2026-06-05 | #44 | AutomateWorkflowPipeline | claude-sonnet-4-6 | L | 5716 | 48537737 | 1047014 | feat: 워크플로 완전 자동화 기반 구축 — /workflow 오케스트레이터 + 스킬 차단 요인 제거 [risk:LOW] |
 | 2026-06-05 | #45 | CompletePhase3Automation | claude-sonnet-4-6 | L | 1166 | 13077872 | 259111 | feat: Phase3 자동화 완성 — 외부 트리거 + CI 자동 수정 루프 + cost-log 역산 인프라 [risk:LOW] |
+| 2026-06-05 | #47 | AddLlmRouter | claude-sonnet-4-6 | M | 1859 | 23429700 | 347374 | feat: LLM 라우터 — impact.risk 기반 Haiku/Sonnet/Opus 자동 선택 (get_task_risk.py 신규 + 워크플로우 2개 수정) [risk:LOW] |
