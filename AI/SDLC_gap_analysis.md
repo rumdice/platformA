@@ -1,7 +1,7 @@
 # AI SDLC 워크플로 갭 분석 보고서
 
 작성일: 2026-05-19  
-최종 갱신: 2026-06-05 (스프린트 #43 완료 반영 — Phase 3 진행 중 ~55%)  
+최종 갱신: 2026-06-05 (스프린트 #45 완료 반영 — Phase 3 진행 중 ~90%)  
 작성 목적: 엔터프라이즈 AI SDLC 플랫폼 설계(PDF)와 현재 프로젝트 AI 워크플로 비교 → 개선 로드맵 수립
 
 ---
@@ -90,15 +90,19 @@ PENDING → ANALYZING → DESIGNING → CODING → TESTING → QA_ANALYZING → 
 | `/review` | 코드 리뷰 보고서 생성 |
 | `/qa-failure` | CI 실패 로그 분석 → BUILD/FORMAT/TEST 분류 → 수정 방향 제시 (Sprint #28) |
 | `/workreport` | 일일 작업 리포트 자동 생성 (AI/workreport/) |
+| `/workflow` | plan→pr 전체 파이프라인 완전 자동화 오케스트레이터 (Sprint #44) |
 | `/doc-writer` | API 가이드 문서 자동 생성 |
 | `/adr` | ADR(Architecture Decision Record) 작성 |
 | `/simplify` | 복잡한 코드 단순화 리팩터링 |
 | `/run-scenarios` | DummyClient 시나리오 검증 |
+| `[plan-file-trigger.yml]` | .claude/plan/*.md Push → /workflow 자동 실행 (Sprint #45) |
+| `[auto-fix.yml]` | repository_dispatch(ai-auto-fix) → /qa-failure 자동 수정 (Sprint #45) |
 | `[auto-format.yml]` | CI format 실패 시 자동 fix 커밋 재실행 (Sprint #42) |
-| `[n8n CI Monitor]` | GitHub API 폴링 → ai_failures INSERT, 중복 방지 (Sprint #42, #43) |
+| `[n8n CI Monitor]` | GitHub API 폴링 → ai_failures INSERT, fixable_by_ai 필터 + dispatch (Sprint #42, #43, #45) |
 | `[mark_ci_failure.py]` | CI 실패 유형 분류 + task JSON last_error + PR 댓글 (Sprint #42) |
 | `[migrate_tasks_to_postgres.py]` | task JSON → sdlc.ai_jobs/ai_job_steps 이전 (Sprint #43) |
 | `[record_failure.py]` | ai_failures 수동 기록, GitHub identity + ON CONFLICT 지원 (Sprint #43) |
+| `[backfill_cost_log.py]` | 누락 스프린트 토큰 역산 → cost-log.md 보정 (Sprint #45) |
 
 ### 2.2 상태 추적 구조
 
@@ -123,11 +127,11 @@ AI/
 
 ### 2.4 현재 방식의 특성
 
-- **Human-driven**: 모든 작업은 사용자가 /plan, /done을 직접 실행
-- **단일 AI 인스턴스**: Claude Code 한 개가 전체 파이프라인 담당
-- **파일 기반 상태**: PostgreSQL 없이 JSON 파일로 상태 추적
+- **반자동화**: 수동(/plan, /done)과 자동(plan-file-trigger.yml, auto-fix.yml) 경로 병존
+- **단일 AI 인스턴스**: Claude Code 한 개가 전체 파이프라인 담당 (n8n은 감시·트리거만)
+- **이중 상태 저장**: task JSON(파일, primary) + PostgreSQL(미러, ai_jobs/steps/failures)
 - **선형 플로우**: 브랜치 → 구현 → 빌드/테스트 → PR
-- **스프린트 누적**: 21개 스프린트, 각 스프린트가 단일 태스크
+- **스프린트 누적**: 45개 스프린트 완료, 각 스프린트가 단일 태스크
 
 ---
 
@@ -151,17 +155,18 @@ AI/
 
 | 항목 | PDF 설계 | 현재 상태 | 갭 |
 |------|---------|---------|-----|
-| **오케스트레이션** | n8n 자동 트리거 | 사용자 수동 실행 | △ n8n CI 감지·기록 완료 (Sprint #42, #43). AI Worker 트리거 미구현 |
-| **상태 DB** | PostgreSQL 6개 테이블 | JSON 파일 | △ 4개 테이블 구현(ai_jobs/steps/failures/model_runs, Sprint #41, #43). JSON과 병행 운용 중 |
-| **CI 실패 기록** | (PDF 없음) | 없음 | ✅ mark_ci_failure.py + n8n + ai_failures 중복 방지 (Sprint #42, #43) |
+| **오케스트레이션** | n8n 자동 트리거 | 사용자 수동 실행 | △ n8n CI 감지·기록 완료. plan-file-trigger.yml로 외부 계획 파일 → /workflow 자동 실행 구현 (Sprint #44, #45). n8n → AI Worker 직접 호출 루프 미구현 |
+| **상태 DB** | PostgreSQL 6개 테이블 | JSON 파일 | △ 4개 테이블 구현(ai_jobs/steps/failures/model_runs, Sprint #41, #43). JSON primary + DB 미러로 병행 운용 중. primary 전환 미완 |
+| **CI 실패 자동 수정** | (PDF 없음) | 없음 | ✅ n8n fixable_by_ai 필터 → repository_dispatch → auto-fix.yml → /qa-failure 완전 루프 (Sprint #42, #43, #45) |
+| **내부 파이프라인 자동화** | (PDF 없음) | 없음 | ✅ /workflow 오케스트레이터: plan→pr 9단계 완전 자동화 (Sprint #44) |
 | **상태 머신** | 9단계 + 에러 분기 | 6단계 | 6단계 유지 (analyzing/coding/testing/done/failed/abandoned) |
-| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 자동 기록 (파일 수 기반) | cost-log.md 유지 (ai_model_runs 스키마 존재하나 연동 없음) |
+| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 자동 기록 + backfill 스크립트 | cost-log.md primary 유지. ai_model_runs 스키마 존재, 연동 미완 |
 | **다중 워커** | Worker 분리 + 헬스비트 | 단일 Claude Code 인스턴스 | 동일 (단일 인스턴스) |
-| **Approval Gate** | 고위험 작업 인간 승인 | 없음 | △ sdlc-gate-check.yml이 SDLC 공정 준수 자동 검사로 부분 대체 |
+| **Approval Gate** | 고위험 작업 인간 승인 | 없음 | △ sdlc-gate-check.yml이 SDLC 공정 준수 자동 검사로 부분 대체. PR 머지는 수동 유지 |
 | **LLM 라우터** | 태스크 복잡도별 모델 선택 | 단일 모델 고정 | 동일 (미구현) |
 | **보안** | 컨테이너 격리, 화이트리스트 | 없음 | 동일 (미구현) |
 | **롤백** | 자동 롤백 (Phase 4) | git revert 수동 | 동일 (수동) |
-| **모니터링** | 대시보드, 비용 알림 | 없음 | session-start.sh 미해결 실패 알림 추가 (Sprint #42) |
+| **모니터링** | 대시보드, 비용 알림 | 없음 | session-start.sh 미해결 실패 알림 (Sprint #42). 비용 대시보드 미구현 |
 
 ### 3.3 현재 워크플로의 강점
 
@@ -194,7 +199,7 @@ AI/
 |-------|------|---------|
 | Phase 1 | 모든 스킬/AI 문서 목적 명확화 | ✅ 완료 — CLAUDE.md, rules/, SPRINT.md, tasks/ 체계 수립 |
 | Phase 2 | PDF 개선사항 적용, 가장 큰 갭 발견 | ✅ 완료 — Sprint #22~31: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, 비용 자동 기록, gate-check 강화 |
-| Phase 3 | 자동화 인프라 구축 | 🔄 진행 중 (~55%) — PostgreSQL 인프라(Sprint #41), n8n CI 감지(Sprint #42), ai_failures 중복 방지 + task JSON 이전(Sprint #43). 미완: n8n→AI Worker 루프, LLM 라우터, 자동 머지 |
+| Phase 3 | 자동화 인프라 구축 | 🔄 진행 중 (~90%) — PostgreSQL(Sprint #41), n8n CI 감지(Sprint #42), ai_failures 중복 방지 + task JSON 이전(Sprint #43), /workflow 오케스트레이터(Sprint #44), 외부 트리거 + CI 자동 수정 루프(Sprint #45). 미완: n8n→Claude API 직접 호출, LLM 라우터, PostgreSQL primary 전환 |
 
 ---
 
@@ -209,58 +214,104 @@ AI/
 | P2 | 비용 자동 기록 | `/done` 스킬에서 변경 파일 수 기반 규모 자동 계산 후 cost-log.md 업데이트 | ✅ 완료 (2026-05-21) |
 | P3 | `/requirement` 스킬 추가 | 요구사항 → 구현 명세 변환을 AI가 보조하면 /plan 품질 향상 | ✅ 완료 (2026-05-21) |
 
-### 6.2 중기 개선 (Phase 2 완료 기준, 1~2개월)
+### 6.2 Phase 3 잔여 항목 (~10%, 우선순위 순)
 
-| 개선 항목 | 내용 |
-|---------|------|
-| **비용 대시보드** | cost-log.md → AI/reports/cost_summary.md 자동 생성 (주간 집계) |
-| **영향 분석 자동화** | `/impact` 스킬이 git diff + grep으로 영향 파일 목록 자동 추출 |
-| **리뷰 게이트 강화** | `/done` 전에 `/review` 결과를 강제로 보여주는 옵션 |
-| **스킬 메트릭** | 각 스킬의 평균 소요 시간/성공률 추적 (task JSON에 duration 필드 추가) |
+| 우선순위 | 개선 항목 | 내용 | 작업량 |
+|---------|---------|------|--------|
+| P1 | **ai_model_runs 연동** | /pr 스킬에 DB INSERT 추가 (cost-log.md 병행) → 비용 대시보드 가능 | S |
+| P2 | **PostgreSQL primary 전환** | 스킬들이 파일 대신 DB 읽기/쓰기 (이중 기록 → DB 단독) | L |
+| P3 | **LLM 라우터** | risk LOW→haiku, MEDIUM→sonnet, HIGH→opus 자동 선택 | M |
+| P4 | **PR 자동 머지** | sdlc-gate-check PASS + LOW risk → gh pr merge 자동 실행 | S |
 
-### 6.3 장기 개선 (Phase 3 — 자동화 오케스트레이션)
+### 6.3 Phase 4 장기 개선 (자율 오케스트레이션)
 
-| 개선 항목 | PDF 대응 | 필요 인프라 |
-|---------|---------|-----------|
-| **PostgreSQL 상태 DB** | ai_jobs + ai_job_steps | PostgreSQL Docker |
-| **자동 트리거** | n8n 오케스트레이션 | n8n + webhook |
-| **비용 실시간 추적** | ai_model_runs 테이블 | Anthropic API usage 연동 |
-| **LLM 라우터** | 태스크별 모델 선택 | haiku(간단)/sonnet(중간)/opus(복잡) |
-| **Approval Gate** | WAITING_REVIEW 상태 | GitHub PR review required 설정 |
+| 개선 항목 | PDF 대응 | 필요 인프라 | 상태 |
+|---------|---------|-----------|------|
+| **n8n → Claude API 직접 호출** | n8n AI Worker 트리거 | n8n HTTP Request + Anthropic API | ❌ 미구현 |
+| **비용 대시보드** | ai_model_runs 자동 기록 | PostgreSQL 쿼리 + 리포트 스크립트 | ❌ 미구현 |
+| **다중 워커** | Worker 분리 + 헬스비트 | 컨테이너 분리 | ❌ 미구현 |
+| **Approval Gate** | WAITING_REVIEW 상태 | GitHub Branch Protection 강화 | △ gate-check로 부분 대체 |
+| **보안·롤백** | 컨테이너 격리, 자동 롤백 | Phase 4 인프라 | ❌ 미구현 |
 
-### 6.4 현실적 갭 우선순위 (가성비 기준)
+### 6.4 현실적 우선순위 (가성비 기준, 2026-06-05 기준)
 
 ```
-즉시 적용 가능 (코드 변경 없음):
-  → GitHub PR required review 설정으로 Approval Gate 대체
-  → /done 실행 전 /review 결과 의무화 (CLAUDE.md 규칙 추가)
+즉시 완료 가능 (1~2 스프린트):
+  → ai_model_runs INSERT 추가 (/pr 스킬 1개 수정)
+  → PR 자동 머지 (auto-fix.yml 패턴 참조, LOW risk만)
 
-단기 스킬 추가 (1~2일):
-  → /impact 스킬: git diff HEAD~1..HEAD + ripgrep으로 영향 파일 분석
-  → task JSON에 duration 필드 추가 (created_at vs completed_at 차이)
+중기 (3~5 스프린트):
+  → PostgreSQL primary 전환 (스킬 5~6개 수정, 높은 ROI)
+  → LLM 라우터 (task JSON risk level → 모델 선택)
 
-중기 인프라 (2~4주):
-  → cost-log.md를 CSV로 전환 + Python 집계 스크립트
-  → PostgreSQL 도입 (Phase 3 본격화 시점에)
+장기 (Phase 4):
+  → n8n → Claude API 직접 호출 루프 (아키텍처 전면 변경)
+  → 비용 대시보드 (PostgreSQL 집계 쿼리 + 시각화)
 ```
 
 ---
 
 ## 요약
 
-**현재 워크플로는 PDF의 Phase 2 Pilot 수준 진입**. 핵심 CODE_FIX/TEST/QA 루프 완성 + PostgreSQL 상태 DB + n8n CI 감지 파이프라인 구동 중.
+**현재 워크플로는 PDF의 Phase 3 Platform 수준 진입**. 내부 파이프라인 완전 자동화 + 외부 트리거 + CI 자동 수정 루프까지 구축 완료.
 
 **Phase 2 완료 (Sprint #22~31, 2026-05-21~30)**: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, SDLC gate check 강화, ADR 연계, PR 머지 자동 동기화.
 
-**Phase 3 진행 중 (~55%, Sprint #41~43, 2026-06-03~05)**:
-- 완료: PostgreSQL SdlcDB.Lib 4개 테이블 (Sprint #41)
-- 완료: n8n CI 실패 감지 + format 자동 수정 파이프라인 (Sprint #42)
-- 완료: ai_failures 중복 방지(partial unique index) + task JSON DB 이전 (Sprint #43)
+**Phase 3 진행 중 (~90%, Sprint #41~45, 2026-06-03~05)**:
+- ✅ PostgreSQL SdlcDB.Lib 4개 테이블 (Sprint #41)
+- ✅ n8n CI 실패 감지 + format 자동 수정 파이프라인 (Sprint #42)
+- ✅ ai_failures 중복 방지(partial unique index) + task JSON DB 이전 (Sprint #43)
+- ✅ /workflow 오케스트레이터: plan→pr 9단계 완전 자동화 (Sprint #44)
+- ✅ plan-file-trigger.yml: 외부 계획 파일 Push → /workflow 자동 실행 (Sprint #45)
+- ✅ auto-fix.yml: fixable CI 실패 → /qa-failure 자동 수정 루프 (Sprint #45)
+- ✅ backfill_cost_log.py: 누락 토큰 역산 인프라 (Sprint #45)
 
-**남은 주요 갭 (Phase 3 미완)**:
-① n8n → Claude API 피드백 루프 (실패 감지 → 자동 수정 → CI 재실행)
-② build/test 실패 자동 수정 (format만 현재 자동화됨)
-③ LLM 라우터 (복잡도별 Haiku/Sonnet/Opus 선택)
-④ PostgreSQL primary source 전환 (현재 JSON과 병행)
+**남은 주요 갭 (Phase 3 미완, ~10%)**:
+① **PostgreSQL primary source 전환**: 현재 task JSON(파일) primary + DB 미러 구조. DB를 primary로 격상하면 스킬 전체 수정 필요 (고비용)
+② **cost-log.md → ai_model_runs 연동**: /pr 스킬이 DB에도 INSERT하는 이중 기록 추가가 선행 단계
+③ **LLM 라우터**: 복잡도(risk level)별 Haiku/Sonnet/Opus 자동 선택 (미구현)
+④ **PR 자동 머지**: sdlc-gate-check PASS + LOW risk → 자동 머지 (현재 수동)
 
-**2026-06-05 갱신**: SDLC_gap_analysis.md 전면 재평가 완료.
+---
+
+## DB+n8n 기반 전환 로드맵
+
+### 현재 구조 (파일 primary)
+```
+스킬 실행 → task JSON(파일) 읽기/쓰기 → 스킬 완료
+                   ↓ (비동기, 별도 스크립트)
+             ai_jobs / ai_job_steps (DB 미러)
+```
+n8n은 CI 실패 감지·기록 전용. 스킬 체인은 GitHub Actions(plan-file-trigger, auto-fix)가 담당.
+
+### 전환 방향 (점진적, 권장)
+
+**1단계 — 이중 기록 (단기, 1~2 스프린트)**
+- `/pr` 스킬에 `ai_model_runs` INSERT 추가 (cost-log.md와 병행)
+- `/plan` 스킬에 `ai_jobs` INSERT 추가 (task JSON 생성과 동시)
+- 각 스킬 단계 완료 시 `ai_job_steps` INSERT 추가 (현재 task JSON steps[]와 동시)
+- 이 단계까지는 스킬 실패 시 파일로 fallback 가능
+
+**2단계 — DB primary 격상 (중기, 3~4 스프린트)**
+- 스킬들이 task JSON 파일 대신 DB에서 상태를 읽도록 전환
+- `migrate_tasks_to_postgres.py`가 이미 이전 로직을 구현 — 역방향 어댑터 참조 가능
+- SPRINT.md는 DB 집계 쿼리로 생성하는 스크립트로 대체
+- cost-log.md 의존성 제거
+
+**3단계 — n8n 오케스트레이션 확장 (장기)**
+- 현재: GitHub Actions가 `/workflow` 실행 (plan-file-trigger.yml)
+- 목표: n8n이 `ai_jobs` 상태 변경을 감지 → Claude API 직접 호출 → 다음 단계 트리거
+- 구현 방법: PostgreSQL LISTEN/NOTIFY 또는 n8n 폴링 → `/workflow` 대신 각 스킬 단계별 API 호출
+- 이 단계에서 LLM 라우터(Haiku/Sonnet/Opus) 통합 가능
+
+### 각 전환 단계의 비용-효과
+
+| 단계 | 작업량 | 효과 | 위험도 |
+|------|--------|------|--------|
+| 1단계 이중 기록 | S (스킬 2~3개 수정) | ai_model_runs 연동, 비용 대시보드 가능 | LOW |
+| 2단계 DB primary | L (스킬 전체 수정) | 파일 의존성 제거, DB 단일 진실원 | MEDIUM |
+| 3단계 n8n 확장 | XL (아키텍처 변경) | 완전 자율 파이프라인 | HIGH |
+
+**권장**: 1단계를 먼저 완료하여 ai_model_runs를 채우고 비용 대시보드를 구성한다. 2단계는 운용 안정성 확인 후 진행.
+
+**2026-06-05 갱신**: Sprint #45 완료 기준 전면 재평가 완료.
