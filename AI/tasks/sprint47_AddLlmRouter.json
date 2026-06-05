@@ -23,6 +23,13 @@
       "started_at": "2026-06-05T04:14:58Z",
       "completed_at": "2026-06-05T04:14:58Z",
       "summary": "task의 impact.risk(LOW/MEDIUM/HIGH)에 따라 Haiku/Sonnet/Opus를 자동 선택하는 LLM 라우터를 /workflow 스킬, auto-fix.yml, plan-file-trigger.yml에 적용한다."
+    },
+    {
+      "name": "requirement",
+      "status": "done",
+      "started_at": "2026-06-05T04:40:00Z",
+      "completed_at": "2026-06-05T04:40:00Z",
+      "summary": "명세 파일 생성: get_task_risk.py 신규 + auto-fix.yml/plan-file-trigger.yml/workflow SKILL.md 수정. DESIGN_REVIEW: ✅ ADR 준수, 신규 ADR 불필요"
     }
   ]
 }
