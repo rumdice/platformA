@@ -672,3 +672,20 @@
 - [x] `.claude/skills/test-gen/SKILL.md`, `review/SKILL.md`, `impact/SKILL.md` — steps[] → ai_job_steps INSERT 추가
 - [x] 게이트 검사 SQL 전환: /pr 스킬의 grep 기반 검사를 DB SELECT로 교체 (파일 fallback 유지)
 - [x] `migrate_tasks_to_postgres.py --apply` 실행하여 기존 45개 task JSON DB 이전 확인
+
+---
+
+## 스프린트 #49 (2026-06-08 ~)
+**목표**: AI_SDLC Phase 3 운영 안정화 — append-only 충돌 완화, DB/JSON 정합성 검사, DB write 실패 가시화, 자동 수정 safety policy 정리
+
+### 진행 중
+
+- [ ] `AI/sprints/` 구조 도입 — 스프린트별 개별 파일 관리 (append-only 충돌 완화)
+- [ ] `AI/SPRINT.md` 인덱스/요약 역할로 점진 전환
+- [ ] `check_sdlc_consistency.py` — PostgreSQL ↔ task JSON 정합성 검사
+- [ ] `db_write.py` 실패 로그 기록 추가 (`AI/logs/db-write-failures/`)
+- [ ] `.claude/hooks/session-start.sh` 업데이트 — DB write 실패 표시 + AI/sprints/ 파일 읽기
+- [ ] `.claude/skills/plan/SKILL.md` sprint 카운터 수정 (task JSON 파일 수 기반)
+- [ ] `Docs/operations/ai-sdlc-auto-fix-policy.md` 작성
+- [ ] `Docs/operations/ai-sdlc-append-only-conflict-policy.md` 작성
+- [ ] `Docs/operations/ai-sdlc-db-migration-roadmap.md` 작성 (dual-write→DB-only 전환 기준)
