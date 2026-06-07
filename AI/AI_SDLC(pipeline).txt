@@ -72,10 +72,10 @@ Phase3  (진행 중 — 약 90% 완료, 2026-06-05 기준)
       - count_tokens.py python 우선 순서 수정 + 디버그 모드
       - backfill_cost_log.py: Sprint #39-#44 누락 토큰 역산 스크립트
 
-미완 (잔여 ~10%):
-  [미완] PR 자동 머지
-  [미완] LLM 라우터 (Haiku/Sonnet/Opus 복잡도별 선택)
-  [미완] PostgreSQL primary source 전환 (cost-log.md → ai_model_runs 연동)
+Phase 3 완료 (2026-06-08 기준 100%):
+  [완료] LLM 라우터 (Haiku/Sonnet/Opus 복잡도별 선택) — Sprint #47, PR #76
+  [완료] PostgreSQL primary source 전환 (cost-log.md → ai_model_runs 연동) — Sprint #46/#48, PR #75/#77
+  [정책] PR 머지: 사람이 직접 검토·승인 후 수행 — 영구 정책 (자동 머지 미도입)
 -----
 
 

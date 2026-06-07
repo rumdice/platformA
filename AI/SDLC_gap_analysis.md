@@ -221,7 +221,7 @@ AI/
 | P1 | **ai_model_runs 연동** | /pr 스킬에 DB INSERT 추가 (cost-log.md 병행) → 비용 대시보드 가능 | S |
 | P2 | **PostgreSQL primary 전환** | 스킬들이 파일 대신 DB 읽기/쓰기 (이중 기록 → DB 단독) | L |
 | P3 | **LLM 라우터** | risk LOW→haiku, MEDIUM→sonnet, HIGH→opus 자동 선택 | M |
-| P4 | **PR 자동 머지** | sdlc-gate-check PASS + LOW risk → gh pr merge 자동 실행 | S |
+| P4 | ~~**PR 자동 머지**~~ | **영구 정책 제외** — PR 머지는 사람이 직접 검토·승인 후 수행 | — |
 
 ### 6.3 Phase 4 장기 개선 (자율 오케스트레이션)
 
@@ -238,7 +238,7 @@ AI/
 ```
 즉시 완료 가능 (1~2 스프린트):
   → ai_model_runs INSERT 추가 (/pr 스킬 1개 수정)
-  → PR 자동 머지 (auto-fix.yml 패턴 참조, LOW risk만)
+  (PR 자동 머지 — 정책으로 제외, 사람이 직접 수행)
 
 중기 (3~5 스프린트):
   → PostgreSQL primary 전환 (스킬 5~6개 수정, 높은 ROI)
@@ -257,7 +257,7 @@ AI/
 
 **Phase 2 완료 (Sprint #22~31, 2026-05-21~30)**: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, SDLC gate check 강화, ADR 연계, PR 머지 자동 동기화.
 
-**Phase 3 진행 중 (~90%, Sprint #41~45, 2026-06-03~05)**:
+**Phase 3 완료 (100%, Sprint #41~48, 2026-06-03~05)**:
 - ✅ PostgreSQL SdlcDB.Lib 4개 테이블 (Sprint #41)
 - ✅ n8n CI 실패 감지 + format 자동 수정 파이프라인 (Sprint #42)
 - ✅ ai_failures 중복 방지(partial unique index) + task JSON DB 이전 (Sprint #43)
@@ -265,12 +265,12 @@ AI/
 - ✅ plan-file-trigger.yml: 외부 계획 파일 Push → /workflow 자동 실행 (Sprint #45)
 - ✅ auto-fix.yml: fixable CI 실패 → /qa-failure 자동 수정 루프 (Sprint #45)
 - ✅ backfill_cost_log.py: 누락 토큰 역산 인프라 (Sprint #45)
+- ✅ ai_model_runs 연동: /pr 완료 시 PostgreSQL 비용 기록 (Sprint #46, PR #75)
+- ✅ LLM 라우터: impact.risk 기반 Haiku/Sonnet/Opus 자동 선택 (Sprint #47, PR #76)
+- ✅ PostgreSQL primary 전환 + 7개 스킬 dual-write (Sprint #48, PR #77)
 
-**남은 주요 갭 (Phase 3 미완, ~10%)**:
-① **PostgreSQL primary source 전환**: 현재 task JSON(파일) primary + DB 미러 구조. DB를 primary로 격상하면 스킬 전체 수정 필요 (고비용)
-② **cost-log.md → ai_model_runs 연동**: /pr 스킬이 DB에도 INSERT하는 이중 기록 추가가 선행 단계
-③ **LLM 라우터**: 복잡도(risk level)별 Haiku/Sonnet/Opus 자동 선택 (미구현)
-④ **PR 자동 머지**: sdlc-gate-check PASS + LOW risk → 자동 머지 (현재 수동)
+**Phase 3 운영 정책**:
+① **PR 머지**: 항상 사람이 직접 검토·승인 후 수행 — 영구 정책 (자동 머지 미도입)
 
 ---
 
