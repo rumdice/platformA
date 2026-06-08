@@ -721,10 +721,10 @@
 
 ### 진행 중
 
-- [ ] `db_write.py` — `sprint_number` → `sprint` 컬럼명 버그 수정
-- [ ] `.claude/skills/plan/SKILL.md` — sprint 카운터 `max(sprint number)+1` 방식으로 재수정
-- [ ] `migrate_tasks_to_postgres.py --apply` 재실행 — Sprint #44~#49 DB backfill
-- [ ] DB 상태 불일치 수정 (`StabilizeSdlcPhase3DataFlow`)
-- [ ] `/pr 스킬` 게이트 검사 DB SELECT primary 전환 (파일 fallback 유지)
-- [ ] model_run backfill (완료 22개 브랜치 일괄 적용)
-- [ ] `check_sdlc_consistency.py --strict` 통과 확인 → Phase B 선언
+- [x] `db_write.py` — `sprint_number` → `sprint` 컬럼명 버그 수정
+- [x] `.claude/skills/plan/SKILL.md` — sprint 카운터 `max(sprint number)+1` 방식으로 재수정
+- [x] `migrate_tasks_to_postgres.py --apply` 재실행 — Sprint #44~#49 DB backfill
+- [x] DB 상태 불일치 수정 (`StabilizeSdlcPhase3DataFlow`)
+- [x] `/pr 스킬` 게이트 검사 DB SELECT primary 전환 (파일 fallback 유지)
+- [x] model_run backfill (완료 22개 브랜치 일괄 적용)
+- [x] `check_sdlc_consistency.py --strict` 통과 확인 → Phase B 선언
