@@ -93,9 +93,9 @@ task JSON과 SPRINT.md가 항상 같은 번호를 공유하도록, **코드 작�
 **원칙: `/plan` 1회 = 새 스프린트 항목 1개 신설.** 기존 스프린트에 태스크를 추가하지 않는다.
 
 ```bash
-# AI/tasks/sprint*.json 파일 수 기반 카운터 (SPRINT.md 구조 변경에 무관)
-EXISTING=$(ls AI/tasks/sprint*.json 2>/dev/null | wc -l | tr -d ' ')
-SPRINT_NUM=$((EXISTING + 1))
+# 파일명의 최대 sprint 번호 기반 카운터 (파일 수 아님 — 동일 번호 파일 2개 시 오산 방지)
+MAX_SPRINT=$(ls AI/tasks/sprint*.json 2>/dev/null | grep -o 'sprint[0-9]*' | grep -o '[0-9]*' | sort -n | tail -1)
+SPRINT_NUM=$(( ${MAX_SPRINT:-0} + 1 ))
 ```
 
 이 `SPRINT_NUM`을 3.5단계(task JSON 파일명·필드)와 4단계(SPRINT.md 헤더) 양쪽에서 동일하게 사용한다.

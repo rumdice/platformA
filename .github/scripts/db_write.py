@@ -66,7 +66,7 @@ def get_conn():
         import psycopg2
         return psycopg2.connect(**parse_conn(CONN))
     except ImportError:
-        print("[db_write] psycopg2 미설치 — pip install psycopg2-binary", file=sys.stderr)
+        print("[db_write] psycopg2 미설치 - pip install psycopg2-binary", file=sys.stderr)
         return None
     except Exception as e:
         print(f"[db_write] PostgreSQL 연결 실패: {e}", file=sys.stderr)
@@ -96,15 +96,26 @@ def action_upsert_job(args) -> bool:
             except Exception:
                 pass
 
+        test_generated = getattr(args, "test_generated", False) or False
+        review_completed = getattr(args, "review_completed", False) or False
+        adr_required = getattr(args, "adr_required", False) or False
+        retry_count = int(getattr(args, "retry_count", 0) or 0)
+
         with conn:
             cur = conn.cursor()
             cur.execute(
                 """
                 INSERT INTO sdlc.ai_jobs
-                    (branch, sprint_number, task_name, status, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                    (branch, sprint, task_name, status,
+                     test_generated, review_completed, adr_required, retry_count,
+                     created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (branch) DO UPDATE SET
                     status = EXCLUDED.status,
+                    test_generated = CASE WHEN EXCLUDED.test_generated THEN TRUE ELSE sdlc.ai_jobs.test_generated END,
+                    review_completed = CASE WHEN EXCLUDED.review_completed THEN TRUE ELSE sdlc.ai_jobs.review_completed END,
+                    adr_required = EXCLUDED.adr_required,
+                    retry_count = EXCLUDED.retry_count,
                     updated_at = EXCLUDED.updated_at
                 """,
                 (
@@ -112,11 +123,15 @@ def action_upsert_job(args) -> bool:
                     int(args.sprint) if args.sprint else None,
                     args.task or "",
                     args.status or "analyzing",
+                    test_generated,
+                    review_completed,
+                    adr_required,
+                    retry_count,
                     created_at,
                     now,
                 ),
             )
-        print(f"[db_write] upsert-job OK — branch={args.branch} status={args.status}")
+        print(f"[db_write] upsert-job OK - branch={args.branch} status={args.status}")
         return True
     except Exception as e:
         print(f"[db_write] upsert-job 실패: {e}", file=sys.stderr)
@@ -169,7 +184,7 @@ def action_insert_step(args) -> bool:
                     now,
                 ),
             )
-        print(f"[db_write] insert-step OK — job_id={job_id} name={args.step_name}")
+        print(f"[db_write] insert-step OK - job_id={job_id} name={args.step_name}")
         return True
     except Exception as e:
         print(f"[db_write] insert-step 실패: {e}", file=sys.stderr)
@@ -232,6 +247,10 @@ def main() -> None:
     parser.add_argument("--task")
     parser.add_argument("--status")
     parser.add_argument("--created-at", dest="created_at")
+    parser.add_argument("--test-generated", dest="test_generated", action="store_true", default=False)
+    parser.add_argument("--review-completed", dest="review_completed", action="store_true", default=False)
+    parser.add_argument("--adr-required", dest="adr_required", action="store_true", default=False)
+    parser.add_argument("--retry-count", dest="retry_count", type=int, default=0)
     # insert-step
     parser.add_argument("--step-name", dest="step_name")
     parser.add_argument("--step-status", dest="step_status", default="done")

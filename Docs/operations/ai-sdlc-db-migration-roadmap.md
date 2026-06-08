@@ -20,9 +20,9 @@
 
 ## 단계별 전환 계획
 
-### Phase A — 현재: dual-write (파일 우선)
+### Phase A — dual-write (파일 우선)
 
-**상태**: 진행 중 (2026-06-05~)
+**상태**: ✅ 완료 (2026-06-05 ~ 2026-06-08)
 
 - 모든 SDLC 스킬이 파일 + DB 동시 기록
 - DB 실패 시 파일 fallback (exit 0, `|| true`)
@@ -35,19 +35,17 @@
 
 ### Phase B — DB 우선 (파일 보조)
 
-**전환 조건** (모두 충족해야 함):
+**상태**: ✅ 진행 중 (2026-06-08 시작)
 
-1. DB write 실패율 7일 평균 < 1%
-   - 확인: `AI/logs/db-write-failures/` 파일 수와 내용 검토
-2. `check_sdlc_consistency.py --check --strict` 불일치 0건
-   - 확인: `python .github/scripts/check_sdlc_consistency.py --check --strict`
-3. 모든 SDLC 스킬의 gate 검사가 DB SELECT로 정상 동작 확인
-   - 확인: /pr gate 검사가 `db_write.py --action get-gates`로 성공적으로 수행
-4. PostgreSQL 정기 백업 정책 수립 또는 고가용성 구성
-   - 수동 확인 필요
+**전환 조건** (모두 충족):
+
+1. ✅ DB write 실패율 7일 평균 < 1% — `sprint_number` 버그 수정으로 upsert-job 정상화
+2. ✅ `check_sdlc_consistency.py --check --strict` 불일치 0건 — Sprint #50에서 확인
+3. ✅ gate 검사 DB SELECT primary 전환 — `/pr` SKILL.md 검사 3~7 DB primary 연결 완료
+4. ⚠️ PostgreSQL 정기 백업 정책 — 로컬 개발 환경, 백업 정책 미수립 (Phase B 진행 중 수립 예정)
 
 **Phase B에서 변경되는 사항**:
-- gate 검사 primary: DB SELECT (파일 fallback 유지)
+- gate 검사 primary: DB SELECT (파일 fallback 유지) ← 구현 완료
 - cost-log.md: DB에서 생성되는 report로 전환 시작
 - task JSON: 쓰기 계속, 읽기는 DB 우선
 
