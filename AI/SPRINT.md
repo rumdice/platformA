@@ -12,7 +12,7 @@
 
 | Sprint | 제목 | 상태 | 상세 파일 |
 |--------|------|------|---------|
-| #49 | AI_SDLC Phase 3 운영 안정화 | 진행 중 | [`AI/sprints/sprint-049.md`](sprints/sprint-049.md) |
+| #49 | AI_SDLC Phase 3 운영 안정화 | 완료 | [`AI/sprints/sprint-049.md`](sprints/sprint-049.md) |
 
 ## Recent Sprints (완료)
 
@@ -702,14 +702,14 @@
 ## 스프린트 #49 (2026-06-08 ~)
 **목표**: AI_SDLC Phase 3 운영 안정화 — append-only 충돌 완화, DB/JSON 정합성 검사, DB write 실패 가시화, 자동 수정 safety policy 정리
 
-### 진행 중
+### 완료
 
-- [ ] `AI/sprints/` 구조 도입 — 스프린트별 개별 파일 관리 (append-only 충돌 완화)
-- [ ] `AI/SPRINT.md` 인덱스/요약 역할로 점진 전환
-- [ ] `check_sdlc_consistency.py` — PostgreSQL ↔ task JSON 정합성 검사
-- [ ] `db_write.py` 실패 로그 기록 추가 (`AI/logs/db-write-failures/`)
-- [ ] `.claude/hooks/session-start.sh` 업데이트 — DB write 실패 표시 + AI/sprints/ 파일 읽기
-- [ ] `.claude/skills/plan/SKILL.md` sprint 카운터 수정 (task JSON 파일 수 기반)
-- [ ] `Docs/operations/ai-sdlc-auto-fix-policy.md` 작성
-- [ ] `Docs/operations/ai-sdlc-append-only-conflict-policy.md` 작성
-- [ ] `Docs/operations/ai-sdlc-db-migration-roadmap.md` 작성 (dual-write→DB-only 전환 기준)
+- [x] `AI/sprints/` 구조 도입 — 스프린트별 개별 파일 관리 (append-only 충돌 완화)
+- [x] `AI/SPRINT.md` 인덱스/요약 역할로 점진 전환
+- [x] `check_sdlc_consistency.py` — PostgreSQL ↔ task JSON 정합성 검사
+- [x] `db_write.py` 실패 로그 기록 추가 (`AI/logs/db-write-failures/`)
+- [x] `.claude/hooks/session-start.sh` 업데이트 — DB write 실패 표시 + AI/sprints/ 파일 읽기
+- [x] `.claude/skills/plan/SKILL.md` sprint 카운터 수정 (task JSON 파일 수 기반)
+- [x] `Docs/operations/ai-sdlc-auto-fix-policy.md` 작성
+- [x] `Docs/operations/ai-sdlc-append-only-conflict-policy.md` 작성
+- [x] `Docs/operations/ai-sdlc-db-migration-roadmap.md` 작성 (dual-write→DB-only 전환 기준)
