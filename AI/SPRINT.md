@@ -12,12 +12,13 @@
 
 | Sprint | 제목 | 상태 | 상세 파일 |
 |--------|------|------|---------|
-| #49 | AI_SDLC Phase 3 운영 안정화 | 완료 | [`AI/sprints/sprint-049.md`](sprints/sprint-049.md) |
+| #50 | DB primary 전환 (Phase B) | 진행 중 | [`AI/sprints/sprint-050.md`](sprints/sprint-050.md) |
 
 ## Recent Sprints (완료)
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
+| #49 | AI_SDLC Phase 3 운영 안정화 | 2026-06-08 |
 | #48 | PostgreSQL primary 전환 | 2026-06-05 |
 | #47 | LLM 라우터 | 2026-06-05 |
 | #46 | ai_model_runs 연동 | 2026-06-05 |
@@ -713,3 +714,18 @@
 - [x] `Docs/operations/ai-sdlc-auto-fix-policy.md` 작성
 - [x] `Docs/operations/ai-sdlc-append-only-conflict-policy.md` 작성
 - [x] `Docs/operations/ai-sdlc-db-migration-roadmap.md` 작성 (dual-write→DB-only 전환 기준)
+
+---
+
+## 스프린트 #50 (2026-06-08 ~)
+**목표**: DB primary 전환 (Phase B) — db_write.py 버그 수정, #44~#49 DB backfill, 게이트 검사 DB primary 전환
+
+### 진행 중
+
+- [ ] `db_write.py` — `sprint_number` → `sprint` 컬럼명 버그 수정
+- [ ] `.claude/skills/plan/SKILL.md` — sprint 카운터 `max(sprint number)+1` 방식으로 재수정
+- [ ] `migrate_tasks_to_postgres.py --apply` 재실행 — Sprint #44~#49 DB backfill
+- [ ] DB 상태 불일치 수정 (`StabilizeSdlcPhase3DataFlow`)
+- [ ] `/pr 스킬` 게이트 검사 DB SELECT primary 전환 (파일 fallback 유지)
+- [ ] model_run backfill (완료 22개 브랜치 일괄 적용)
+- [ ] `check_sdlc_consistency.py --strict` 통과 확인 → Phase B 선언
