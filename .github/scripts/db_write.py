@@ -22,6 +22,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_FAILURE_LOG_DIR = _REPO_ROOT / "AI" / "logs" / "db-write-failures"
+
+
+def _log_failure(action: str, branch: str, error: str) -> None:
+    try:
+        _FAILURE_LOG_DIR.mkdir(parents=True, exist_ok=True)
+        today = datetime.now().strftime("%Y-%m-%d")
+        log_file = _FAILURE_LOG_DIR / f"{today}.log"
+        ts = datetime.now().astimezone().isoformat(timespec="seconds")
+        # connection string 전체를 로그에 남기지 않음
+        safe_error = str(error)[:200]
+        line = f"[{ts}] action={action} branch={branch} error={safe_error}\n"
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(line)
+    except Exception:
+        pass  # 로그 기록 실패는 무시
+
 CONN = os.environ.get(
     "SDLC_DB_CONNECTION",
     "Host=localhost;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password",
@@ -67,6 +85,7 @@ def lookup_job_id(cur, branch: str) -> Optional[int]:
 def action_upsert_job(args) -> bool:
     conn = get_conn()
     if conn is None:
+        _log_failure("upsert-job", args.branch, "connection failed")
         return False
     try:
         now = datetime.now(timezone.utc)
@@ -101,6 +120,7 @@ def action_upsert_job(args) -> bool:
         return True
     except Exception as e:
         print(f"[db_write] upsert-job 실패: {e}", file=sys.stderr)
+        _log_failure("upsert-job", args.branch, str(e))
         return False
     finally:
         conn.close()
@@ -109,6 +129,7 @@ def action_upsert_job(args) -> bool:
 def action_insert_step(args) -> bool:
     conn = get_conn()
     if conn is None:
+        _log_failure("insert-step", args.branch, "connection failed")
         return False
     try:
         now = datetime.now(timezone.utc)
@@ -152,6 +173,7 @@ def action_insert_step(args) -> bool:
         return True
     except Exception as e:
         print(f"[db_write] insert-step 실패: {e}", file=sys.stderr)
+        _log_failure("insert-step", args.branch, str(e))
         return False
     finally:
         conn.close()
@@ -160,6 +182,7 @@ def action_insert_step(args) -> bool:
 def action_get_gates(args) -> bool:
     conn = get_conn()
     if conn is None:
+        _log_failure("get-gates", args.branch, "connection failed")
         return False
     try:
         with conn:
@@ -194,6 +217,7 @@ def action_get_gates(args) -> bool:
         return True
     except Exception as e:
         print(f"[db_write] get-gates 실패: {e}", file=sys.stderr)
+        _log_failure("get-gates", args.branch, str(e))
         return False
     finally:
         conn.close()

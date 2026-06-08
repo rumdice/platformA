@@ -93,12 +93,13 @@ task JSON과 SPRINT.md가 항상 같은 번호를 공유하도록, **코드 작�
 **원칙: `/plan` 1회 = 새 스프린트 항목 1개 신설.** 기존 스프린트에 태스크를 추가하지 않는다.
 
 ```bash
-EXISTING=$(grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
+# AI/tasks/sprint*.json 파일 수 기반 카운터 (SPRINT.md 구조 변경에 무관)
+EXISTING=$(ls AI/tasks/sprint*.json 2>/dev/null | wc -l | tr -d ' ')
 SPRINT_NUM=$((EXISTING + 1))
 ```
 
 이 `SPRINT_NUM`을 3.5단계(task JSON 파일명·필드)와 4단계(SPRINT.md 헤더) 양쪽에서 동일하게 사용한다.
-**재계산 금지** — 두 단계 사이에 다른 커밋이 들어와 헤더 수가 바뀌어도 이 값을 그대로 쓴다.
+**재계산 금지** — 두 단계 사이에 다른 커밋이 들어와 파일 수가 바뀌어도 이 값을 그대로 쓴다.
 
 ---
 
