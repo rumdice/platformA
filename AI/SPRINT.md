@@ -1,7 +1,31 @@
-# SPRINT — 현재 스프린트
+# SPRINT — 스프린트 인덱스
 
 > AI는 세션 시작 시 이 파일을 가장 먼저 읽습니다.
 > 작업 완료 즉시 체크박스를 업데이트하십시오.
+>
+> **스프린트 #49부터**: 상세 작업은 `AI/sprints/sprint-NNN.md`에 작성한다.
+> 이 파일은 인덱스/요약 역할만 한다. 기존 #1~#48 내역은 하단에 보존한다.
+
+---
+
+## Active Sprint
+
+| Sprint | 제목 | 상태 | 상세 파일 |
+|--------|------|------|---------|
+| #49 | AI_SDLC Phase 3 운영 안정화 | 완료 | [`AI/sprints/sprint-049.md`](sprints/sprint-049.md) |
+
+## Recent Sprints (완료)
+
+| Sprint | 제목 | 완료일 |
+|--------|------|--------|
+| #48 | PostgreSQL primary 전환 | 2026-06-05 |
+| #47 | LLM 라우터 | 2026-06-05 |
+| #46 | ai_model_runs 연동 | 2026-06-05 |
+| #45 | Phase3 자동화 완성 | 2026-06-05 |
+| #44 | 워크플로 완전 자동화 기반 구축 | 2026-06-05 |
+| #43 | Phase 3 데이터 흐름 안정화 | 2026-06-05 |
+
+> 스프린트 #1~#48 전체 상세는 아래에 보존됨
 
 ---
 
@@ -672,3 +696,20 @@
 - [x] `.claude/skills/test-gen/SKILL.md`, `review/SKILL.md`, `impact/SKILL.md` — steps[] → ai_job_steps INSERT 추가
 - [x] 게이트 검사 SQL 전환: /pr 스킬의 grep 기반 검사를 DB SELECT로 교체 (파일 fallback 유지)
 - [x] `migrate_tasks_to_postgres.py --apply` 실행하여 기존 45개 task JSON DB 이전 확인
+
+---
+
+## 스프린트 #49 (2026-06-08 ~)
+**목표**: AI_SDLC Phase 3 운영 안정화 — append-only 충돌 완화, DB/JSON 정합성 검사, DB write 실패 가시화, 자동 수정 safety policy 정리
+
+### 완료
+
+- [x] `AI/sprints/` 구조 도입 — 스프린트별 개별 파일 관리 (append-only 충돌 완화)
+- [x] `AI/SPRINT.md` 인덱스/요약 역할로 점진 전환
+- [x] `check_sdlc_consistency.py` — PostgreSQL ↔ task JSON 정합성 검사
+- [x] `db_write.py` 실패 로그 기록 추가 (`AI/logs/db-write-failures/`)
+- [x] `.claude/hooks/session-start.sh` 업데이트 — DB write 실패 표시 + AI/sprints/ 파일 읽기
+- [x] `.claude/skills/plan/SKILL.md` sprint 카운터 수정 (task JSON 파일 수 기반)
+- [x] `Docs/operations/ai-sdlc-auto-fix-policy.md` 작성
+- [x] `Docs/operations/ai-sdlc-append-only-conflict-policy.md` 작성
+- [x] `Docs/operations/ai-sdlc-db-migration-roadmap.md` 작성 (dual-write→DB-only 전환 기준)

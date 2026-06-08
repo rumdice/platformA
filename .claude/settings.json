@@ -30,7 +30,10 @@
             "Edit(**)",
             "Write(**)",
             "Read(**)",
-            "Skill(*)"
+            "Skill(*)",
+            "Edit(*)",
+            "Write(*)",
+            "Read(*)"
         ],
         "additionalDirectories": [
             "C:\\Users\\rumdi\\.claude\\plans"
