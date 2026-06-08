@@ -10,14 +10,13 @@
 
 ## Active Sprint
 
-| Sprint | 제목 | 상태 | 상세 파일 |
-|--------|------|------|---------|
-| #50 | DB primary 전환 (Phase B) | 진행 중 | [`AI/sprints/sprint-050.md`](sprints/sprint-050.md) |
+없음 (다음 작업 시 /plan으로 신규 스프린트 생성)
 
 ## Recent Sprints (완료)
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
+| #50 | DB primary 전환 (Phase B) | 2026-06-08 |
 | #49 | AI_SDLC Phase 3 운영 안정화 | 2026-06-08 |
 | #48 | PostgreSQL primary 전환 | 2026-06-05 |
 | #47 | LLM 라우터 | 2026-06-05 |
