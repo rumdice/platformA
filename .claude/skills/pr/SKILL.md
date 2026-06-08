@@ -78,7 +78,12 @@ CODE_CHANGED가 비어 있으면 검사 3·4를 건너뛴다 (문서/스킬만 �
 
 **검사 3 — 테스트 생성 여부 (코드 변경 시 필수)**
 ```bash
-TEST_GEN=$(grep -o '"test_generated":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+# DB primary → 파일 fallback 순서로 값 결정
+if [ -n "$DB_TEST_GEN" ]; then
+  TEST_GEN="$DB_TEST_GEN"
+else
+  TEST_GEN=$(grep -o '"test_generated":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+fi
 ```
 CODE_CHANGED가 있고 TEST_GEN이 `false`이면 **중단**한다:
 > ❌ /pr 중단: 코드 변경이 있지만 /test-gen이 실행되지 않았습니다.
@@ -86,7 +91,12 @@ CODE_CHANGED가 있고 TEST_GEN이 `false`이면 **중단**한다:
 
 **검사 4 — 고위험 조건 시 리뷰 완료 여부**
 ```bash
-REVIEW_DONE=$(grep -o '"review_completed":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+# DB primary → 파일 fallback 순서로 값 결정
+if [ -n "$DB_REVIEW" ]; then
+  REVIEW_DONE="$DB_REVIEW"
+else
+  REVIEW_DONE=$(grep -o '"review_completed":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+fi
 
 HIGH_RISK_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null \
   | grep -E 'PlatformA\.Library/|Migrations/|DbContext|Entities/|Auth|Token|Jwt|Redis.*Lock|LockManager' \
@@ -103,7 +113,12 @@ CHANGED_COUNT=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -v '^
 
 **검사 5 — impact 미실행 차단 (코드 변경 시)**
 ```bash
-IMPACT_NULL=$(grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1)
+# DB primary → 파일 fallback 순서로 값 결정
+if [ -n "$DB_IMPACT" ]; then
+  [ "$DB_IMPACT" = "true" ] && IMPACT_NULL="" || IMPACT_NULL="null"
+else
+  IMPACT_NULL=$(grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1)
+fi
 ```
 CODE_CHANGED가 있고 IMPACT_NULL이 있으면 **중단**한다:
 > ❌ /pr 중단: 코드 변경이 있지만 /impact가 실행되지 않았습니다.
@@ -111,8 +126,13 @@ CODE_CHANGED가 있고 IMPACT_NULL이 있으면 **중단**한다:
 
 **검사 6 — requirement 미실행 차단**
 ```bash
-REQ_COUNT=$(grep -A5 '"name": "requirement"' "${TASK_FILE}" 2>/dev/null | grep -c '"status": "done"' || echo "0")
-[ "${REQ_COUNT:-0}" -gt 0 ] && REQUIREMENT_DONE="true" || REQUIREMENT_DONE="false"
+# DB primary → 파일 fallback 순서로 값 결정
+if [ -n "$DB_REQ" ]; then
+  REQUIREMENT_DONE="$DB_REQ"
+else
+  REQ_COUNT=$(grep -A5 '"name": "requirement"' "${TASK_FILE}" 2>/dev/null | grep -c '"status": "done"' || echo "0")
+  [ "${REQ_COUNT:-0}" -gt 0 ] && REQUIREMENT_DONE="true" || REQUIREMENT_DONE="false"
+fi
 ```
 REQUIREMENT_DONE이 `false`이면 **중단**한다 (CODE_CHANGED 여부와 무관하게 항상 검사):
 > ❌ /pr 중단: /requirement가 실행되지 않았습니다.
@@ -120,7 +140,12 @@ REQUIREMENT_DONE이 `false`이면 **중단**한다 (CODE_CHANGED 여부와 무�
 
 **검사 7 — ADR 미생성 차단 (adr_required)**
 ```bash
-ADR_REQUIRED=$(grep -o '"adr_required":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+# DB primary → 파일 fallback 순서로 값 결정
+if [ -n "$DB_ADR" ]; then
+  ADR_REQUIRED="$DB_ADR"
+else
+  ADR_REQUIRED=$(grep -o '"adr_required":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
+fi
 ```
 ADR_REQUIRED가 `true`이면 **중단**한다:
 > ❌ /pr 중단: DESIGN_REVIEW에서 신규 ADR이 필요하다고 판정되었지만 아직 생성되지 않았습니다.
