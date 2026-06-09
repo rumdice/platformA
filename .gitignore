@@ -485,3 +485,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# SDLC DB 백업 (로컬 전용, 커밋 금지)
+AI/backups/*.sql.gz
+AI/backups/*.sql

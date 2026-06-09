@@ -156,6 +156,7 @@ def check(strict: bool) -> int:
         gate_mismatches = []
         step_count_mismatches = []
         model_run_missing = []
+        model_run_legacy = []  # consume_tokens=None → cost 추적 이전 레거시
 
         for branch, task in tasks.items():
             if branch not in db_jobs:
@@ -190,7 +191,11 @@ def check(strict: bool) -> int:
 
             # model run 누락 (완료된 작업만 검사)
             if task.get("status") == "done" and branch not in db_model_run_branches:
-                model_run_missing.append(branch)
+                # consume_tokens=None → cost 추적 도입 이전 레거시, LEGACY exception 처리
+                if task.get("consume_tokens") is None:
+                    model_run_legacy.append(branch)
+                else:
+                    model_run_missing.append(branch)
 
         for branch in db_jobs:
             if branch not in tasks:
@@ -202,13 +207,14 @@ def check(strict: bool) -> int:
         print(f"Gate mismatches:        {len(gate_mismatches)}")
         print(f"Step count mismatches:  {len(step_count_mismatches)}")
         print(f"Model run missing:      {len(model_run_missing)}")
+        print(f"Model run legacy:       {len(model_run_legacy)} (no cost tracking - LEGACY exception)")
 
         has_warning = any([
             missing_in_db, missing_in_files, status_mismatches,
             gate_mismatches, step_count_mismatches, model_run_missing,
         ])
 
-        if has_warning:
+        if has_warning or model_run_legacy:
             print()
             if missing_in_db:
                 print("WARN - Missing in DB:")
@@ -226,9 +232,15 @@ def check(strict: bool) -> int:
                 print("WARN - Gate mismatches:")
                 for m in gate_mismatches[:5]:
                     print(f"  {m}")
+            if model_run_legacy:
+                print(f"LEGACY - Model run missing (no cost tracking, {len(model_run_legacy)} items - not a failure):")
+                for b in model_run_legacy[:5]:
+                    print(f"  {b}")
+                if len(model_run_legacy) > 5:
+                    print(f"  ... and {len(model_run_legacy) - 5} more")
 
         critical = missing_in_db + gate_mismatches
-        if not has_warning:
+        if not has_warning and not model_run_legacy:
             print("\nResult: OK")
             return 0
         elif strict and critical:

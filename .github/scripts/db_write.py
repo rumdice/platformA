@@ -170,7 +170,7 @@ def action_insert_step(args) -> bool:
             cur.execute(
                 """
                 INSERT INTO sdlc.ai_job_steps
-                    (job_id, name, status, summary, started_at, completed_at, created_at)
+                    (job_id, step_name, status, summary, started_at, completed_at, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT DO NOTHING
                 """,
@@ -211,7 +211,7 @@ def action_get_gates(args) -> bool:
                     j.adr_required,
                     EXISTS(
                         SELECT 1 FROM sdlc.ai_job_steps s
-                        WHERE s.job_id = j.id AND s.name = 'requirement' AND s.status = 'done'
+                        WHERE s.job_id = j.id AND s.step_name = 'requirement' AND s.status = 'done'
                     ) AS requirement_done
                 FROM sdlc.ai_jobs j
                 WHERE j.branch = %s
