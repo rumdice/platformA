@@ -45,7 +45,7 @@ def get_conn():
         import psycopg2
         return psycopg2.connect(**parse_conn(CONN))
     except ImportError:
-        print("[insert_model_run] psycopg2 미설치 — pip install psycopg2-binary", file=sys.stderr)
+        print("[insert_model_run] psycopg2 미설치 - pip install psycopg2-binary", file=sys.stderr)
         return None
     except Exception as e:
         print(f"[insert_model_run] PostgreSQL 연결 실패: {e}", file=sys.stderr)
@@ -140,7 +140,7 @@ def insert_model_run(branch: str, created_at: str) -> bool:
             )
 
         print(
-            f"[insert_model_run] OK — branch={branch}, "
+            f"[insert_model_run] OK - branch={branch}, "
             f"job_id={job_id}, consume={consume_tokens}, cache={cache_tokens}"
         )
         return True

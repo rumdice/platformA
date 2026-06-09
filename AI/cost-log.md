@@ -53,3 +53,4 @@ Phase 3 전환 시 이 파일을 `ai_model_runs` 테이블로 마이그레이션
 | 2026-06-05 | #48 | PostgresPrimaryMigration | claude-sonnet-4-6 | L | 3027 | 33948347 | 490813 | feat: PostgreSQL primary 전환 — db_write.py 신규 + 7개 스킬 dual-write 추가 [risk:LOW] |
 | 2026-06-08 | #49 | StabilizeSdlcPhase3Ops | claude-sonnet-4-6 | L | 1429 | 19208710 | 313568 | feat: Phase 3 운영 안정화 — AI/sprints/ 구조 도입, DB/JSON 정합성 검사, db_write 실패 로그, 정책 문서 3종 [risk:LOW] |
 | 2026-06-08 | #50 | MigrateToDbPrimary | claude-sonnet-4-6 | M | 935 | 17218269 | 299202 | fix+feat: DB primary 전환(Phase B) — db_write.py sprint 버그수정, sprint 카운터 수정, backfill 12개, /pr 게이트 DB primary 전환, Phase B 선언 [risk:LOW] |
+| 2026-06-10 | #51 | PrepareDbPrimaryPhaseC | claude-sonnet-4-6 | L | 885 | 13477505 | 289003 | fix+feat: Phase B 마무리 — step_name 버그수정, LEGACY exception, 백업정책, generate_cost_log_from_db.py 신규, Phase C 조건 문서화 [risk:LOW] |
