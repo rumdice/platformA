@@ -10,7 +10,7 @@
   "last_error": null,
   "artifacts": [],
   "test_generated": true,
-  "review_completed": false,
+  "review_completed": true,
   "adr_required": false,
   "duration_sec": null,
   "consume_tokens": null,
@@ -66,6 +66,18 @@
       "status": "done",
       "completed_at": "2026-06-10T01:00:00Z",
       "summary": "테스트 불필요 — C# 코드 미변경, Python/Shell/Markdown만 변경"
+    },
+    {
+      "name": "review",
+      "status": "done",
+      "completed_at": "2026-06-10T01:10:00Z",
+      "summary": "승인: 위반 없음 — SDLC 툴링 전용, 보안 검토 통과, 빌드 및 133개 테스트 전체 통과"
+    },
+    {
+      "name": "done",
+      "status": "done",
+      "completed_at": "2026-06-10T01:15:00Z",
+      "summary": "빌드: 성공, 테스트: 133개 통과, push 완료 — 2026-06-10_PrepareDbPrimaryPhaseC"
     }
   ]
 }
