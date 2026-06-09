@@ -12,7 +12,7 @@
 
 | Sprint | 제목 | 상태 | 상세 파일 |
 |--------|------|------|---------|
-| #51 | Phase B 마무리 및 Phase C 전환 준비 | 진행 중 | [`AI/sprints/sprint-051.md`](sprints/sprint-051.md) |
+| #51 | Phase B 마무리 및 Phase C 전환 준비 | PR 검토 중 | [`AI/sprints/sprint-051.md`](sprints/sprint-051.md) |
 
 ## Recent Sprints (완료)
 

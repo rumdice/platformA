@@ -5,13 +5,13 @@
 
 ## 태스크
 
-- [ ] `db_write.py` — `name` → `step_name` 컬럼명 버그 수정 (insert-step, get-gates)
-- [ ] Sprint #50 gate DB 재동기화 (test_generated, review_completed 재반영)
-- [ ] `check_sdlc_consistency.py` — model_run_missing LEGACY exception 처리 추가
-- [ ] `check_sdlc_consistency.py --strict` 통과 복원
-- [ ] PostgreSQL 백업 정책 수립 (`backup_sdlc_db.sh` + Phase B 조건 4번 완료 처리)
-- [ ] `generate_cost_log_from_db.py` 신규 작성 (DB → markdown cost-log export)
-- [ ] Phase C 전환 조건 문서화 (`ai-sdlc-db-migration-roadmap.md` Phase C 조건 갱신)
+- [x] `db_write.py` — `name` → `step_name` 컬럼명 버그 수정 (insert-step, get-gates)
+- [x] Sprint #50 gate DB 재동기화 (test_generated, review_completed 재반영)
+- [x] `check_sdlc_consistency.py` — model_run_missing LEGACY exception 처리 추가
+- [x] `check_sdlc_consistency.py --strict` 통과 복원
+- [x] PostgreSQL 백업 정책 수립 (`backup_sdlc_db.sh` + Phase B 조건 4번 완료 처리)
+- [x] `generate_cost_log_from_db.py` 신규 작성 (DB → markdown cost-log export)
+- [x] Phase C 전환 조건 문서화 (`ai-sdlc-db-migration-roadmap.md` Phase C 조건 갱신, `ai-sdlc-phase-c-db-only-plan.md` 신규 작성)
 
 ## 배경
 
