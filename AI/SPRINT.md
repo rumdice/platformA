@@ -12,12 +12,13 @@
 
 | Sprint | 제목 | 상태 | 상세 파일 |
 |--------|------|------|---------|
-| #51 | Phase B 마무리 및 Phase C 전환 준비 | PR 검토 중 | [`AI/sprints/sprint-051.md`](sprints/sprint-051.md) |
+| #52 | Phase C 조기 도입 (DB 단독 전환) | 진행 중 | [`AI/sprints/sprint-052.md`](sprints/sprint-052.md) |
 
 ## Recent Sprints (완료)
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
+| #51 | Phase B 마무리 및 Phase C 전환 준비 | 2026-06-10 |
 | #50 | DB primary 전환 (Phase B) | 2026-06-08 |
 | #49 | AI_SDLC Phase 3 운영 안정화 | 2026-06-08 |
 | #48 | PostgreSQL primary 전환 | 2026-06-05 |
