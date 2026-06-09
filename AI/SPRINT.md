@@ -10,7 +10,9 @@
 
 ## Active Sprint
 
-없음 (다음 작업 시 /plan으로 신규 스프린트 생성)
+| Sprint | 제목 | 상태 | 상세 파일 |
+|--------|------|------|---------|
+| #51 | Phase B 마무리 및 Phase C 전환 준비 | 진행 중 | [`AI/sprints/sprint-051.md`](sprints/sprint-051.md) |
 
 ## Recent Sprints (완료)
 
