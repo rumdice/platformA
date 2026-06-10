@@ -1,8 +1,9 @@
 # AI_SDLC Phase C: DB 단독 전환 계획
 
 작성일: 2026-06-10
-관련 스프린트: #51 (PrepareDbPrimaryPhaseC)
+관련 스프린트: #51 (PrepareDbPrimaryPhaseC), #52 (AdoptPhaseCDbOnly)
 선행 조건: Phase B 완료 (2026-06-10)
+**Phase C 선언일: 2026-06-10** (Sprint #52 완료 기준)
 
 ---
 
@@ -20,8 +21,8 @@ Phase C는 task JSON 파일 신규 쓰기를 중단하고 PostgreSQL을 SDLC 상
 | Phase B 조건 4개 전체 충족 | ✅ | Sprint #51에서 확인 |
 | `generate_cost_log_from_db.py` 작성 | ✅ | DB → markdown cost-log 출력 가능 |
 | `check_sdlc_consistency.py --strict` exit 0 | ✅ | gate 불일치 0건, model_run_legacy 16건 (LEGACY exception) |
-| gate 검사 파일 fallback 제거 dry-run | ☐ | Phase C 전환 직전 실행 |
-| Sprint 1회 DB 단독 순환 확인 | ☐ | Phase C 첫 스프린트에서 확인 |
+| gate 검사 파일 fallback 제거 dry-run | ✅ | get-gates 5개 필드 반환 확인 (Sprint #51) |
+| Sprint 1회 DB 단독 순환 확인 | ✅ | Sprint #52 (AdoptPhaseCDbOnly) — Phase C 첫 스프린트 완료 |
 
 ---
 
@@ -42,7 +43,7 @@ python .github/scripts/db_write.py \
 
 ---
 
-### C.1 — task JSON 신규 쓰기 중단
+### C.1 — task JSON 신규 쓰기 중단 ✅ (Sprint #52 완료)
 
 **대상 파일**: `.claude/skills/plan/SKILL.md`
 
@@ -55,7 +56,7 @@ python .github/scripts/db_write.py \
 
 ---
 
-### C.2 — cost-log.md 직접 append 중단
+### C.2 — cost-log.md 직접 append 중단 ✅ (Sprint #52 완료)
 
 **대상 파일**: `.claude/skills/pr/SKILL.md`
 
@@ -66,7 +67,7 @@ python .github/scripts/db_write.py \
 
 ---
 
-### C.3 — gate 검사 파일 fallback 제거
+### C.3 — gate 검사 파일 fallback 제거 ✅ (Sprint #52 완료)
 
 **대상 파일**: `.claude/skills/pr/SKILL.md`, `.claude/skills/done/SKILL.md`
 
@@ -79,10 +80,10 @@ python .github/scripts/db_write.py \
 
 ---
 
-### C.4 — check_sdlc_consistency.py 검사 범위 확장
+### C.4 — check_sdlc_consistency.py 검사 범위 확장 ✅ (Sprint #52 완료)
 
 Phase C 전환 후에는 `missing_in_files` (DB에는 있지만 JSON 없음) 카운트가 증가한다.
-이 상태는 정상이므로 해당 항목을 LEGACY로 분류하거나 검사 제외한다.
+`files_archived` 분류 추가 — DB status='done' 항목은 Phase C 정상 상태로 처리하여 WARN/FAIL 대상 제외.
 
 ---
 

@@ -61,37 +61,43 @@ CI에서 막히기 전에 차단하여 재push 비용을 줄이는 것이 목적
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
-TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
 CODE_CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null \
   | grep -E '\.(cs|proto|csproj)$' | head -1)
 ```
 
 CODE_CHANGED가 없으면 이 단계를 건너뛴다 (문서·스킬만 변경).
 
-CODE_CHANGED가 있는 경우 아래 3가지를 순서대로 검사한다.
-하나라도 미충족이면 **즉시 중단**하고 push를 금지한다.
+CODE_CHANGED가 있는 경우 **DB에서 게이트 값을 조회**한다 (Phase C: 파일 fallback 없음).
+
+```bash
+# Phase C: DB 게이트 조회 필수 — 실패 시 중단
+DB_GATES=$(python .github/scripts/db_write.py --action get-gates --branch "${CURRENT_BRANCH}" 2>&1)
+if [ $? -ne 0 ] || [ -z "$DB_GATES" ]; then
+    echo "❌ DB 게이트 조회 실패. PostgreSQL 연결을 확인하세요."
+    exit 1
+fi
+TEST_GEN=$(echo "$DB_GATES" | grep "^test_generated=" | cut -d= -f2)
+IMPACT_DONE=$(echo "$DB_GATES" | grep "^impact_done=" | cut -d= -f2)
+REVIEW_DONE=$(echo "$DB_GATES" | grep "^review_completed=" | cut -d= -f2)
+```
+
+아래 3가지를 순서대로 검사한다. 하나라도 미충족이면 **즉시 중단**하고 push를 금지한다.
 
 **검사 A — /test-gen 완료 여부**
-```bash
-TEST_GEN=$([ -n "$TASK_FILE" ] && grep -o '"test_generated":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1 || echo "true")
-```
+
 TEST_GEN이 `false`이면 **즉시 중단**:
 > ❌ /done 중단: /test-gen이 실행되지 않았습니다.
 >    /test-gen 실행 후 /done을 재실행하세요.
->    테스트가 불필요한 경우: task JSON에서 "test_generated": true로 수정 후 재실행.
+>    테스트가 불필요한 경우: `db_write.py --action upsert-job --test-generated` 후 재실행.
 
 **검사 B — /impact 완료 여부**
-```bash
-IMPACT_NULL=$([ -n "$TASK_FILE" ] && grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1 || echo "")
-```
-IMPACT_NULL이 비어 있지 않으면 **즉시 중단**:
+
+IMPACT_DONE이 `false`이면 **즉시 중단**:
 > ❌ /done 중단: /impact가 실행되지 않았습니다.
 >    /impact 실행 후 /done을 재실행하세요.
 
 **검사 C — /review 완료 여부**
-```bash
-REVIEW_DONE=$([ -n "$TASK_FILE" ] && grep -o '"review_completed":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1 || echo "true")
-```
+
 REVIEW_DONE이 `false`이면 **즉시 중단**:
 > ❌ /done 중단: /review가 실행되지 않았습니다.
 >    /review 실행 후 /done을 재실행하세요.
@@ -103,7 +109,13 @@ SLN=$(git rev-parse --show-toplevel)/PlatformA
 cd "$SLN" && dotnet build PlatformA.sln --verbosity minimal
 ```
 빌드 실패 시:
-- task JSON `"status"` → `"failed"`, `"last_error"` → 오류 요약으로 Edit 도구 업데이트
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${CURRENT_BRANCH}" \
+  --status "failed" \
+  --last-error "빌드 실패: {오류 요약 앞 200자}" 2>/dev/null || true
+```
 - **즉시 중단**하고 오류를 출력한다. push 금지.
 
 ### 3단계: 포맷 검사 및 자동 수정
@@ -143,28 +155,20 @@ dotnet format PlatformA.sln style --verify-no-changes --no-restore
 dotnet test PlatformA.sln -q
 ```
 테스트 실패 시:
-- task JSON `"status"` → `"failed"`, `"last_error"` → 실패 테스트명으로 Edit 도구 업데이트
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${CURRENT_BRANCH}" \
+  --status "failed" \
+  --last-error "테스트 실패: {실패 테스트명}" 2>/dev/null || true
+```
 - **즉시 중단**하고 실패 항목을 출력한다. push 금지.
 
-### 4.5단계: task 상태 → "testing" + steps[] 기록
+### 4.5단계: DB 상태 → "testing" 갱신 (Phase C: DB 단독)
 
-빌드·포맷·테스트 모두 통과한 직후 Edit 도구로 아래 두 가지를 갱신한다:
+빌드·포맷·테스트 모두 통과한 직후 DB를 갱신한다.
+task JSON이 없어도 (Phase C 신규 스프린트) DB만으로 처리한다.
 
-1. `"status"` 필드를 `"testing"`으로 교체한다.
-
-2. `steps[]` 배열에 아래 항목을 추가한다:
-```json
-{
-  "name": "done",
-  "status": "done",
-  "completed_at": "{ISO8601 현재 시각}",
-  "summary": "빌드: 성공, 테스트: N개 통과, push 완료 — {브랜치명}"
-}
-```
-
-### 4.7단계: PostgreSQL dual-write (선택)
-
-steps[] 기록 완료 직후 ai_job_steps에 done 단계 기록 시도:
 ```bash
 python .github/scripts/db_write.py \
   --action upsert-job \
@@ -177,6 +181,10 @@ python .github/scripts/db_write.py \
   --step-status "done" \
   --step-summary "빌드: 성공, 테스트 통과, push 완료" 2>/dev/null || true
 ```
+
+task JSON이 존재하는 경우 (Phase B 이전 스프린트 계속 작업):
+- Edit 도구로 `"status"` → `"testing"` 교체
+- `steps[]`에 done 항목 추가
 
 ### 5단계: 원격 push
 마커를 생성하고 push한다.

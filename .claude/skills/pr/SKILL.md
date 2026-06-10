@@ -46,28 +46,26 @@ PR이 이미 존재하면 URL을 출력하고 중단한다:
 
 아래 검사를 순서대로 실행한다. **중단** 표시가 있으면 이후 단계를 실행하지 않는다.
 
-**검사 0 — PostgreSQL 게이트 사전 조회 (선택)**
+**검사 0 — PostgreSQL 게이트 조회 (필수 — Phase C)**
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
-DB_GATES=$(python .github/scripts/db_write.py --action get-gates --branch "${CURRENT_BRANCH}" 2>/dev/null || echo "")
-# DB 응답이 있으면 파싱 (없으면 grep fallback 사용)
-if [ -n "$DB_GATES" ]; then
-  DB_TEST_GEN=$(echo "$DB_GATES" | grep "^test_generated=" | cut -d= -f2)
-  DB_REVIEW=$(echo "$DB_GATES" | grep "^review_completed=" | cut -d= -f2)
-  DB_IMPACT=$(echo "$DB_GATES" | grep "^impact_done=" | cut -d= -f2)
-  DB_REQ=$(echo "$DB_GATES" | grep "^requirement_done=" | cut -d= -f2)
-  DB_ADR=$(echo "$DB_GATES" | grep "^adr_required=" | cut -d= -f2)
+DB_GATES=$(python .github/scripts/db_write.py --action get-gates --branch "${CURRENT_BRANCH}" 2>&1)
+if [ $? -ne 0 ] || [ -z "$DB_GATES" ]; then
+  echo "❌ DB 게이트 조회 실패. PostgreSQL 연결을 확인하세요."
+  exit 1
 fi
+DB_TEST_GEN=$(echo "$DB_GATES" | grep "^test_generated=" | cut -d= -f2)
+DB_REVIEW=$(echo "$DB_GATES" | grep "^review_completed=" | cut -d= -f2)
+DB_IMPACT=$(echo "$DB_GATES" | grep "^impact_done=" | cut -d= -f2)
+DB_REQ=$(echo "$DB_GATES" | grep "^requirement_done=" | cut -d= -f2)
+DB_ADR=$(echo "$DB_GATES" | grep "^adr_required=" | cut -d= -f2)
 ```
 
-**검사 1 — task JSON 존재 여부**
+**검사 1 — task JSON 존재 여부 (참고용 — Phase C에서는 없을 수 있음)**
 ```bash
 TASK_FILE=$(grep -rl "\"branch\": \"${CURRENT_BRANCH}\"" AI/tasks/ 2>/dev/null | head -1)
+# Phase C: TASK_FILE 없음은 정상 — 모든 게이트 값은 DB에서 읽는다
 ```
-TASK_FILE이 없으면 경고하고 계속한다:
-> ⚠️ task JSON이 없습니다. `/plan`으로 시작된 작업이 아니면 게이트 검사를 건너뜁니다.
-
-이하 검사 2~5는 TASK_FILE이 있을 때만 실행한다. DB_GATES가 있으면 DB 값을 우선 사용한다.
 
 **검사 2 — 코드 변경 여부 판별**
 ```bash
@@ -78,25 +76,17 @@ CODE_CHANGED가 비어 있으면 검사 3·4를 건너뛴다 (문서/스킬만 �
 
 **검사 3 — 테스트 생성 여부 (코드 변경 시 필수)**
 ```bash
-# DB primary → 파일 fallback 순서로 값 결정
-if [ -n "$DB_TEST_GEN" ]; then
-  TEST_GEN="$DB_TEST_GEN"
-else
-  TEST_GEN=$(grep -o '"test_generated":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
-fi
+# Phase C: DB에서만 읽음
+TEST_GEN="${DB_TEST_GEN}"
 ```
 CODE_CHANGED가 있고 TEST_GEN이 `false`이면 **중단**한다:
 > ❌ /pr 중단: 코드 변경이 있지만 /test-gen이 실행되지 않았습니다.
->    먼저 /test-gen을 실행하거나, 테스트가 불필요한 경우 task JSON에서 test_generated를 true로 수정하세요.
+>    /test-gen 실행 후 /pr을 재실행하세요.
 
 **검사 4 — 고위험 조건 시 리뷰 완료 여부**
 ```bash
-# DB primary → 파일 fallback 순서로 값 결정
-if [ -n "$DB_REVIEW" ]; then
-  REVIEW_DONE="$DB_REVIEW"
-else
-  REVIEW_DONE=$(grep -o '"review_completed":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
-fi
+# Phase C: DB에서만 읽음
+REVIEW_DONE="${DB_REVIEW}"
 
 HIGH_RISK_FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null \
   | grep -E 'PlatformA\.Library/|Migrations/|DbContext|Entities/|Auth|Token|Jwt|Redis.*Lock|LockManager' \
@@ -113,45 +103,32 @@ CHANGED_COUNT=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -v '^
 
 **검사 5 — impact 미실행 차단 (코드 변경 시)**
 ```bash
-# DB primary → 파일 fallback 순서로 값 결정
-if [ -n "$DB_IMPACT" ]; then
-  [ "$DB_IMPACT" = "true" ] && IMPACT_NULL="" || IMPACT_NULL="null"
-else
-  IMPACT_NULL=$(grep -o '"impact":[[:space:]]*null' "$TASK_FILE" | head -1)
-fi
+# Phase C: DB에서만 읽음
+[ "${DB_IMPACT}" = "true" ] && IMPACT_NULL="" || IMPACT_NULL="null"
 ```
 CODE_CHANGED가 있고 IMPACT_NULL이 있으면 **중단**한다:
 > ❌ /pr 중단: 코드 변경이 있지만 /impact가 실행되지 않았습니다.
->    먼저 /impact를 실행하거나, task JSON의 impact 필드를 수동으로 채운 뒤 /pr을 재실행하세요.
+>    /impact 실행 후 /pr을 재실행하세요.
 
 **검사 6 — requirement 미실행 차단**
 ```bash
-# DB primary → 파일 fallback 순서로 값 결정
-if [ -n "$DB_REQ" ]; then
-  REQUIREMENT_DONE="$DB_REQ"
-else
-  REQ_COUNT=$(grep -A5 '"name": "requirement"' "${TASK_FILE}" 2>/dev/null | grep -c '"status": "done"' || echo "0")
-  [ "${REQ_COUNT:-0}" -gt 0 ] && REQUIREMENT_DONE="true" || REQUIREMENT_DONE="false"
-fi
+# Phase C: DB에서만 읽음
+REQUIREMENT_DONE="${DB_REQ}"
 ```
 REQUIREMENT_DONE이 `false`이면 **중단**한다 (CODE_CHANGED 여부와 무관하게 항상 검사):
 > ❌ /pr 중단: /requirement가 실행되지 않았습니다.
->    먼저 /requirement를 실행하거나, task JSON의 steps[]에 requirement 단계를 수동으로 추가하세요.
+>    /requirement를 실행하세요.
 
 **검사 7 — ADR 미생성 차단 (adr_required)**
 ```bash
-# DB primary → 파일 fallback 순서로 값 결정
-if [ -n "$DB_ADR" ]; then
-  ADR_REQUIRED="$DB_ADR"
-else
-  ADR_REQUIRED=$(grep -o '"adr_required":[[:space:]]*[^,}]*' "$TASK_FILE" | grep -o 'true\|false' | head -1)
-fi
+# Phase C: DB에서만 읽음
+ADR_REQUIRED="${DB_ADR}"
 ```
 ADR_REQUIRED가 `true`이면 **중단**한다:
 > ❌ /pr 중단: DESIGN_REVIEW에서 신규 ADR이 필요하다고 판정되었지만 아직 생성되지 않았습니다.
 >
 >    1. /adr {결정 주제}  — ADR 파일 생성
->    2. task JSON에서 adr_required를 false로 수정
+>    2. DB에서 adr_required를 false로 업데이트
 >    3. /pr 재실행
 
 ---
@@ -197,72 +174,82 @@ EOF
 
 ---
 
-### 3단계: task JSON 완료 처리
+### 3단계: DB 완료 처리 (Phase C: DB 단독)
 
+```bash
+BRANCH=$(git branch --show-current)
+PR_URL="{2단계에서 생성된 PR URL}"
+
+# DB 업데이트 (Phase C 필수)
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${BRANCH}" \
+  --status "done" \
+  --pr-url "${PR_URL}" 2>/dev/null || true
+python .github/scripts/db_write.py \
+  --action insert-step \
+  --branch "${BRANCH}" \
+  --step-name "pr" \
+  --step-status "done" \
+  --step-summary "PR 생성 완료: ${PR_URL}" 2>/dev/null || true
+```
+
+task JSON이 존재하는 경우 (Phase B 이전 스프린트 계속 작업):
 ```bash
 NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 # Edit 도구로 status="done", completed_at=NOW, pr_url={PR_URL} 교체
 ```
 
-task JSON 갱신 완료 후 PostgreSQL dual-write 시도 (선택 — 연결 실패 시 무시):
-```bash
-python .github/scripts/db_write.py \
-  --action upsert-job \
-  --branch "$(git branch --show-current)" \
-  --status "done" 2>/dev/null || true
-python .github/scripts/db_write.py \
-  --action insert-step \
-  --branch "$(git branch --show-current)" \
-  --step-name "pr" \
-  --step-status "done" \
-  --step-summary "PR 생성 완료" 2>/dev/null || true
-```
-
 ---
 
-### 4단계: cost-log.md 기록
+### 4단계: 비용 기록 (Phase C: DB 기반 report)
 
-**규모 자동 계산** — main 대비 변경 파일 수로 S/M/L/XL 결정:
+**토큰 사용량 DB 갱신** — count_tokens.py로 계산 후 ai_jobs에 저장:
 ```bash
-FILE_COUNT=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -v '^$' | wc -l)
-if   [ "$FILE_COUNT" -le 2  ]; then SIZE="S"
-elif [ "$FILE_COUNT" -le 10 ]; then SIZE="M"
-elif [ "$FILE_COUNT" -le 30 ]; then SIZE="L"
-else SIZE="XL"
-fi
+# CREATED_AT: DB ai_jobs.created_at에서 조회
+CREATED_AT=$(python3 -c "
+import psycopg2, os
+conn_str = os.environ.get('SDLC_DB_CONNECTION', 'Host=localhost;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password')
+parts = {}
+for p in conn_str.split(';'):
+    if '=' in p:
+        k, v = p.split('=', 1)
+        parts[k.strip().lower()] = v.strip()
+conn = psycopg2.connect(host=parts.get('host','localhost'), port=int(parts.get('port',5432)), dbname=parts.get('database','platforma_sdlc'), user=parts.get('username','platforma'), password=parts.get('password','platforma_dev_password'))
+cur = conn.cursor()
+cur.execute('SELECT created_at FROM sdlc.ai_jobs WHERE branch = %s LIMIT 1', ('$(git branch --show-current)',))
+row = cur.fetchone()
+print(row[0].strftime('%Y-%m-%dT%H:%M:%SZ') if row else '')
+conn.close()
+" 2>/dev/null)
 
-SPRINT_NUM=$(grep -o '"sprint":[[:space:]]*[0-9]*' "${TASK_FILE}" 2>/dev/null | grep -o '[0-9]*' | head -1 || grep -c "^## 스프린트 #" AI/SPRINT.md 2>/dev/null || echo "0")
-PLAN_NAME=$(git branch --show-current | sed 's/^[0-9-]*_//')
-TODAY=$(date +%Y-%m-%d)
-```
-
-**duration_sec / consume_tokens / cache_tokens 자동 계산** (Python 단일 호출):
-```bash
-CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
-TOKENS_RAW=$(python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null \
-  || python3 .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
+TOKENS_RAW=$(python .github/scripts/count_tokens.py "${CREATED_AT}" 2>/dev/null || echo "")
 DURATION=$(echo "$TOKENS_RAW" | grep "^duration_sec=" | cut -d= -f2)
 CONSUME_TOKENS=$(echo "$TOKENS_RAW" | grep "^consume_tokens=" | cut -d= -f2)
 CACHE_TOKENS=$(echo "$TOKENS_RAW" | grep "^cache_tokens=" | cut -d= -f2)
-DURATION=${DURATION:-null}
-CONSUME_TOKENS=${CONSUME_TOKENS:-null}
-CACHE_TOKENS=${CACHE_TOKENS:-null}
 ```
 
-task JSON에 자동 계산 결과를 기록한 뒤 cost-log 행을 추가한다:
-
-Edit 도구를 사용하여 task JSON의 `consume_tokens`, `cache_tokens` 필드를 직접 수정한다:
-- `"consume_tokens": null` → `"consume_tokens": ${CONSUME_TOKENS}`
-- `"cache_tokens": null` → `"cache_tokens": ${CACHE_TOKENS}`
-
-`AI/cost-log.md` 테이블 마지막 행에 추가 (Edit 도구):
+CONSUME_TOKENS, CACHE_TOKENS가 있으면 db_write.py로 ai_jobs를 업데이트한다:
+```bash
+[ -n "$CONSUME_TOKENS" ] && python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "$(git branch --show-current)" \
+  --consume-tokens "${CONSUME_TOKENS}" \
+  --cache-tokens "${CACHE_TOKENS:-0}" \
+  --duration-sec "${DURATION:-0}" \
+  --status "done" 2>/dev/null || true
 ```
-| {TODAY} | #{SPRINT_NUM} | {PLAN_NAME} | claude-sonnet-4-6 | {SIZE} | {DURATION} | {CONSUME_TOKENS} | {CACHE_TOKENS} | {변경 내용 한 줄 요약} |
+
+**Phase C: AI/cost-log.md append 없음** — DB 기반 report를 자동 생성한다:
+```bash
+mkdir -p AI/reports
+python .github/scripts/generate_cost_log_from_db.py \
+  --output AI/reports/generated-cost-log-from-db.md 2>/dev/null || true
 ```
 
 변경 후 커밋:
 ```bash
-git add AI/tasks/ AI/cost-log.md
+git add AI/tasks/ AI/reports/
 git commit -m "완료: task 상태 및 비용 로그 업데이트"
 git push
 ```
@@ -275,7 +262,7 @@ git push
 PostgreSQL 미실행이거나 psycopg2가 없어도 `|| true`로 흐름을 차단하지 않는다.
 
 ```bash
-CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
+# CREATED_AT: 4단계에서 이미 조회됨 (DB에서)
 python .github/scripts/insert_model_run.py \
   --branch "$(git branch --show-current)" \
   --created-at "${CREATED_AT}" 2>/dev/null || true
