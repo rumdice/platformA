@@ -152,6 +152,7 @@ def check(strict: bool) -> int:
 
         missing_in_db = []
         missing_in_files = []
+        files_archived = []  # Phase C: DB에만 있고 JSON 없음 + status=done → 정상
         status_mismatches = []
         gate_mismatches = []
         step_count_mismatches = []
@@ -199,10 +200,15 @@ def check(strict: bool) -> int:
 
         for branch in db_jobs:
             if branch not in tasks:
-                missing_in_files.append(branch)
+                # Phase C: status=done이면 JSON 없음이 정상 (archived)
+                if db_jobs[branch].get("status") == "done":
+                    files_archived.append(branch)
+                else:
+                    missing_in_files.append(branch)
 
         print(f"Missing in DB:          {len(missing_in_db)}")
-        print(f"Missing in files:       {len(missing_in_files)}")
+        print(f"Missing in files:       {len(missing_in_files)} (in-progress, no JSON)")
+        print(f"Files archived (Phase C): {len(files_archived)} (done in DB only — normal)")
         print(f"Status mismatches:      {len(status_mismatches)}")
         print(f"Gate mismatches:        {len(gate_mismatches)}")
         print(f"Step count mismatches:  {len(step_count_mismatches)}")
@@ -214,16 +220,22 @@ def check(strict: bool) -> int:
             gate_mismatches, step_count_mismatches, model_run_missing,
         ])
 
-        if has_warning or model_run_legacy:
+        if has_warning or model_run_legacy or files_archived:
             print()
             if missing_in_db:
                 print("WARN - Missing in DB:")
                 for b in missing_in_db[:5]:
                     print(f"  {b}")
             if missing_in_files:
-                print("WARN - Missing in files:")
+                print("WARN - Missing in files (in-progress, no JSON):")
                 for b in missing_in_files[:5]:
                     print(f"  {b}")
+            if files_archived:
+                print(f"INFO - Files archived (Phase C — {len(files_archived)} done-in-DB-only, not a failure):")
+                for b in files_archived[:5]:
+                    print(f"  {b}")
+                if len(files_archived) > 5:
+                    print(f"  ... and {len(files_archived) - 5} more")
             if status_mismatches:
                 print("WARN - Status mismatches:")
                 for m in status_mismatches[:5]:

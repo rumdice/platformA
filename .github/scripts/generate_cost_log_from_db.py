@@ -59,14 +59,15 @@ def fetch_runs(conn) -> list[dict]:
             j.branch,
             j.status,
             j.pr_url,
-            r.model_id,
-            r.duration_sec,
-            r.consume_tokens,
-            r.cache_tokens,
-            r.created_at
-        FROM sdlc.ai_model_runs r
-        JOIN sdlc.ai_jobs j ON j.id = r.job_id
-        ORDER BY j.sprint ASC, r.created_at ASC
+            (SELECT r.model_name FROM sdlc.ai_model_runs r WHERE r.job_id = j.id ORDER BY r.created_at DESC LIMIT 1) AS model_name,
+            j.duration_sec,
+            j.consume_tokens,
+            j.cache_tokens,
+            j.created_at
+        FROM sdlc.ai_jobs j
+        WHERE j.status = 'done'
+          AND j.consume_tokens IS NOT NULL
+        ORDER BY j.sprint ASC, j.created_at ASC
         """
     )
     cols = ["sprint", "task_name", "branch", "status", "pr_url",
