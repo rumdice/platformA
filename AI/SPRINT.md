@@ -1,7 +1,10 @@
 # SPRINT — 스프린트 인덱스
 
 > AI는 세션 시작 시 이 파일을 가장 먼저 읽습니다.
-> 작업 완료 즉시 체크박스를 업데이트하십시오.
+>
+> **Phase C부터**: 에이전트는 이 파일을 직접 수정하지 않습니다.
+> Active Sprint / Recent Sprints 테이블은 PR 머지 후 `generate_sprint_md.py`가 DB 기반으로 자동 재생성합니다.
+> (동시 개발 충돌 방지 — 수동 수정 금지)
 >
 > **스프린트 #49부터**: 상세 작업은 `AI/sprints/sprint-NNN.md`에 작성한다.
 > 이 파일은 인덱스/요약 역할만 한다. 기존 #1~#48 내역은 하단에 보존한다.
@@ -10,26 +13,31 @@
 
 ## Active Sprint
 
-| Sprint | 제목 | 상태 | 상세 파일 |
-|--------|------|------|---------|
-| #55 | Phase C 경화 — owner·localhost 차단·보고서 gitignore | PR 생성 중 | [`AI/sprints/sprint-055.md`](sprints/sprint-055.md) |
+| Sprint | 제목 | 상태 | Owner | 상세 파일 |
+|--------|------|------|-------|----------|
+| #56 | SPRINT.md 자동 재생성 — 동시 개발 충돌 해소 (Option B) | analyzing | rumdice | [`AI/sprints/sprint-056.md`](sprints/sprint-056.md) |
+| #25 | ImproveSdlcGates | coding | rumdice | — |
+| #24 | AddTestGenSkill | coding | rumdice | — |
 
 ## Recent Sprints (완료)
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
-| #54 | Phase C 게이트 step 기반 판정 통일 | 2026-06-10 |
-| #53 | Phase C 게이트 갭 수정 | 2026-06-10 |
-| #52 | Phase C 조기 도입 (DB 단독 전환) | 2026-06-10 |
-| #51 | Phase B 마무리 및 Phase C 전환 준비 | 2026-06-10 |
-| #50 | DB primary 전환 (Phase B) | 2026-06-08 |
+| #55 | Phase C 경화 — owner·localhost 차단·보고서 gitignore | 2026-06-10 |
+| #54 | FixGatesStepBased | 2026-06-10 |
+| #53 | FixDoneSkillPhaseC | 2026-06-10 |
+| #52 | AdoptPhaseCDbOnly | 2026-06-10 |
+| #51 | PrepareDbPrimaryPhaseC | — |
+| #50 | MigrateToDbPrimary | — |
 | #49 | AI_SDLC Phase 3 운영 안정화 | 2026-06-08 |
-| #48 | PostgreSQL primary 전환 | 2026-06-05 |
-| #47 | LLM 라우터 | 2026-06-05 |
-| #46 | ai_model_runs 연동 | 2026-06-05 |
-| #45 | Phase3 자동화 완성 | 2026-06-05 |
-| #44 | 워크플로 완전 자동화 기반 구축 | 2026-06-05 |
-| #43 | Phase 3 데이터 흐름 안정화 | 2026-06-05 |
+| #48 | PostgresPrimaryMigration | 2026-06-05 |
+| #47 | AddLlmRouter | 2026-06-05 |
+| #46 | AddModelRunsIntegration | 2026-06-05 |
+| #45 | CompletePhase3Automation | 2026-06-05 |
+| #44 | AutomateWorkflowPipeline | 2026-06-05 |
+| #43 | StabilizeSdlcPhase3DataFlow | 2026-06-05 |
+| #42 | AutomateCiFailureDetection | 2026-06-04 |
+| #41 | AddSdlcDbLib | 2026-06-03 |
 
 > 스프린트 #1~#48 전체 상세는 아래에 보존됨
 

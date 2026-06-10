@@ -133,15 +133,24 @@ ADR_REQUIRED가 `true`이면 **중단**한다:
 
 ---
 
-### 1단계: SPRINT.md 완료 체크
+### 1단계: sprint-NNN.md 완료 상태 갱신
 
-`AI/SPRINT.md`를 읽어 이번 브랜치에서 작업한 태스크 항목의 `- [ ]`를 `- [x]`로 변경한다.
-변경 후 커밋:
+**AI/SPRINT.md는 수정하지 않는다** — PR 머지 후 `generate_sprint_md.py`가 자동 재생성.
+
+이번 브랜치의 sprint 파일을 찾아 프론트매터를 완료 상태로 갱신한다:
+
 ```bash
-git add AI/SPRINT.md
-git commit -m "완료: {PlanName} 태스크 체크"
-git push
+CURRENT_BRANCH=$(git branch --show-current)
+SPRINT_FILE=$(grep -rl "^branch: ${CURRENT_BRANCH}" AI/sprints/ 2>/dev/null | head -1)
 ```
+
+SPRINT_FILE이 있으면 Edit 도구로 프론트매터를 수정한다:
+- `status: in-progress` → `status: done`
+- `completed: {오늘날짜}` 필드 추가 (없는 경우)
+
+SPRINT_FILE이 없으면 (Phase B 이전 스프린트 또는 frontmatter 없는 파일) 이 단계를 건너뛴다.
+
+PR URL은 2단계 이후에 추가하므로 이 단계에서는 pr 필드를 추가하지 않는다.
 
 ---
 
@@ -174,7 +183,7 @@ EOF
 
 ---
 
-### 3단계: DB 완료 처리 (Phase C: DB 단독)
+### 3단계: DB 완료 처리 + sprint 파일 PR URL 추가 (Phase C: DB 단독)
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -193,6 +202,8 @@ python .github/scripts/db_write.py \
   --step-status "done" \
   --step-summary "PR 생성 완료: ${PR_URL}" 2>/dev/null || true
 ```
+
+1단계에서 찾은 SPRINT_FILE이 있으면 Edit 도구로 `pr: {PR_URL}` 필드를 프론트매터에 추가한다.
 
 task JSON이 존재하는 경우 (Phase B 이전 스프린트 계속 작업):
 ```bash
@@ -249,7 +260,7 @@ python .github/scripts/generate_cost_log_from_db.py \
 
 변경 후 커밋:
 ```bash
-git add AI/tasks/ AI/reports/
+git add AI/tasks/ AI/reports/ AI/sprints/
 git commit -m "완료: task 상태 및 비용 로그 업데이트"
 git push
 ```
