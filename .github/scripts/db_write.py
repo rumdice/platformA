@@ -268,7 +268,10 @@ def action_get_gates(args) -> bool:
                 SELECT
                     j.test_generated,
                     j.review_completed,
-                    (j.impact IS NOT NULL) AS impact_done,
+                    EXISTS(
+                        SELECT 1 FROM sdlc.ai_job_steps s
+                        WHERE s.job_id = j.id AND s.step_name = 'impact' AND s.status = 'done'
+                    ) AS impact_done,
                     j.adr_required,
                     EXISTS(
                         SELECT 1 FROM sdlc.ai_job_steps s

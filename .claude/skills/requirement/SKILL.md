@@ -213,7 +213,20 @@ git push
 
 ---
 
-### 7단계 — task JSON에 requirement 단계 기록
+### 7단계 — DB 및 task JSON에 requirement 단계 기록
+
+**DB 기록 (Phase C 필수):**
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+python .github/scripts/db_write.py \
+  --action insert-step \
+  --branch "${CURRENT_BRANCH}" \
+  --step-name "requirement" \
+  --step-status "done" \
+  --step-summary "{요구사항 요약 1문장 + DESIGN_REVIEW 판정}" 2>/dev/null || true
+```
+
+**task JSON 기록 (Phase B 이전 스프린트에만 해당 — task JSON이 있는 경우):**
 
 Edit 도구로 task JSON의 `steps[]` 배열에 requirement 단계를 추가한다:
 
