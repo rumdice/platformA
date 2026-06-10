@@ -266,8 +266,14 @@ def action_get_gates(args) -> bool:
             cur.execute(
                 """
                 SELECT
-                    j.test_generated,
-                    j.review_completed,
+                    (j.test_generated OR EXISTS(
+                        SELECT 1 FROM sdlc.ai_job_steps s
+                        WHERE s.job_id = j.id AND s.step_name = 'test_gen' AND s.status = 'done'
+                    )) AS test_generated,
+                    (j.review_completed OR EXISTS(
+                        SELECT 1 FROM sdlc.ai_job_steps s
+                        WHERE s.job_id = j.id AND s.step_name = 'review' AND s.status = 'done'
+                    )) AS review_completed,
                     EXISTS(
                         SELECT 1 FROM sdlc.ai_job_steps s
                         WHERE s.job_id = j.id AND s.step_name = 'impact' AND s.status = 'done'

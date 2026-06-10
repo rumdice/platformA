@@ -1,6 +1,6 @@
 # AI_SDLC Cost Log (DB 기반)
 
-> 생성 시각: 2026-06-10 00:38 UTC
+> 생성 시각: 2026-06-10 00:46 UTC
 > 소스: PostgreSQL `sdlc.ai_model_runs` JOIN `sdlc.ai_jobs`
 > 이 파일은 스크립트로 생성됩니다. 직접 편집하지 마세요.
 
@@ -8,7 +8,7 @@
 
 | Total Runs | Total Duration (sec) | Total Consume Tokens | Total Cache Tokens |
 |---:|---:|---:|---:|
-| 14 | 20934 | 283,789,589 | 4,302,711 |
+| 15 | 21001 | 284,964,596 | 4,306,294 |
 
 ## By Sprint
 
@@ -28,6 +28,7 @@
 | #49 | 1 | 0 | 19,208,710 | 313,568 |
 | #52 | 1 | 3600 | 45,000 | 120,000 |
 | #53 | 1 | 89 | 1,612,519 | 8,850 |
+| #54 | 1 | 67 | 1,175,007 | 3,583 |
 
 ## Details
 
@@ -47,3 +48,4 @@
 | #49 | StabilizeSdlcPhase3Ops | claude-sonnet-4-6 | null | 19,208,710 | 313,568 | 2026-06-07 |
 | #52 | AdoptPhaseCDbOnly | claude-sonnet-4-6 | 3600 | 45,000 | 120,000 | 2026-06-09 |
 | #53 | FixDoneSkillPhaseC | claude-sonnet-4-6 | 89 | 1,612,519 | 8,850 | 2026-06-10 |
+| #54 | FixGatesStepBased | claude-sonnet-4-6 | 67 | 1,175,007 | 3,583 | 2026-06-10 |
