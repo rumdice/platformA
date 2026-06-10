@@ -41,7 +41,7 @@ jobs:
       - name: psycopg2 설치 (job_lock 의존성)
         run: pip install psycopg2-binary -q
 
-      - name: Job Lock Claim
+      - name: Job Lock Claim (fail-open)
         env:
           SDLC_DB_CONNECTION: ${{ secrets.SDLC_DB_CONNECTION }}
         run: |
@@ -52,13 +52,17 @@ jobs:
             --ttl 30 2>&1)
           LOCK_EXIT=$?
           echo "$LOCK_OUTPUT"
-          if [ "$LOCK_EXIT" -ne 0 ]; then
-            echo "lock_failed=true" >> $GITHUB_ENV
-            echo "lock_output=${LOCK_OUTPUT}" >> $GITHUB_ENV
+          if [ "$LOCK_EXIT" -eq 3 ]; then
+            echo "⚠️ SDLC DB 연결 불가 — lock 없이 진행합니다 (fail-open)"
+          elif [ "$LOCK_EXIT" -eq 1 ]; then
+            echo "⛔ 다른 agent가 이미 작업 중입니다 — auto-fix 중단"
             exit 1
+          elif [ "$LOCK_EXIT" -eq 2 ]; then
+            echo "⚠️ DB에 job 없음 — lock 없이 진행합니다"
+          else
+            LOCK_TOKEN=$(echo "$LOCK_OUTPUT" | grep '^LOCK_TOKEN=' | cut -d= -f2)
+            echo "LOCK_TOKEN=${LOCK_TOKEN}" >> $GITHUB_ENV
           fi
-          LOCK_TOKEN=$(echo "$LOCK_OUTPUT" | grep '^LOCK_TOKEN=' | cut -d= -f2)
-          echo "LOCK_TOKEN=${LOCK_TOKEN}" >> $GITHUB_ENV
 
       - name: 모델 선택 (failure_type 기반)
         run: |
