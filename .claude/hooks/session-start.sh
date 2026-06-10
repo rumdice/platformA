@@ -47,6 +47,14 @@ if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ]; then
     fi
 fi
 
+# 1.5. Job Lock 상태 확인 (lock 있을 때만 출력)
+LOCK_OUTPUT=$(python "$PROJECT_DIR/.github/scripts/job_lock.py" list-active 2>/dev/null)
+if echo "$LOCK_OUTPUT" | grep -qE "active_locks=[^0]|stale_locks=[^0]"; then
+    echo ""
+    echo "[AI_SDLC Job Lock]"
+    echo "$LOCK_OUTPUT" | sed 's/^/  /'
+fi
+
 # 2. 브랜치 및 환경 정보
 echo ""
 echo "[환경 정보]"

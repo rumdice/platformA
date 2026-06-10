@@ -116,6 +116,23 @@ Skill 도구로 `/test-gen`을 호출한다.
 
 ---
 
+### 6.5단계: Job Lock heartbeat (/done 전)
+
+/done은 빌드·테스트를 포함하므로 오래 걸릴 수 있다. lock TTL을 180분으로 연장한다.
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+LOCK_FILE="${REPO_ROOT}/.ai_sdlc_lock"
+if [ -f "$LOCK_FILE" ]; then
+  LOCK_TOKEN=$(grep '^token=' "$LOCK_FILE" | cut -d= -f2)
+  python .github/scripts/job_lock.py heartbeat \
+    --branch "${CURRENT_BRANCH}" --token "${LOCK_TOKEN}" --ttl 180 2>/dev/null || true
+fi
+```
+
+---
+
 ### 7단계: /done 실행 (최대 3회 재시도)
 
 Skill 도구로 `/done`을 호출한다.
