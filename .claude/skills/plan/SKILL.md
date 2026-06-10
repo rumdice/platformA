@@ -131,25 +131,47 @@ python .github/scripts/db_write.py \
 
 ---
 
-### 4단계: SPRINT.md 업데이트 및 커밋
+### 4단계: sprint-NNN.md 생성 및 커밋
+
+**AI/SPRINT.md는 수정하지 않는다** — PR 머지 후 `generate_sprint_md.py`가 DB 기반으로 자동 재생성.
+에이전트가 SPRINT.md를 직접 수정하면 동시 개발 시 머지 충돌이 발생한다.
 
 **Case A — 새 브랜치 (오픈 PR 없음)**:
 
-1. `AI/sprints/sprint-{NNN}.md` 파일을 새로 생성한다 (NNN = 3자리 0-padding SPRINT_NUM).
-   파일 내용: 목표, 태스크 항목, 배경, 참조 섹션.
+`AI/sprints/sprint-{NNN}.md` 파일을 새로 생성한다 (NNN = 3자리 0-padding SPRINT_NUM).  
+파일은 반드시 **YAML 프론트매터**로 시작해야 한다:
 
-2. `AI/SPRINT.md` Active Sprint 테이블에 새 행을 추가하고, 이전 Active Sprint를 Recent Sprints로 이동한다.
+```markdown
+---
+sprint: {NNN 숫자}
+title: {한글 제목 또는 PlanName (2~5단어 요약)}
+branch: {브랜치명}
+date: {오늘날짜}
+status: in-progress
+---
 
-**Case B — 기존 브랜치 (오픈 PR 존재)**: 가장 최근 스프린트의 `### 진행 중` 섹션에 태스크를 추가한다.
-- 3.2·3.5단계를 건너뛰었으므로 DB에서 sprint 번호를 읽는다.
+# Sprint #{NNN} — {제목}
 
-두 경우 모두:
-- 사용자 설명을 기반으로 구체적인 태스크 항목 2~5개를 `- [ ]` 형식으로 작성한다.
-- 항목은 검증 가능한 단위로 쪼갠다.
+## 목표
+{작업 목적 1문장}
+
+## 태스크
+- [ ] {태스크 1}
+- [ ] {태스크 2}
+...
+
+## 배경
+{사용자 설명 요약}
+
+## 참조
+- DB job: `sdlc.ai_jobs.branch = {브랜치명}`
+```
+
+**Case B — 기존 브랜치 (오픈 PR 존재)**: sprint-NNN.md 파일에 태스크 항목을 추가한다.
 
 ```bash
 NNN=$(printf "%03d" "${SPRINT_NUM}")
-git add AI/SPRINT.md AI/sprints/sprint-${NNN}.md
+git add AI/sprints/sprint-${NNN}.md
 git commit -m "계획: ${PLAN_NAME} 스프린트 등록"
 git push
 ```

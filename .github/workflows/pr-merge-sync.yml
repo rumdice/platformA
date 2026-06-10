@@ -20,7 +20,7 @@ jobs:
           ref: main
           token: ${{ secrets.SYNC_TOKEN }}
 
-      - name: Sync task JSON / SPRINT.md / cost-log
+      - name: Sync task JSON / cost-log
         env:
           BRANCH: ${{ github.event.pull_request.head.ref }}
           PR_URL: ${{ github.event.pull_request.html_url }}
@@ -30,6 +30,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         run: python3 .github/scripts/sync_merged_pr.py
+
+      - name: Regenerate SPRINT.md tables (DB-based, file fallback)
+        env:
+          SDLC_DB_CONNECTION: ${{ secrets.SDLC_DB_CONNECTION }}
+        run: python3 .github/scripts/generate_sprint_md.py || true
 
       - name: Commit and push
         env:
@@ -41,8 +46,8 @@ jobs:
             echo "변경 없음 — 커밋 스킵"
             exit 0
           fi
-          git add AI/tasks/ AI/SPRINT.md AI/cost-log.md .claude/plan/
-          git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, SPRINT 체크, plan 파일 archived"
+          git add AI/tasks/ AI/SPRINT.md AI/sprints/ AI/cost-log.md .claude/plan/
+          git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, SPRINT.md 재생성"
           git push
 
   sync-task-abandoned:
