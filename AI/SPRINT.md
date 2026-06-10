@@ -12,12 +12,13 @@
 
 | Sprint | 제목 | 상태 | 상세 파일 |
 |--------|------|------|---------|
-| #54 | Phase C 게이트 step 기반 판정 통일 | PR 검토 중 | [`AI/sprints/sprint-054.md`](sprints/sprint-054.md) |
+| #55 | Phase C 경화 — owner·localhost 차단·보고서 gitignore | PR 생성 중 | [`AI/sprints/sprint-055.md`](sprints/sprint-055.md) |
 
 ## Recent Sprints (완료)
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
+| #54 | Phase C 게이트 step 기반 판정 통일 | 2026-06-10 |
 | #53 | Phase C 게이트 갭 수정 | 2026-06-10 |
 | #52 | Phase C 조기 도입 (DB 단독 전환) | 2026-06-10 |
 | #51 | Phase B 마무리 및 Phase C 전환 준비 | 2026-06-10 |
