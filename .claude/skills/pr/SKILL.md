@@ -174,25 +174,30 @@ EOF
 
 ---
 
-### 3단계: task JSON 완료 처리
+### 3단계: DB 완료 처리 (Phase C: DB 단독)
 
+```bash
+BRANCH=$(git branch --show-current)
+PR_URL="{2단계에서 생성된 PR URL}"
+
+# DB 업데이트 (Phase C 필수)
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${BRANCH}" \
+  --status "done" \
+  --pr-url "${PR_URL}" 2>/dev/null || true
+python .github/scripts/db_write.py \
+  --action insert-step \
+  --branch "${BRANCH}" \
+  --step-name "pr" \
+  --step-status "done" \
+  --step-summary "PR 생성 완료: ${PR_URL}" 2>/dev/null || true
+```
+
+task JSON이 존재하는 경우 (Phase B 이전 스프린트 계속 작업):
 ```bash
 NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 # Edit 도구로 status="done", completed_at=NOW, pr_url={PR_URL} 교체
-```
-
-task JSON 갱신 완료 후 PostgreSQL dual-write 시도 (선택 — 연결 실패 시 무시):
-```bash
-python .github/scripts/db_write.py \
-  --action upsert-job \
-  --branch "$(git branch --show-current)" \
-  --status "done" 2>/dev/null || true
-python .github/scripts/db_write.py \
-  --action insert-step \
-  --branch "$(git branch --show-current)" \
-  --step-name "pr" \
-  --step-status "done" \
-  --step-summary "PR 생성 완료" 2>/dev/null || true
 ```
 
 ---
@@ -224,7 +229,16 @@ CONSUME_TOKENS=$(echo "$TOKENS_RAW" | grep "^consume_tokens=" | cut -d= -f2)
 CACHE_TOKENS=$(echo "$TOKENS_RAW" | grep "^cache_tokens=" | cut -d= -f2)
 ```
 
-CONSUME_TOKENS, CACHE_TOKENS가 있으면 ai_jobs를 업데이트한다 (직접 SQL 또는 db_write.py 확장).
+CONSUME_TOKENS, CACHE_TOKENS가 있으면 db_write.py로 ai_jobs를 업데이트한다:
+```bash
+[ -n "$CONSUME_TOKENS" ] && python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "$(git branch --show-current)" \
+  --consume-tokens "${CONSUME_TOKENS}" \
+  --cache-tokens "${CACHE_TOKENS:-0}" \
+  --duration-sec "${DURATION:-0}" \
+  --status "done" 2>/dev/null || true
+```
 
 **Phase C: AI/cost-log.md append 없음** — DB 기반 report를 자동 생성한다:
 ```bash
@@ -248,7 +262,7 @@ git push
 PostgreSQL 미실행이거나 psycopg2가 없어도 `|| true`로 흐름을 차단하지 않는다.
 
 ```bash
-CREATED_AT=$(grep -o '"created_at": "[^"]*"' "$TASK_FILE" | grep -o '[0-9T:Z-]*' | head -1)
+# CREATED_AT: 4단계에서 이미 조회됨 (DB에서)
 python .github/scripts/insert_model_run.py \
   --branch "$(git branch --show-current)" \
   --created-at "${CREATED_AT}" 2>/dev/null || true

@@ -88,29 +88,17 @@ git push -u origin {브랜치명}
 
 ### 3.2단계: 스프린트 번호 확정
 
-task JSON은 더 이상 생성하지 않는다. DB `sdlc.ai_jobs`에서 MAX(sprint)를 조회하여 번호를 결정한다.
+DB `sdlc.sprint_seq`에서 원자적으로 번호를 발급받는다.
+MAX(sprint)+1 방식의 TOCTOU 레이스를 제거한다.
 **DB 연결 실패 시 중단** — Phase C에서 DB는 필수 조건이다.
 
 **원칙: `/plan` 1회 = 새 스프린트 항목 1개 신설.** 기존 스프린트에 태스크를 추가하지 않는다.
 
 ```bash
-# DB에서 최대 sprint 번호를 조회한다 (Phase C: 파일 카운터 제거)
-SPRINT_NUM=$(python3 -c "
-import psycopg2, os, sys
-conn_str = os.environ.get('SDLC_DB_CONNECTION', 'Host=localhost;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password')
-parts = {}
-for p in conn_str.split(';'):
-    if '=' in p:
-        k, v = p.split('=', 1)
-        parts[k.strip().lower()] = v.strip()
-conn = psycopg2.connect(host=parts.get('host','localhost'), port=int(parts.get('port',5432)), dbname=parts.get('database','platforma_sdlc'), user=parts.get('username','platforma'), password=parts.get('password','platforma_dev_password'))
-cur = conn.cursor()
-cur.execute('SELECT COALESCE(MAX(sprint), 0) FROM sdlc.ai_jobs')
-print(cur.fetchone()[0] + 1)
-conn.close()
-" 2>/dev/null)
+# sdlc.sprint_seq nextval — 동시 호출해도 번호 충돌 없음
+SPRINT_NUM=$(python .github/scripts/db_write.py --action get-sprint-num 2>/dev/null)
 if [ -z "$SPRINT_NUM" ]; then
-    echo "❌ DB에서 스프린트 번호 조회 실패. PostgreSQL 연결을 확인하세요." >&2
+    echo "❌ DB에서 스프린트 번호 발급 실패. PostgreSQL 연결을 확인하세요." >&2
     exit 1
 fi
 ```

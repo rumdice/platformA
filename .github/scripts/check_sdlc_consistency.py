@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AI_SDLC 정합성 검사 — AI/tasks/*.json ↔ PostgreSQL sdlc.ai_jobs 비교.
+AI_SDLC 정합성 검사 - AI/tasks/*.json ↔ PostgreSQL sdlc.ai_jobs 비교.
 
 사용법:
   python check_sdlc_consistency.py --check           기본 모드: 불일치 있어도 exit 0
@@ -44,10 +44,10 @@ def get_conn():
         import psycopg2
         return psycopg2.connect(**parse_conn(CONN_STR))
     except ImportError:
-        print("[consistency] psycopg2 미설치 — DB 검사 건너뜀", file=sys.stderr)
+        print("[consistency] psycopg2 미설치 - DB 검사 건너뜀", file=sys.stderr)
         return None
     except Exception as e:
-        print(f"[consistency] PostgreSQL 연결 실패: {e} — DB 검사 건너뜀", file=sys.stderr)
+        print(f"[consistency] PostgreSQL 연결 실패: {e} - DB 검사 건너뜀", file=sys.stderr)
         return None
 
 
@@ -71,10 +71,10 @@ def load_db_jobs(conn) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT branch, sprint, task_name, status, test_generated, review_completed, pr_url, impact FROM sdlc.ai_jobs"
+            "SELECT branch, sprint, task_name, status, test_generated, review_completed, pr_url, impact, updated_at FROM sdlc.ai_jobs"
         )
         for row in cur.fetchall():
-            branch, sprint, task, status, test_gen, review, pr_url, impact = row
+            branch, sprint, task, status, test_gen, review, pr_url, impact, updated_at = row
             jobs[branch] = {
                 "branch": branch,
                 "sprint": sprint,
@@ -84,6 +84,7 @@ def load_db_jobs(conn) -> dict:
                 "review_completed": review,
                 "pr_url": pr_url,
                 "impact": impact,
+                "updated_at": updated_at,
             }
     except Exception as e:
         print(f"[consistency] ai_jobs 조회 실패: {e}", file=sys.stderr)
@@ -158,6 +159,7 @@ def check(strict: bool) -> int:
         step_count_mismatches = []
         model_run_missing = []
         model_run_legacy = []  # consume_tokens=None → cost 추적 이전 레거시
+        stuck_sprints = []    # coding 상태로 24시간 이상 미갱신
 
         for branch, task in tasks.items():
             if branch not in db_jobs:
@@ -198,26 +200,45 @@ def check(strict: bool) -> int:
                 else:
                     model_run_missing.append(branch)
 
+        from datetime import datetime as _dt_cls, timezone as _tz
+        _now = _dt_cls.now(_tz.utc)
+        _stuck_threshold_hours = 24
+
         for branch in db_jobs:
+            db = db_jobs[branch]
             if branch not in tasks:
                 # Phase C: status=done이면 JSON 없음이 정상 (archived)
-                if db_jobs[branch].get("status") == "done":
+                if db.get("status") == "done":
                     files_archived.append(branch)
                 else:
                     missing_in_files.append(branch)
 
+            # stuck sprint 감지: coding/analyzing 상태로 24시간 이상 미갱신
+            if db.get("status") in ("coding", "analyzing", "failed", "testing"):
+                updated_at = db.get("updated_at")
+                if updated_at:
+                    if updated_at.tzinfo is None:
+                        updated_at = updated_at.replace(tzinfo=_tz.utc)
+                    hours_stale = (_now - updated_at).total_seconds() / 3600
+                    if hours_stale > _stuck_threshold_hours:
+                        stuck_sprints.append(
+                            f"{branch}: status={db.get('status')} stale={hours_stale:.0f}h"
+                        )
+
         print(f"Missing in DB:          {len(missing_in_db)}")
         print(f"Missing in files:       {len(missing_in_files)} (in-progress, no JSON)")
-        print(f"Files archived (Phase C): {len(files_archived)} (done in DB only — normal)")
+        print(f"Files archived (Phase C): {len(files_archived)} (done in DB only - normal)")
         print(f"Status mismatches:      {len(status_mismatches)}")
         print(f"Gate mismatches:        {len(gate_mismatches)}")
         print(f"Step count mismatches:  {len(step_count_mismatches)}")
         print(f"Model run missing:      {len(model_run_missing)}")
         print(f"Model run legacy:       {len(model_run_legacy)} (no cost tracking - LEGACY exception)")
+        print(f"Stuck sprints (>24h):   {len(stuck_sprints)}")
 
         has_warning = any([
             missing_in_db, missing_in_files, status_mismatches,
             gate_mismatches, step_count_mismatches, model_run_missing,
+            stuck_sprints,
         ])
 
         if has_warning or model_run_legacy or files_archived:
@@ -231,7 +252,7 @@ def check(strict: bool) -> int:
                 for b in missing_in_files[:5]:
                     print(f"  {b}")
             if files_archived:
-                print(f"INFO - Files archived (Phase C — {len(files_archived)} done-in-DB-only, not a failure):")
+                print(f"INFO - Files archived (Phase C - {len(files_archived)} done-in-DB-only, not a failure):")
                 for b in files_archived[:5]:
                     print(f"  {b}")
                 if len(files_archived) > 5:
@@ -250,6 +271,10 @@ def check(strict: bool) -> int:
                     print(f"  {b}")
                 if len(model_run_legacy) > 5:
                     print(f"  ... and {len(model_run_legacy) - 5} more")
+            if stuck_sprints:
+                print(f"WARN - Stuck sprints (no update for >24h):")
+                for s in stuck_sprints[:5]:
+                    print(f"  {s}")
 
         critical = missing_in_db + gate_mismatches
         if not has_warning and not model_run_legacy:

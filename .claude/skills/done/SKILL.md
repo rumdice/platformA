@@ -109,7 +109,13 @@ SLN=$(git rev-parse --show-toplevel)/PlatformA
 cd "$SLN" && dotnet build PlatformA.sln --verbosity minimal
 ```
 빌드 실패 시:
-- task JSON `"status"` → `"failed"`, `"last_error"` → 오류 요약으로 Edit 도구 업데이트
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${CURRENT_BRANCH}" \
+  --status "failed" \
+  --last-error "빌드 실패: {오류 요약 앞 200자}" 2>/dev/null || true
+```
 - **즉시 중단**하고 오류를 출력한다. push 금지.
 
 ### 3단계: 포맷 검사 및 자동 수정
@@ -149,28 +155,20 @@ dotnet format PlatformA.sln style --verify-no-changes --no-restore
 dotnet test PlatformA.sln -q
 ```
 테스트 실패 시:
-- task JSON `"status"` → `"failed"`, `"last_error"` → 실패 테스트명으로 Edit 도구 업데이트
+```bash
+python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch "${CURRENT_BRANCH}" \
+  --status "failed" \
+  --last-error "테스트 실패: {실패 테스트명}" 2>/dev/null || true
+```
 - **즉시 중단**하고 실패 항목을 출력한다. push 금지.
 
-### 4.5단계: task 상태 → "testing" + steps[] 기록
+### 4.5단계: DB 상태 → "testing" 갱신 (Phase C: DB 단독)
 
-빌드·포맷·테스트 모두 통과한 직후 Edit 도구로 아래 두 가지를 갱신한다:
+빌드·포맷·테스트 모두 통과한 직후 DB를 갱신한다.
+task JSON이 없어도 (Phase C 신규 스프린트) DB만으로 처리한다.
 
-1. `"status"` 필드를 `"testing"`으로 교체한다.
-
-2. `steps[]` 배열에 아래 항목을 추가한다:
-```json
-{
-  "name": "done",
-  "status": "done",
-  "completed_at": "{ISO8601 현재 시각}",
-  "summary": "빌드: 성공, 테스트: N개 통과, push 완료 — {브랜치명}"
-}
-```
-
-### 4.7단계: PostgreSQL dual-write (선택)
-
-steps[] 기록 완료 직후 ai_job_steps에 done 단계 기록 시도:
 ```bash
 python .github/scripts/db_write.py \
   --action upsert-job \
@@ -183,6 +181,10 @@ python .github/scripts/db_write.py \
   --step-status "done" \
   --step-summary "빌드: 성공, 테스트 통과, push 완료" 2>/dev/null || true
 ```
+
+task JSON이 존재하는 경우 (Phase B 이전 스프린트 계속 작업):
+- Edit 도구로 `"status"` → `"testing"` 교체
+- `steps[]`에 done 항목 추가
 
 ### 5단계: 원격 push
 마커를 생성하고 push한다.
