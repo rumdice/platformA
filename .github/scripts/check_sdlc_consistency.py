@@ -161,6 +161,8 @@ def check(strict: bool) -> int:
         model_run_missing = []
         model_run_legacy = []  # consume_tokens=None → cost 추적 이전 레거시
         stuck_sprints = []    # coding 상태로 24시간 이상 미갱신
+        stale_locks = []      # lock_expires_at < now — TTL 만료 lock
+        invalid_locks = []    # locked_by 있는데 lock_token 없음 — 비정상 상태
 
         for branch, task in tasks.items():
             if branch not in db_jobs:
@@ -227,6 +229,32 @@ def check(strict: bool) -> int:
                             f"{branch}: status={db.get('status')} stale={hours_stale:.0f}h{owner_str}"
                         )
 
+        # lock 상태 검사: DB에서 lock 컬럼 직접 조회
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT branch, locked_by, lock_expires_at, lock_token
+                FROM sdlc.ai_jobs
+                WHERE locked_by IS NOT NULL
+                """
+            )
+            for branch, locked_by, lock_expires, lock_token in cur.fetchall():
+                if lock_expires:
+                    if lock_expires.tzinfo is None:
+                        lock_expires = lock_expires.replace(tzinfo=_tz.utc)
+                    if lock_expires < _now:
+                        stale_locks.append(
+                            f"{branch}: locked_by={locked_by} expired={lock_expires.strftime('%Y-%m-%dT%H:%M UTC')}"
+                        )
+                if locked_by and not lock_token:
+                    invalid_locks.append(
+                        f"{branch}: locked_by={locked_by} but lock_token=NULL"
+                    )
+        except Exception as e:
+            # lock 컬럼이 아직 없을 수 있음 (Migration 004 미적용)
+            pass
+
         print(f"Missing in DB:          {len(missing_in_db)}")
         print(f"Missing in files:       {len(missing_in_files)} (in-progress, no JSON)")
         print(f"Files archived (Phase C): {len(files_archived)} (done in DB only - normal)")
@@ -236,11 +264,13 @@ def check(strict: bool) -> int:
         print(f"Model run missing:      {len(model_run_missing)}")
         print(f"Model run legacy:       {len(model_run_legacy)} (no cost tracking - LEGACY exception)")
         print(f"Stuck sprints (>24h):   {len(stuck_sprints)}")
+        print(f"Stale locks:            {len(stale_locks)} (TTL 만료)")
+        print(f"Invalid locks:          {len(invalid_locks)} (locked_by without lock_token)")
 
         has_warning = any([
             missing_in_db, missing_in_files, status_mismatches,
             gate_mismatches, step_count_mismatches, model_run_missing,
-            stuck_sprints,
+            stuck_sprints, stale_locks, invalid_locks,
         ])
 
         if has_warning or model_run_legacy or files_archived:
@@ -277,8 +307,17 @@ def check(strict: bool) -> int:
                 print(f"WARN - Stuck sprints (no update for >24h):")
                 for s in stuck_sprints[:5]:
                     print(f"  {s}")
+            if stale_locks:
+                print(f"WARN - Stale locks (TTL 만료, 해제 필요):")
+                for s in stale_locks[:5]:
+                    print(f"  {s}")
+                print("  → 해제: python .github/scripts/job_lock.py expire")
+            if invalid_locks:
+                print(f"CRITICAL - Invalid locks (locked_by without lock_token):")
+                for s in invalid_locks[:5]:
+                    print(f"  {s}")
 
-        critical = missing_in_db + gate_mismatches
+        critical = missing_in_db + gate_mismatches + invalid_locks
         if not has_warning and not model_run_legacy:
             print("\nResult: OK")
             return 0

@@ -302,6 +302,27 @@ fi
 
 ---
 
+### 4.8단계: Job Lock release (Phase C)
+
+PR 생성이 완료된 후 job lock을 해제한다.
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+LOCK_FILE="${REPO_ROOT}/.ai_sdlc_lock"
+if [ -f "$LOCK_FILE" ]; then
+  LOCK_TOKEN=$(grep '^token=' "$LOCK_FILE" | cut -d= -f2)
+  python .github/scripts/job_lock.py release \
+    --branch "${CURRENT_BRANCH}" --token "${LOCK_TOKEN}" || \
+    echo "⚠️ lock release 실패 — session-start에서 stale lock으로 표시됩니다."
+  rm -f "$LOCK_FILE"
+fi
+```
+
+release 실패는 WARN 처리 — PR 생성 자체는 영향 없음. 만료된 lock은 TTL 후 자동 해제된다.
+
+---
+
 ### 5단계: 완료 보고
 
 ```

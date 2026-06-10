@@ -77,8 +77,37 @@ PlatformA.Library/**
 .github/workflows/**  (자동 수정 워크플로 자체는 변경 금지)
 ```
 
+## 8. Job Lock 정책 (Phase C)
+
+n8n auto-fix는 Phase C부터 job lock을 획득해야 작업을 시작할 수 있다.
+
+### lock claim 필수
+
+```bash
+python .github/scripts/job_lock.py claim \
+  --branch "${BRANCH}" \
+  --agent-id "n8n" \
+  --ttl 30
+```
+
+- lock 획득 실패 시: 해당 PR에 comment만 남기고 작업 중단
+  - 메시지 예시: `"자동 수정 보류 — 다른 agent가 작업 중입니다. owner={locked_by}"`
+- lock 최대 TTL: **30분** (일반 작업 60분의 절반)
+- retry_count >= 3인 작업: lock claim 시도 금지 (수동 처리 필요)
+- HIGH risk 작업: lock claim 시도 금지
+
+### 완료 후 release
+
+```bash
+python .github/scripts/job_lock.py release \
+  --branch "${BRANCH}" --token "${LOCK_TOKEN}"
+```
+
+release 실패 시: TTL 만료 대기 (30분 이내 자동 해제)
+
 ## 관련 문서
 
 - `AI/AI_SDLC(pipeline).txt`: Phase 3 전체 파이프라인 설명
 - `.github/workflows/auto-fix.yml`: 자동 수정 트리거 워크플로
 - `Docs/operations/ai-sdlc-db-migration-roadmap.md`: DB 전환 로드맵
+- `Docs/operations/ai-sdlc-job-lock-policy.md`: Job Lock 상세 정책

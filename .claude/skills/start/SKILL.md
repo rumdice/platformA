@@ -50,6 +50,26 @@ python .github/scripts/db_write.py \
 
 ---
 
+### 1.5단계: Job Lock claim (Phase C)
+
+DB job이 있으면 lock을 획득한다. 다른 agent가 이미 작업 중이면 즉시 중단한다.
+
+```bash
+LOCK_OUTPUT=$(python .github/scripts/job_lock.py claim --branch "${CURRENT_BRANCH}" 2>&1)
+LOCK_EXIT=$?
+if [ "$LOCK_EXIT" -ne 0 ]; then
+  echo "⛔ AI_SDLC job lock 획득 실패 — 다른 agent가 이미 작업 중일 수 있습니다."
+  echo "$LOCK_OUTPUT"
+  exit 1
+fi
+echo "$LOCK_OUTPUT"
+```
+
+lock claim 실패(exit 1) 시 **즉시 중단**. DB 연결 실패(exit 3) 시도 중단.
+`.ai_sdlc_lock` 파일이 자동 생성된다.
+
+---
+
 ### 2단계: 명세 파일 탐색
 
 아래 순서로 이번 브랜치에 해당하는 명세 파일을 찾는다:

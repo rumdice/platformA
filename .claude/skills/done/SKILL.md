@@ -189,6 +189,15 @@ python .github/scripts/db_write.py \
   --step-name "done" \
   --step-status "done" \
   --step-summary "빌드: 성공, 테스트 통과, push 완료" 2>/dev/null || true
+
+# Job Lock heartbeat — TTL 연장 (빌드/테스트가 오래 걸릴 수 있음)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+LOCK_FILE="${REPO_ROOT}/.ai_sdlc_lock"
+if [ -f "$LOCK_FILE" ]; then
+  LOCK_TOKEN=$(grep '^token=' "$LOCK_FILE" | cut -d= -f2)
+  python .github/scripts/job_lock.py heartbeat \
+    --branch "${CURRENT_BRANCH}" --token "${LOCK_TOKEN}" 2>/dev/null || true
+fi
 ```
 
 task JSON이 존재하는 경우 (Phase B 이전 스프린트 계속 작업):

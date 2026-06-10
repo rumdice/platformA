@@ -385,7 +385,8 @@ def action_list_active(_args) -> bool:
             cur = conn.cursor()
             cur.execute(
                 """
-                SELECT sprint, branch, task_name, status, owner, updated_at
+                SELECT sprint, branch, task_name, status, owner, updated_at,
+                       locked_by, lock_expires_at
                 FROM sdlc.ai_jobs
                 WHERE status != 'done'
                 ORDER BY sprint DESC, updated_at DESC
@@ -396,11 +397,19 @@ def action_list_active(_args) -> bool:
             if not rows:
                 print("active_jobs=0")
                 return True
+            now = datetime.now(timezone.utc)
             print(f"active_jobs={len(rows)}")
-            for sprint, branch, task, status, owner, updated_at in rows:
+            for sprint, branch, task, status, owner, updated_at, locked_by, lock_expires in rows:
                 ts = updated_at.strftime("%Y-%m-%dT%H:%M") if updated_at else "?"
                 owner_str = f" owner={owner}" if owner else ""
-                print(f"  sprint={sprint} status={status} branch={branch} task={task}{owner_str} updated={ts}")
+                lock_str = ""
+                if locked_by:
+                    if lock_expires and lock_expires < now:
+                        lock_str = f" 🔒STALE(locked_by={locked_by})"
+                    else:
+                        exp_str = lock_expires.strftime("%H:%M") if lock_expires else "?"
+                        lock_str = f" 🔒locked_by={locked_by}(until {exp_str})"
+                print(f"  sprint={sprint} status={status} branch={branch} task={task}{owner_str} updated={ts}{lock_str}")
         return True
     except Exception as e:
         print(f"[db_write] list-active 실패: {e}", file=sys.stderr)

@@ -52,3 +52,37 @@ ALTER TABLE sdlc.ai_jobs
 
 COMMENT ON COLUMN sdlc.ai_jobs.owner IS
     '작업 소유자 (git config user.name). /plan 실행 시 자동 설정. 팀 환경에서 작업 귀속 추적에 사용.';
+
+-- =============================================================================
+-- Migration 004 — ai_jobs job lock 컬럼 추가
+-- 날짜: 2026-06-11
+-- 목적: 동일 branch에 대한 다중 agent 동시 실행을 DB 레벨에서 방지.
+--       /start에서 claim, /pr에서 release, 단계 전환 시 heartbeat.
+-- =============================================================================
+
+ALTER TABLE sdlc.ai_jobs
+    ADD COLUMN IF NOT EXISTS locked_by         TEXT         NULL,
+    ADD COLUMN IF NOT EXISTS locked_at         TIMESTAMPTZ  NULL,
+    ADD COLUMN IF NOT EXISTS lock_expires_at   TIMESTAMPTZ  NULL,
+    ADD COLUMN IF NOT EXISTS lock_token        TEXT         NULL,
+    ADD COLUMN IF NOT EXISTS agent_id          TEXT         NULL,
+    ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ  NULL;
+
+COMMENT ON COLUMN sdlc.ai_jobs.locked_by IS
+    '현재 lock 소유자 (git user.name 또는 agent 식별자). NULL이면 lock 없음.';
+COMMENT ON COLUMN sdlc.ai_jobs.locked_at IS
+    'lock 획득 시각.';
+COMMENT ON COLUMN sdlc.ai_jobs.lock_expires_at IS
+    'lock 만료 시각. 이 시각이 지나면 다른 agent가 lock을 획득할 수 있다. 기본 TTL: 60분.';
+COMMENT ON COLUMN sdlc.ai_jobs.lock_token IS
+    'release/heartbeat 검증용 UUID. claim 시 생성, release 시 token 일치 확인.';
+COMMENT ON COLUMN sdlc.ai_jobs.agent_id IS
+    '실행 주체 식별자 (claude-code, n8n, auto-fix 등).';
+COMMENT ON COLUMN sdlc.ai_jobs.last_heartbeat_at IS
+    '마지막 heartbeat 시각. long-running 작업의 생존 신호.';
+
+CREATE INDEX IF NOT EXISTS ix_ai_jobs_lock_expires
+    ON sdlc.ai_jobs(lock_expires_at) WHERE lock_expires_at IS NOT NULL;
+
+COMMENT ON INDEX sdlc.ix_ai_jobs_lock_expires IS
+    'lock 만료 검색 최적화. expire 명령과 stale lock 감지에 사용.';

@@ -492,3 +492,6 @@ $RECYCLE.BIN/
 # SDLC DB 백업 (로컬 전용, 커밋 금지)
 AI/backups/*.sql.gz
 AI/backups/*.sql
+
+# AI_SDLC Job Lock 토큰 파일 (로컬 전용, 커밋 금지)
+.ai_sdlc_lock
