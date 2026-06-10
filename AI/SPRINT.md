@@ -15,29 +15,13 @@
 
 | Sprint | 제목 | 상태 | Owner | 상세 파일 |
 |--------|------|------|-------|----------|
-| #56 | SPRINT.md 자동 재생성 — 동시 개발 충돌 해소 (Option B) | analyzing | rumdice | [`AI/sprints/sprint-056.md`](sprints/sprint-056.md) |
-| #25 | ImproveSdlcGates | coding | rumdice | — |
-| #24 | AddTestGenSkill | coding | rumdice | — |
+| — | (진행 중인 작업 없음) | — | — | — |
 
 ## Recent Sprints (완료)
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
 | #55 | Phase C 경화 — owner·localhost 차단·보고서 gitignore | 2026-06-10 |
-| #54 | FixGatesStepBased | 2026-06-10 |
-| #53 | FixDoneSkillPhaseC | 2026-06-10 |
-| #52 | AdoptPhaseCDbOnly | 2026-06-10 |
-| #51 | PrepareDbPrimaryPhaseC | — |
-| #50 | MigrateToDbPrimary | — |
-| #49 | AI_SDLC Phase 3 운영 안정화 | 2026-06-08 |
-| #48 | PostgresPrimaryMigration | 2026-06-05 |
-| #47 | AddLlmRouter | 2026-06-05 |
-| #46 | AddModelRunsIntegration | 2026-06-05 |
-| #45 | CompletePhase3Automation | 2026-06-05 |
-| #44 | AutomateWorkflowPipeline | 2026-06-05 |
-| #43 | StabilizeSdlcPhase3DataFlow | 2026-06-05 |
-| #42 | AutomateCiFailureDetection | 2026-06-04 |
-| #41 | AddSdlcDbLib | 2026-06-03 |
 
 > 스프린트 #1~#48 전체 상세는 아래에 보존됨
 
