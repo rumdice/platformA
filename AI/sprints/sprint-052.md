@@ -5,13 +5,13 @@
 
 ## 태스크
 
-- [ ] `generate_cost_log_from_db.py` — 스키마 수정 (model_id → join 기반, ai_jobs 집계값 사용)
-- [ ] `insert_model_run.py` — em dash cp949 수정 (→ hyphen)
-- [ ] `/plan` SKILL.md — C.1: task JSON 생성 코드 제거, DB upsert-job만 수행
-- [ ] `/pr` SKILL.md — C.2: cost-log.md append 제거, generate_cost_log_from_db.py 자동 실행
-- [ ] `/done`, `/pr` SKILL.md — C.3: gate 검사 파일 fallback 제거 (DB 필수화)
-- [ ] `check_sdlc_consistency.py` — Phase C 상태(JSON 없는 브랜치) 정상 처리
-- [ ] `ai-sdlc-phase-c-db-only-plan.md` — 조건 5 완료 처리 및 Phase C 선언
+- [x] `generate_cost_log_from_db.py` — 스키마 수정 (model_id → join 기반, ai_jobs 집계값 사용)
+- [x] `insert_model_run.py` — em dash cp949 수정 (→ hyphen)
+- [x] `/plan` SKILL.md — C.1: task JSON 생성 코드 제거, DB upsert-job만 수행
+- [x] `/pr` SKILL.md — C.2: cost-log.md append 제거, generate_cost_log_from_db.py 자동 실행
+- [x] `/done`, `/pr` SKILL.md — C.3: gate 검사 파일 fallback 제거 (DB 필수화)
+- [x] `check_sdlc_consistency.py` — Phase C 상태(JSON 없는 브랜치) 정상 처리
+- [x] `ai-sdlc-phase-c-db-only-plan.md` — 조건 5 완료 처리 및 Phase C 선언
 
 ## 배경
 

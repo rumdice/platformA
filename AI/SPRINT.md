@@ -12,7 +12,7 @@
 
 | Sprint | 제목 | 상태 | 상세 파일 |
 |--------|------|------|---------|
-| #52 | Phase C 조기 도입 (DB 단독 전환) | 진행 중 | [`AI/sprints/sprint-052.md`](sprints/sprint-052.md) |
+| #52 | Phase C 조기 도입 (DB 단독 전환) | PR 검토 중 | [`AI/sprints/sprint-052.md`](sprints/sprint-052.md) |
 
 ## Recent Sprints (완료)
 
