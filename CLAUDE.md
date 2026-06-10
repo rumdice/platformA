@@ -21,13 +21,16 @@
 
 ### 브랜치 네이밍 규칙
 ```
-YYYY-MM-DD_PlanName
+YYYY-MM-DD_PlanName             ← 기본 형식 (단독 또는 이름 충돌 없을 때)
+YYYY-MM-DD_PlanName_S{NNN}      ← 충돌 시 자동 적용 (팀 환경 / 동일 날짜 동일 PlanName)
 
 예) 2026-05-12_AddAuthTests
     2026-05-12_FixRedisBug
+    2026-05-12_AddAuthTests_S058   ← 동일 이름 충돌 시 스프린트 번호로 자동 구분
 ```
 - `YYYY-MM-DD`: `/plan` 실행 시점의 **실제 오늘 날짜** (`date +%Y-%m-%d` 결과)
 - `PlanName`: 사용자 설명에서 Claude가 PascalCase로 자동 생성 (최대 30자)
+- `_S{NNN}`: 원격 브랜치 이름 충돌 감지 시 `/plan`이 자동으로 추가 — 수동 지정 불필요
 - 카운터 접미사(`_N`) 없음 — 같은 날 여러 작업은 PlanName으로 구분
 
 ### 자동화 워크플로 (권장)

@@ -67,26 +67,18 @@ git pull origin main
 
 ---
 
-### 2단계: 브랜치명 결정
+### 2단계: 브랜치명 후보 결정
 
 ```
-브랜치명 = 오늘날짜_PlanName
+브랜치명 후보 = 오늘날짜_PlanName
 ```
 
 오늘 날짜는 컨텍스트의 `date +%Y-%m-%d` 값을 사용한다 (하드코딩 금지).
+이 단계에서는 후보만 결정한다 — 충돌 감지 및 확정은 3단계에서 수행한다.
 
 ---
 
-### 3단계: 브랜치 생성 및 push
-
-```bash
-git checkout -b {브랜치명}
-git push -u origin {브랜치명}
-```
-
----
-
-### 3.2단계: 스프린트 번호 확정
+### 2.5단계: 스프린트 번호 발급
 
 DB `sdlc.sprint_seq`에서 원자적으로 번호를 발급받는다.
 MAX(sprint)+1 방식의 TOCTOU 레이스를 제거한다.
@@ -103,8 +95,29 @@ if [ -z "$SPRINT_NUM" ]; then
 fi
 ```
 
-이 `SPRINT_NUM`을 3.5단계(DB 기록)와 4단계(SPRINT.md 헤더) 양쪽에서 동일하게 사용한다.
+이 `SPRINT_NUM`을 3단계(충돌 suffix), 3.5단계(DB 기록), 4단계(SPRINT.md 헤더) 전부에서 동일하게 사용한다.
 **재계산 금지.**
+
+---
+
+### 3단계: 브랜치명 확정 + 생성 + push
+
+원격에 동일한 이름의 브랜치가 이미 존재하면 스프린트 번호를 suffix로 추가하여 충돌을 방지한다.
+같은 날 같은 PlanName으로 두 개발자가 동시에 작업할 때 자동으로 구분된다.
+
+```bash
+BRANCH_NAME="${TODAY}_${PLAN_NAME}"
+
+# 브랜치명 충돌 감지 — 원격에 동일 이름이 있으면 _S{NNN} suffix 추가
+REMOTE_EXISTS=$(git ls-remote --heads origin "${BRANCH_NAME}" 2>/dev/null | wc -l | tr -d ' ')
+if [ "${REMOTE_EXISTS:-0}" -gt "0" ]; then
+    BRANCH_NAME="${BRANCH_NAME}_S${SPRINT_NUM}"
+    echo "⚠️ 브랜치명 충돌 감지 — 스프린트 번호로 구분합니다: ${BRANCH_NAME}"
+fi
+
+git checkout -b "${BRANCH_NAME}"
+git push -u origin "${BRANCH_NAME}"
+```
 
 ---
 
