@@ -119,6 +119,42 @@
     },
     {
       "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sdlc.ai_jobs\nSET locked_by       = 'n8n',\n    locked_at        = NOW(),\n    lock_expires_at  = NOW() + INTERVAL '30 minutes',\n    lock_token       = gen_random_uuid()::text,\n    agent_id         = 'n8n',\n    last_heartbeat_at = NOW(),\n    updated_at       = NOW()\nWHERE branch = $1\n  AND (lock_expires_at IS NULL\n       OR lock_expires_at < NOW()\n       OR locked_by = 'n8n')\nRETURNING lock_token",
+        "additionalFields": {
+          "queryParams": "={{ [$json.branch] }}"
+        }
+      },
+      "id": "postgres-job-lock-claim",
+      "name": "PostgreSQL: Job Lock Claim",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2000, 300],
+      "credentials": { "postgres": { "id": "sdlc-postgres", "name": "SDLC PostgreSQL" } }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-lock-token",
+              "leftValue": "={{ $json.lock_token }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-lock-claimed",
+      "name": "Lock 획득 확인",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://api.github.com/repos/rumdice/platformA/dispatches",
         "authentication": "genericCredentialType",
@@ -136,7 +172,7 @@
             { "name": "event_type", "value": "ai-auto-fix" },
             {
               "name": "client_payload",
-              "value": "={{ JSON.stringify({ failure_id: $json.id, failure_type: $json.failure_type, branch: $json.branch, run_id: $json.git_hub_run_id, message: $json.message }) }}"
+              "value": "={{ JSON.stringify({ failure_id: $('fixable_by_ai 필터').first().json.id, failure_type: $('fixable_by_ai 필터').first().json.failure_type, branch: $('fixable_by_ai 필터').first().json.branch, run_id: $('fixable_by_ai 필터').first().json.git_hub_run_id, message: $('fixable_by_ai 필터').first().json.message, lock_token: $json.lock_token }) }}"
             }
           ]
         },
@@ -146,19 +182,24 @@
       "name": "GitHub: repository_dispatch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2000, 300],
+      "position": [2440, 300],
       "credentials": { "httpHeaderAuth": { "id": "github-pat", "name": "GitHub PAT" } }
     }
   ],
   "connections": {
-    "Schedule (10분)": { "main": [[{ "node": "GitHub: 실패한 CI 조회", "type": "main", "index": 0 }]] },
-    "GitHub: 실패한 CI 조회": { "main": [[{ "node": "각 실패 run 분리", "type": "main", "index": 0 }]] },
-    "각 실패 run 분리": { "main": [[{ "node": "최근 15분 이내만", "type": "main", "index": 0 }]] },
-    "최근 15분 이내만": { "main": [[{ "node": "GitHub: Job 상세 조회", "type": "main", "index": 0 }]] },
-    "GitHub: Job 상세 조회": { "main": [[{ "node": "실패 분류", "type": "main", "index": 0 }]] },
-    "실패 분류": { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] },
-    "PostgreSQL: ai_failures INSERT": { "main": [[{ "node": "fixable_by_ai 필터", "type": "main", "index": 0 }]] },
-    "fixable_by_ai 필터": { "main": [[{ "node": "GitHub: repository_dispatch", "type": "main", "index": 0 }]] }
+    "Schedule (10분)":              { "main": [[{ "node": "GitHub: 실패한 CI 조회",      "type": "main", "index": 0 }]] },
+    "GitHub: 실패한 CI 조회":        { "main": [[{ "node": "각 실패 run 분리",             "type": "main", "index": 0 }]] },
+    "각 실패 run 분리":               { "main": [[{ "node": "최근 15분 이내만",             "type": "main", "index": 0 }]] },
+    "최근 15분 이내만":               { "main": [[{ "node": "GitHub: Job 상세 조회",       "type": "main", "index": 0 }]] },
+    "GitHub: Job 상세 조회":         { "main": [[{ "node": "실패 분류",                    "type": "main", "index": 0 }]] },
+    "실패 분류":                      { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] },
+    "PostgreSQL: ai_failures INSERT": { "main": [[{ "node": "fixable_by_ai 필터",         "type": "main", "index": 0 }]] },
+    "fixable_by_ai 필터":            { "main": [[{ "node": "PostgreSQL: Job Lock Claim",  "type": "main", "index": 0 }]] },
+    "PostgreSQL: Job Lock Claim":    { "main": [[{ "node": "Lock 획득 확인",               "type": "main", "index": 0 }]] },
+    "Lock 획득 확인":                 { "main": [
+      [{ "node": "GitHub: repository_dispatch", "type": "main", "index": 0 }],
+      []
+    ]}
   },
   "active": false,
   "settings": { "executionOrder": "v1" },
@@ -169,6 +210,11 @@
       "2. n8n UI > Settings > Credentials > 'SDLC PostgreSQL' (Host: postgres, Port: 5432, DB: platforma_sdlc, User: platforma)",
       "3. n8n UI > Workflows > Import from file > .n8n/workflows/github-failure-monitor.json",
       "4. 워크플로 활성화 (Toggle Active)"
+    ],
+    "job_lock": [
+      "Job Lock claim/release는 n8n이 로컬 DB에 직접 수행 (GitHub Actions에서 DB 접근 불필요)",
+      "claim: dispatch 직전 atomic UPDATE — 다른 agent 점유 시 lock_token이 반환되지 않아 dispatch 자동 스킵",
+      "release: TTL 30분 자동 만료 (fire-and-forget 구조상 명시적 release 생략)"
     ]
   }
 }

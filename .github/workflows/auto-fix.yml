@@ -38,31 +38,8 @@ jobs:
       - name: Claude Code CLI 설치
         run: npm install -g @anthropic-ai/claude-code
 
-      - name: psycopg2 설치 (job_lock 의존성)
+      - name: psycopg2 설치 (db_write 의존성)
         run: pip install psycopg2-binary -q
-
-      - name: Job Lock Claim (fail-open)
-        env:
-          SDLC_DB_CONNECTION: ${{ secrets.SDLC_DB_CONNECTION }}
-        run: |
-          BRANCH="${{ github.event.client_payload.branch }}"
-          LOCK_OUTPUT=$(python .github/scripts/job_lock.py claim \
-            --branch "${BRANCH}" \
-            --agent-id "n8n" \
-            --ttl 30 2>&1)
-          LOCK_EXIT=$?
-          echo "$LOCK_OUTPUT"
-          if [ "$LOCK_EXIT" -eq 3 ]; then
-            echo "⚠️ SDLC DB 연결 불가 — lock 없이 진행합니다 (fail-open)"
-          elif [ "$LOCK_EXIT" -eq 1 ]; then
-            echo "⛔ 다른 agent가 이미 작업 중입니다 — auto-fix 중단"
-            exit 1
-          elif [ "$LOCK_EXIT" -eq 2 ]; then
-            echo "⚠️ DB에 job 없음 — lock 없이 진행합니다"
-          else
-            LOCK_TOKEN=$(echo "$LOCK_OUTPUT" | grep '^LOCK_TOKEN=' | cut -d= -f2)
-            echo "LOCK_TOKEN=${LOCK_TOKEN}" >> $GITHUB_ENV
-          fi
 
       - name: 모델 선택 (failure_type 기반)
         run: |
@@ -93,15 +70,3 @@ jobs:
           git config user.email "claude-code[bot]@users.noreply.github.com"
           claude --model "${MODEL}" --dangerously-skip-permissions -p "/qa-failure --run-id ${RUN_ID}"
 
-      - name: Job Lock Release
-        if: always()
-        env:
-          SDLC_DB_CONNECTION: ${{ secrets.SDLC_DB_CONNECTION }}
-        run: |
-          BRANCH="${{ github.event.client_payload.branch }}"
-          if [ -n "$LOCK_TOKEN" ]; then
-            python .github/scripts/job_lock.py release \
-              --branch "${BRANCH}" \
-              --token "${LOCK_TOKEN}" 2>/dev/null || \
-              echo "lock release 실패 — TTL 만료 후 자동 해제됩니다 (30분 이내)"
-          fi
