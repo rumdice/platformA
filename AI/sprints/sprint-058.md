@@ -5,6 +5,7 @@ branch: 2026-06-11_AddBranchConflictGuard
 date: 2026-06-11
 status: done
 completed: 2026-06-11
+pr: https://github.com/rumdice/platformA/pull/88
 ---
 
 # Sprint #58 — AI_SDLC 워크플로우 테스트 보강
