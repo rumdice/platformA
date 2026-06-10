@@ -38,3 +38,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_ai_job_steps_job_step
 
 COMMENT ON INDEX sdlc.ux_ai_job_steps_job_step IS
     '동일 job+step 중복 방지. db_write.py insert-step이 ON CONFLICT DO UPDATE로 멱등 삽입.';
+
+-- =============================================================================
+-- Migration 003 — ai_jobs.owner 컬럼 추가
+-- 날짜: 2026-06-10
+-- 관련 PR: #84 (PhaseCharden)
+-- 목적: 1인 다수 agent / 팀 동시 개발 시 작업 소유자 추적
+--       owner = git config user.name (db_write.py가 자동 감지하여 INSERT 시 설정)
+-- =============================================================================
+
+ALTER TABLE sdlc.ai_jobs
+    ADD COLUMN IF NOT EXISTS owner VARCHAR(100);
+
+COMMENT ON COLUMN sdlc.ai_jobs.owner IS
+    '작업 소유자 (git config user.name). /plan 실행 시 자동 설정. 팀 환경에서 작업 귀속 추적에 사용.';

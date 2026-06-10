@@ -9,6 +9,9 @@
 # Claude Code 로컬 개인 설정 (커밋 금지)
 CLAUDE.local.md
 
+# AI SDLC 생성 보고서 — DB에서 언제든 재생성 가능, git 추적 불필요
+AI/reports/generated-*.md
+
 # User-specific files
 *.rsuser
 *.suo

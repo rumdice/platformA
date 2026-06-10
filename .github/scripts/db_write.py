@@ -49,6 +49,8 @@ CONN = os.environ.get(
     "Host=localhost;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password",
 )
 
+_LOCALHOST_ALIASES = {"localhost", "127.0.0.1", "::1"}
+
 
 def parse_conn(conn_str: str) -> dict:
     parts = {}
@@ -65,16 +67,54 @@ def parse_conn(conn_str: str) -> dict:
     }
 
 
+def _check_team_mode_localhost(host: str) -> None:
+    """SDLC_TEAM_MODE=1 환경에서 localhost 연결을 차단한다.
+
+    팀 작업 시 로컬 DB 분리는 스프린트 번호 충돌과 게이트 상태 불일치를 유발한다.
+    공유 PostgreSQL URL을 SDLC_DB_CONNECTION 환경변수로 설정해야 한다.
+    """
+    if os.environ.get("SDLC_TEAM_MODE", "").strip() == "1":
+        if host.lower() in _LOCALHOST_ALIASES:
+            print(
+                "[db_write] ❌ SDLC_TEAM_MODE=1 환경에서 localhost DB 연결은 허용되지 않습니다.\n"
+                "           팀 공유 DB URL을 SDLC_DB_CONNECTION 환경변수로 설정하세요.\n"
+                "           예) export SDLC_DB_CONNECTION='Host=db.shared;Port=5432;...'",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
 def get_conn():
     try:
         import psycopg2
-        return psycopg2.connect(**parse_conn(CONN))
+        params = parse_conn(CONN)
+        _check_team_mode_localhost(params["host"])
+        return psycopg2.connect(**params)
     except ImportError:
         print("[db_write] psycopg2 미설치 - pip install psycopg2-binary", file=sys.stderr)
         return None
+    except SystemExit:
+        raise
     except Exception as e:
         print(f"[db_write] PostgreSQL 연결 실패: {e}", file=sys.stderr)
         return None
+
+
+def _get_git_owner() -> Optional[str]:
+    """git config user.name → user.email → None 순으로 시도."""
+    import subprocess
+    for key in ("user.name", "user.email"):
+        try:
+            result = subprocess.run(
+                ["git", "config", key],
+                capture_output=True, text=True, timeout=3,
+            )
+            val = result.stdout.strip()
+            if val:
+                return val
+        except Exception:
+            pass
+    return None
 
 
 def lookup_job_id(cur, branch: str) -> Optional[int]:
@@ -120,6 +160,10 @@ def action_upsert_job(args) -> bool:
         duration_sec = _int_or_none(getattr(args, "duration_sec", None))
         last_error = getattr(args, "last_error", None) or None
         status = args.status or "analyzing"
+        # owner: 명시적 전달 → git config user.name → git config user.email 순으로 시도
+        owner = getattr(args, "owner", None) or None
+        if owner is None:
+            owner = _get_git_owner()
 
         with conn:
             cur = conn.cursor()
@@ -140,19 +184,20 @@ def action_upsert_job(args) -> bool:
                         (branch, sprint, task_name, status,
                          test_generated, review_completed, adr_required, retry_count,
                          pr_url, consume_tokens, cache_tokens, duration_sec, last_error,
-                         created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                         owner, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         args.branch, sprint_val, task_val, status,
                         test_generated, review_completed, adr_required, retry_count,
                         pr_url, consume_tokens, cache_tokens, duration_sec, last_error,
-                        created_at, now,
+                        owner, created_at, now,
                     ),
                 )
             else:
                 # 기존 UPDATE — NULL 값은 기존값 유지 (COALESCE)
                 # test_generated / review_completed: 한번 True가 되면 False로 되돌리지 않음
+                # owner: 최초 설정 후 유지 (COALESCE — 한번 기록된 소유자는 덮어쓰지 않음)
                 cur.execute(
                     """
                     UPDATE sdlc.ai_jobs SET
@@ -168,6 +213,7 @@ def action_upsert_job(args) -> bool:
                         cache_tokens    = COALESCE(%s, cache_tokens),
                         duration_sec    = COALESCE(%s, duration_sec),
                         last_error      = COALESCE(%s, last_error),
+                        owner           = COALESCE(owner, %s),
                         updated_at      = %s
                     WHERE branch = %s
                     """,
@@ -177,7 +223,7 @@ def action_upsert_job(args) -> bool:
                         status,
                         test_generated, review_completed, adr_required, retry_count,
                         pr_url, consume_tokens, cache_tokens, duration_sec, last_error,
-                        now, args.branch,
+                        owner, now, args.branch,
                     ),
                 )
 
@@ -339,7 +385,7 @@ def action_list_active(_args) -> bool:
             cur = conn.cursor()
             cur.execute(
                 """
-                SELECT sprint, branch, task_name, status, updated_at
+                SELECT sprint, branch, task_name, status, owner, updated_at
                 FROM sdlc.ai_jobs
                 WHERE status != 'done'
                 ORDER BY sprint DESC, updated_at DESC
@@ -351,9 +397,10 @@ def action_list_active(_args) -> bool:
                 print("active_jobs=0")
                 return True
             print(f"active_jobs={len(rows)}")
-            for sprint, branch, task, status, updated_at in rows:
+            for sprint, branch, task, status, owner, updated_at in rows:
                 ts = updated_at.strftime("%Y-%m-%dT%H:%M") if updated_at else "?"
-                print(f"  sprint={sprint} status={status} branch={branch} task={task} updated={ts}")
+                owner_str = f" owner={owner}" if owner else ""
+                print(f"  sprint={sprint} status={status} branch={branch} task={task}{owner_str} updated={ts}")
         return True
     except Exception as e:
         print(f"[db_write] list-active 실패: {e}", file=sys.stderr)
@@ -391,6 +438,7 @@ def main() -> None:
     parser.add_argument("--cache-tokens", dest="cache_tokens", type=int)
     parser.add_argument("--duration-sec", dest="duration_sec", type=int)
     parser.add_argument("--last-error", dest="last_error")
+    parser.add_argument("--owner")
     # insert-step
     parser.add_argument("--step-name", dest="step_name")
     parser.add_argument("--step-status", dest="step_status", default="done")

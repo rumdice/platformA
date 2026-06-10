@@ -119,6 +119,7 @@ BRANCH="{브랜치명}"
 NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # DB upsert-job (필수 — 실패 시 오류 출력 후 중단)
+# --owner: git config user.name 자동 감지 (db_write.py 내부에서 처리)
 python .github/scripts/db_write.py \
   --action upsert-job \
   --branch "${BRANCH}" \

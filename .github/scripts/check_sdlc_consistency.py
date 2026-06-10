@@ -71,10 +71,10 @@ def load_db_jobs(conn) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT branch, sprint, task_name, status, test_generated, review_completed, pr_url, impact, updated_at FROM sdlc.ai_jobs"
+            "SELECT branch, sprint, task_name, status, test_generated, review_completed, pr_url, impact, owner, updated_at FROM sdlc.ai_jobs"
         )
         for row in cur.fetchall():
-            branch, sprint, task, status, test_gen, review, pr_url, impact, updated_at = row
+            branch, sprint, task, status, test_gen, review, pr_url, impact, owner, updated_at = row
             jobs[branch] = {
                 "branch": branch,
                 "sprint": sprint,
@@ -84,6 +84,7 @@ def load_db_jobs(conn) -> dict:
                 "review_completed": review,
                 "pr_url": pr_url,
                 "impact": impact,
+                "owner": owner,
                 "updated_at": updated_at,
             }
     except Exception as e:
@@ -221,8 +222,9 @@ def check(strict: bool) -> int:
                         updated_at = updated_at.replace(tzinfo=_tz.utc)
                     hours_stale = (_now - updated_at).total_seconds() / 3600
                     if hours_stale > _stuck_threshold_hours:
+                        owner_str = f" owner={db.get('owner')}" if db.get("owner") else ""
                         stuck_sprints.append(
-                            f"{branch}: status={db.get('status')} stale={hours_stale:.0f}h"
+                            f"{branch}: status={db.get('status')} stale={hours_stale:.0f}h{owner_str}"
                         )
 
         print(f"Missing in DB:          {len(missing_in_db)}")
