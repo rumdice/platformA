@@ -64,6 +64,8 @@ def test_branch(db_conn):
     )
     db_conn.commit()
     yield branch
-    cur.execute("DELETE FROM sdlc.ai_jobs WHERE branch = %s", (branch,))
-    db_conn.commit()
-    cur.close()
+    try:
+        cur.execute("DELETE FROM sdlc.ai_jobs WHERE branch = %s", (branch,))
+        db_conn.commit()
+    finally:
+        cur.close()

@@ -6,8 +6,52 @@
 -- Migration 001 — 초기 스키마 (Phase A)
 -- 날짜: 2026-06-05
 -- =============================================================================
--- sdlc 스키마, ai_jobs, ai_job_steps, ai_model_runs 테이블 초기 생성.
--- 상세 DDL은 PlatformA.SdlcDB.Lib 마이그레이션 파일 참조.
+-- CI/로컬 fresh DB를 위한 기본 DDL (IF NOT EXISTS — 멱등 실행 가능)
+
+CREATE SCHEMA IF NOT EXISTS sdlc;
+
+CREATE TABLE IF NOT EXISTS sdlc.ai_jobs (
+    id             SERIAL PRIMARY KEY,
+    task           VARCHAR(200),
+    task_name      VARCHAR(200),
+    branch         VARCHAR(200) NOT NULL UNIQUE,
+    sprint         INTEGER,
+    status         VARCHAR(50),
+    owner          VARCHAR(100),
+    pr_url         VARCHAR(500),
+    last_error     VARCHAR(1000),
+    test_generated BOOLEAN NOT NULL DEFAULT FALSE,
+    review_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    impact_done    BOOLEAN NOT NULL DEFAULT FALSE,
+    requirement_done BOOLEAN NOT NULL DEFAULT FALSE,
+    adr_required   BOOLEAN NOT NULL DEFAULT FALSE,
+    consume_tokens INTEGER,
+    cache_tokens   INTEGER,
+    duration_sec   INTEGER,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdlc.ai_job_steps (
+    id         SERIAL PRIMARY KEY,
+    job_id     INTEGER NOT NULL REFERENCES sdlc.ai_jobs(id) ON DELETE CASCADE,
+    step_name  VARCHAR(100) NOT NULL,
+    status     VARCHAR(50),
+    summary    TEXT,
+    started_at TIMESTAMPTZ,
+    ended_at   TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdlc.ai_model_runs (
+    id             SERIAL PRIMARY KEY,
+    branch         VARCHAR(200),
+    model          VARCHAR(100),
+    consume_tokens INTEGER,
+    cache_tokens   INTEGER,
+    duration_sec   INTEGER,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- =============================================================================
 -- Migration 002 — Phase C 동시성 안전 강화 (Phase C Hardening)
