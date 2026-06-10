@@ -86,3 +86,16 @@ CREATE INDEX IF NOT EXISTS ix_ai_jobs_lock_expires
 
 COMMENT ON INDEX sdlc.ix_ai_jobs_lock_expires IS
     'lock 만료 검색 최적화. expire 명령과 stale lock 감지에 사용.';
+
+-- =============================================================================
+-- Migration 004 DOWN (rollback) — 아래 SQL은 주석 처리됨, 필요 시 수동 실행
+-- 주의: 컬럼 삭제 전 locked_by IS NOT NULL 인 행이 없는지 확인할 것
+-- =============================================================================
+-- DROP INDEX IF EXISTS sdlc.ix_ai_jobs_lock_expires;
+-- ALTER TABLE sdlc.ai_jobs
+--     DROP COLUMN IF EXISTS last_heartbeat_at,
+--     DROP COLUMN IF EXISTS agent_id,
+--     DROP COLUMN IF EXISTS lock_token,
+--     DROP COLUMN IF EXISTS lock_expires_at,
+--     DROP COLUMN IF EXISTS locked_at,
+--     DROP COLUMN IF EXISTS locked_by;

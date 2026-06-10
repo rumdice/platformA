@@ -1,0 +1,69 @@
+name: AI_SDLC Python Integration Tests
+
+on:
+  push:
+    paths:
+      - '.github/scripts/tests/**'
+      - '.github/scripts/job_lock.py'
+      - '.github/scripts/db_write.py'
+      - '.github/scripts/sdlc_db_migrations.sql'
+  pull_request:
+    paths:
+      - '.github/scripts/tests/**'
+      - '.github/scripts/job_lock.py'
+      - '.github/scripts/db_write.py'
+      - '.github/scripts/sdlc_db_migrations.sql'
+  workflow_dispatch:
+
+jobs:
+  python-integration-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: platforma
+          POSTGRES_PASSWORD: platforma_dev_password
+          POSTGRES_DB: platforma_sdlc
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      SDLC_DB_CONNECTION: "Host=localhost;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 의존성 설치
+        run: pip install psycopg2-binary pytest -q
+
+      - name: DB 스키마 초기화 (Migrations 전체 적용)
+        run: |
+          PGPASSWORD=platforma_dev_password psql \
+            -h localhost -U platforma -d platforma_sdlc \
+            -f .github/scripts/sdlc_db_migrations.sql
+
+      - name: pytest — integration 마커
+        run: |
+          pytest .github/scripts/tests/ \
+            -m integration \
+            -v \
+            --tb=short \
+            --timeout=30
+
+      - name: 테스트 결과 요약
+        if: always()
+        run: |
+          echo "## AI_SDLC Python Integration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "실행 완료" >> $GITHUB_STEP_SUMMARY
