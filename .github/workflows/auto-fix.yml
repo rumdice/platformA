@@ -38,6 +38,9 @@ jobs:
       - name: Claude Code CLI 설치
         run: npm install -g @anthropic-ai/claude-code
 
+      - name: psycopg2 설치 (db_write 의존성)
+        run: pip install psycopg2-binary -q
+
       - name: 모델 선택 (failure_type 기반)
         run: |
           FAILURE_TYPE="${{ github.event.client_payload.failure_type }}"
@@ -61,7 +64,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FAILURE_TYPE: ${{ github.event.client_payload.failure_type }}
           RUN_ID: ${{ github.event.client_payload.run_id }}
+          SDLC_DB_CONNECTION: ${{ secrets.SDLC_DB_CONNECTION }}
         run: |
           git config user.name "claude-code[bot]"
           git config user.email "claude-code[bot]@users.noreply.github.com"
           claude --model "${MODEL}" --dangerously-skip-permissions -p "/qa-failure --run-id ${RUN_ID}"
+
