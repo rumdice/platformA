@@ -3,7 +3,9 @@ sprint: 62
 title: Phase C 참조 정리
 branch: 2026-06-12_CleanupPhaseCReferences
 date: 2026-06-12
-status: in-progress
+status: done
+completed: 2026-06-12
+pr: https://github.com/rumdice/platformA/pull/94
 ---
 
 # Sprint #62 — Phase C 참조 정리
