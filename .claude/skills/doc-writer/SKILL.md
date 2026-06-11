@@ -14,9 +14,12 @@ allowed-tools: Agent Bash(dotnet *) Bash(ls *) Bash(mkdir *) Read Write Edit Glo
 - `api-guide` — 컨트롤러 소스에서 REST API 명세 생성
 - `operations` — K8s/Docker 파일에서 배포 가이드 생성
 - `developer-guide` — PATTERNS.md, 패킷 프로토콜 등 개발 가이드 생성
-- `all` (기본값) — 위 세 가지 모두 수행
+- `ai-sdlc` — SDLC 스킬·스크립트·워크플로에서 AI SDLC 문서 동기화
+- `all` (기본값) — 위 네 가지 모두 수행
 
 인수가 없으면 `all`로 동작한다.
+
+`ai-sdlc` 섹션은 `generate_ai_sdlc_docs.py`가 자동 처리하는 부분(skill-reference, automation-map, gates)을 직접 수행하거나 스크립트를 실행하여 동기화한다.
 
 ---
 
@@ -31,6 +34,7 @@ allowed-tools: Agent Bash(dotnet *) Bash(ls *) Bash(mkdir *) Read Write Edit Glo
 | api-guide | `PlatformA.Auth.API/Controllers/AuthController.cs`<br>`PlatformA.Ticketing.API/Controllers/QueueController.cs`<br>`PlatformA.Matching.API/Controllers/GameMatchController.cs`<br>`PlatformA.Matching.API/Controllers/OrderController.cs`<br>`PlatformA.Utils.API/Controllers/UtilController.cs` | `Docs/api-guide/auth.md`<br>`Docs/api-guide/ticketing.md`<br>`Docs/api-guide/matching.md`<br>`Docs/api-guide/utils.md` |
 | operations | `k8s/` 매니페스트 전체<br>`PlatformA/docker/` 전체<br>`Docs/operations/deployment.md` (기존) | `Docs/operations/deployment.md`<br>`Docs/operations/monitoring.md` |
 | developer-guide | `.claude/rules/patterns.md`<br>`PlatformA.Library/Packets/Proto/packets.proto`<br>`Docs/architecture/overview.md`<br>`PlatformA.Library/Common/Consts.cs` | `Docs/developer-guide/coding-patterns.md`<br>`Docs/developer-guide/packet-protocol.md`<br>`Docs/developer-guide/redis-patterns.md` |
+| ai-sdlc | `.claude/skills/*/SKILL.md`<br>`.github/scripts/db_write.py`<br>`.github/scripts/job_lock.py`<br>`.github/scripts/check_sdlc_consistency.py`<br>`.github/workflows/*.yml`<br>`Docs/ai-sdlc/*.md` (기존) | `Docs/ai-sdlc/overview.md`<br>`Docs/ai-sdlc/workflow.md`<br>`Docs/ai-sdlc/gates.md`<br>`Docs/ai-sdlc/skill-reference.md`<br>`Docs/ai-sdlc/automation-map.md` |
 
 ### 1단계 — Agent로 문서 생성
 

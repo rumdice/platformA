@@ -12,6 +12,9 @@
 - name: 운영
   href: operations/
   homepage: operations/deployment.md
+- name: AI SDLC
+  href: ai-sdlc/
+  homepage: ai-sdlc/overview.md
 - name: 이해관계자 가이드
   href: stakeholder/
   homepage: stakeholder/overview.md
