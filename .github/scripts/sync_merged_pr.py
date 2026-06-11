@@ -3,6 +3,8 @@ PR 머지 감지 자동 동기화 스크립트.
 
 GitHub Actions 'PR Merge — SDLC Task Sync' 워크플로우에서 호출된다.
 브랜치명으로 AI/tasks/*.json을 탐색하여 task JSON, SPRINT.md, cost-log.md를 갱신한다.
+
+Phase C (2026-06-10~): task JSON 신규 생성 중단 — AI/sprints/*.md frontmatter로 판별.
 """
 
 import json
@@ -12,6 +14,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 BRANCH = os.environ.get("BRANCH", "")
 PR_URL = os.environ.get("PR_URL", "")
@@ -22,7 +25,7 @@ GITHUB_STEP_SUMMARY = os.environ.get("GITHUB_STEP_SUMMARY", "")
 GH_TOKEN = os.environ.get("GH_TOKEN", "")
 
 
-def find_task_file(branch: str) -> Path | None:
+def find_task_file(branch: str) -> Optional[Path]:
     tasks_dir = Path("AI/tasks")
     if not tasks_dir.exists():
         return None
@@ -31,6 +34,34 @@ def find_task_file(branch: str) -> Path | None:
             data = json.loads(json_file.read_text(encoding="utf-8"))
             if data.get("branch") == branch:
                 return json_file
+        except Exception:
+            continue
+    return None
+
+
+def find_sprint_file(branch: str) -> Optional[Path]:
+    """AI/sprints/*.md frontmatter에서 branch 필드가 일치하는 파일을 찾는다.
+
+    Phase C(2026-06-10~)부터 task JSON 대신 sprint-NNN.md가 단일 진실 공급원.
+    GitHub Actions checkout에서 접근 가능한 git 파일만 사용한다 (DB 접근 없음).
+    """
+    sprints_dir = Path("AI/sprints")
+    if not sprints_dir.exists():
+        return None
+    for md_file in sorted(sprints_dir.glob("sprint-*.md")):
+        try:
+            content = md_file.read_text(encoding="utf-8")
+            if not content.startswith("---"):
+                continue
+            end = content.find("---", 3)
+            if end == -1:
+                continue
+            frontmatter = content[3:end]
+            for line in frontmatter.splitlines():
+                if line.strip().startswith("branch:"):
+                    value = line.split(":", 1)[1].strip()
+                    if value == branch:
+                        return md_file
         except Exception:
             continue
     return None
@@ -222,11 +253,29 @@ def main() -> None:
 
     task_file = find_task_file(BRANCH)
     if task_file is None:
-        msg = f"No task JSON found for branch '{BRANCH}'. Skipped SDLC sync."
-        print(f"[skip] {msg}")
+        # Phase C: task JSON 없음 → AI/sprints/*.md frontmatter로 판별
+        sprint_file = find_sprint_file(BRANCH)
+        if sprint_file is not None:
+            print(f"[ok] Phase C job 확인됨 ({sprint_file.name}) — task JSON 없음은 정상")
+            write_summary([
+                "## PR Merge SDLC Sync",
+                "",
+                f"| 항목 | 값 |",
+                f"|------|-----|",
+                f"| Branch | `{BRANCH}` |",
+                f"| PR | [#{PR_NUMBER}]({PR_URL}) |",
+                f"| Sprint file | `{sprint_file}` |",
+                f"| Phase | Phase C (task JSON 없음 — 정상) |",
+                f"| Warnings | None |",
+            ])
+            sys.exit(0)
+
+        # sprint 파일도 없음 → 진짜 SDLC 누락
+        msg = f"No task JSON or sprint file found for branch '{BRANCH}'. Skipped SDLC sync."
+        print(f"[warn] {msg}")
         comment_body = (
-            f"⚠️ **AI_SDLC**: PR #{PR_NUMBER} 머지 — `{BRANCH}` 브랜치에 task JSON 없음.\n\n"
-            f"SDLC 파이프라인 없이 머지되었습니다. task JSON이 생성되지 않은 작업입니다."
+            f"⚠️ **AI_SDLC**: PR #{PR_NUMBER} 머지 — `{BRANCH}` 브랜치에 task JSON 및 sprint 파일 없음.\n\n"
+            f"SDLC 파이프라인 없이 머지되었습니다. `/plan` 없이 직접 작업된 브랜치입니다."
         )
         post_pr_comment(comment_body)
         write_summary([
