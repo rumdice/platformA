@@ -33,11 +33,11 @@ YYYY-MM-DD_PlanName_S{NNN}      ← 충돌 시 자동 적용 (팀 환경 / 동�
 - `_S{NNN}`: 원격 브랜치 이름 충돌 감지 시 `/plan`이 자동으로 추가 — 수동 지정 불필요
 - 카운터 접미사(`_N`) 없음 — 같은 날 여러 작업은 PlanName으로 구분
 
-### 자동화 워크플로 (권장)
+### 워크플로 (권장)
 ```
-/workflow 작업 설명   → plan부터 pr까지 전체 파이프라인 자동 실행 [완전 자동화]
+/workflow 작업 설명                          → plan부터 pr까지 전체 파이프라인 자동 실행
   또는
-.claude/plan/에 계획 .md 파일 배치 후 /workflow 실행
+외부 계획 파일을 .claude/plan/에 배치 후 /workflow 실행
   (사용자가 GitHub에서 PR 검토 후 머지)
 ```
 
