@@ -4,6 +4,8 @@ title: sync_merged_pr Phase C 오탐 수정
 branch: 2026-06-11_FixSyncMergedPrPhaseC
 date: 2026-06-11
 status: done
+completed: 2026-06-11
+pr: https://github.com/rumdice/platformA/pull/90
 ---
 
 # Sprint #60 — sync_merged_pr Phase C 오탐 수정
