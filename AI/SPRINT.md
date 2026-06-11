@@ -21,6 +21,7 @@
 
 | Sprint | 제목 | 완료일 |
 |--------|------|--------|
+| #59 | DocFX AI_SDLC 문서 섹션 분리 | 2026-06-11 |
 | #58 | AI_SDLC 워크플로우 테스트 보강 | 2026-06-11 |
 | #57 | Phase C Job Lock — DB 기반 동시 실행 제어 | 2026-06-11 |
 | #55 | Phase C 경화 — owner·localhost 차단·보고서 gitignore | 2026-06-10 |
