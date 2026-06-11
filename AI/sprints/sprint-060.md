@@ -3,7 +3,7 @@ sprint: 60
 title: sync_merged_pr Phase C 오탐 수정
 branch: 2026-06-11_FixSyncMergedPrPhaseC
 date: 2026-06-11
-status: in-progress
+status: done
 ---
 
 # Sprint #60 — sync_merged_pr Phase C 오탐 수정
@@ -14,9 +14,9 @@ status: in-progress
 
 ## 태스크
 
-- [ ] `sync_merged_pr.py` — `find_task_file` 실패 시 DB `sdlc.ai_jobs` 조회 추가
-- [ ] DB에 job이 있으면 경고 코멘트 스킵 (Phase C 정상 경로)
-- [ ] DB에도 없을 때만 기존 경고 유지 (진짜 SDLC 누락 케이스)
+- [x] `sync_merged_pr.py` — `find_task_file` 실패 시 `AI/sprints/*.md` frontmatter 탐색 추가
+- [x] sprint 파일에 branch가 있으면 경고 코멘트 스킵 (Phase C 정상 경로)
+- [x] sprint 파일도 없을 때만 기존 경고 유지 (진짜 SDLC 누락 케이스)
 
 ## 배경
 
