@@ -71,6 +71,50 @@ YYYY-MM-DD_PlanName_S{NNN}      ← 충돌 시 자동 적용 (팀 환경 / 동�
 
 ---
 
+## 시스템 역할 분담 (AI_SDLC 아키텍처)
+
+> **이 분담을 위반하는 설계는 즉시 거부하고 사용자에게 보고한다.**
+
+| 컴포넌트 | 역할 | 할 수 있는 것 | 절대 하지 않는 것 |
+|---------|------|------------|----------------|
+| **GitHub Actions** | 검증·빌드·배포 | 코드 체크아웃, 빌드, 테스트, 린트, 배포 | DB 직접 접근, 코드 수정, 판단 |
+| **LLM (Claude)** | 판단·코딩 | 코드 작성, 분석, 계획, DB 쓰기(로컬) | 프로덕션 배포 직접 실행 |
+| **PostgreSQL (SDLC DB)** | 기억·상태 | job/step/gate 상태 저장, 이력 관리 | — |
+| **n8n** | 흐름 제어 | 워크플로 오케스트레이션, GitHub↔DB 브리지 | 코드 직접 수정 |
+
+### GitHub Actions ↔ DB 접근 금지 원칙
+
+**GitHub Actions(클라우드 runner)는 로컬 PostgreSQL에 절대 접근할 수 없다.**
+
+- `platforma_sdlc` PostgreSQL은 개발자 로컬 머신에서 실행됨
+- GitHub Actions `ubuntu-latest` runner는 인터넷 상의 별도 VM
+- 이 둘 사이에는 네트워크 경로가 없음 (방화벽, NAT 뒤에 위치)
+
+**GitHub Actions에서 DB 작업이 필요한 상황이 생기면 → n8n을 통해 신호를 보낸다:**
+
+```yaml
+# GitHub Actions에서 n8n으로 신호 전달 (repository_dispatch)
+- name: n8n으로 이벤트 전송
+  run: |
+    curl -X POST \
+      "https://n8n.example.com/webhook/github-event" \
+      -H "Content-Type: application/json" \
+      -d '{"event": "pr_merged", "branch": "${{ github.head_ref }}", "pr": "${{ github.event.number }}"}'
+```
+
+**GitHub Actions 워크플로에서 허용되는 것:**
+- `git checkout`, 빌드(`dotnet build`), 테스트(`dotnet test`), 린트
+- GitHub API 호출 (PR 코멘트, 라벨, 체크 상태)
+- 파일 기반 상태 확인 (`AI/tasks/*.json`, `AI/sprints/*.md`)
+- 아티팩트 업로드/다운로드
+
+**GitHub Actions 워크플로에서 금지되는 것:**
+- `psycopg2`, `pg_connect` 등 PostgreSQL 직접 연결
+- `db_write.py`, `job_lock.py` 등 DB 쓰기 스크립트 호출
+- 로컬 서비스 주소(`localhost`, `127.0.0.1`) 접근
+
+---
+
 ## 세션 시작 시 필수 절차
 
 `session-start.sh` 훅이 세션 시작 시 자동으로 **SPRINT.md 요약**과 **빌드 상태**를 제공한다.
@@ -188,6 +232,8 @@ dotnet test PlatformA.sln
 
 ## 절대 하지 말 것
 
+- **GitHub Actions 워크플로에 DB 접근 코드 추가** ← `psycopg2`, `db_write.py`, `job_lock.py` 등 DB 스크립트를 `.github/workflows/*.yml`에 절대 넣지 않는다. DB 작업이 필요하면 n8n webhook으로 신호만 보낸다
+- **GitHub Actions 워크플로에서 코드 수정·커밋** ← CI는 검증만 한다. 코드 수정이 필요하면 n8n → LLM 경로를 사용한다
 - `main` 브랜치에 직접 push ← **로컬/웹 모두 금지. 반드시 /plan → /done 워크플로 사용**
 - **작업 브랜치 없이 구현 시작** ← Plan mode 승인 후에도 브랜치가 없으면 먼저 생성
 - **Plan mode 승인 후 `/requirement` · `/plan` 없이 바로 코딩 시작** ← 승인은 설계 확정일 뿐, 구현 시작 전 반드시 두 단계 실행
