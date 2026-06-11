@@ -253,7 +253,7 @@ dotnet test PlatformA.sln
 |------|---------|
 | 이 시스템은 어떻게 설계되었나? | `AI/ARCHITECTURE.md` |
 | 왜 이런 기술을 선택했나? | `AI/adr/` |
-| 지금 뭘 해야 하나? | `AI/SPRINT.md` |
+| 지금 뭘 해야 하나? | `AI/sprints/sprint-NNN.md` (현재 브랜치 sprint 파일) |
 | 어떻게 빌드/실행하나? | 이 파일 **핵심 명령어 / 로컬 실행 순서** 섹션 |
 | API 스펙은 어떻게 되나? | `Docs/api-guide/` (소스에서 자동 생성, `/doc-writer api-guide` 로 동기화) |
 | 코드는 어떤 패턴으로 작성하나? | `.claude/rules/patterns.md` (C# 파일 작업 시 자동 로드) |

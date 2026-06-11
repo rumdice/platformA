@@ -2,14 +2,14 @@
 PR 머지 감지 자동 동기화 스크립트.
 
 GitHub Actions 'PR Merge — SDLC Task Sync' 워크플로우에서 호출된다.
-브랜치명으로 AI/tasks/*.json을 탐색하여 task JSON, SPRINT.md, cost-log.md를 갱신한다.
+브랜치명으로 AI/tasks/*.json 또는 AI/sprints/*.md를 탐색하여 task JSON을 갱신한다.
 
 Phase C (2026-06-10~): task JSON 신규 생성 중단 — AI/sprints/*.md frontmatter로 판별.
+AI/SPRINT.md, AI/cost-log.md는 삭제됨 — DB/sprints/*.md가 단일 진실 공급원.
 """
 
 import json
 import os
-import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -99,90 +99,6 @@ def update_task_json(task_file: Path) -> bool:
         json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     print(f"[ok] task JSON updated: {task_file}")
-    return True
-
-
-def update_sprint_md(sprint_num: int) -> bool:
-    """SPRINT.md에서 해당 스프린트 섹션의 '- [ ]'를 '- [x]'로 교체 (idempotent)."""
-    sprint_path = Path("AI/SPRINT.md")
-    if not sprint_path.exists():
-        print("[skip] AI/SPRINT.md not found")
-        return False
-
-    content = sprint_path.read_text(encoding="utf-8")
-    pattern = rf"(## 스프린트 #{sprint_num}[^\n]*\n.*?)(?=\n## 스프린트 #|\Z)"
-    match = re.search(pattern, content, re.DOTALL)
-
-    if not match:
-        print(f"[skip] sprint #{sprint_num} section not found in SPRINT.md")
-        return False
-
-    section = match.group(0)
-    updated_section = section.replace("- [ ]", "- [x]")
-
-    if section == updated_section:
-        print(f"[skip] SPRINT.md sprint #{sprint_num} already all checked")
-        return False
-
-    content = content[: match.start()] + updated_section + content[match.end() :]
-    sprint_path.write_text(content, encoding="utf-8")
-    print(f"[ok] SPRINT.md sprint #{sprint_num} items checked")
-    return True
-
-
-def append_cost_log(sprint_num: int, task_name: str, task_data: dict) -> bool:
-    """cost-log.md 마지막 행에 추가. 동일 task_name 행이 이미 있으면 skip."""
-    cost_log = Path("AI/cost-log.md")
-    if not cost_log.exists():
-        print("[skip] AI/cost-log.md not found")
-        return False
-
-    content = cost_log.read_text(encoding="utf-8")
-
-    # 중복 방지: 동일 task_name 행이 이미 있으면 skip
-    if f"| {task_name} |" in content:
-        print(f"[skip] cost-log.md already has entry for task '{task_name}'")
-        return False
-
-    if CHANGED_FILES <= 2:
-        size = "S"
-    elif CHANGED_FILES <= 10:
-        size = "M"
-    elif CHANGED_FILES <= 30:
-        size = "L"
-    else:
-        size = "XL"
-
-    # 위험도 추출 (task JSON impact.risk)
-    impact = task_data.get("impact")
-    risk = impact.get("risk", "") if isinstance(impact, dict) else ""
-
-    # duration_sec: completed_at - created_at
-    duration_sec = "—"
-    created_at = task_data.get("created_at")
-    completed_at_val = task_data.get("completed_at")
-    if created_at and completed_at_val:
-        try:
-            fmt = "%Y-%m-%dT%H:%M:%SZ"
-            t0 = datetime.strptime(created_at, fmt).replace(tzinfo=timezone.utc)
-            t1 = datetime.strptime(completed_at_val, fmt).replace(tzinfo=timezone.utc)
-            duration_sec = str(int((t1 - t0).total_seconds()))
-        except Exception:
-            pass
-
-    # consume_tokens / cache_tokens: task JSON에서 읽기 (없으면 —)
-    consume_tokens = task_data.get("consume_tokens") or "—"
-    cache_tokens = task_data.get("cache_tokens") or "—"
-
-    today = datetime.now().strftime("%Y-%m-%d")
-    note = PR_TITLE if PR_TITLE else f"PR #{PR_NUMBER}"
-    if risk:
-        note = f"{note} [risk:{risk}]"
-
-    new_row = f"| {today} | #{sprint_num} | {task_name} | claude-sonnet-4-6 | {size} | {duration_sec} | {consume_tokens} | {cache_tokens} | {note} |"
-
-    cost_log.write_text(content.rstrip() + "\n" + new_row + "\n", encoding="utf-8")
-    print(f"[ok] cost-log.md row added: {new_row}")
     return True
 
 
@@ -286,22 +202,11 @@ def main() -> None:
         sys.exit(0)
 
     data = json.loads(task_file.read_text(encoding="utf-8"))
-    sprint_num = data.get("sprint")
     task_name = data.get("task", BRANCH.split("_", 1)[-1] if "_" in BRANCH else BRANCH)
     status_before = data.get("status", "unknown")
 
     # task JSON 갱신 (갱신 여부 = /pr 스킬 미실행 경로 여부)
     was_pending = update_task_json(task_file)
-
-    # SPRINT.md 갱신 (항상 실행)
-    sprint_updated = False
-    if sprint_num is not None:
-        sprint_updated = update_sprint_md(sprint_num)
-
-    # cost-log 추가 (/pr 스킬 미실행 경로에서만)
-    cost_updated = False
-    if was_pending and sprint_num is not None:
-        cost_updated = append_cost_log(sprint_num, task_name, data)
 
     # plan 명세 파일 archived (항상 실행 — /pr 스킬 실행 여부 무관)
     plan_archived = archive_plan_file(task_name)
@@ -319,8 +224,6 @@ def main() -> None:
         f"| PR | [#{PR_NUMBER}]({PR_URL}) |",
         f"| Task file | `{task_file}` |",
         f"| Status | `{status_before}` → `{status_after}` |",
-        f"| SPRINT updated | {'✅ yes' if sprint_updated else '➖ no (already checked or not found)'} |",
-        f"| cost-log updated | {'✅ yes' if cost_updated else '➖ no (skipped or already exists)'} |",
         f"| plan file archived | {'✅ yes' if plan_archived else '➖ no (not found or already archived)'} |",
         f"| Warnings | None |",
     ])

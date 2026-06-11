@@ -8,7 +8,6 @@ if [ -z "$PROJECT_DIR" ]; then
 fi
 
 SLN_DIR="$PROJECT_DIR/PlatformA"
-SPRINT_FILE="$PROJECT_DIR/AI/SPRINT.md"
 
 echo ""
 echo "============================================"
