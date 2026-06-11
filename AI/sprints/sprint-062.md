@@ -14,11 +14,11 @@ AI/SPRINT.md·AI/cost-log.md 삭제(Phase C) 이후 해당 파일을 직접 참�
 
 ## 태스크
 
-- [ ] `.claude/commands/sprint.md` — AI/SPRINT.md 읽기 제거, DB+sprints 폴백으로 교체
-- [ ] `.claude/skills/workreport/SKILL.md` — sidecar `tail AI/SPRINT.md` 제거, `grep cost-log.md` 제거, DB/sprints 기반 데이터 수집으로 교체
-- [ ] `.github/workflows/pr-merge-sync.yml` — `git add AI/SPRINT.md AI/cost-log.md` 제거, 커밋 메시지 수정, 스텝명 수정
-- [ ] `Docs/operations/ai-sdlc-*.md` 6개 삭제 — 내용이 Docs/ai-sdlc/로 이동 완료된 고아 파일
-- [ ] `session-start.sh` 죽은 변수 `SPRINT_FILE` 제거
+- [x] `.claude/commands/sprint.md` — AI/SPRINT.md 읽기 제거, DB+sprints 폴백으로 교체
+- [x] `.claude/skills/workreport/SKILL.md` — sidecar `tail AI/SPRINT.md` 제거, `grep cost-log.md` 제거, DB/sprints 기반 데이터 수집으로 교체
+- [x] `.github/workflows/pr-merge-sync.yml` — `git add AI/SPRINT.md AI/cost-log.md` 제거, 커밋 메시지 수정, 스텝명 수정
+- [x] `Docs/operations/ai-sdlc-*.md` 6개 삭제 — 내용이 Docs/ai-sdlc/로 이동 완료된 고아 파일
+- [x] `session-start.sh` 죽은 변수 `SPRINT_FILE` 제거
 
 ## 배경
 

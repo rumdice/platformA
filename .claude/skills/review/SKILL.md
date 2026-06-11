@@ -58,7 +58,7 @@ ADR-007: Protobuf 기준:
 - [ ] `dotnet build PlatformA.sln` 빌드 오류 없음
 - [ ] `dotnet test` 전체 통과
 - [ ] 관련 API 변경 시 `/doc-writer api-guide` 실행
-- [ ] `AI/SPRINT.md` 해당 항목 체크
+- [ ] `AI/sprints/sprint-NNN.md` 해당 태스크 체크박스 완료 처리
 
 ---
 

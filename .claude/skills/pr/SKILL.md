@@ -1,7 +1,7 @@
 ---
 name: pr
 schema_version: 1
-description: 브랜치 push 이후 PR을 생성하고 SPRINT.md 완료 체크, task JSON 상태 갱신, cost-log 기록을 수행한다. /done 이후에 실행한다. PR_SUMMARY 단계를 담당한다.
+description: 브랜치 push 이후 PR을 생성하고 sprint-NNN.md 완료 처리, DB 상태 갱신을 수행한다. /done 이후에 실행한다. PR_SUMMARY 단계를 담당한다.
 disable-model-invocation: false
 allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Bash(python *) Bash(python3 *) Read Edit
 ---
@@ -135,8 +135,6 @@ ADR_REQUIRED가 `true`이면 **중단**한다:
 
 ### 1단계: sprint-NNN.md 완료 상태 갱신
 
-**AI/SPRINT.md는 수정하지 않는다** — PR 머지 후 `generate_sprint_md.py`가 자동 재생성.
-
 이번 브랜치의 sprint 파일을 찾아 프론트매터를 완료 상태로 갱신한다:
 
 ```bash
@@ -174,7 +172,7 @@ gh pr create \
 - 테스트: ✔ N개 통과
 
 ## 관련 스프린트 태스크
-{이번 작업에서 완료된 SPRINT.md 항목들}
+{이번 작업에서 완료된 sprint-NNN.md 태스크 항목들}
 
 🤖 Claude Code로 생성됨
 EOF
@@ -251,7 +249,7 @@ CONSUME_TOKENS, CACHE_TOKENS가 있으면 db_write.py로 ai_jobs를 업데이트
   --status "done" 2>/dev/null || true
 ```
 
-**Phase C: AI/cost-log.md append 없음** — DB 기반 report를 자동 생성한다:
+**Phase C: DB 기반 report 자동 생성:**
 ```bash
 mkdir -p AI/reports
 python .github/scripts/generate_cost_log_from_db.py \

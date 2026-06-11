@@ -31,7 +31,7 @@ jobs:
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         run: python3 .github/scripts/sync_merged_pr.py
 
-      - name: Regenerate SPRINT.md tables (DB-based, file fallback)
+      - name: Sync sprint files (DB-based)
         env:
           SDLC_DB_CONNECTION: ${{ secrets.SDLC_DB_CONNECTION }}
         run: python3 .github/scripts/generate_sprint_md.py || true
@@ -46,8 +46,8 @@ jobs:
             echo "변경 없음 — 커밋 스킵"
             exit 0
           fi
-          git add AI/tasks/ AI/SPRINT.md AI/sprints/ AI/cost-log.md .claude/plan/
-          git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, SPRINT.md 재생성"
+          git add AI/tasks/ AI/sprints/ .claude/plan/
+          git commit -m "자동: PR #${PR_NUMBER} 머지 — task 상태 갱신, sprints 동기화"
           git push
 
   sync-task-abandoned:
