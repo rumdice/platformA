@@ -41,7 +41,7 @@ Phase1 내 프로젝트의 AI 문서와 스킬의 사용 목적을 명확히 정
 Phase2 (완료 — 단기 TODO 4종 완료 2026-05-21 스프린트 #22 PR #44, /test-gen 추가 2026-05-22 스프린트 #24)
 1. Phase1의 개선된 부분을 반영하여 2. PDF 문서와 비교한 이 프로젝트의 가장 큰 문제점 에 반영하고 갱신한다.
 
-Phase3  (진행 중 — 약 90% 완료, 2026-06-05 기준)
+Phase3  (완료 — 2026-06-08 기준 100%)
 
 완료:
   [완료] PostgreSQL 상태 저장소 (SdlcDB.Lib — Sprint #41, PR #70)
@@ -76,6 +76,22 @@ Phase 3 완료 (2026-06-08 기준 100%):
   [완료] LLM 라우터 (Haiku/Sonnet/Opus 복잡도별 선택) — Sprint #47, PR #76
   [완료] PostgreSQL primary source 전환 (cost-log.md → ai_model_runs 연동) — Sprint #46/#48, PR #75/#77
   [정책] PR 머지: 사람이 직접 검토·승인 후 수행 — 영구 정책 (자동 머지 미도입)
+
+Phase B 완료 (2026-06-08, Sprint #49~50):
+  [완료] AI/sprints/ 구조 도입 — append-only 충돌 완화, sprint-NNN.md 개별 관리 (Sprint #49)
+  [완료] DB primary 전환 선언 — check_sdlc_consistency.py --strict 통과 (Sprint #50)
+
+Phase C 운영 중 (2026-06-10~, Sprint #51~):
+  [정책] task JSON 신규 생성 중단 — DB(sdlc.ai_jobs)가 단일 진실 공급원
+  [정책] AI/SPRINT.md 삭제 → AI/sprints/sprint-NNN.md + DB가 대체
+  [정책] AI/cost-log.md 삭제 → DB(ai_model_runs) 기반 비용 추적
+  [정책] GitHub Actions는 로컬 PostgreSQL에 직접 접근 불가 → n8n webhook 경유
+  [완료] Phase C 경화 — owner 자동 감지, localhost 접근 차단, 보고서 gitignore (Sprint #55)
+  [완료] Phase C Job Lock — DB 기반 동시 실행 제어, 세션 간 충돌 방지 (Sprint #57)
+  [완료] AI_SDLC 워크플로우 테스트 — Python 통합 테스트 보강 (Sprint #58)
+  [완료] DocFX AI_SDLC 섹션 분리 — Docs/ai-sdlc/ 신설 (Sprint #59)
+  [완료] sync_merged_pr Phase C 오탐 수정 — sprint-NNN.md frontmatter 폴백 (Sprint #60)
+  [완료] 워크플로 버그 수정 + 역할 분담 명세 — CLAUDE.md 시스템 역할 표 추가 (Sprint #61)
 -----
 
 
@@ -93,7 +109,7 @@ Phase 3 완료 (2026-06-08 기준 100%):
 
 ### 수동 모드 (단계별)
 ```
-/plan {작업 설명}     → [Stage 1] 설명 분석 → PlanName 생성 → 브랜치 + task JSON 커밋 + SPRINT 등록
+/plan {작업 설명}     → [Stage 1] 설명 분석 → PlanName 생성 → 브랜치 + sprint-NNN.md 생성 + DB 초기화
 /requirement          → [Stage 2] 요구사항 상세 분석 + 명세 파일 브랜치 커밋 + DESIGN_REVIEW
 /impact               → 영향 범위·위험도 분석 (코드 수정 전)
 /start                → task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력 + steps[] 기록
@@ -101,9 +117,9 @@ Phase 3 완료 (2026-06-08 기준 100%):
 /test-gen             → test-writer 에이전트 실행, 테스트 케이스 생성 (컨트롤러 변경 시 필수) + steps[] 기록
 /done                 → 커밋 + 빌드 + 포맷 + 테스트 + push (반복 가능)
 /review               → 코드 리뷰 + steps[] 기록
-/pr                   → SPRINT 완료 체크 + PR 생성 + task done + cost-log
+/pr                   → SPRINT 완료 체크 + PR 생성 + DB 상태 갱신 (Phase C: cost-log 없음)
 [GitHub Actions]      → sdlc-gate-check.yml  — PR 단계 SDLC 공정 자동 검사 (2차 방어선)
-[GitHub Actions]      → pr-merge-sync.yml    — 머지 후 task JSON·SPRINT·cost-log 자동 동기화
+[GitHub Actions]      → pr-merge-sync.yml    — 머지 후 자동 동기화 (Phase B: task JSON, Phase C: sprint-NNN.md frontmatter 확인)
 [GitHub Actions ci]   → 실패 시 mark_ci_failure.py → task JSON last_error + PR 댓글 + AI_SDLC_FAILURE_RECORD 마커
 [GitHub Actions]      → auto-format.yml — CI format 실패 시 자동 fix 커밋 후 재실행
 [n8n]                 → GitHub CI Failure Monitor (10분 폴링) → sdlc.ai_failures INSERT (ON CONFLICT 중복 방지)
@@ -128,7 +144,7 @@ Phase 3 완료 (2026-06-08 기준 100%):
 | 11 | MERGE_SYNC | GitHub Actions pr-merge-sync.yml (사후 동기화) |
 
 게이트 정책 (2026-05-30 강화):
-- /plan: task JSON을 브랜치에 즉시 커밋 → gate-check가 PR 생성 시점에 반드시 탐지 가능
+- /plan: Phase C — sprint-NNN.md를 브랜치에 즉시 커밋 + DB ai_jobs upsert (task JSON 생성 없음). Phase B 이전 — task JSON도 생성.
 - /requirement: 명세 파일을 브랜치에 커밋 + task JSON steps[] 기록
 - /test-gen: 소스 코드(.cs/.proto) 변경 시 /done 이전 실행 필수 (미실행 시 /done 차단)
 - /impact: 코드 변경 시 /done 이전 실행 필수 (미실행 시 /done 차단, /pr도 차단)
@@ -143,13 +159,16 @@ Phase 3 완료 (2026-06-08 기준 100%):
   - task JSON 없음 + 일반 코드 변경 → WARNING
   - 코드 변경 + test_generated=false → FAIL
   - 고위험 경로 + impact=null 또는 review_completed=false → FAIL
-- pr-merge-sync.yml: PR 머지 후 task JSON·SPRINT.md·cost-log 자동 갱신 (사후 보완)
+- pr-merge-sync.yml: PR 머지 후 자동 동기화 (사후 보완)
+  Phase B 이전 — task JSON 갱신 + plan 파일 archived
+  Phase C — sprint-NNN.md frontmatter branch 필드로 확인 (DB 접근 없음, GitHub Actions 제약)
+  SPRINT.md·cost-log.md 갱신 없음 (Phase C에서 두 파일 삭제됨)
   + PR closed without merge → task status: abandoned (신규, 2026-05-30)
 - ci.yml: CI 빌드/포맷/테스트 실패 시 task JSON last_error 갱신 + PR 댓글 (신규, 2026-05-30)
 
 -----
 
-작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-06-05, 스프린트 #45)
+작업 단계는 순차적으로 진행된다. (최종 업데이트: 2026-06-11, 스프린트 #61, Phase C 운영 중)
 
 0. USER_PLAN  ←  /plan 스킬
 기능 : 사용자가 작업 설명을 입력하면 LLM이 분석하여 계획을 수립하고, 브랜치와 task JSON을 생성한다.
@@ -163,13 +182,14 @@ Phase 3 완료 (2026-06-08 기준 100%):
   - 사용자 설명을 분석하여 작업 목적·범위·구현 방향을 요약한다.
   - PascalCase PlanName 생성 (예: AddRedisRateLimit, FixAuthTokenExpiry)
   - 브랜치 생성: YYYY-MM-DD_PlanName
-  - task JSON 생성 및 브랜치에 즉시 커밋 (gate-check가 PR 생성 시 탐지 가능하도록)
-  - SPRINT.md 진행 중 섹션에 태스크 항목 추가 후 커밋
+  - Phase C (2026-06-10~): sprint-NNN.md 생성(YAML frontmatter) + DB ai_jobs upsert (task JSON 생성 없음)
+  - Phase B 이전: task JSON 생성 및 브랜치에 즉시 커밋 + SPRINT.md 항목 추가
 
   산출물:
   - 브랜치: 2026-MM-DD_PlanName
-  - AI/tasks/sprint{N}_{PlanName}.json (status: analyzing, steps: [plan])
-  - AI/SPRINT.md 태스크 항목
+  - Phase C: AI/sprints/sprint-NNN.md (branch/status/title frontmatter 포함)
+  - Phase C: DB sdlc.ai_jobs 행 (status: analyzing)
+  - Phase B 이전: AI/tasks/sprint{N}_{PlanName}.json + AI/SPRINT.md 항목
 
 
 1. REQUIREMENT_ANALYSIS + DESIGN_REVIEW  ←  /requirement 스킬
@@ -305,12 +325,13 @@ Phase 3 완료 (2026-06-08 기준 100%):
    - /pr 미실행 경로도 사후 보완 (단, task JSON이 브랜치에 있어야 탐지 가능)
 
    처리:
-   - task JSON: status=done, completed_at, pr_url 갱신 + steps[]에 merge_sync 기록
-   - SPRINT.md: 해당 스프린트 섹션 '- [ ]' → '- [x]' 체크
-   - cost-log.md: 중복 방지 후 행 추가 (규모 S/M/L/XL 자동 판단)
+   - Phase B 이전 (task JSON 있음): status=done, completed_at, pr_url 갱신 + steps[]에 merge_sync 기록 + plan 파일 archived
+   - Phase C (task JSON 없음): sprint-NNN.md frontmatter의 branch 필드로 확인 → 정상 처리
+   - SPRINT.md·cost-log.md 갱신 없음 (Phase C에서 두 파일 삭제됨)
 
-   주의: task JSON이 PR 머지 시점에 main에 없으면 skip 발생
-   → /plan이 task JSON을 브랜치에 즉시 커밋하므로 정상 워크플로에서는 항상 탐지 가능
+   주의: Phase C — task JSON도 sprint-NNN.md도 없는 경우 → ⚠️ 경고 (SDLC 누락)
+   GitHub Actions는 로컬 PostgreSQL에 직접 접근 불가 (네트워크 분리)
+   → DB 작업이 필요하면 n8n webhook을 통해 신호만 전달
 
 -----
 
