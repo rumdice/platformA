@@ -1,7 +1,7 @@
 # AI SDLC 워크플로 갭 분석 보고서
 
 작성일: 2026-05-19  
-최종 갱신: 2026-06-05 (스프린트 #45 완료 반영 — Phase 3 진행 중 ~90%)  
+최종 갱신: 2026-06-11 (스프린트 #61 완료 반영 — Phase C 운영 중)  
 작성 목적: 엔터프라이즈 AI SDLC 플랫폼 설계(PDF)와 현재 프로젝트 AI 워크플로 비교 → 개선 로드맵 수립
 
 ---
@@ -80,12 +80,12 @@ PENDING → ANALYZING → DESIGNING → CODING → TESTING → QA_ANALYZING → 
 
 | 스킬 | 역할 |
 |------|------|
-| `/plan` | 브랜치 생성 + SPRINT.md 업데이트 + task JSON 초기화 |
+| `/plan` | 브랜치 생성 + sprint-NNN.md 생성 + DB ai_jobs upsert (Phase C: task JSON 생성 없음) |
 | `/requirement` | 요구사항 분석 → 구현 명세 파일 생성 + DESIGN_REVIEW (Sprint #22) |
 | `/impact` | 변경 파일 위험도 분류 + 참조 관계 + 테스트 커버리지 (Sprint #22) |
 | `/start` | task 상태 coding 전환 + 명세 파일 기반 작업 지시서 출력 (Sprint #23) |
 | `/done` | 빌드·포맷·테스트 → push (format 검증 포함 Sprint #42) |
-| `/pr` | PR 생성 + SPRINT 완료 체크 + cost-log 자동 기록 (Sprint #23) |
+| `/pr` | PR 생성 + SPRINT 완료 체크 + DB 상태 갱신 (Phase C: cost-log 없음) (Sprint #23) |
 | `/test-gen` | 변경 코드 기반 xUnit 테스트 자동 생성 (Sprint #24) |
 | `/review` | 코드 리뷰 보고서 생성 |
 | `/qa-failure` | CI 실패 로그 분석 → BUILD/FORMAT/TEST 분류 → 수정 방향 제시 (Sprint #28) |
@@ -102,21 +102,33 @@ PENDING → ANALYZING → DESIGNING → CODING → TESTING → QA_ANALYZING → 
 | `[mark_ci_failure.py]` | CI 실패 유형 분류 + task JSON last_error + PR 댓글 (Sprint #42) |
 | `[migrate_tasks_to_postgres.py]` | task JSON → sdlc.ai_jobs/ai_job_steps 이전 (Sprint #43) |
 | `[record_failure.py]` | ai_failures 수동 기록, GitHub identity + ON CONFLICT 지원 (Sprint #43) |
-| `[backfill_cost_log.py]` | 누락 스프린트 토큰 역산 → cost-log.md 보정 (Sprint #45) |
+| `[backfill_cost_log.py]` | 누락 스프린트 토큰 역산 → cost-log.md 보정 (Sprint #45, Phase C 이후 사용 중단) |
+| `[job_lock.py]` | DB 기반 분산 잠금 — 동시 실행 방지 (Sprint #57) |
+| `[check_sdlc_consistency.py]` | PostgreSQL ↔ task JSON 정합성 검사 (Sprint #49) |
 
-### 2.2 상태 추적 구조
+### 2.2 상태 추적 구조 (Phase C, 2026-06-10~)
 
 ```
 AI/
-├── SPRINT.md          # 사람이 읽는 스프린트 현황 (체크박스 형태)
-├── cost-log.md        # 수동 비용 기록 (Phase 3 전 기준선)
+├── sprints/
+│   └── sprint-NNN.md       # 스프린트별 상세 (YAML frontmatter, git 파일)
 ├── tasks/
-│   ├── SCHEMA.md      # JSON 스키마 정의
-│   └── sprint{N}_{PlanName}.json   # 태스크별 상태 파일
-└── adr/               # 아키텍처 결정 기록
+│   ├── SCHEMA.md            # JSON 스키마 정의 (Phase B 이전 참조용)
+│   └── sprint{N}_{PlanName}.json   # Phase B 이전 태스크 상태 (신규 생성 중단)
+└── adr/                     # 아키텍처 결정 기록
+
+삭제됨 (2026-06-11, PR #92):
+  AI/SPRINT.md    → AI/sprints/sprint-NNN.md + DB(sdlc.ai_jobs)로 대체
+  AI/cost-log.md  → DB(sdlc.ai_model_runs) 기반 비용 추적으로 대체
 ```
 
-**task JSON 필드**: sprint, task, branch, status, created_at, completed_at, pr_url, retry_count, last_error, artifacts
+**PostgreSQL sdlc 스키마 (단일 진실 공급원)**:
+- `ai_jobs`: 작업 헤더 (branch, sprint, status, created_at 등)
+- `ai_job_steps`: 단계별 실행 이력
+- `ai_failures`: CI 실패 기록 (GitHub identity + ON CONFLICT 중복 방지)
+- `ai_model_runs`: 모델별 토큰 비용 추적
+
+**Phase C sprint-NNN.md frontmatter 필드**: sprint, title, branch, date, status, completed, pr
 
 ### 2.3 CI/CD
 
@@ -129,9 +141,10 @@ AI/
 
 - **반자동화**: 수동(/plan, /done)과 자동(plan-file-trigger.yml, auto-fix.yml) 경로 병존
 - **단일 AI 인스턴스**: Claude Code 한 개가 전체 파이프라인 담당 (n8n은 감시·트리거만)
-- **이중 상태 저장**: task JSON(파일, primary) + PostgreSQL(미러, ai_jobs/steps/failures)
+- **DB 단독 상태 저장 (Phase C)**: PostgreSQL(ai_jobs/steps/failures/model_runs)이 단일 진실 공급원. task JSON 신규 생성 중단 (2026-06-10~).
 - **선형 플로우**: 브랜치 → 구현 → 빌드/테스트 → PR
-- **스프린트 누적**: 45개 스프린트 완료, 각 스프린트가 단일 태스크
+- **스프린트 누적**: 61개 스프린트 완료, 각 스프린트가 단일 태스크
+- **GitHub Actions 제약**: 로컬 PostgreSQL 직접 접근 불가 (네트워크 분리). DB 작업 필요 시 n8n webhook 경유.
 
 ---
 
@@ -156,11 +169,11 @@ AI/
 | 항목 | PDF 설계 | 현재 상태 | 갭 |
 |------|---------|---------|-----|
 | **오케스트레이션** | n8n 자동 트리거 | 사용자 수동 실행 | △ n8n CI 감지·기록 완료. plan-file-trigger.yml로 외부 계획 파일 → /workflow 자동 실행 구현 (Sprint #44, #45). n8n → AI Worker 직접 호출 루프 미구현 |
-| **상태 DB** | PostgreSQL 6개 테이블 | JSON 파일 | △ 4개 테이블 구현(ai_jobs/steps/failures/model_runs, Sprint #41, #43). JSON primary + DB 미러로 병행 운용 중. primary 전환 미완 |
+| **상태 DB** | PostgreSQL 6개 테이블 | DB 단독 (Phase C) | ✅ Phase B(Sprint #50): DB primary 선언. Phase C(2026-06-10~): task JSON 신규 생성 중단, DB 단독. 4개 테이블 구현(ai_jobs/steps/failures/model_runs). ai_messages·ai_artifacts·ai_approvals·ai_task_definitions 미구현. |
 | **CI 실패 자동 수정** | (PDF 없음) | 없음 | ✅ n8n fixable_by_ai 필터 → repository_dispatch → auto-fix.yml → /qa-failure 완전 루프 (Sprint #42, #43, #45) |
 | **내부 파이프라인 자동화** | (PDF 없음) | 없음 | ✅ /workflow 오케스트레이터: plan→pr 9단계 완전 자동화 (Sprint #44) |
 | **상태 머신** | 9단계 + 에러 분기 | 6단계 | 6단계 유지 (analyzing/coding/testing/done/failed/abandoned) |
-| **비용 추적** | `ai_model_runs` 자동 기록 | cost-log.md 자동 기록 + backfill 스크립트 | cost-log.md primary 유지. ai_model_runs 스키마 존재, 연동 미완 |
+| **비용 추적** | `ai_model_runs` 자동 기록 | DB 기반 (Phase C) | ✅ ai_model_runs 연동 완료(Sprint #46). cost-log.md 삭제(2026-06-11, PR #92). DB 단독 비용 추적. |
 | **다중 워커** | Worker 분리 + 헬스비트 | 단일 Claude Code 인스턴스 | 동일 (단일 인스턴스) |
 | **Approval Gate** | 고위험 작업 인간 승인 | 없음 | △ sdlc-gate-check.yml이 SDLC 공정 준수 자동 검사로 부분 대체. PR 머지는 수동 유지 |
 | **LLM 라우터** | 태스크 복잡도별 모델 선택 | 단일 모델 고정 | 동일 (미구현) |
@@ -199,7 +212,9 @@ AI/
 |-------|------|---------|
 | Phase 1 | 모든 스킬/AI 문서 목적 명확화 | ✅ 완료 — CLAUDE.md, rules/, SPRINT.md, tasks/ 체계 수립 |
 | Phase 2 | PDF 개선사항 적용, 가장 큰 갭 발견 | ✅ 완료 — Sprint #22~31: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, 비용 자동 기록, gate-check 강화 |
-| Phase 3 | 자동화 인프라 구축 | 🔄 진행 중 (~90%) — PostgreSQL(Sprint #41), n8n CI 감지(Sprint #42), ai_failures 중복 방지 + task JSON 이전(Sprint #43), /workflow 오케스트레이터(Sprint #44), 외부 트리거 + CI 자동 수정 루프(Sprint #45). 미완: n8n→Claude API 직접 호출, LLM 라우터, PostgreSQL primary 전환 |
+| Phase 3 | 자동화 인프라 구축 | ✅ 완료 (100%, Sprint #41~48, 2026-06-03~08) |
+| Phase B | DB primary 전환 | ✅ 완료 (2026-06-08, Sprint #49~50) |
+| Phase C | task JSON 폐기·DB 단독 운영 | 🔄 운영 중 (2026-06-10~, Sprint #51~61+) |
 
 ---
 
@@ -257,20 +272,33 @@ AI/
 
 **Phase 2 완료 (Sprint #22~31, 2026-05-21~30)**: /impact·/requirement·/start·/pr·/test-gen 추가, 상태 머신 6단계, SDLC gate check 강화, ADR 연계, PR 머지 자동 동기화.
 
-**Phase 3 완료 (100%, Sprint #41~48, 2026-06-03~05)**:
+**Phase 3 완료 (100%, Sprint #41~48, 2026-06-03~08)**:
 - ✅ PostgreSQL SdlcDB.Lib 4개 테이블 (Sprint #41)
 - ✅ n8n CI 실패 감지 + format 자동 수정 파이프라인 (Sprint #42)
 - ✅ ai_failures 중복 방지(partial unique index) + task JSON DB 이전 (Sprint #43)
 - ✅ /workflow 오케스트레이터: plan→pr 9단계 완전 자동화 (Sprint #44)
 - ✅ plan-file-trigger.yml: 외부 계획 파일 Push → /workflow 자동 실행 (Sprint #45)
 - ✅ auto-fix.yml: fixable CI 실패 → /qa-failure 자동 수정 루프 (Sprint #45)
-- ✅ backfill_cost_log.py: 누락 토큰 역산 인프라 (Sprint #45)
 - ✅ ai_model_runs 연동: /pr 완료 시 PostgreSQL 비용 기록 (Sprint #46, PR #75)
 - ✅ LLM 라우터: impact.risk 기반 Haiku/Sonnet/Opus 자동 선택 (Sprint #47, PR #76)
 - ✅ PostgreSQL primary 전환 + 7개 스킬 dual-write (Sprint #48, PR #77)
 
-**Phase 3 운영 정책**:
+**Phase B 완료 (Sprint #49~50, 2026-06-08)**:
+- ✅ AI/sprints/ 구조 도입 — sprint-NNN.md 개별 관리, append-only 충돌 완화 (Sprint #49)
+- ✅ DB primary 선언 — check_sdlc_consistency.py --strict 통과 (Sprint #50)
+
+**Phase C 운영 중 (Sprint #51~, 2026-06-10~)**:
+- ✅ Phase C 경화 — owner 자동 감지, localhost 접근 차단 (Sprint #55)
+- ✅ Phase C Job Lock — DB 기반 동시 실행 제어 (Sprint #57)
+- ✅ AI_SDLC 워크플로우 테스트 보강 (Sprint #58)
+- ✅ DocFX AI_SDLC 섹션 분리 — Docs/ai-sdlc/ 신설 (Sprint #59)
+- ✅ sync_merged_pr Phase C 오탐 수정 — sprint frontmatter 폴백 (Sprint #60)
+- ✅ 역할 분담 명세 + plan-file-trigger 수정 — CLAUDE.md 역할 분담 표 (Sprint #61)
+- ✅ AI/SPRINT.md, AI/cost-log.md 삭제 — DB+sprints/*.md 단일 진실 공급원 확정 (PR #92)
+
+**운영 정책**:
 ① **PR 머지**: 항상 사람이 직접 검토·승인 후 수행 — 영구 정책 (자동 머지 미도입)
+② **GitHub Actions**: 로컬 PostgreSQL 직접 접근 금지 — DB 작업 필요 시 n8n webhook 경유
 
 ---
 
