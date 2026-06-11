@@ -3,7 +3,9 @@ sprint: 59
 title: DocFX AI_SDLC 문서 섹션 분리
 branch: 2026-06-11_ImproveDocFxAiSdlcDocs
 date: 2026-06-11
-status: in-progress
+status: done
+completed: 2026-06-11
+pr: https://github.com/rumdice/platformA/pull/89
 ---
 
 # Sprint #59 — DocFX AI_SDLC 문서 섹션 분리
@@ -14,15 +16,15 @@ AI_SDLC 문서를 DocFX 최상위 섹션으로 분리하여 "서버 플랫폼 �
 
 ## 태스크
 
-- [ ] `Docs/toc.yml` — AI SDLC 최상위 섹션 추가
-- [ ] `Docs/ai-sdlc/` 디렉토리 신설 (toc.yml + 15개 문서)
-- [ ] `Docs/operations/ai-sdlc-*.md` 6개 → `Docs/ai-sdlc/`로 이동
-- [ ] `Docs/docfx.json` — PlatformA.SdlcDB.Lib metadata 추가
-- [ ] `.github/scripts/generate_ai_sdlc_docs.py` 신규 작성
-- [ ] `.github/workflows/docs.yml` — AI SDLC 문서 생성 단계 추가
-- [ ] `.claude/skills/doc-writer/SKILL.md` — ai-sdlc 섹션 추가
-- [ ] `.github/scripts/check_docs_toc.py` 신규 작성
-- [ ] DocFX 로컬 빌드 검증 (0 error, InvalidFileLink 없음)
+- [x] `Docs/toc.yml` — AI SDLC 최상위 섹션 추가
+- [x] `Docs/ai-sdlc/` 디렉토리 신설 (toc.yml + 15개 문서)
+- [x] `Docs/operations/ai-sdlc-*.md` 6개 → `Docs/ai-sdlc/`로 이동 (bridge 문서 추가)
+- [x] `Docs/docfx.json` — PlatformA.SdlcDB.Lib metadata 추가
+- [x] `.github/scripts/generate_ai_sdlc_docs.py` 신규 작성
+- [x] `.github/workflows/docs.yml` — AI SDLC 문서 생성 단계 추가
+- [x] `.claude/skills/doc-writer/SKILL.md` — ai-sdlc 섹션 추가
+- [x] `.github/scripts/check_docs_toc.py` 신규 작성
+- [x] DocFX 로컬 빌드 검증 — 0 error(s)
 
 ## 배경
 
