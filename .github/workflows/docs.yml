@@ -54,6 +54,12 @@ jobs:
       - name: Generate DB schema doc
         run: python .github/scripts/generate_db_schema.py
 
+      - name: Generate AI SDLC docs
+        run: python .github/scripts/generate_ai_sdlc_docs.py
+
+      - name: Check docs toc
+        run: python .github/scripts/check_docs_toc.py || true
+
       - name: Build DocFX site
         run: docfx Docs/docfx.json
 

@@ -1,0 +1,30 @@
+- name: 개요
+  href: overview.md
+- name: Workflow
+  href: workflow.md
+- name: Phase A/B/C
+  href: phases.md
+- name: Phase C DB 단독 운영
+  href: phase-c-db-only.md
+- name: Gate 판정
+  href: gates.md
+- name: DB Schema
+  href: db-schema.md
+- name: Job Lock
+  href: job-lock.md
+- name: Cost & Reports
+  href: cost-and-reports.md
+- name: Auto Fix
+  href: auto-fix.md
+- name: n8n
+  href: n8n.md
+- name: GitHub Actions
+  href: github-actions.md
+- name: Backup / Restore
+  href: backup-restore.md
+- name: Troubleshooting
+  href: troubleshooting.md
+- name: Skill Reference
+  href: skill-reference.md
+- name: Automation Map
+  href: automation-map.md

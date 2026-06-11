@@ -10,6 +10,7 @@
             "PlatformA.Utils.API/PlatformA.Utils.API.csproj",
             "PlatformA.Library/PlatformA.Library.csproj",
             "PlatformA.MySqlDB.Lib/PlatformA.MySqlDB.Lib.csproj",
+            "PlatformA.SdlcDB.Lib/PlatformA.SdlcDB.Lib.csproj",
             "PlatformA.Game.Server/PlatformA.Game.Server.csproj"
           ],
           "src": "../PlatformA"
