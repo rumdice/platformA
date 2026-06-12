@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          token: ${{ secrets.BOT_PUSH_TOKEN }}
+          token: ${{ secrets.SYNC_TOKEN }}
 
       - name: Generate weekly SDLC report
         run: python3 .github/scripts/generate_sdlc_report.py

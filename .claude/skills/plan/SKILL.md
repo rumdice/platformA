@@ -36,7 +36,7 @@ $ARGUMENTS
     해당 브랜치에서 작업을 계속 진행합니다.
 ```
 
-SPRINT.md 업데이트(4단계)로 바로 이동한다.
+sprint-NNN.md 태스크 추가(4단계)로 바로 이동한다.
 
 ---
 
@@ -95,7 +95,7 @@ if [ -z "$SPRINT_NUM" ]; then
 fi
 ```
 
-이 `SPRINT_NUM`을 3단계(충돌 suffix), 3.5단계(DB 기록), 4단계(SPRINT.md 헤더) 전부에서 동일하게 사용한다.
+이 `SPRINT_NUM`을 3단계(충돌 suffix), 3.5단계(DB 기록), 4단계(sprint-NNN.md 생성) 전부에서 동일하게 사용한다.
 **재계산 금지.**
 
 ---
@@ -146,9 +146,6 @@ python .github/scripts/db_write.py \
 
 ### 4단계: sprint-NNN.md 생성 및 커밋
 
-**AI/SPRINT.md는 수정하지 않는다** — PR 머지 후 `generate_sprint_md.py`가 DB 기반으로 자동 재생성.
-에이전트가 SPRINT.md를 직접 수정하면 동시 개발 시 머지 충돌이 발생한다.
-
 **Case A — 새 브랜치 (오픈 PR 없음)**:
 
 `AI/sprints/sprint-{NNN}.md` 파일을 새로 생성한다 (NNN = 3자리 0-padding SPRINT_NUM).  
@@ -197,7 +194,7 @@ git push
 ✅ /plan 완료 — Stage 1: 브랜치·DB 초기화
 
 브랜치: {브랜치명}
-스프린트: #{SPRINT_NUM}  ← SPRINT.md의 새 헤더 번호와 동일
+스프린트: #{SPRINT_NUM}
 DB job: sdlc.ai_jobs.branch = {브랜치명} (task JSON 없음 — Phase C)
 
 작업 요약:
@@ -205,7 +202,7 @@ DB job: sdlc.ai_jobs.branch = {브랜치명} (task JSON 없음 — Phase C)
   범위: {예상 변경 범위}
   방향: {구현 방향}
 
-SPRINT.md 추가 항목:
+sprint-{NNN}.md 태스크:
   - [ ] ...
 
 다음 단계:

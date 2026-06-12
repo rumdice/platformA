@@ -13,9 +13,6 @@ allowed-tools: Bash(git *) Bash(gh *) Bash(grep *) Bash(date *) Bash(cat *) Bash
 오늘 날짜:
 !`date +%Y-%m-%d`
 
-현재 스프린트 말미 (참고용):
-!`tail -40 AI/SPRINT.md`
-
 ---
 
 ## 수행 순서
@@ -32,18 +29,19 @@ gh pr list --state merged --limit 30 --json number,title,mergedAt,headRefName
 ```
 결과에서 `mergedAt`이 오늘 날짜(`TODAY`)인 항목만 추출한다.
 
-**오늘 완료된 task JSON:**
+**오늘 완료된 sprint 파일:**
 ```bash
 TODAY=$(date +%Y-%m-%d)
+grep -rl "^completed: ${TODAY}" AI/sprints/ 2>/dev/null
 grep -rl "\"completed_at\": \"${TODAY}" AI/tasks/ 2>/dev/null
 ```
-찾은 각 파일을 Read 도구로 읽어 sprint, task, status, pr_url을 확인한다.
+찾은 각 파일을 Read 도구로 읽어 sprint, title, branch, status, pr 정보를 확인한다.
 
-**오늘 cost-log 항목:**
+**오늘 DB 완료 job (Phase C):**
 ```bash
-TODAY=$(date +%Y-%m-%d)
-grep "^| ${TODAY}" AI/cost-log.md
+python .github/scripts/db_write.py --action list-active 2>/dev/null
 ```
+status가 done인 항목에서 오늘 sprint 번호와 task를 확인한다.
 
 **현재 오픈 PR:**
 ```bash
@@ -86,7 +84,7 @@ gh pr list --state open --limit 10
 
 **작성 원칙:**
 - 각 PR 항목은 **무엇을 했고 왜 했는지** 모두 담는다
-- cost-log의 규모(S/M/L/XL)를 작업 설명에 반영한다
+- DB(ai_model_runs) 또는 sprint 파일에서 규모(S/M/L/XL)를 파악하여 작업 설명에 반영한다
 - 오늘 머지된 PR이 없으면 "오늘 머지된 PR이 없습니다." 한 줄로 섹션을 대체한다
 - 기술 용어는 그대로 사용한다
 
