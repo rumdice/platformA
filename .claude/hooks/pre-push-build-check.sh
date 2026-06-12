@@ -23,6 +23,12 @@ fi
 # ── 1. main 브랜치 직접 push 차단 ────────────────────────────────────────
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
 if [ "$CURRENT_BRANCH" = "main" ]; then
+    # 예외: AI/workreport/, AI/reports/ 문서 전용 커밋은 main 직접 push 허용
+    CHANGED_IN_PUSH=$(git diff --name-only origin/main HEAD 2>/dev/null)
+    DOCS_ONLY=$(echo "$CHANGED_IN_PUSH" | grep -vE "^(AI/workreport/|AI/reports/)" | head -1)
+    if [ -z "$DOCS_ONLY" ] && [ -n "$CHANGED_IN_PUSH" ]; then
+        exit 0  # workreport/reports 전용 변경 → 허용
+    fi
     echo '{"decision": "block", "reason": "main 브랜치에 직접 push할 수 없습니다.\n/plan을 먼저 실행하여 작업 브랜치를 생성한 뒤 push하십시오."}'
     exit 0
 fi
