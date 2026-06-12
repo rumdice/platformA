@@ -92,6 +92,18 @@ if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ]; then
     fi
 fi
 
+# 4.5. main 브랜치일 때 전체 미해결 CI 실패 표시
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    FAILURE_ALL=$(python3 "$PROJECT_DIR/.github/scripts/record_failure.py" \
+        --list-unresolved 2>/dev/null)
+    if echo "$FAILURE_ALL" | grep -q "미해결 CI 실패"; then
+        echo ""
+        echo "[CI 실패 알림 (전체)]"
+        echo "$FAILURE_ALL" | sed 's/^/  /'
+        echo "  → 해당 브랜치로 체크아웃 후 /done을 재실행하세요."
+    fi
+fi
+
 # 5. 최근 DB write 실패 표시
 DB_FAIL_DIR="$PROJECT_DIR/AI/logs/db-write-failures"
 if [ -d "$DB_FAIL_DIR" ]; then
