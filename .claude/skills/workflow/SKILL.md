@@ -45,6 +45,29 @@ ls .claude/plan/*.md 2>/dev/null | grep -v "processed" | sort | tail -1
 
 ---
 
+### 0.5단계: 미해결 CI 실패 확인
+
+작업을 시작하기 전에 이전에 기록된 미해결 CI 실패가 있는지 확인한다.
+
+```bash
+FAILURES=$(python .github/scripts/record_failure.py --list-unresolved 2>/dev/null)
+```
+
+`$FAILURES`에 "미해결 CI 실패" 문자열이 포함되어 있으면 아래 형식으로 출력한다:
+
+```
+⚠️ 미해결 CI 실패 기록이 있습니다:
+
+{$FAILURES 내용}
+
+이 실패들을 먼저 수정하거나, 현재 작업과 무관하면 계속 진행합니다.
+수정 후 해당 브랜치에서 /done을 재실행하세요.
+```
+
+출력 후 자동으로 계속 진행한다 (파이프라인 차단 없음).
+
+---
+
 ### 1단계: /plan 실행
 
 Skill 도구로 `/plan`을 호출한다. 인수는 계획 소스의 작업 설명 텍스트.

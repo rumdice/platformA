@@ -15,6 +15,16 @@
     },
     {
       "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst lastCheckedAt = staticData.last_checked_at ||\n  new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();\nstaticData.last_checked_at = new Date().toISOString();\nreturn [{ json: { last_checked_at: lastCheckedAt } }];"
+      },
+      "id": "read-cursor",
+      "name": "커서 읽기·갱신",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 300]
+    },
+    {
+      "parameters": {
         "url": "https://api.github.com/repos/rumdice/platformA/actions/runs",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -22,7 +32,8 @@
         "queryParameters": {
           "parameters": [
             { "name": "status", "value": "failure" },
-            { "name": "per_page", "value": "5" }
+            { "name": "per_page", "value": "20" },
+            { "name": "created", "value": "={{ '>=' + $('커서 읽기·갱신').first().json.last_checked_at }}" }
           ]
         },
         "options": {
@@ -49,27 +60,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
-          "conditions": [
-            {
-              "id": "check-recent",
-              "leftValue": "={{ new Date($json.created_at) > new Date(Date.now() - 15 * 60 * 1000) }}",
-              "rightValue": true,
-              "operator": { "type": "boolean", "operation": "true" }
-            }
-          ],
-          "combinator": "and"
-        }
-      },
-      "id": "filter-recent",
-      "name": "최근 15분 이내만",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.1,
-      "position": [900, 300]
-    },
-    {
-      "parameters": {
         "url": "=https://api.github.com/repos/rumdice/platformA/actions/runs/{{ $json.id }}/jobs",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -79,18 +69,18 @@
       "name": "GitHub: Job 상세 조회",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1120, 300],
+      "position": [900, 300],
       "credentials": { "httpHeaderAuth": { "id": "github-pat", "name": "GitHub PAT" } }
     },
     {
       "parameters": {
-        "jsCode": "const jobs = $json.body.jobs || [];\nconst run = $('split-runs').first().json;\nconst branch = run.head_branch;\nconst runId = run.id;\nconst runName = run.name;\nconst commitSha = run.head_sha;\n\n// 실패한 job의 steps에서 실패 유형 분류\nlet failureType = 'build_failed';\nlet fixable = false;\nlet logExcerpt = '';\nlet githubJobId = null;\n\nfor (const job of jobs) {\n  if (job.conclusion !== 'failure') continue;\n  githubJobId = job.id;\n  for (const step of (job.steps || [])) {\n    if (step.conclusion !== 'failure') continue;\n    const stepName = (step.name || '').toLowerCase();\n    if (stepName.includes('format check (whitespace)') || stepName.includes('charset')) {\n      failureType = 'format_failed'; fixable = true;\n    } else if (stepName.includes('format check (style)')) {\n      failureType = 'style_failed'; fixable = true;\n    } else if (stepName.includes('test')) {\n      failureType = 'test_failed';\n    } else if (stepName.includes('gate-check') || stepName.includes('sdlc gate')) {\n      failureType = 'gate_failed';\n    }\n    logExcerpt = `Step: ${step.name} / Job: ${job.name}`;\n    break;\n  }\n  if (logExcerpt) break;\n}\n\nreturn [{\n  json: {\n    failure_type: failureType,\n    source: 'github_actions',\n    message: `CI 실패: ${runName} / branch: ${branch} / run_id: ${runId}`,\n    log_excerpt: logExcerpt,\n    fixable_by_ai: fixable,\n    metadata: JSON.stringify({ branch, run_id: runId, run_name: runName }),\n    branch,\n    git_hub_run_id: runId,\n    git_hub_job_id: githubJobId,\n    commit_sha: commitSha,\n    workflow_name: runName\n  }\n}];"
+        "jsCode": "const jobs = $json.body.jobs || [];\nconst run = $('각 실패 run 분리').first().json;\nconst branch = run.head_branch;\nconst runId = run.id;\nconst runName = run.name;\nconst commitSha = run.head_sha;\n\n// 실패한 job의 steps에서 실패 유형 분류\nlet failureType = 'build_failed';\nlet fixable = false;\nlet logExcerpt = '';\nlet githubJobId = null;\n\nfor (const job of jobs) {\n  if (job.conclusion !== 'failure') continue;\n  githubJobId = job.id;\n  for (const step of (job.steps || [])) {\n    if (step.conclusion !== 'failure') continue;\n    const stepName = (step.name || '').toLowerCase();\n    if (stepName.includes('format check (whitespace)') || stepName.includes('charset')) {\n      failureType = 'format_failed'; fixable = true;\n    } else if (stepName.includes('format check (style)')) {\n      failureType = 'style_failed'; fixable = true;\n    } else if (stepName.includes('test')) {\n      failureType = 'test_failed';\n    } else if (stepName.includes('gate-check') || stepName.includes('sdlc gate')) {\n      failureType = 'gate_failed';\n    }\n    logExcerpt = `Step: ${step.name} / Job: ${job.name}`;\n    break;\n  }\n  if (logExcerpt) break;\n}\n\nreturn [{\n  json: {\n    failure_type: failureType,\n    source: 'github_actions',\n    message: `CI 실패: ${runName} / branch: ${branch} / run_id: ${runId}`,\n    log_excerpt: logExcerpt,\n    fixable_by_ai: fixable,\n    metadata: JSON.stringify({ branch, run_id: runId, run_name: runName }),\n    branch,\n    git_hub_run_id: runId,\n    git_hub_job_id: githubJobId,\n    commit_sha: commitSha,\n    workflow_name: runName\n  }\n}];"
       },
       "id": "classify-failure",
       "name": "실패 분류",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1340, 300]
+      "position": [1120, 300]
     },
     {
       "parameters": {
@@ -104,102 +94,17 @@
       "name": "PostgreSQL: ai_failures INSERT",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [1560, 300],
+      "position": [1340, 300],
       "credentials": { "postgres": { "id": "sdlc-postgres", "name": "SDLC PostgreSQL" } }
-    },
-    {
-      "parameters": {
-        "jsCode": "return items.filter(item => item.json.fixable_by_ai === true);"
-      },
-      "id": "fixable-filter",
-      "name": "fixable_by_ai 필터",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1780, 300]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE sdlc.ai_jobs\nSET locked_by       = 'n8n',\n    locked_at        = NOW(),\n    lock_expires_at  = NOW() + INTERVAL '30 minutes',\n    lock_token       = gen_random_uuid()::text,\n    agent_id         = 'n8n',\n    last_heartbeat_at = NOW(),\n    updated_at       = NOW()\nWHERE branch = $1\n  AND (lock_expires_at IS NULL\n       OR lock_expires_at < NOW()\n       OR locked_by = 'n8n')\nRETURNING lock_token",
-        "additionalFields": {
-          "queryParams": "={{ [$json.branch] }}"
-        }
-      },
-      "id": "postgres-job-lock-claim",
-      "name": "PostgreSQL: Job Lock Claim",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [2000, 300],
-      "credentials": { "postgres": { "id": "sdlc-postgres", "name": "SDLC PostgreSQL" } }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
-          "conditions": [
-            {
-              "id": "check-lock-token",
-              "leftValue": "={{ $json.lock_token }}",
-              "rightValue": "",
-              "operator": { "type": "string", "operation": "notEmpty" }
-            }
-          ],
-          "combinator": "and"
-        }
-      },
-      "id": "check-lock-claimed",
-      "name": "Lock 획득 확인",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.1,
-      "position": [2220, 300]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.github.com/repos/rumdice/platformA/dispatches",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Accept", "value": "application/vnd.github+json" },
-            { "name": "X-GitHub-Api-Version", "value": "2022-11-28" }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "event_type", "value": "ai-auto-fix" },
-            {
-              "name": "client_payload",
-              "value": "={{ JSON.stringify({ failure_id: $('fixable_by_ai 필터').first().json.id, failure_type: $('fixable_by_ai 필터').first().json.failure_type, branch: $('fixable_by_ai 필터').first().json.branch, run_id: $('fixable_by_ai 필터').first().json.git_hub_run_id, message: $('fixable_by_ai 필터').first().json.message, lock_token: $json.lock_token }) }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "github-dispatch",
-      "name": "GitHub: repository_dispatch",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2440, 300],
-      "credentials": { "httpHeaderAuth": { "id": "github-pat", "name": "GitHub PAT" } }
     }
   ],
   "connections": {
-    "Schedule (10분)":              { "main": [[{ "node": "GitHub: 실패한 CI 조회",      "type": "main", "index": 0 }]] },
-    "GitHub: 실패한 CI 조회":        { "main": [[{ "node": "각 실패 run 분리",             "type": "main", "index": 0 }]] },
-    "각 실패 run 분리":               { "main": [[{ "node": "최근 15분 이내만",             "type": "main", "index": 0 }]] },
-    "최근 15분 이내만":               { "main": [[{ "node": "GitHub: Job 상세 조회",       "type": "main", "index": 0 }]] },
-    "GitHub: Job 상세 조회":         { "main": [[{ "node": "실패 분류",                    "type": "main", "index": 0 }]] },
-    "실패 분류":                      { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] },
-    "PostgreSQL: ai_failures INSERT": { "main": [[{ "node": "fixable_by_ai 필터",         "type": "main", "index": 0 }]] },
-    "fixable_by_ai 필터":            { "main": [[{ "node": "PostgreSQL: Job Lock Claim",  "type": "main", "index": 0 }]] },
-    "PostgreSQL: Job Lock Claim":    { "main": [[{ "node": "Lock 획득 확인",               "type": "main", "index": 0 }]] },
-    "Lock 획득 확인":                 { "main": [
-      [{ "node": "GitHub: repository_dispatch", "type": "main", "index": 0 }],
-      []
-    ]}
+    "Schedule (10분)":                { "main": [[{ "node": "커서 읽기·갱신",              "type": "main", "index": 0 }]] },
+    "커서 읽기·갱신":                  { "main": [[{ "node": "GitHub: 실패한 CI 조회",      "type": "main", "index": 0 }]] },
+    "GitHub: 실패한 CI 조회":          { "main": [[{ "node": "각 실패 run 분리",             "type": "main", "index": 0 }]] },
+    "각 실패 run 분리":                 { "main": [[{ "node": "GitHub: Job 상세 조회",       "type": "main", "index": 0 }]] },
+    "GitHub: Job 상세 조회":           { "main": [[{ "node": "실패 분류",                    "type": "main", "index": 0 }]] },
+    "실패 분류":                        { "main": [[{ "node": "PostgreSQL: ai_failures INSERT", "type": "main", "index": 0 }]] }
   },
   "active": false,
   "settings": { "executionOrder": "v1" },
@@ -211,10 +116,10 @@
       "3. n8n UI > Workflows > Import from file > .n8n/workflows/github-failure-monitor.json",
       "4. 워크플로 활성화 (Toggle Active)"
     ],
-    "job_lock": [
-      "Job Lock claim/release는 n8n이 로컬 DB에 직접 수행 (GitHub Actions에서 DB 접근 불필요)",
-      "claim: dispatch 직전 atomic UPDATE — 다른 agent 점유 시 lock_token이 반환되지 않아 dispatch 자동 스킵",
-      "release: TTL 30분 자동 만료 (fire-and-forget 구조상 명시적 release 생략)"
+    "cursor": [
+      "커서 기반 폴링: n8n Static Data에 last_checked_at 저장 → 폴링 간 상태 유지",
+      "기본값: 첫 실행 시 24시간 전 (노트북 재시작 후에도 과거 실패 소급 처리)",
+      "낙관적 갱신: 실행 시작 시 커서 즉시 갱신 → ON CONFLICT DO NOTHING으로 중복 INSERT 방어"
     ]
   }
 }
