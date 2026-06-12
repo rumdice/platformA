@@ -3,7 +3,9 @@ sprint: 63
 title: SDLC CI 격리 강화
 branch: 2026-06-12_FixSdlcCiIsolation
 date: 2026-06-12
-status: in-progress
+status: done
+completed: 2026-06-12
+pr: https://github.com/rumdice/platformA/pull/95
 ---
 
 # Sprint #63 — SDLC CI 격리 강화
@@ -14,12 +16,12 @@ GitHub Actions → 로컬 DB 격리 위반 제거 및 n8n CI 실패 감지 체�
 
 ## 태스크
 
-- [ ] `.github/workflows/auto-fix.yml` 삭제 — ANTHROPIC_API_KEY 과금 워크플로우 제거
-- [ ] `.github/workflows/pr-merge-sync.yml` — "Sync sprint files (DB-based)" step 제거
-- [ ] `.github/scripts/generate_sprint_md.py` 삭제 — 대상 파일(AI/SPRINT.md) 없음, DB 접근 코드 포함
-- [ ] `.n8n/workflows/github-failure-monitor.json` — 15분 필터 → 커서 기반 폴링으로 교체, dispatch 노드 5개 제거
-- [ ] `.claude/skills/workflow/SKILL.md` — 0.5단계 미해결 CI 실패 알림 추가
-- [ ] `.claude/hooks/session-start.sh` — main 브랜치일 때 전체 미해결 CI 실패 표시 추가
+- [x] `.github/workflows/auto-fix.yml` 삭제 — ANTHROPIC_API_KEY 과금 워크플로우 제거
+- [x] `.github/workflows/pr-merge-sync.yml` — "Sync sprint files (DB-based)" step 제거
+- [x] `.github/scripts/generate_sprint_md.py` 삭제 — 대상 파일(AI/SPRINT.md) 없음, DB 접근 코드 포함
+- [x] `.n8n/workflows/github-failure-monitor.json` — 15분 필터 → 커서 기반 폴링으로 교체, dispatch 노드 5개 제거
+- [x] `.claude/skills/workflow/SKILL.md` — 0.5단계 미해결 CI 실패 알림 추가
+- [x] `.claude/hooks/session-start.sh` — main 브랜치일 때 전체 미해결 CI 실패 표시 추가
 
 ## 배경
 
