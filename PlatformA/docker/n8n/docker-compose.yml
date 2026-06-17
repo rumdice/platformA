@@ -8,7 +8,10 @@
 # 종료:   docker compose -f docker/n8n/docker-compose.yml down
 # 초기화: docker compose -f docker/n8n/docker-compose.yml down -v
 #
-# n8n UI: http://localhost:5678  (admin / admin_dev_password)
+# n8n UI: http://localhost:5678
+#   Email   : rumdice@gmail.com
+#   Password: admin1234
+#   (v1+ 이상은 Basic Auth 대신 이메일 기반 owner 계정 사용)
 
 networks:
   n8n-net:
@@ -23,9 +26,6 @@ services:
     container_name: platforma-n8n
     restart: always
     environment:
-      N8N_BASIC_AUTH_ACTIVE: "true"
-      N8N_BASIC_AUTH_USER: admin
-      N8N_BASIC_AUTH_PASSWORD: admin_dev_password
       N8N_HOST: localhost
       N8N_PORT: 5678
       N8N_PROTOCOL: http
