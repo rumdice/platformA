@@ -3,7 +3,9 @@ sprint: 65
 title: sdlc-python-test CI 유닛 테스트 경로 추가
 branch: 2026-06-18_AddSdlcPyUnitTestCi
 date: 2026-06-18
-status: in-progress
+status: done
+completed: 2026-06-18
+pr: https://github.com/rumdice/platformA/pull/97
 ---
 
 # Sprint #65 — sdlc-python-test CI 유닛 테스트 경로 추가
@@ -14,8 +16,8 @@ status: in-progress
 
 ## 태스크
 
-- [ ] `.github/workflows/sdlc-python-test.yml` — `paths:` 트리거에 `.github/tests/**` 추가
-- [ ] `.github/workflows/sdlc-python-test.yml` — 유닛 테스트 실행 step 추가 (`python -m pytest .github/tests/`)
+- [x] `.github/workflows/sdlc-python-test.yml` — `paths:` 트리거에 `.github/tests/**` 추가
+- [x] `.github/workflows/sdlc-python-test.yml` — 유닛 테스트 실행 step 추가 (`python -m pytest .github/tests/`)
 
 ## 배경
 
