@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - '.github/scripts/tests/**'
+      - '.github/tests/**'
       - '.github/scripts/job_lock.py'
       - '.github/scripts/db_write.py'
       - '.github/scripts/sdlc_db_migrations.sql'
   pull_request:
     paths:
       - '.github/scripts/tests/**'
+      - '.github/tests/**'
       - '.github/scripts/job_lock.py'
       - '.github/scripts/db_write.py'
       - '.github/scripts/sdlc_db_migrations.sql'
@@ -53,6 +55,10 @@ jobs:
           PGPASSWORD=platforma_dev_password psql \
             -h localhost -U platforma -d platforma_sdlc \
             -f .github/scripts/sdlc_db_migrations.sql
+
+      - name: pytest — unit tests (.github/tests/)
+        run: |
+          pytest .github/tests/ -v --tb=short
 
       - name: pytest — integration 마커
         run: |
