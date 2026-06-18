@@ -175,7 +175,7 @@ namespace PlatformA.Game.Server.Packet
                 await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(activeKey));
                 Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
 
-                lockKey = $"player:login_lock:{playerId}";
+                lockKey = $"{Consts.LOGIN_LOCK_KEY_PREFIX}{playerId}";
                 lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
                     lockKey,
                     TimeSpan.FromDays(1),

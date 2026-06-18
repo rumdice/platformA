@@ -1,4 +1,5 @@
 using System.Net;
+using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Library.Game.Core;
 using PlatformA.Library.Network;
@@ -34,7 +35,7 @@ namespace PlatformA.Library.Game.Network
 
             if (SessionId > 0 && !string.IsNullOrEmpty(LoginLockValue))
             {
-                string lockKey = $"player:login_lock:{SessionId}";
+                string lockKey = $"{Consts.LOGIN_LOCK_KEY_PREFIX}{SessionId}";
                 _ = RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, LoginLockValue);
                 Console.WriteLine($"[Redis] 유저 {SessionId} 연결 종료. 중복 로그인 락 해제 완료.");
             }
