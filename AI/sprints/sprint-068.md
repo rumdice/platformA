@@ -14,9 +14,9 @@ workreport 스킬에 프로젝트 완성도 평가 및 오늘 작업 피드백 �
 
 ## 태스크
 
-- [ ] `.claude/skills/workreport/SKILL.md` — 프로젝트 완성도 평가 섹션 추가
-- [ ] `.claude/skills/workreport/SKILL.md` — 오늘 작업 피드백·개선점 섹션 추가
-- [ ] 스킬 실행 후 `AI/workreport/2026-06-18.md` 생성 확인
+- [x] `.claude/skills/workreport/SKILL.md` — 프로젝트 완성도 평가 섹션 추가
+- [x] `.claude/skills/workreport/SKILL.md` — 오늘 작업 피드백·개선점 섹션 추가
+- [x] 스킬 실행 후 `AI/workreport/2026-06-18.md` 생성 확인
 
 ## 배경
 
