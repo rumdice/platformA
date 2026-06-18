@@ -12,7 +12,8 @@ namespace PlatformA.Game.Gomoku.Packet
         public static void Handle_C_PlaceStone(GomokuSession session, ProtoPacket packet)
         {
             CPlaceStone req = packet.CPlaceStone;
-            if (session.Room is not GomokuRoom room) return;
+            if (session.Room is not GomokuRoom room)
+                return;
 
             room.Push(() => room.HandlePlaceStone(session, req.X, req.Y));
         }

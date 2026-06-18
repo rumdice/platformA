@@ -1,9 +1,9 @@
 using System.Buffers;
 using Google.Protobuf;
+using PlatformA.Game.Server.Packet;
 using PlatformA.Library.Core;
 using PlatformA.Library.Game.Network;
 using PlatformA.Library.Packets;
-using PlatformA.Game.Server.Packet;
 using ProtoPacket = PlatformA.Library.Packets.Packet;
 
 namespace PlatformA.Game.Server.Network

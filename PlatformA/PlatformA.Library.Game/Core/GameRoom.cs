@@ -1,5 +1,5 @@
-using PlatformA.Library.Game.Network;
 using PlatformA.Library.Core;
+using PlatformA.Library.Game.Network;
 
 namespace PlatformA.Library.Game.Core
 {

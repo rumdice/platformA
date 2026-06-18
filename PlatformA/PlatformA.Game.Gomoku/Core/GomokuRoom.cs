@@ -52,7 +52,8 @@ namespace PlatformA.Game.Gomoku.Core
         /// <summary>돌 놓기 처리. JobQueue 내부에서만 호출해야 합니다.</summary>
         public void HandlePlaceStone(GomokuSession session, int x, int y)
         {
-            if (GameState != GomokuGameState.InProgress || _turn == null) return;
+            if (GameState != GomokuGameState.InProgress || _turn == null)
+                return;
 
             if (!_turn.IsCurrentTurn(session.SessionId))
             {
@@ -90,7 +91,8 @@ namespace PlatformA.Game.Gomoku.Core
         /// <summary>연결 끊김으로 인한 게임 종료 처리.</summary>
         public void HandleDisconnect(GomokuSession session)
         {
-            if (GameState != GomokuGameState.InProgress || _turn == null) return;
+            if (GameState != GomokuGameState.InProgress || _turn == null)
+                return;
             int winnerId = _turn.GetOpponentId(session.SessionId);
             FinishGame(winnerId, GameOverReason.Disconnect);
         }
