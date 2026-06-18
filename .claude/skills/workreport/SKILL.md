@@ -51,6 +51,64 @@ gh pr list --state open --limit 10
 
 ---
 
+### 1.5단계: 프로젝트 완성도 데이터 수집
+
+각 프로젝트의 완성도를 평가하기 위한 데이터를 수집한다.
+
+**Dockerfile 존재 여부:**
+```bash
+for proj in PlatformA.Auth.API PlatformA.Ticketing.API PlatformA.Matching.API PlatformA.Game.Server PlatformA.Utils.API; do
+  echo -n "$proj Dockerfile: "
+  [ -f "PlatformA/$proj/Dockerfile" ] && echo "있음" || echo "없음"
+done
+```
+
+**헬스체크 구현 여부 (API 프로젝트):**
+```bash
+for proj in PlatformA.Auth.API PlatformA.Ticketing.API PlatformA.Matching.API PlatformA.Utils.API; do
+  echo -n "$proj HealthCheck: "
+  FOUND=$(grep -rl "MapHealthChecks\|IHealthCheck" PlatformA/$proj/ 2>/dev/null | grep -v "bin\|obj" | head -1)
+  [ -n "$FOUND" ] && echo "있음" || echo "없음"
+done
+```
+
+**테스트 프로젝트 및 테스트 수:**
+```bash
+for proj in Auth.API Utils.API Ticketing.API Matching.API Game.Server Game.Gomoku; do
+  TEST_DIR="PlatformA/PlatformA.Tests.${proj}"
+  if [ -d "$TEST_DIR" ]; then
+    COUNT=$(grep -rl "\[Fact\]\|\[Theory\]" "$TEST_DIR" 2>/dev/null | xargs grep -h "\[Fact\]\|\[Theory\]" 2>/dev/null | wc -l)
+    echo "$proj: ${COUNT}개 테스트"
+  else
+    echo "$proj: 테스트 없음"
+  fi
+done
+```
+
+**API 문서 존재 여부:**
+```bash
+ls Docs/api-guide/ 2>/dev/null
+```
+
+**Library.Game 구현 현황:**
+```bash
+find PlatformA/PlatformA.Library.Game -name "*.cs" 2>/dev/null | grep -v "bin\|obj" | wc -l
+ls PlatformA/PlatformA.Library.Game/ 2>/dev/null
+```
+
+**최근 sprint 이력 (프로젝트별 완료된 기능 파악):**
+```bash
+grep -h "Auth\|Ticketing\|Matching\|Game\|Utils\|Library" AI/sprints/sprint-0*.md 2>/dev/null | grep "^\- \[x\]" | tail -30
+```
+
+수집된 데이터를 바탕으로 각 프로젝트의 완성도(%)를 아래 기준으로 LLM이 판단한다:
+- **빌드/테스트** (30점): 테스트 존재 및 최근 빌드 통과 여부
+- **핵심 기능** (30점): sprint 이력 기반 주요 기능 구현 완료 비율
+- **운영 준비** (25점): Dockerfile + 헬스체크 구현 여부
+- **문서화** (15점): API 문서 존재 여부 (API 서비스만 해당, 나머지는 full)
+
+---
+
 ### 2단계: 리포트 작성
 
 수집한 데이터를 바탕으로 아래 형식의 리포트를 작성한다.
@@ -75,6 +133,42 @@ gh pr list --state open --limit 10
 
 ---
 
+## 프로젝트 완성도 현황
+
+> 1.5단계에서 수집한 데이터를 기반으로 LLM이 평가한다.
+
+| 프로젝트 | 완성도 | 빌드/테스트 | 핵심 기능 | 운영 준비 | 문서화 | 비고 |
+|---------|--------|------------|---------|---------|------|------|
+| Auth.API | NN% | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | {주요 미완성 기능 또는 "–"} |
+| Ticketing.API | NN% | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | {비고} |
+| Matching.API | NN% | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | {비고} |
+| Game.Server | NN% | ✅/❌ | ✅/❌ | ✅/❌ | N/A | {비고} |
+| Utils.API | NN% | ✅/❌ | ✅/❌ | ✅/❌ | ✅/❌ | {비고} |
+| Library.Game | NN% | ✅/❌ | ✅/❌ | N/A | N/A | {비고} |
+
+**전체 플랫폼 완성도**: NN% — {한 줄 코멘트}
+
+---
+
+## 오늘 작업 피드백 및 개선점
+
+> 오늘 머지된 PR과 완료된 스프린트를 분석하여 LLM이 1~5가지를 작성한다.
+> 잘된 점과 개선하면 좋을 점을 균형 있게 포함한다.
+
+### 1. {피드백 제목}
+
+**잘된 점**: {구체적인 잘된 부분}
+**개선하면 좋을 점**: {다음에 더 잘할 수 있는 방향}
+
+### 2. {피드백 제목}
+
+**잘된 점**: ...
+**개선하면 좋을 점**: ...
+
+{추가 항목 — 오늘 작업량에 따라 1~5개}
+
+---
+
 ## 종료 시점 상태
 
 - 오픈 PR: N건 / 없음
@@ -87,6 +181,8 @@ gh pr list --state open --limit 10
 - DB(ai_model_runs) 또는 sprint 파일에서 규모(S/M/L/XL)를 파악하여 작업 설명에 반영한다
 - 오늘 머지된 PR이 없으면 "오늘 머지된 PR이 없습니다." 한 줄로 섹션을 대체한다
 - 기술 용어는 그대로 사용한다
+- **프로젝트 완성도**: 1.5단계 데이터 기반, LLM이 직접 평가 — 단순 체크박스 복사 금지
+- **피드백**: 오늘 실제 작업 흐름 분석 기반 — 일반론이 아닌 오늘에 특화된 내용으로 작성
 
 ---
 
