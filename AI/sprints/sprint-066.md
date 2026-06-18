@@ -3,7 +3,9 @@ sprint: 66
 title: 게임 라이브러리 추출 및 Gomoku 프로젝트 생성
 branch: 2026-06-18_CreateGameLibGomoku
 date: 2026-06-18
-status: in-progress
+status: done
+completed: 2026-06-18
+pr: https://github.com/rumdice/platformA/pull/98
 ---
 
 # Sprint #66 — 게임 라이브러리 추출 및 Gomoku 프로젝트 생성
@@ -14,18 +16,18 @@ status: in-progress
 
 ## 태스크
 
-- [ ] `PlatformA.Library.Game` 프로젝트 생성 (csproj, PlatformA.Library 참조)
-- [ ] `GameSession`, `GameRoom`, `GameRoomManager` Game.Server → Library.Game으로 이동
-- [ ] `PlatformA.Game.Server` — Library.Game 참조로 교체, 중복 코드 제거
-- [ ] `PlatformA.Game.Gomoku` 프로젝트 생성 (Library.Game 참조)
-- [ ] Gomoku 전용 패킷 정의 (`packets.proto`: CPlaceStone, SBoardUpdate, SGameOver 등)
-- [ ] `Board.cs` — 15×15 바둑판, 돌 놓기, 상태 조회
-- [ ] `WinChecker.cs` — 가로/세로/대각선 5연속 판정
-- [ ] `TurnManager.cs` — 플레이어 교대, 타임아웃
-- [ ] `GomokuRoom.cs` — GameRoom 상속, 게임 상태 관리
-- [ ] `GomokuPacketHandler.cs` — CPlaceStone 처리
-- [ ] `PlatformA.sln` — 신규 프로젝트 2개 등록
-- [ ] 빌드 및 테스트 통과
+- [x] `PlatformA.Library.Game` 프로젝트 생성 (csproj, PlatformA.Library 참조)
+- [x] `GameSession`, `GameRoom`, `GameRoomManager` Game.Server → Library.Game으로 이동
+- [x] `PlatformA.Game.Server` — Library.Game 참조로 교체, 중복 코드 제거
+- [x] `PlatformA.Game.Gomoku` 프로젝트 생성 (Library.Game 참조)
+- [x] Gomoku 전용 패킷 정의 (`packets.proto`: CPlaceStone, SBoardUpdate, SGameOver 등)
+- [x] `Board.cs` — 15×15 바둑판, 돌 놓기, 상태 조회
+- [x] `WinChecker.cs` — 가로/세로/대각선 5연속 판정
+- [x] `TurnManager.cs` — 플레이어 교대, 타임아웃
+- [x] `GomokuRoom.cs` — GameRoom 상속, 게임 상태 관리
+- [x] `GomokuPacketHandler.cs` — CPlaceStone 처리
+- [x] `PlatformA.sln` — 신규 프로젝트 2개 등록
+- [x] 빌드 및 테스트 통과
 
 ## 배경
 
