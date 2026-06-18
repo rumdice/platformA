@@ -15,11 +15,11 @@ GitHub Actions는 n8n webhook으로 신호만 전달하고, n8n이 로컬 Postgr
 
 ## 태스크
 
-- [ ] `.github/workflows/sdlc-gate-check.yml` — n8n webhook 호출로 교체
-- [ ] `check_sdlc_gate.py` — 제거 또는 deprecated 마킹
-- [ ] n8n 워크플로우 명세 작성 (DB 조회 → Commit Status 세팅)
-- [ ] GitHub branch protection rule — `AI_SDLC/gate-check` 커밋 상태 체크 설정 가이드 작성
-- [ ] `N8N_WEBHOOK_URL` GitHub Actions secret 등록 가이드 문서화
+- [x] `.github/workflows/sdlc-gate-check.yml` — n8n webhook 호출로 교체
+- [x] `check_sdlc_gate.py` — deprecated 마킹 (로직 보존, 롤백 가능)
+- [x] n8n 워크플로우 명세 작성 (DB 조회 → Commit Status 세팅)
+- [x] GitHub branch protection rule — `AI_SDLC/gate-check` 커밋 상태 체크 설정 가이드 작성
+- [x] `N8N_WEBHOOK_URL` GitHub Actions secret 등록 가이드 문서화
 
 ## 배경
 

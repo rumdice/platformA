@@ -21,10 +21,11 @@ jobs:
 
       - name: Trigger n8n gate-check
         run: |
-          PAYLOAD=$(printf '{"branch":"%s","sha":"%s","repo":"%s"}' \
-            "${{ github.event.pull_request.head.ref }}" \
-            "${{ github.event.pull_request.head.sha }}" \
-            "${{ github.repository }}")
+          PAYLOAD=$(jq -n \
+            --arg branch "${{ github.event.pull_request.head.ref }}" \
+            --arg sha "${{ github.event.pull_request.head.sha }}" \
+            --arg repo "${{ github.repository }}" \
+            '{branch: $branch, sha: $sha, repo: $repo}')
           curl -X POST "${N8N_WEBHOOK_URL}/gate-check" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
