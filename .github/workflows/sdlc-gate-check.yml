@@ -10,23 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - name: Get changed files
-        id: changed
+      - name: Set gate-check pending
         run: |
-          FILES=$(git diff --name-only origin/main...HEAD)
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Run AI_SDLC Gate Check
+          gh api /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f state=pending \
+            -f description="AI_SDLC 게이트 체크 진행 중..." \
+            -f context="AI_SDLC/gate-check"
         env:
-          BRANCH: ${{ github.event.pull_request.head.ref }}
-          CHANGED_FILES: ${{ steps.changed.outputs.files }}
-          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
-        run: python3 .github/scripts/check_sdlc_gate.py
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger n8n gate-check
+        run: |
+          PAYLOAD=$(printf '{"branch":"%s","sha":"%s","repo":"%s"}' \
+            "${{ github.event.pull_request.head.ref }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            "${{ github.repository }}")
+          curl -X POST "${N8N_WEBHOOK_URL}/gate-check" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            --max-time 30 \
+          || echo "⚠️ n8n 응답 없음 — pending 상태 유지 (PR 머지 차단됨)"
+        env:
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
