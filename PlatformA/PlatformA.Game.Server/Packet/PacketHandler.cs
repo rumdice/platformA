@@ -1,9 +1,9 @@
 using System.Buffers.Binary;
 using Google.Protobuf;
-using PlatformA.Game.Server.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
+using PlatformA.Library.Game.Core;
 using PlatformA.Library.Packets;
 using Polly.CircuitBreaker;
 using ProtoPacket = PlatformA.Library.Packets.Packet;
@@ -175,7 +175,7 @@ namespace PlatformA.Game.Server.Packet
                 await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(activeKey));
                 Console.WriteLine($"🎫 [티켓 확인] User_{playerId} 님의 입장권을 회수했습니다.");
 
-                lockKey = $"player:login_lock:{playerId}";
+                lockKey = $"{Consts.LOGIN_LOCK_KEY_PREFIX}{playerId}";
                 lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
                     lockKey,
                     TimeSpan.FromDays(1),
@@ -194,7 +194,7 @@ namespace PlatformA.Game.Server.Packet
                 }
 
                 int targetRoomId = roomId > 0 ? roomId : 1;
-                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(targetRoomId);
+                GameRoom? room = GameRoomManager.Instance.FindRoom(targetRoomId);
 
                 if (room == null)
                 {

@@ -25,14 +25,14 @@ namespace PlatformA.Game.Server
                 loggerFactory.CreateLogger<RedisManager>());
 
             // 🚀 서버 시작 시 기본 1번 방 생성
-            PlatformA.Game.Server.Core.GameRoomManager.Instance.CreateRoom(1);
+            PlatformA.Library.Game.Core.GameRoomManager.Instance.CreateRoom(1);
             Console.WriteLine("[RoomManager] 기본 1번 방(Lobby) 생성 완료.");
 
             // 🚀 3. Redis 이벤트 구독 (이벤트 주도 아키텍처)
             // 라이브러리에서 매칭 성공 이벤트가 터지면, 서버의 GameRoomManager가 방을 만듭니다!
             PlatformA.Library.Core.RedisManager.Instance.OnMatchSuccessReceived += (matchEvent) =>
             {
-                Core.GameRoomManager.Instance.CreateRoom(matchEvent.RoomId);
+                PlatformA.Library.Game.Core.GameRoomManager.Instance.CreateRoom(matchEvent.RoomId);
             };
 
             // 1. 소켓 생성 (IPv4, Stream(TCP), TCP)

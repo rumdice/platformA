@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\PlatformA.Library\PlatformA.Library.csproj" />
+		<ProjectReference Include="..\PlatformA.Library.Game\PlatformA.Library.Game.csproj" />
 	</ItemGroup>
 
 </Project>

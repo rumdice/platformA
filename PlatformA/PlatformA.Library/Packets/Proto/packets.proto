@@ -61,16 +61,67 @@ message SEnterRoom
     int32 room_id = 2;
 }
 
+// ── Gomoku (오목) 전용 패킷 ──────────────────────────────────────────────────
+
+enum StoneColor
+{
+    STONE_NONE  = 0;
+    STONE_BLACK = 1;
+    STONE_WHITE = 2;
+}
+
+enum GameOverReason
+{
+    FIVE_IN_ROW = 0;
+    TIMEOUT     = 1;
+    DISCONNECT  = 2;
+}
+
+// C_PlaceStone — Client → Server: 돌 놓기 요청
+message CPlaceStone
+{
+    int32 x = 1;
+    int32 y = 2;
+}
+
+// S_BoardUpdate — Server → Client: 돌 놓기 결과 브로드캐스트
+message SBoardUpdate
+{
+    int32      x                    = 1;
+    int32      y                    = 2;
+    StoneColor color                = 3;
+    int32      next_turn_player_id  = 4;
+}
+
+// S_GameStart — Server → Client: 게임 시작 (선후 공개)
+message SGameStart
+{
+    int32 player1_id           = 1;
+    int32 player2_id           = 2;
+    int32 first_turn_player_id = 3;
+}
+
+// S_GameOver — Server → Client: 게임 종료
+message SGameOver
+{
+    int32          winner_id = 1;
+    GameOverReason reason    = 2;
+}
+
 // Packet — 모든 메시지를 감싸는 envelope. oneof field tag 가 packetId 역할을 대체한다.
 message Packet
 {
     oneof payload
     {
-        CMove      c_move       = 1;
-        SMove      s_move       = 2;
-        CLogin     c_login      = 3;
-        SLogin     s_login      = 4;
-        CEnterRoom c_enter_room = 5;
-        SEnterRoom s_enter_room = 6;
+        CMove       c_move        = 1;
+        SMove       s_move        = 2;
+        CLogin      c_login       = 3;
+        SLogin      s_login       = 4;
+        CEnterRoom  c_enter_room  = 5;
+        SEnterRoom  s_enter_room  = 6;
+        CPlaceStone c_place_stone = 7;
+        SBoardUpdate s_board_update = 8;
+        SGameStart  s_game_start  = 9;
+        SGameOver   s_game_over   = 10;
     }
 }

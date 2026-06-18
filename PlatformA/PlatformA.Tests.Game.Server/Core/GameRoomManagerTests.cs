@@ -1,5 +1,5 @@
 #nullable disable
-using PlatformA.Game.Server.Core;
+using PlatformA.Library.Game.Core;
 
 namespace PlatformA.Tests.Game.Server.Core
 {

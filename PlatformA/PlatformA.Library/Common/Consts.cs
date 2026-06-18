@@ -46,6 +46,10 @@ namespace PlatformA.Library.Common
         // Active 유저 입장권 만료 시간: 이 시간 안에 게임 서버에 접속하지 않으면 입장권이 소멸됩니다.
         public const int ACTIVE_USER_TTL_SECONDS = 300; // 5분
 
+        // 게임 서버 중복 로그인 방지 락 키 접두사 (TTL: 1일, 연결 종료 시 해제)
+        // 사용법: $"{LOGIN_LOCK_KEY_PREFIX}{playerId}"
+        public const string LOGIN_LOCK_KEY_PREFIX = "player:login_lock:";
+
         // 접속 정보: 환경변수로 주입 (로컬 기본값 유지, K8s/Docker는 ConfigMap/env로 오버라이드)
         public static readonly string GAME_SERVER_IP =
             Environment.GetEnvironmentVariable("GAME_SERVER_IP") ?? "127.0.0.1";
