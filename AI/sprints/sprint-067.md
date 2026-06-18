@@ -3,7 +3,9 @@ sprint: 67
 title: gate-check n8n 브리지 전환
 branch: 2026-06-18_MigrateGateCheckToN8n
 date: 2026-06-18
-status: in-progress
+status: done
+completed: 2026-06-18
+pr: https://github.com/rumdice/platformA/pull/99
 ---
 
 # Sprint #67 — gate-check n8n 브리지 전환
