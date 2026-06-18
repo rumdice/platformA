@@ -1,8 +1,6 @@
-# DEPRECATED: Sprint #67(2026-06-18)에서 n8n 브리지 방식으로 대체됨.
-# sdlc-gate-check.yml은 이 스크립트를 더 이상 호출하지 않는다.
-# n8n이 로컬 PostgreSQL을 조회하여 GitHub Commit Status('AI_SDLC/gate-check')를 직접 설정한다.
-# 이 파일은 롤백 목적으로 유지됨 — 로직 변경 없음.
-# 설정 가이드: AI/docs/gate-check-setup.md
+# ARCHIVED: Sprint #67(2026-06-18)에서 sdlc-gate-check.yml과 함께 비활성화됨.
+# gate-check 메커니즘은 인프라 의존성 문제로 제거되었다 — AI/docs/gate-check-future.md 참조.
+# 이 파일의 로직은 향후 재도입 시 그대로 재사용 가능하다.
 """
 AI_SDLC Gate Check 스크립트.
 
