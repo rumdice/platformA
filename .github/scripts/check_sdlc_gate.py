@@ -1,3 +1,6 @@
+# ARCHIVED: Sprint #67(2026-06-18)에서 sdlc-gate-check.yml과 함께 비활성화됨.
+# gate-check 메커니즘은 인프라 의존성 문제로 제거되었다 — AI/docs/gate-check-future.md 참조.
+# 이 파일의 로직은 향후 재도입 시 그대로 재사용 가능하다.
 """
 AI_SDLC Gate Check 스크립트.
 
