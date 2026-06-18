@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 using Google.Protobuf;
-using PlatformA.Game.Server.Core;
+using PlatformA.Library.Game.Core;
 using PlatformA.Game.Server.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
@@ -194,7 +194,7 @@ namespace PlatformA.Game.Server.Packet
                 }
 
                 int targetRoomId = roomId > 0 ? roomId : 1;
-                Core.GameRoom room = Core.GameRoomManager.Instance.FindRoom(targetRoomId);
+                GameRoom? room = GameRoomManager.Instance.FindRoom(targetRoomId);
 
                 if (room == null)
                 {
