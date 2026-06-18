@@ -5,6 +5,7 @@ branch: 2026-06-18_EnhanceWorkreportSkill
 date: 2026-06-18
 status: done
 completed: 2026-06-18
+pr: https://github.com/rumdice/platformA/pull/101
 ---
 
 # Sprint #68 — workreport 스킬 기능 강화
