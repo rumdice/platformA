@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
+using PlatformA.Matching.API.Models;
 using PlatformA.MySqlDB.Lib.DBWebApp;
 using PlatformA.MySqlDB.Lib.DBWebApp.Entities;
 using Polly.CircuitBreaker;
@@ -85,6 +86,95 @@ return {members[1], members[3]}";
             return await _redisManager.ExecuteAsync(db =>
                 db.SortedSetLengthAsync(Consts.MATCH_QUEUE_KEY));
         }
+
+        /// <summary>플레이어 MMR을 Redis에서 조회합니다. 없으면 기본값(1000)을 반환합니다.</summary>
+        public async Task<int> GetPlayerRatingAsync(int userId)
+        {
+            string ratingKey = $"{Consts.PLAYER_RATING_KEY_PREFIX}{userId}";
+            string? val = await _redisManager.ExecuteAsync(db => db.StringGetAsync(ratingKey));
+            return int.TryParse(val, out int rating) ? rating : Consts.DEFAULT_PLAYER_RATING;
+        }
+
+        /// <summary>
+        /// Lobby 서버가 호출하는 즉시 매칭 시도 메서드.
+        /// 같은 gameType의 대기열에 상대가 있으면 즉시 매칭하고 게임 서버 접속 정보를 반환합니다.
+        /// 상대가 없으면 대기열에 추가 후 null을 반환합니다.
+        /// </summary>
+        public async Task<MatchResultDto?> TryMatchAsync(int userId, string gameType)
+        {
+            string queueKey = $"{Consts.MATCH_QUEUE_KEY}:{gameType}";
+            double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            // 원자적 pop — 대기 중인 상대가 있으면 즉시 매칭
+            var rawResult = await _redisManager.ExecuteAsync(db =>
+                db.ScriptEvaluateAsync(
+                    POP_TWO_SCRIPT,
+                    new RedisKey[] { queueKey },
+                    Array.Empty<RedisValue>()));
+            var popResult = (RedisValue[]?)rawResult ?? Array.Empty<RedisValue>();
+
+            if (popResult.Length >= 1 && int.TryParse((string?)popResult[0], out int opponentId) && opponentId != userId)
+            {
+                // 상대 발견 — 즉시 매칭
+                string roomId = Guid.NewGuid().ToString("N")[..12];
+                string host = GetGameServerHost(gameType);
+                int port = GetGameServerPort(gameType);
+                int p1Rating = await GetPlayerRatingAsync(userId);
+                int p2Rating = await GetPlayerRatingAsync(opponentId);
+
+                await RecordMatchStartAsync(userId, opponentId, gameType, roomId, p1Rating, p2Rating);
+
+                // 상대방 game_transfer 티켓 발급
+                string opponentTransferKey = $"{Consts.GAME_TRANSFER_KEY_PREFIX}{opponentId}";
+                string transferValue = System.Text.Json.JsonSerializer.Serialize(
+                    new { roomId, host, port, gameType });
+                await _redisManager.ExecuteAsync(db =>
+                    db.StringSetAsync(opponentTransferKey, transferValue, TimeSpan.FromMinutes(5)));
+
+                _logger.LogInformation("[Matching] 즉시 매칭 성사 — User:{U} vs User:{O} room:{R} type:{T}",
+                    userId, opponentId, roomId, gameType);
+
+                return new MatchResultDto { Host = host, Port = port, RoomId = roomId };
+            }
+
+            // 상대 없음 — 대기열에 추가
+            await _redisManager.ExecuteAsync(db =>
+                db.SortedSetAddAsync(queueKey, userId, score));
+            _logger.LogInformation("[Matching] 대기열 진입 — User:{U} gameType:{T}", userId, gameType);
+            return null;
+        }
+
+        /// <summary>플레이어의 최근 매칭 이력을 반환합니다.</summary>
+        public async Task<List<MatchHistoryDto>> GetMatchHistoryAsync(int userId, int limit = 20)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            return await db.MatchRecords
+                .Where(m => m.Player1Id == userId || m.Player2Id == userId)
+                .OrderByDescending(m => m.CreatedAt)
+                .Take(limit)
+                .Select(m => new MatchHistoryDto
+                {
+                    MatchId = m.Id,
+                    GameType = m.GameType,
+                    OpponentId = m.Player1Id == userId ? m.Player2Id : m.Player1Id,
+                    Result = m.WinnerId == null ? "미완료"
+                                 : m.WinnerId == userId ? "승리" : "패배",
+                    MatchedAt = m.CreatedAt,
+                })
+                .ToListAsync();
+        }
+
+        private static string GetGameServerHost(string gameType) => gameType switch
+        {
+            "gomoku" => Consts.GOMOKU_SERVER_IP,
+            _ => Consts.GAME_SERVER_IP,
+        };
+
+        private static int GetGameServerPort(string gameType) => gameType switch
+        {
+            "gomoku" => Consts.GOMOKU_SERVER_PORT,
+            _ => Consts.GAME_SERVER_PORT,
+        };
 
         /// <summary>백그라운드 매칭 워커</summary>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -182,7 +272,11 @@ return {members[1], members[3]}";
             await _hubContext.Clients.Group($"User_{player2Id}").SendAsync("MatchFound", matchEvent);
         }
 
-        private async Task RecordMatchStartAsync(int player1Id, int player2Id)
+        private async Task RecordMatchStartAsync(
+            int player1Id, int player2Id,
+            string gameType = "", string roomId = "",
+            int player1Rating = Consts.DEFAULT_PLAYER_RATING,
+            int player2Rating = Consts.DEFAULT_PLAYER_RATING)
         {
             try
             {
@@ -192,6 +286,10 @@ return {members[1], members[3]}";
                     Player1Id = player1Id,
                     Player2Id = player2Id,
                     Status = MatchStatus.InProgress,
+                    GameType = gameType,
+                    RoomId = roomId,
+                    Player1Rating = player1Rating,
+                    Player2Rating = player2Rating,
                     StartedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };

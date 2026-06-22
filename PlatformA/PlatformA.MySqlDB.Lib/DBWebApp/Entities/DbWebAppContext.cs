@@ -65,6 +65,10 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp
                 entity.ToTable("match_records");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Status).HasDefaultValue(MatchStatus.Pending);
+                entity.Property(e => e.GameType).HasMaxLength(50).HasDefaultValue(string.Empty);
+                entity.Property(e => e.RoomId).HasMaxLength(100).HasDefaultValue(string.Empty);
+                entity.Property(e => e.Player1Rating).HasDefaultValue(1000);
+                entity.Property(e => e.Player2Rating).HasDefaultValue(1000);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
                 entity.HasIndex(e => new { e.Player1Id, e.CreatedAt }).IsDescending(false, true);
                 entity.HasIndex(e => new { e.Player2Id, e.CreatedAt }).IsDescending(false, true);

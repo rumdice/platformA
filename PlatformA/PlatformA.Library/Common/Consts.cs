@@ -50,12 +50,27 @@ namespace PlatformA.Library.Common
         // 사용법: $"{LOGIN_LOCK_KEY_PREFIX}{playerId}"
         public const string LOGIN_LOCK_KEY_PREFIX = "player:login_lock:";
 
+        // Lobby → 게임 서버 세션 전환 티켓 (TTL: 5분, 게임 서버 로그인 시 소비)
+        // 사용법: $"{GAME_TRANSFER_KEY_PREFIX}{playerId}"
+        public const string GAME_TRANSFER_KEY_PREFIX = "game_transfer:";
+
         // 접속 정보: 환경변수로 주입 (로컬 기본값 유지, K8s/Docker는 ConfigMap/env로 오버라이드)
         public static readonly string GAME_SERVER_IP =
             Environment.GetEnvironmentVariable("GAME_SERVER_IP") ?? "127.0.0.1";
 
         public static readonly int GAME_SERVER_PORT =
             int.TryParse(Environment.GetEnvironmentVariable("GAME_SERVER_PORT"), out int gsp) ? gsp : 7777;
+
+        // 게임 종목별 서버 주소 (환경변수로 오버라이드 가능)
+        public static readonly string GOMOKU_SERVER_IP =
+            Environment.GetEnvironmentVariable("GOMOKU_SERVER_IP") ?? "127.0.0.1";
+
+        public static readonly int GOMOKU_SERVER_PORT =
+            int.TryParse(Environment.GetEnvironmentVariable("GOMOKU_SERVER_PORT"), out int gomp) ? gomp : 7778;
+
+        // 플레이어 MMR 기본값 및 Redis 키 접두사
+        public const int DEFAULT_PLAYER_RATING = 1000;
+        public const string PLAYER_RATING_KEY_PREFIX = "player:rating:";
 
         // Redis Cluster 노드 목록 (Master 3개 — StackExchange.Redis가 Slave를 자동 감지)
         public static readonly string REDIS_CONNECTION_STRING =

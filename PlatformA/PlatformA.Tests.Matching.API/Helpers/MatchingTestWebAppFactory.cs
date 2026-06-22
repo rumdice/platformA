@@ -86,17 +86,23 @@ namespace PlatformA.Tests.Matching.API.Helpers
             builder.ConfigureServices(services =>
             {
                 // 1. IDbContextFactory<DbWebAppContext> → InMemory 교체
+                //    EF Core: AddDbContextFactory(InMemory)를 사용하면 DI에 InMemory IDatabaseProvider가
+                //    추가되어 Pomelo IDatabaseProvider와 충돌(InvalidOperationException) 발생.
+                //    대신 팩토리를 직접 등록해 InMemory 서비스가 DI 컨테이너에 들어가지 않게 한다.
                 var toRemove = services
                     .Where(d => d.ServiceType == typeof(IDbContextFactory<DbWebAppContext>)
-                             || d.ServiceType == typeof(DbContextOptions<DbWebAppContext>)
-                             || d.ServiceType == typeof(DbContextOptions))
+                             || d.ServiceType == typeof(DbWebAppContext)
+                             || d.ServiceType == typeof(DbContextOptions<DbWebAppContext>))
                     .ToList();
                 foreach (var d in toRemove)
                     services.Remove(d);
 
                 var dbName = $"matching_test_{Guid.NewGuid():N}";
-                services.AddDbContextFactory<DbWebAppContext>(options =>
-                    options.UseInMemoryDatabase(dbName));
+                var inMemoryOptions = new DbContextOptionsBuilder<DbWebAppContext>()
+                    .UseInMemoryDatabase(dbName)
+                    .Options;
+                services.AddSingleton<IDbContextFactory<DbWebAppContext>>(
+                    new InMemoryDbContextFactory(inMemoryOptions));
 
                 // 2. RedisManager → Reflection으로 Mock IConnectionMultiplexer 주입
                 var redisDesc = services.SingleOrDefault(
@@ -125,6 +131,13 @@ namespace PlatformA.Tests.Matching.API.Helpers
             });
 
             builder.UseEnvironment("Testing");
+        }
+
+        private sealed class InMemoryDbContextFactory : IDbContextFactory<DbWebAppContext>
+        {
+            private readonly DbContextOptions<DbWebAppContext> _options;
+            public InMemoryDbContextFactory(DbContextOptions<DbWebAppContext> options) => _options = options;
+            public DbWebAppContext CreateDbContext() => new(_options);
         }
     }
 }

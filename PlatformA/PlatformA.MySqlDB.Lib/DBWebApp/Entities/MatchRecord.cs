@@ -22,6 +22,10 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp.Entities
         public int Player2Id { get; set; }       // player2_id INT NOT NULL (FK → players.id)
         public int? WinnerId { get; set; }        // winner_id INT NULL (FK → players.id)
         public MatchStatus Status { get; set; }  // status TINYINT NOT NULL DEFAULT 0
+        public string GameType { get; set; } = string.Empty;  // game_type VARCHAR(50) — "gomoku", "cartrider" 등
+        public string RoomId { get; set; } = string.Empty;    // room_id VARCHAR(100) — 게임 서버 방 ID
+        public int Player1Rating { get; set; }   // player1_rating INT DEFAULT 1000 — 매칭 시점 MMR
+        public int Player2Rating { get; set; }   // player2_rating INT DEFAULT 1000 — 매칭 시점 MMR
         public DateTime? StartedAt { get; set; } // started_at DATETIME(6) NULL
         public DateTime? EndedAt { get; set; }   // ended_at DATETIME(6) NULL
         public DateTime CreatedAt { get; set; }  // created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP

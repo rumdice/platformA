@@ -24,8 +24,10 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 
 ## DB Mock 규칙
 - 실제 InMemory DB 사용 — Moq로 DbContext Mock 절대 금지
-- SQLite InMemory: `options.UseSqlite($"Data Source={Guid.NewGuid():N}.db")`
-- `db.Database.EnsureCreated()` — `CreateHost()` override에서 호출
+- SQLite InMemory: `options.UseSqlite($"Data Source={Guid.NewGuid():N}.db")` (Auth.API, Utils.API)
+- EF Core InMemory: `UseInMemoryDatabase(dbName)` + 직접 팩토리 등록 (Matching.API)
+  - Pomelo MySQL provider와 충돌 방지: `AddDbContextFactory` 호출 대신 `services.AddSingleton<IDbContextFactory<T>>(new InMemoryDbContextFactory(options))`
+- `db.Database.EnsureCreated()` — `CreateHost()` override에서 호출 (SQLite 방식만 해당)
 
 ## 테스트 케이스 필수 포함 항목 (컨트롤러)
 - 성공 케이스 (200/201): 응답 상태 + JSON 필드 존재 확인
@@ -45,5 +47,5 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 | `PlatformA.Tests.Utils.API` | net10.0 | 29 | 직접 교체 | InMemory SQLite |
 | `PlatformA.Tests.Game.Server` | net10.0 | 56 | — | — |
 | `PlatformA.Tests.Ticketing.API` | net10.0 | 13 | Reflection 주입 | 없음 |
-| `PlatformA.Tests.Matching.API` | net10.0 | 12 | Reflection 주입 | InMemory EF Core |
+| `PlatformA.Tests.Matching.API` | net10.0 | 20 | Reflection 주입 | InMemory EF Core |
 | `PlatformA.Tests.Game.Gomoku` | net10.0 | 36 | — | — |
