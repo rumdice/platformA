@@ -278,8 +278,8 @@ namespace PlatformA.Game.Lobby.Packet
                 using JsonDocument doc = JsonDocument.Parse(responseBody);
                 JsonElement root = doc.RootElement;
 
-                string host   = root.GetProperty("host").GetString() ?? Consts.GAME_SERVER_IP;
-                int port      = root.GetProperty("port").GetInt32();
+                string host = root.GetProperty("host").GetString() ?? Consts.GAME_SERVER_IP;
+                int port = root.GetProperty("port").GetInt32();
                 string roomId = root.GetProperty("roomId").GetString() ?? string.Empty;
 
                 string transferKey = $"{Consts.GAME_TRANSFER_KEY_PREFIX}{playerId}";
@@ -293,9 +293,9 @@ namespace PlatformA.Game.Lobby.Packet
                     SMatchFound = new SMatchFound
                     {
                         ResultCode = MatchRequestResultCode.MatchFound,
-                        Host       = host,
-                        Port       = port,
-                        RoomId     = roomId,
+                        Host = host,
+                        Port = port,
+                        RoomId = roomId,
                     },
                 }));
             }

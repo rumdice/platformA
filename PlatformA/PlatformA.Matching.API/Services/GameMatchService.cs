@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using PlatformA.Matching.API.Models;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
 using PlatformA.Matching.API.Hubs;
+using PlatformA.Matching.API.Models;
 using PlatformA.MySqlDB.Lib.DBWebApp;
 using PlatformA.MySqlDB.Lib.DBWebApp.Entities;
 using Polly.CircuitBreaker;
@@ -154,12 +154,12 @@ return {members[1], members[3]}";
                 .Take(limit)
                 .Select(m => new MatchHistoryDto
                 {
-                    MatchId      = m.Id,
-                    GameType     = m.GameType,
-                    OpponentId   = m.Player1Id == userId ? m.Player2Id : m.Player1Id,
-                    Result       = m.WinnerId == null ? "미완료"
+                    MatchId = m.Id,
+                    GameType = m.GameType,
+                    OpponentId = m.Player1Id == userId ? m.Player2Id : m.Player1Id,
+                    Result = m.WinnerId == null ? "미완료"
                                  : m.WinnerId == userId ? "승리" : "패배",
-                    MatchedAt    = m.CreatedAt,
+                    MatchedAt = m.CreatedAt,
                 })
                 .ToListAsync();
         }
