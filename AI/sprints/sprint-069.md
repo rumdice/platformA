@@ -3,7 +3,9 @@ sprint: 69
 title: Game.Lobby 구조 전환 및 Matching.API 완성도 향상
 branch: 2026-06-22_GameLobbyAndMatchingUpgrade
 date: 2026-06-22
-status: in-progress
+status: done
+completed: 2026-06-23
+pr: https://github.com/rumdice/platformA/pull/102
 ---
 
 # Sprint #69 — Game.Lobby 구조 전환 및 Matching.API 완성도 향상
