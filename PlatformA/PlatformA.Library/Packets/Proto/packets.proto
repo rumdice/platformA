@@ -108,20 +108,47 @@ message SGameOver
     GameOverReason reason    = 2;
 }
 
+// ── Lobby 전용 패킷 ──────────────────────────────────────────────────────────
+
+enum MatchRequestResultCode
+{
+    MATCH_QUEUED    = 0;
+    MATCH_FOUND     = 1;
+    MATCH_FAILED    = 2;
+    MATCH_CANCELLED = 3;
+}
+
+// C_MatchRequest — Client → Lobby: 매칭 요청
+message CMatchRequest
+{
+    string game_type = 1;  // "gomoku", "cartrider" 등
+}
+
+// S_MatchFound — Lobby → Client: 매칭 성사 및 게임 서버 접속 정보 전달
+message SMatchFound
+{
+    MatchRequestResultCode result_code = 1;
+    string host    = 2;
+    int32  port    = 3;
+    string room_id = 4;
+}
+
 // Packet — 모든 메시지를 감싸는 envelope. oneof field tag 가 packetId 역할을 대체한다.
 message Packet
 {
     oneof payload
     {
-        CMove       c_move        = 1;
-        SMove       s_move        = 2;
-        CLogin      c_login       = 3;
-        SLogin      s_login       = 4;
-        CEnterRoom  c_enter_room  = 5;
-        SEnterRoom  s_enter_room  = 6;
-        CPlaceStone c_place_stone = 7;
+        CMove        c_move         = 1;
+        SMove        s_move         = 2;
+        CLogin       c_login        = 3;
+        SLogin       s_login        = 4;
+        CEnterRoom   c_enter_room   = 5;
+        SEnterRoom   s_enter_room   = 6;
+        CPlaceStone  c_place_stone  = 7;
         SBoardUpdate s_board_update = 8;
-        SGameStart  s_game_start  = 9;
-        SGameOver   s_game_over   = 10;
+        SGameStart   s_game_start   = 9;
+        SGameOver    s_game_over    = 10;
+        CMatchRequest c_match_request = 11;
+        SMatchFound   s_match_found   = 12;
     }
 }

@@ -15,23 +15,24 @@ Game.Server를 Lobby 서버로 재구성하고 Matching.API 기능을 강화하�
 ## 태스크
 
 ### A. Game.Lobby 프로젝트 전환
-- [ ] `PlatformA.Game.Server` → `PlatformA.Game.Lobby` 프로젝트 리네임 (csproj, namespace, Dockerfile, sln)
-- [ ] `packets.proto`에 `CMatchRequest` / `SMatchFound` 패킷 추가
-- [ ] `Consts.cs`에 `GAME_TRANSFER_KEY_PREFIX` 상수 추가
-- [ ] `PacketHandler`: `CMatchRequest` 핸들러 추가 (Matching.API HTTP 호출 → Redis game_transfer 티켓 발급 → SMatchFound 전송)
-- [ ] `PlatformA.Tests.Game.Server` → `PlatformA.Tests.Game.Lobby` 리네임 + Lobby 핸들러 테스트 추가
+- [x] `PlatformA.Game.Server` → `PlatformA.Game.Lobby` 프로젝트 리네임 (csproj, namespace, sln)
+- [x] `packets.proto`에 `CMatchRequest` / `SMatchFound` 패킷 추가
+- [x] `Consts.cs`에 `GAME_TRANSFER_KEY_PREFIX`, `GOMOKU_SERVER_IP/PORT`, `PLAYER_RATING_KEY_PREFIX` 상수 추가
+- [x] `PacketHandler`: `CMatchRequest` 핸들러 추가 (Matching.API HTTP 호출 → Redis game_transfer 티켓 발급 → SMatchFound 전송)
+- [x] `PlatformA.Tests.Game.Server` → `PlatformA.Tests.Game.Lobby` 리네임 (56개 테스트 유지)
 
 ### B. Game.Gomoku 로그인 흐름 변경
-- [ ] `GomokuPacketHandler` (또는 별도 login 핸들러): `active_user_key` 대신 `game_transfer` 키 확인으로 교체
-- [ ] Game.Gomoku에 `CLogin` 패킷 핸들러 추가 (현재 없으면)
+- [x] `GomokuPacketHandler`: `CLogin` 핸들러 추가 (`game_transfer` 키 검증·소비 → GomokuRoom 입장)
+- [x] `GomokuRoomManager` 추가 (string roomId 기반 방 관리)
 
 ### C. Matching.API 완성도 향상
-- [ ] `match_records` DB 테이블 Entity 정의 + `DbWebAppContext` 등록
-- [ ] EF Core Migration 생성 및 적용 (`CreateMatchRecordsTable`)
-- [ ] MMR 기반 매칭 알고리즘 구현 (간단한 ELO 점수 기반 범위 매칭)
-- [ ] 매칭 완료 시 match_records INSERT + 양측 플레이어 game_transfer 티켓 발급
-- [ ] `GET /api/matching/history` 엔드포인트 추가 (플레이어 매칭 이력 조회)
-- [ ] `PlatformA.Tests.Matching.API` 테스트 12개 → 25개 이상으로 보강
+- [x] `MatchRecord` Entity에 `GameType`, `RoomId`, `Player1Rating`, `Player2Rating` 컬럼 추가
+- [x] EF Core Migration 생성 (`AddGameTypeAndRatingToMatchRecords`)
+- [x] `TryMatchAsync`: gameType별 큐 + Lua 원자적 pop + MMR 조회 → 즉시 매칭 또는 대기열 추가
+- [x] 매칭 완료 시 match_records INSERT + 상대방 game_transfer 티켓 발급
+- [x] `POST /api/gamematch/request` 엔드포인트 추가 (Lobby 내부 호출용)
+- [x] `GET /api/gamematch/history` 엔드포인트 추가 (플레이어 매칭 이력 조회)
+- [x] `PlatformA.Tests.Matching.API` 테스트 12개 → 20개로 보강
 
 ## 배경
 
