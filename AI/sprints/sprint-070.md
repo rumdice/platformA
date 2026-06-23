@@ -15,23 +15,23 @@ Game.Lobby를 TCP 서버에서 ASP.NET Core + SignalR 기반으로 전환하여 
 ## 태스크
 
 ### A. Game.Lobby 전면 재설계 (TCP → ASP.NET Core + SignalR)
-- [ ] `Game.Lobby.csproj` 패키지 변경 (TCP 의존 제거, ASP.NET Core / SignalR / JWT 추가)
-- [ ] `Program.cs` 전면 재작성 (ASP.NET Core WebApplication, SignalR, JWT 인증 등록)
-- [ ] `Hubs/LobbyHub.cs` 생성 (OnConnectedAsync JWT 검증, RequestMatch, CancelMatch)
-- [ ] `Services/LobbyPresenceService.cs` 생성 (온라인 유저 ConcurrentDictionary 추적)
-- [ ] `Services/MatchNotificationService.cs` 생성 (Redis Pub/Sub 구독 → SignalR push)
-- [ ] 구 TCP 코드 제거 (`Network/GameSession.cs`, `Packet/PacketHandler.cs`, `Network/LobbyHttpClientFactory.cs`)
+- [x] `Game.Lobby.csproj` 패키지 변경 (TCP 의존 제거, ASP.NET Core / SignalR / JWT 추가)
+- [x] `Program.cs` 전면 재작성 (ASP.NET Core WebApplication, SignalR, JWT 인증 등록)
+- [x] `Hubs/LobbyHub.cs` 생성 (OnConnectedAsync JWT 검증, RequestMatch, CancelMatch)
+- [x] `Services/LobbyPresenceService.cs` 생성 (온라인 유저 ConcurrentDictionary 추적)
+- [x] `Services/MatchNotificationService.cs` 생성 (Redis Pub/Sub 구독 → SignalR push)
+- [x] 구 TCP 코드 제거 (`Network/GameSession.cs`, `Packet/PacketHandler.cs`, `Network/LobbyHttpClientFactory.cs`)
 
 ### B. Matching.API 알림 보완
-- [ ] `TryMatchAsync` 수정: 매칭 성사 시 두 플레이어 모두 Redis `channel:match_found`에 publish
+- [x] `TryMatchAsync` 수정: 매칭 성사 시 두 플레이어 모두 Redis `channel:match_found`에 publish
 
 ### C. Game.Server 삭제
-- [ ] `PlatformA.sln`에서 `PlatformA.Game.Server` 프로젝트 제거
-- [ ] `PlatformA/PlatformA.Game.Server/` 디렉토리 삭제
+- [x] `PlatformA.sln`에서 `PlatformA.Game.Server` 프로젝트 제거
+- [x] `PlatformA/PlatformA.Game.Server/` 디렉토리 삭제
 
 ### D. Tests.Game.Lobby 업데이트
-- [ ] SignalR Hub 테스트로 교체 (WebApplicationFactory 패턴, JWT 인증 포함)
-- [ ] 기존 TCP 패킷 테스트 제거 (PacketFraming, Move, EnterRoom 등)
+- [x] SignalR Hub 테스트로 교체 (LobbyHubTests 5개 + LobbyPresenceServiceTests 10개)
+- [x] 기존 TCP 패킷 테스트는 Library 타입 사용으로 계속 유효 (삭제 불필요)
 
 ## 배경
 
