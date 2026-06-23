@@ -49,3 +49,4 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 | `PlatformA.Tests.Ticketing.API` | net10.0 | 13 | Reflection 주입 | 없음 |
 | `PlatformA.Tests.Matching.API` | net10.0 | 20 | Reflection 주입 | InMemory EF Core |
 | `PlatformA.Tests.Game.Gomoku` | net10.0 | 36 | — | — |
+| `PlatformA.Tests.Game.Lobby` | net10.0 | 71 | — | — |

@@ -1,85 +1,100 @@
-using System.Net;
-using System.Net.Sockets;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using PlatformA.Game.Lobby.Network;
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+using PlatformA.Game.Lobby.Hubs;
+using PlatformA.Game.Lobby.Services;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
-using PlatformA.Library.Network;
-using PlatformA.Library.Packets;
 
-namespace PlatformA.Game.Lobby
+var builder = WebApplication.CreateBuilder(args);
+
+// ── Logging ───────────────────────────────────────────────────
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+// ── Redis ─────────────────────────────────────────────────────
+builder.Services.AddSingleton<RedisManager>(sp =>
 {
-    internal class Program
+    var logger = sp.GetRequiredService<ILogger<RedisManager>>();
+    RedisManager.Instance.Init(Consts.REDIS_CONNECTION_STRING, logger);
+    return RedisManager.Instance;
+});
+
+// ── JWT 인증 ───────────────────────────────────────────────────
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        static async Task Main(string[] args)
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            Console.WriteLine("=== PlatformA Game Lobby Server ===");
-
-            // HttpClient DI 등록 (Matching.API 호출용)
-            ServiceCollection services = new ServiceCollection();
-            services.AddHttpClient("MatchingAPI", client =>
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = Consts.JWT_ISSUER,
+            ValidAudience = Consts.JWT_AUDIENCE,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Consts.SECRET_KEY)),
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
             {
-                string matchingApiUrl = Environment.GetEnvironmentVariable("MATCHING_API_URL")
-                    ?? "http://localhost:7002";
-                client.BaseAddress = new Uri(matchingApiUrl);
-                client.Timeout = TimeSpan.FromSeconds(30);
-            });
-            ServiceProvider serviceProvider = services.BuildServiceProvider();
-            LobbyHttpClientFactory.Initialize(serviceProvider.GetRequiredService<IHttpClientFactory>());
+                string? token = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) &&
+                    context.Request.Path.StartsWithSegments("/hubs/lobby"))
+                    context.Token = token;
+                return Task.CompletedTask;
+            },
+        };
+    });
 
-            // 패킷매니저 초기화
-            PacketManager<GameSession>.Instance.Register();
+builder.Services.AddAuthorization();
 
-            // Redis 초기화 (콘솔 로거를 통해 Polly 이벤트가 시작부터 기록됨)
-            using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
-            RedisManager.Instance.Init(
-                Consts.REDIS_CONNECTION_STRING,
-                loggerFactory.CreateLogger<RedisManager>());
+// ── SignalR ────────────────────────────────────────────────────
+builder.Services.AddSignalR();
 
-            // 🚀 서버 시작 시 기본 1번 방 생성
-            PlatformA.Library.Game.Core.GameRoomManager.Instance.CreateRoom(1);
-            Console.WriteLine("[RoomManager] 기본 1번 방(Lobby) 생성 완료.");
+// ── HttpClient ─────────────────────────────────────────────────
+builder.Services.AddHttpClient("MatchingAPI", client =>
+{
+    string url = Environment.GetEnvironmentVariable("MATCHING_API_URL") ?? "http://localhost:7002";
+    client.BaseAddress = new Uri(url);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
-            // 🚀 3. Redis 이벤트 구독 (이벤트 주도 아키텍처)
-            // 라이브러리에서 매칭 성공 이벤트가 터지면, 서버의 GameRoomManager가 방을 만듭니다!
-            PlatformA.Library.Core.RedisManager.Instance.OnMatchSuccessReceived += (matchEvent) =>
-            {
-                PlatformA.Library.Game.Core.GameRoomManager.Instance.CreateRoom(matchEvent.RoomId);
-            };
+// ── 서비스 ────────────────────────────────────────────────────
+builder.Services.AddSingleton<LobbyPresenceService>();
+builder.Services.AddHostedService<MatchNotificationService>();
 
-            // 1. 소켓 생성 (IPv4, Stream(TCP), TCP)
-            using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+// ── Health Check ───────────────────────────────────────────────
+builder.Services.AddHealthChecks()
+    .AddRedis(Consts.REDIS_CONNECTION_STRING, name: "redis", tags: ["readiness"]);
 
-            // 2. 포트 바인딩 (Any: 모든 IP에서 접속 허용)
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 7777);
-            listener.Bind(endPoint);
+var app = builder.Build();
 
-            // 3. 리슨 시작 (Backlog: 대기열 1000개)
-            listener.Listen(1000);
+// Redis 초기화 트리거
+app.Services.GetRequiredService<RedisManager>();
 
-            Console.WriteLine($"[Server] Listening on {endPoint}...");
+app.UseAuthentication();
+app.UseAuthorization();
 
-            while (true)
-            {
-                try
-                {
-                    // 4. 클라이언트 접속 대기 (비동기)
-                    // AcceptAsync는 새로운 클라이언트와 통신할 'Socket'을 반환합니다.
-                    Socket clientSocket = await listener.AcceptAsync();
+app.MapHub<LobbyHub>("/hubs/lobby");
+app.MapGet("/", () => Results.Ok(new { service = "PlatformA.Game.Lobby", status = "running" }));
 
-                    // 🔥 프레임워크 사용: 소켓이 연결될 때마다 새 세션을 만들고 Start!
-                    Session session = new GameSession();
-                    session.Start(clientSocket);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[Server Error] Accept 중 예외 발생 (무시하고 계속 진행): {ex.Message}");
-                    // 잠시 대기하여 CPU 폭주(무한 루프 에러) 방지
-                    await Task.Delay(100);
-                }
-            }
-        }
+app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/readyz", new HealthCheckOptions
+{
+    Predicate = h => h.Tags.Contains("readiness"),
+    ResponseWriter = async (ctx, report) =>
+    {
+        ctx.Response.ContentType = "application/json";
+        await ctx.Response.WriteAsync(JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new { name = e.Key, status = e.Value.Status.ToString() }),
+        }));
+    },
+});
 
-    }
-}
+app.Run();

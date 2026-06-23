@@ -16,9 +16,17 @@ namespace PlatformA.Tests.Matching.API.Helpers
     {
         public Mock<IConnectionMultiplexer> MockRedis { get; } = new();
         public Mock<IDatabase> MockRedisDb { get; } = new();
+        public Mock<ISubscriber> MockSubscriber { get; } = new();
 
         public MatchingTestWebAppFactory()
         {
+            // PublishAsync — Redis Pub/Sub 알림 (항상 성공)
+            MockSubscriber
+                .Setup(x => x.PublishAsync(
+                    It.IsAny<RedisChannel>(),
+                    It.IsAny<RedisValue>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(0L);
             MockRedis
                 .Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
                 .Returns(MockRedisDb.Object);
@@ -118,6 +126,7 @@ namespace PlatformA.Tests.Matching.API.Helpers
 
                     type.GetField("_redis", flags)!.SetValue(instance, MockRedis.Object);
                     type.GetField("_pipeline", flags)!.SetValue(instance, ResiliencePipeline.Empty);
+                    type.GetField("_subscriber", flags)!.SetValue(instance, MockSubscriber.Object);
 
                     return instance;
                 });
