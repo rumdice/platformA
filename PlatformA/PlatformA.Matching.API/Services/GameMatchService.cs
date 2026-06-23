@@ -164,6 +164,38 @@ return {members[1], members[3]}";
             return null;
         }
 
+        /// <summary>게임 종료 후 MatchRecord에 결과를 업데이트합니다.</summary>
+        public async Task<bool> UpdateMatchResultAsync(string roomId, int winnerId, string reason)
+        {
+            try
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                MatchRecord? record = await db.MatchRecords
+                    .FirstOrDefaultAsync(m => m.RoomId == roomId && m.Status == MatchStatus.InProgress);
+
+                if (record == null)
+                {
+                    _logger.LogWarning("[Matching] MatchRecord 없음 또는 이미 종료 — RoomId: {RoomId}", roomId);
+                    return false;
+                }
+
+                record.WinnerId = winnerId == 0 ? null : winnerId;
+                record.Status = MatchStatus.Completed;
+                record.EndedAt = DateTime.UtcNow;
+                await db.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "[Matching] MatchRecord 결과 업데이트 — RoomId: {RoomId}, WinnerId: {WinnerId}, Reason: {Reason}",
+                    roomId, winnerId, reason);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Matching] MatchRecord 결과 업데이트 실패 — RoomId: {RoomId}", roomId);
+                return false;
+            }
+        }
+
         /// <summary>플레이어의 최근 매칭 이력을 반환합니다.</summary>
         public async Task<List<MatchHistoryDto>> GetMatchHistoryAsync(int userId, int limit = 20)
         {

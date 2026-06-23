@@ -28,4 +28,19 @@ namespace PlatformA.Matching.API.Models
         public string Result { get; set; } = string.Empty;
         public DateTime MatchedAt { get; set; }
     }
+
+    /// <summary>Game.Gomoku → Matching.API 게임 결과 보고 DTO.</summary>
+    public class MatchResultReportDto
+    {
+        [Required]
+        [MaxLength(100)]
+        public string RoomId { get; set; } = string.Empty;
+
+        [Range(0, int.MaxValue, ErrorMessage = "WinnerId는 0(무승부) 이상이어야 합니다.")]
+        public int WinnerId { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Reason { get; set; } = string.Empty;
+    }
 }

@@ -25,6 +25,9 @@ namespace PlatformA.Game.Gomoku.Core
 
         public bool IsEmpty(int x, int y) => IsValid(x, y) && _cells[x, y] == StoneColor.StoneNone;
 
+        /// <summary>모든 칸이 채워져 있으면 true. 무승부 감지에 사용합니다.</summary>
+        public bool IsFull() => _cells.Cast<StoneColor>().All(c => c != StoneColor.StoneNone);
+
         private static bool IsValid(int x, int y) => x >= 0 && x < Size && y >= 0 && y < Size;
     }
 }

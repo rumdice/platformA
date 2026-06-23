@@ -119,6 +119,11 @@ namespace PlatformA.Library.Common
             Environment.GetEnvironmentVariable("LOBBY_HUB_URL")
             ?? "http://localhost:7777/hubs/lobby";
 
+        // Matching.API 베이스 URL — Game.Gomoku가 게임 결과를 보고할 때 사용
+        public static readonly string MATCHING_API_BASE_URL =
+            Environment.GetEnvironmentVariable("MATCHING_API_BASE_URL")
+            ?? "http://localhost:7002";
+
         // Utils.API — Short URL ({0}: 단축 코드)
         public const string REDIS_SHORT_URL_KEY = "url:{0}";
         public const string REDIS_SHORT_URL_STATS_KEY = "stats:{0}";

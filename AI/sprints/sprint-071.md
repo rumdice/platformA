@@ -16,20 +16,20 @@ Game.Gomoku 서버의 미구현 핵심 기능(타임아웃·무승부·방 정�
 ## 태스크
 
 ### P0 — 게임 진행 버그 수정 (필수)
-- [ ] A. 턴 타임아웃 백그라운드 루프 구현 (GomokuRoom.StartGame 내부)
-- [ ] B. 무승부 처리 — Board.IsFull() 추가 + proto GameOverReason.DRAW = 3
+- [x] A. 턴 타임아웃 백그라운드 루프 구현 (GomokuRoom.StartGame 내부)
+- [x] B. 무승부 처리 — Board.IsFull() 추가 + proto GameOverReason.DRAW = 3
 
 ### P1 — 데이터 정합성 / 운영 (필수)
-- [ ] C. 게임 종료 후 방 메모리 정리 — GomokuRoom에 roomId 주입 + FinishGame에서 Remove 호출
-- [ ] D. MatchRecord 결과 업데이트 API — Matching.API POST /api/gamematch/result
-- [ ] E. Program.cs 레거시 OnMatchSuccessReceived 핸들러 제거
+- [x] C. 게임 종료 후 방 메모리 정리 — GomokuRoom에 roomId 주입 + FinishGame에서 Remove 호출
+- [x] D. MatchRecord 결과 업데이트 API — Matching.API POST /api/gamematch/result
+- [x] E. Program.cs 레거시 OnMatchSuccessReceived 핸들러 제거
 
 ### P2 — 기능 개선 (선택)
-- [ ] F. SGameOver 패킷에 lobbyUrl 필드 추가 (proto 수정)
-- [ ] G. Game.Gomoku Dockerfile + /healthz 헬스체크 추가
+- [x] F. SGameOver 패킷에 lobbyUrl 필드 추가 (proto 수정)
+- [x] G. Game.Gomoku Dockerfile + /healthz 헬스체크 추가
 
 ### 테스트
-- [ ] H. Tests.Game.Gomoku — 타임아웃·무승부·방 정리·결과 보고 케이스 추가
+- [x] H. Tests.Game.Gomoku — 타임아웃·무승부·방 정리·결과 보고 케이스 추가
 
 ## 배경
 

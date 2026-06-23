@@ -3,8 +3,12 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using PlatformA.Library.Common;
+using PlatformA.MySqlDB.Lib.DBWebApp;
+using PlatformA.MySqlDB.Lib.DBWebApp.Entities;
 using PlatformA.Tests.Matching.API.Helpers;
 using StackExchange.Redis;
 
@@ -347,6 +351,63 @@ namespace PlatformA.Tests.Matching.API
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
             Assert.Equal(JsonValueKind.Array, json.ValueKind);
             Assert.Equal(0, json.GetArrayLength());
+        }
+
+        // ── ReportMatchResult (POST /api/gamematch/result) ───────────────────
+
+        [Fact]
+        public async Task ReportMatchResult_ValidRoomId_InProgress_Returns200()
+        {
+            string testRoomId = Guid.NewGuid().ToString("N")[..12];
+
+            // InMemory DB에 Player + MatchRecord(InProgress) 삽입
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                var p1 = new Player { Id = 10001, Username = "player10001", PasswordHash = "hash", CreatedAt = DateTime.UtcNow };
+                var p2 = new Player { Id = 10002, Username = "player10002", PasswordHash = "hash", CreatedAt = DateTime.UtcNow };
+                db.Players.AddRange(p1, p2);
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = 10001,
+                    Player2Id = 10002,
+                    Status = MatchStatus.InProgress,
+                    GameType = "gomoku",
+                    RoomId = testRoomId,
+                    StartedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = testRoomId, WinnerId = 10001, Reason = "FiveInRow" });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(string.IsNullOrWhiteSpace(json.GetProperty("message").GetString()));
+        }
+
+        [Fact]
+        public async Task ReportMatchResult_UnknownRoomId_Returns404()
+        {
+            string unknownRoomId = Guid.NewGuid().ToString("N")[..12];
+
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = unknownRoomId, WinnerId = 0, Reason = "Draw" });
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task ReportMatchResult_EmptyRoomId_Returns400()
+        {
+            // RoomId가 빈 문자열이면 [Required] 위반 → 400
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = "", WinnerId = 0, Reason = "Draw" });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }
