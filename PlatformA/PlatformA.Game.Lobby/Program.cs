@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -6,8 +8,6 @@ using PlatformA.Game.Lobby.Hubs;
 using PlatformA.Game.Lobby.Services;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
-using System.Text;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
