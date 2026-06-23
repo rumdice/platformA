@@ -3,7 +3,9 @@ sprint: 70
 title: Game.Lobby SignalR 전환 및 아키텍처 정비
 branch: 2026-06-23_LobbySignalRRedesign
 date: 2026-06-23
-status: in-progress
+status: done
+completed: 2026-06-23
+pr: https://github.com/rumdice/platformA/pull/103
 ---
 
 # Sprint #70 — Game.Lobby SignalR 전환 및 아키텍처 정비
