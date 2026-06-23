@@ -110,6 +110,15 @@ namespace PlatformA.Library.Common
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
         public const int MATCH_TIMEOUT_SECONDS = 120; // 2분 초과 시 MatchTimeout 이벤트 push
 
+        // 매칭 성사 알림 채널 — Matching.API publish → Game.Lobby MatchNotificationService subscribe
+        // 메시지 포맷: { "userId": int, "host": string, "port": int, "roomId": string, "gameType": string }
+        public const string MATCH_FOUND_CHANNEL = "channel:match_found";
+
+        // Game.Lobby SignalR 허브 URL (클라이언트 연결용)
+        public static readonly string LOBBY_HUB_URL =
+            Environment.GetEnvironmentVariable("LOBBY_HUB_URL")
+            ?? "http://localhost:7777/hubs/lobby";
+
         // Utils.API — Short URL ({0}: 단축 코드)
         public const string REDIS_SHORT_URL_KEY = "url:{0}";
         public const string REDIS_SHORT_URL_STATS_KEY = "stats:{0}";

@@ -1,7 +1,8 @@
 {
   "profiles": {
-    "PlatformA.Game.Server": {
-      "commandName": "Project"
+    "PlatformA.Game.Lobby": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:7777"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker"

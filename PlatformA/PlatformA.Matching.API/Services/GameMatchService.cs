@@ -124,12 +124,32 @@ return {members[1], members[3]}";
 
                 await RecordMatchStartAsync(userId, opponentId, gameType, roomId, p1Rating, p2Rating);
 
-                // 상대방 game_transfer 티켓 발급
-                string opponentTransferKey = $"{Consts.GAME_TRANSFER_KEY_PREFIX}{opponentId}";
-                string transferValue = System.Text.Json.JsonSerializer.Serialize(
+                // 두 플레이어 모두 game_transfer 티켓 발급
+                string matchJson = System.Text.Json.JsonSerializer.Serialize(
                     new { roomId, host, port, gameType });
+
                 await _redisManager.ExecuteAsync(db =>
-                    db.StringSetAsync(opponentTransferKey, transferValue, TimeSpan.FromMinutes(5)));
+                    db.StringSetAsync(
+                        $"{Consts.GAME_TRANSFER_KEY_PREFIX}{opponentId}",
+                        matchJson,
+                        TimeSpan.FromMinutes(5)));
+
+                await _redisManager.ExecuteAsync(db =>
+                    db.StringSetAsync(
+                        $"{Consts.GAME_TRANSFER_KEY_PREFIX}{userId}",
+                        matchJson,
+                        TimeSpan.FromMinutes(5)));
+
+                // 두 플레이어에게 Redis Pub/Sub으로 매칭 알림 (Game.Lobby SignalR push용)
+                string notifyOpponent = System.Text.Json.JsonSerializer.Serialize(
+                    new { userId = opponentId, host, port, roomId, gameType });
+                string notifySelf = System.Text.Json.JsonSerializer.Serialize(
+                    new { userId, host, port, roomId, gameType });
+
+                await _redisManager.GetSubscriber().PublishAsync(
+                    RedisChannel.Literal(Consts.MATCH_FOUND_CHANNEL), notifyOpponent);
+                await _redisManager.GetSubscriber().PublishAsync(
+                    RedisChannel.Literal(Consts.MATCH_FOUND_CHANNEL), notifySelf);
 
                 _logger.LogInformation("[Matching] 즉시 매칭 성사 — User:{U} vs User:{O} room:{R} type:{T}",
                     userId, opponentId, roomId, gameType);
