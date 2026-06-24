@@ -43,7 +43,12 @@ namespace PlatformA.Game.Lobby.Services
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
-        private async void OnMatchFound(RedisChannel channel, RedisValue message)
+        private void OnMatchFound(RedisChannel channel, RedisValue message)
+        {
+            _ = ProcessMatchFoundAsync(message);
+        }
+
+        internal async Task ProcessMatchFoundAsync(RedisValue message)
         {
             try
             {

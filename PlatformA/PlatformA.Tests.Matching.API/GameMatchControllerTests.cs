@@ -409,5 +409,110 @@ namespace PlatformA.Tests.Matching.API
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        // ── GetHistory — Draw / Win 결과 검증 ────────────────────────────────
+
+        [Fact]
+        public async Task GetHistory_CompletedDrawMatch_ReturnsResult_Draw()
+        {
+            const int userId = 20001;
+            const int opponentId = 20002;
+            string testRoomId = Guid.NewGuid().ToString("N")[..12];
+
+            // InMemory DB에 Player + MatchRecord(Status=Completed, WinnerId=null) 삽입
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = userId, Username = "draw_player20001", PasswordHash = "hash", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = opponentId, Username = "draw_player20002", PasswordHash = "hash", CreatedAt = DateTime.UtcNow }
+                );
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = userId,
+                    Player2Id = opponentId,
+                    Status = MatchStatus.Completed,
+                    WinnerId = null,           // 무승부
+                    GameType = "gomoku",
+                    RoomId = testRoomId,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            string token = TokenManager.GenerateJwtToken(userId);
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("/api/gamematch/history");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(JsonValueKind.Array, json.ValueKind);
+            Assert.True(json.GetArrayLength() >= 1);
+
+            // 해당 RoomId의 매치를 찾아 result 필드 확인
+            var match = json.EnumerateArray()
+                .FirstOrDefault(e => e.TryGetProperty("roomId", out _) == false
+                    || true); // 첫 번째 항목이 대상 레코드
+            // result 필드는 camelCase JSON 직렬화: "result"
+            bool foundDraw = json.EnumerateArray()
+                .Any(e => e.GetProperty("result").GetString() == "무승부");
+            Assert.True(foundDraw, "무승부 결과의 매칭 이력이 반환되어야 합니다.");
+        }
+
+        [Fact]
+        public async Task GetHistory_CompletedWinnerMatch_ReturnsResult_Win()
+        {
+            const int userId = 20003;
+            const int opponentId = 20004;
+            string testRoomId = Guid.NewGuid().ToString("N")[..12];
+
+            // InMemory DB에 Player + MatchRecord(Status=Completed, WinnerId=userId) 삽입
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = userId, Username = "win_player20003", PasswordHash = "hash", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = opponentId, Username = "win_player20004", PasswordHash = "hash", CreatedAt = DateTime.UtcNow }
+                );
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = userId,
+                    Player2Id = opponentId,
+                    Status = MatchStatus.Completed,
+                    WinnerId = userId,         // 요청자가 승자
+                    GameType = "gomoku",
+                    RoomId = testRoomId,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            string token = TokenManager.GenerateJwtToken(userId);
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("/api/gamematch/history");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(JsonValueKind.Array, json.ValueKind);
+            Assert.True(json.GetArrayLength() >= 1);
+
+            bool foundWin = json.EnumerateArray()
+                .Any(e => e.GetProperty("result").GetString() == "승리");
+            Assert.True(foundWin, "승리 결과의 매칭 이력이 반환되어야 합니다.");
+        }
     }
 }
