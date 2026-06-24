@@ -73,7 +73,8 @@ namespace PlatformA.Game.Gomoku.Core
                     await Task.Delay(1000);
                     Push(() =>
                     {
-                        if (GameState != GomokuGameState.InProgress || _turn == null) return;
+                        if (GameState != GomokuGameState.InProgress || _turn == null)
+                            return;
                         if (_turn.IsTimeout())
                         {
                             int winner = _turn.GetOpponentId(_turn.CurrentTurnPlayerId);
