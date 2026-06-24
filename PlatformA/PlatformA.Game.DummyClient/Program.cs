@@ -9,6 +9,62 @@ namespace PlatformA.Game.DummyClient
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
+            // ── Non-interactive E2E CLI 모드 ─────────────────────────────────
+            if (args.Length > 0)
+            {
+                if (args[0] == "--list")
+                {
+                    Console.WriteLine("사용 가능한 E2E 시나리오:");
+                    Console.WriteLine("  9   — [시나리오 9] Two-Player Gomoku E2E 검증");
+                    Console.WriteLine("  all — 모든 E2E 시나리오 순차 실행");
+                    Environment.Exit(0);
+                    return;
+                }
+
+                if (args[0] == "--e2e" && args.Length > 1)
+                {
+                    string scenario = args[1];
+                    string timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                    string logDir = Path.Combine(AppContext.BaseDirectory, "logs");
+                    Directory.CreateDirectory(logDir);
+                    string logPath = Path.Combine(logDir, $"e2e-{timestamp}.log");
+
+                    var fileWriter = new StreamWriter(logPath, append: false) { AutoFlush = true };
+                    var tee = new TeeWriter(Console.Out, fileWriter);
+                    Console.SetOut(tee);
+
+                    Console.WriteLine($"[E2E] 시나리오 '{scenario}' 시작 — {timestamp}");
+                    Console.WriteLine($"[E2E] 로그 파일: {logPath}");
+                    Console.WriteLine();
+
+                    bool success = false;
+                    try
+                    {
+                        success = scenario switch
+                        {
+                            "9" => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
+                            "all" => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
+                            _ => throw new ArgumentException($"알 수 없는 시나리오 번호: {scenario}")
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[E2E] ❌ 예외 발생: {ex.Message}");
+                        success = false;
+                    }
+
+                    Console.WriteLine();
+                    Console.WriteLine(success
+                        ? "[RESULT] SUCCESS"
+                        : "[RESULT] FAILURE: 위 로그를 확인하세요");
+
+                    tee.Dispose();
+                    Environment.Exit(success ? 0 : 1);
+                    return;
+                }
+            }
+
+            // ── Interactive 메뉴 모드 ─────────────────────────────────────────
             while (true)
             {
                 try
