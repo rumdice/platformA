@@ -11,6 +11,10 @@
 
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PlatformA.Library\PlatformA.Library.csproj" />
   </ItemGroup>
 
