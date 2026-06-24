@@ -90,5 +90,43 @@ namespace PlatformA.Tests.Game.Gomoku
             Assert.False(board.IsEmpty(-1, 0));
             Assert.False(board.IsEmpty(0, 15));
         }
+
+        // ── IsFull ───────────────────────────────────────────────────────────
+
+        [Fact]
+        public void IsFull_EmptyBoard_ReturnsFalse()
+        {
+            var board = new Board();
+            Assert.False(board.IsFull());
+        }
+
+        [Fact]
+        public void IsFull_PartialBoard_ReturnsFalse()
+        {
+            var board = new Board();
+            // 일부 칸만 채움 — 전체 225칸 중 몇 칸
+            board.PlaceStone(0, 0, StoneColor.StoneBlack);
+            board.PlaceStone(1, 0, StoneColor.StoneWhite);
+            board.PlaceStone(2, 0, StoneColor.StoneBlack);
+            Assert.False(board.IsFull());
+        }
+
+        [Fact]
+        public void IsFull_FullBoard_ReturnsTrue()
+        {
+            var board = new Board();
+            // 15×15 = 225칸 전부 채움 (흑백 교대)
+            for (int x = 0; x < Board.Size; x++)
+            {
+                for (int y = 0; y < Board.Size; y++)
+                {
+                    StoneColor color = (x + y) % 2 == 0
+                        ? StoneColor.StoneBlack
+                        : StoneColor.StoneWhite;
+                    board.PlaceStone(x, y, color);
+                }
+            }
+            Assert.True(board.IsFull());
+        }
     }
 }

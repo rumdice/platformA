@@ -17,7 +17,7 @@ namespace PlatformA.Game.Gomoku.Core
             return _rooms.GetOrAdd(roomId, id =>
             {
                 Console.WriteLine($"[GomokuRoomManager] 방 생성: {id}");
-                return new GomokuRoom();
+                return new GomokuRoom(id);
             });
         }
 

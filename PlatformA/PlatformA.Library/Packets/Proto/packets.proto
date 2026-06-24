@@ -75,6 +75,7 @@ enum GameOverReason
     FIVE_IN_ROW = 0;
     TIMEOUT     = 1;
     DISCONNECT  = 2;
+    DRAW        = 3;
 }
 
 // C_PlaceStone — Client → Server: 돌 놓기 요청
@@ -106,6 +107,7 @@ message SGameOver
 {
     int32          winner_id = 1;
     GameOverReason reason    = 2;
+    string         lobby_url = 3;  // 종료 후 클라이언트가 복귀할 SignalR Lobby URL
 }
 
 // ── Lobby 전용 패킷 ──────────────────────────────────────────────────────────
