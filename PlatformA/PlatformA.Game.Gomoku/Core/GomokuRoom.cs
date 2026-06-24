@@ -129,9 +129,16 @@ namespace PlatformA.Game.Gomoku.Core
         /// <summary>연결 끊김으로 인한 게임 종료 처리.</summary>
         public void HandleDisconnect(GomokuSession session)
         {
-            if (GameState != GomokuGameState.InProgress || _turn == null)
+            if (GameState == GomokuGameState.Finished) return;
+
+            if (GameState == GomokuGameState.WaitingPlayers)
+            {
+                // 게임 시작 전 퇴장 — 방 메모리 정리만 수행
+                GomokuRoomManager.Instance.Remove(_roomId);
                 return;
-            int winnerId = _turn.GetOpponentId(session.SessionId);
+            }
+
+            int winnerId = _turn!.GetOpponentId(session.SessionId);
             FinishGame(winnerId, GameOverReason.Disconnect);
         }
 
