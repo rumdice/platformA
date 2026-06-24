@@ -65,6 +65,9 @@ namespace PlatformA.Game.Gomoku.Core
             }));
             Console.WriteLine($"[GomokuRoom {_roomId}] 게임 시작 — P1={p1} vs P2={p2}");
 
+            // Matching.API에 게임 시작 알림 (fire-and-forget)
+            _ = ReportMatchStartAsync();
+
             // 턴 타임아웃 감시 루프 — 1초 간격으로 Push() 안에서 체크
             _ = Task.Run(async () =>
             {
@@ -133,7 +136,16 @@ namespace PlatformA.Game.Gomoku.Core
 
             if (GameState == GomokuGameState.WaitingPlayers)
             {
-                // 게임 시작 전 퇴장 — 방 메모리 정리만 수행
+                // 게임 시작 전 퇴장 — 남은 플레이어에게 취소 알림 후 방 메모리 정리
+                Broadcast(BuildPacket(new ProtoPacket
+                {
+                    SGameOver = new SGameOver
+                    {
+                        WinnerId = 0,
+                        Reason = GameOverReason.Disconnect,
+                        LobbyUrl = Consts.LOBBY_HUB_URL,
+                    }
+                }));
                 GomokuRoomManager.Instance.Remove(_roomId);
                 return;
             }
@@ -165,6 +177,23 @@ namespace PlatformA.Game.Gomoku.Core
 
             // 방 메모리 정리
             GomokuRoomManager.Instance.Remove(_roomId);
+        }
+
+        private async Task ReportMatchStartAsync()
+        {
+            try
+            {
+                var payload = new { RoomId = _roomId };
+                string json = JsonSerializer.Serialize(payload);
+                using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                HttpResponseMessage resp = await _httpClient.PostAsync("/api/gamematch/start", content);
+                if (!resp.IsSuccessStatusCode)
+                    Console.WriteLine($"[GomokuRoom {_roomId}] 게임 시작 보고 실패: HTTP {(int)resp.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GomokuRoom {_roomId}] 게임 시작 보고 예외: {ex.Message}");
+            }
         }
 
         private async Task ReportMatchResultAsync(int winnerId, GameOverReason reason)

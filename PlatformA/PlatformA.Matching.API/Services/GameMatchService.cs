@@ -171,7 +171,9 @@ return {members[1], members[3]}";
             {
                 await using var db = await _dbFactory.CreateDbContextAsync();
                 MatchRecord? record = await db.MatchRecords
-                    .FirstOrDefaultAsync(m => m.RoomId == roomId && m.Status == MatchStatus.InProgress);
+                    .FirstOrDefaultAsync(m => m.RoomId == roomId
+                        && m.Status != MatchStatus.Completed
+                        && m.Status != MatchStatus.Cancelled);
 
                 if (record == null)
                 {
@@ -193,6 +195,60 @@ return {members[1], members[3]}";
             {
                 _logger.LogError(ex, "[Matching] MatchRecord 결과 업데이트 실패 — RoomId: {RoomId}", roomId);
                 return false;
+            }
+        }
+
+        /// <summary>게임 서버에서 두 플레이어가 입장했음을 알리고 Status를 InProgress로 전환합니다.</summary>
+        public async Task<bool> NotifyMatchStartedAsync(string roomId)
+        {
+            try
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                MatchRecord? record = await db.MatchRecords
+                    .FirstOrDefaultAsync(m => m.RoomId == roomId && m.Status == MatchStatus.Pending);
+
+                if (record == null)
+                {
+                    _logger.LogWarning("[Matching] NotifyMatchStarted — Pending 레코드 없음 RoomId: {RoomId}", roomId);
+                    return false;
+                }
+
+                record.Status = MatchStatus.InProgress;
+                record.StartedAt = DateTime.UtcNow;
+                await db.SaveChangesAsync();
+
+                _logger.LogInformation("[Matching] 게임 시작 확인 — RoomId: {RoomId}", roomId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Matching] NotifyMatchStarted 실패 — RoomId: {RoomId}", roomId);
+                return false;
+            }
+        }
+
+        /// <summary>10분 이상 Pending 상태인 레코드를 Cancelled로 정리합니다.</summary>
+        private async Task AbandonStaleMatchesAsync()
+        {
+            try
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                DateTime cutoff = DateTime.UtcNow.AddMinutes(-10);
+                List<MatchRecord> stale = await db.MatchRecords
+                    .Where(m => m.Status == MatchStatus.Pending && m.CreatedAt < cutoff)
+                    .ToListAsync();
+
+                if (stale.Count == 0) return;
+
+                foreach (var record in stale)
+                    record.Status = MatchStatus.Cancelled;
+
+                await db.SaveChangesAsync();
+                _logger.LogInformation("[Matching] Stale Pending 정리 — {Count}건 Cancelled 처리", stale.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Matching] AbandonStaleMatches 실패");
             }
         }
 
@@ -231,11 +287,21 @@ return {members[1], members[3]}";
         /// <summary>백그라운드 매칭 워커</summary>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            int tickCount = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     await ProcessQueueAsync();
+
+                    // 5분(1500 × 200ms)마다 stale Pending 레코드 정리
+                    tickCount++;
+                    if (tickCount >= 1500)
+                    {
+                        tickCount = 0;
+                        _ = AbandonStaleMatchesAsync();
+                    }
+
                     await Task.Delay(200, stoppingToken);
                 }
                 catch (BrokenCircuitException)
@@ -337,12 +403,11 @@ return {members[1], members[3]}";
                 {
                     Player1Id = player1Id,
                     Player2Id = player2Id,
-                    Status = MatchStatus.InProgress,
+                    Status = MatchStatus.Pending,
                     GameType = gameType,
                     RoomId = roomId,
                     Player1Rating = player1Rating,
                     Player2Rating = player2Rating,
-                    StartedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };
                 db.MatchRecords.Add(record);

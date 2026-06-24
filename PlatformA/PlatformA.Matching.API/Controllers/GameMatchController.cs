@@ -82,6 +82,23 @@ namespace PlatformA.Matching.API.Controllers
         }
 
         /// <summary>
+        /// 게임 서버 전용: 두 플레이어가 모두 입장했음을 알리고 Status를 InProgress로 전환합니다.
+        /// 인증 불필요 (내부 서비스 간 통신).
+        /// </summary>
+        [HttpPost("start")]
+        public async Task<IActionResult> NotifyMatchStarted([FromBody] MatchStartNotifyDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { Message = "잘못된 요청입니다." });
+
+            bool updated = await _matchService.NotifyMatchStartedAsync(dto.RoomId);
+            if (!updated)
+                return NotFound(new { Message = "해당 방의 매칭 기록을 찾을 수 없습니다." });
+
+            return Ok(new { Message = "게임 시작이 기록되었습니다." });
+        }
+
+        /// <summary>
         /// 게임 서버 전용: 게임 종료 후 결과를 보고합니다. 인증 불필요 (내부 서비스 간 통신).
         /// </summary>
         [HttpPost("result")]

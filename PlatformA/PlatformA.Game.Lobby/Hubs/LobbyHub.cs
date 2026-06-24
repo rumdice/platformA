@@ -50,9 +50,36 @@ namespace PlatformA.Game.Lobby.Hubs
             {
                 _presence.Unregister(userId);
                 _logger.LogInformation("[Lobby] 연결 해제 — User_{UserId}", userId);
+
+                // 매칭 대기 중이었다면 자동 취소
+                try
+                {
+                    using HttpClient http = _httpClientFactory.CreateClient("MatchingAPI");
+                    string? token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+                    if (!string.IsNullOrEmpty(token))
+                        http.DefaultRequestHeaders.Authorization =
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                    await http.DeleteAsync("/api/gamematch/CancelMatch");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "[Lobby] OnDisconnected CancelMatch 실패 — User_{UserId}", userId);
+                }
             }
 
             await base.OnDisconnectedAsync(exception);
+        }
+
+        /// <summary>명시적 로그아웃. Presence를 해제하고 SignalR 연결을 끊습니다.</summary>
+        public async Task Logout()
+        {
+            if (!TryGetUserId(out int userId))
+                return;
+
+            _presence.Unregister(userId);
+            _logger.LogInformation("[Lobby] 로그아웃 — User_{UserId}", userId);
+            await Task.CompletedTask;
+            Context.Abort();
         }
 
         /// <summary>매칭 신청. Matching.API를 호출하여 즉시 매칭하거나 대기열에 진입합니다.</summary>

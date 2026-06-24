@@ -29,6 +29,14 @@ namespace PlatformA.Matching.API.Models
         public DateTime MatchedAt { get; set; }
     }
 
+    /// <summary>Game.Gomoku → Matching.API 게임 시작 알림 DTO.</summary>
+    public class MatchStartNotifyDto
+    {
+        [Required]
+        [MaxLength(100)]
+        public string RoomId { get; set; } = string.Empty;
+    }
+
     /// <summary>Game.Gomoku → Matching.API 게임 결과 보고 DTO.</summary>
     public class MatchResultReportDto
     {
