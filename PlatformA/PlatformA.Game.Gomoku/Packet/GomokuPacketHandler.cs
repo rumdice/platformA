@@ -75,10 +75,28 @@ namespace PlatformA.Game.Gomoku.Packet
                 await RedisManager.Instance.ExecuteAsync(db => db.KeyDeleteAsync(transferKey));
                 Console.WriteLine($"🎫 [Gomoku] User_{playerId} game_transfer 티켓 소비 완료");
 
-                // roomId 파싱
+                // roomId 파싱 + gameType 검증
                 string roomId;
                 using (JsonDocument doc = JsonDocument.Parse(transferJson))
-                    roomId = doc.RootElement.GetProperty("roomId").GetString() ?? string.Empty;
+                {
+                    JsonElement root = doc.RootElement;
+                    roomId = root.GetProperty("roomId").GetString() ?? string.Empty;
+
+                    string transferGameType = root.TryGetProperty("gameType", out JsonElement gt)
+                        ? gt.GetString() ?? string.Empty
+                        : string.Empty;
+
+                    if (!string.Equals(transferGameType, "gomoku", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"[Gomoku] 잘못된 gameType: '{transferGameType}' (User_{playerId})");
+                        await session.SendAsync(BuildResponsePacket(new ProtoPacket
+                        {
+                            SLogin = new SLogin { ResultCode = LoginResultCode.LoginNotInQueue, PlayerId = 0 },
+                        }));
+                        session.Disconnect();
+                        return;
+                    }
+                }
 
                 if (string.IsNullOrEmpty(roomId))
                 {

@@ -25,6 +25,7 @@ namespace PlatformA.Game.DummyClient
                 Console.WriteLine(" 6. [시나리오 6] 매칭 시스템 레이팅별 매칭 테스트 (준비중)");
                 Console.WriteLine(" 7. [시나리오 7] 단일 유저 로그인/재로그인/대기열 인증 통합 테스트");
                 Console.WriteLine(" 8. [시나리오 8] 단일 유저 중복 로그인 방어 검증");
+                Console.WriteLine(" 9. [시나리오 9] 두 명 자동 매칭 → Gomoku 게임 완주 E2E 검증");
                 Console.WriteLine(" 0. 종료");
                 Console.WriteLine("==================================================");
                 Console.Write("원하는 테스트 모드의 번호를 입력하세요: ");
@@ -57,6 +58,9 @@ namespace PlatformA.Game.DummyClient
                         break;
                     case "8":
                         await DuplicateLoginScenario.RunAsync();
+                        break;
+                    case "9":
+                        await TwoPlayerGomokuScenario.RunAsync();
                         break;
                     case "0":
                         return;
