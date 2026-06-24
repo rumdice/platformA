@@ -167,7 +167,7 @@ dotnet ef database update --context DbLogAppContext
 cd PlatformA/PlatformA.Auth.API    && dotnet run   # :7001
 cd PlatformA/PlatformA.Ticketing.API && dotnet run  # :7003
 cd PlatformA/PlatformA.Matching.API  && dotnet run  # :7002
-cd PlatformA/PlatformA.Game.Server   && dotnet run  # :7777
+cd PlatformA/PlatformA.Game.Gomoku   && dotnet run  # :7778
 ```
 
 ---
