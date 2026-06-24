@@ -4,6 +4,8 @@ title: Gomoku E2E 준비 코드 수정 및 시나리오
 branch: 2026-06-24_GomokuE2EReadiness
 date: 2026-06-24
 status: completed
+completed: 2026-06-24
+pr: https://github.com/rumdice/platformA/pull/105
 ---
 
 # Sprint #72 — Gomoku E2E 준비: 코드 수정 + 시나리오
