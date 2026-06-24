@@ -3,7 +3,7 @@ sprint: 72
 title: Gomoku E2E 준비 코드 수정 및 시나리오
 branch: 2026-06-24_GomokuE2EReadiness
 date: 2026-06-24
-status: in-progress
+status: completed
 ---
 
 # Sprint #72 — Gomoku E2E 준비: 코드 수정 + 시나리오
@@ -14,13 +14,13 @@ Gomoku E2E 실행 전 필수 버그 5건을 수정하고 전체 흐름(Auth→Lo
 
 ## 태스크
 
-- [ ] P0-A: Redis publish try/catch 추가 (GameMatchService.TryMatchAsync)
-- [ ] P0-B: 구 BackgroundService 매칭 루프 비활성화 (ProcessQueueAsync/ProcessMatchingAsync 제거)
-- [ ] P0-C: gameType 검증 추가 (GomokuPacketHandler.ProcessLoginAsync)
-- [ ] P1-D: MatchNotificationService ProcessMatchFoundAsync 분리 (테스트 가능성 확보)
-- [ ] P1-E: MatchHistory 무승부 표시 오류 수정 (WinnerId==null → "무승부")
-- [ ] P1-F: TwoPlayerGomokuScenario 구현 (DummyClient 시나리오 9)
-- [ ] 테스트 추가 및 전체 빌드/테스트 통과
+- [x] P0-A: Redis publish try/catch 추가 (GameMatchService.TryMatchAsync)
+- [x] P0-B: 구 BackgroundService 매칭 루프 비활성화 (ProcessQueueAsync/ProcessMatchingAsync 제거)
+- [x] P0-C: gameType 검증 추가 (GomokuPacketHandler.ProcessLoginAsync)
+- [x] P1-D: MatchNotificationService ProcessMatchFoundAsync 분리 (테스트 가능성 확보)
+- [x] P1-E: MatchHistory 무승부 표시 오류 수정 (WinnerId==null → "무승부")
+- [x] P1-F: TwoPlayerGomokuScenario 구현 (DummyClient 시나리오 9)
+- [x] 테스트 추가 및 전체 빌드/테스트 통과 (209개 통과)
 
 ## 배경
 
