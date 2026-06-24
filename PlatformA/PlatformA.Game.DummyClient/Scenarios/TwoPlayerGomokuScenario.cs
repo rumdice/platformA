@@ -15,7 +15,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
     {
         private record MatchFoundInfo(string Host, int Port, string RoomId, string GameType);
 
-        public static async Task RunAsync()
+        public static async Task<bool> RunAsync(bool interactive = true)
         {
             try
             { Console.Clear(); }
@@ -43,7 +43,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (s1 == null || s2 == null)
             {
                 Console.WriteLine("❌ 로그인 실패. Auth.API 서버 상태를 확인하세요.");
-                return;
+                return false;
             }
 
             Console.WriteLine($"[인증] P1=User_{s1.PlayerId}, P2=User_{s2.PlayerId} 로그인 성공\n");
@@ -68,8 +68,13 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (success)
                 await VerifyMatchRecordAsync(http1, s1);
 
-            Console.WriteLine("\n[엔터] 메인 메뉴로 돌아가기...");
-            Console.ReadLine();
+            if (interactive)
+            {
+                Console.WriteLine("\n[엔터] 메인 메뉴로 돌아가기...");
+                Console.ReadLine();
+            }
+
+            return success;
         }
 
         private static async Task RunPlayerAsync(
