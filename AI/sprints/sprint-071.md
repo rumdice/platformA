@@ -3,7 +3,9 @@ sprint: 71
 title: 오목 게임서버 완성도 100% 달성
 branch: 2026-06-24_GomokuServerCompletion
 date: 2026-06-24
-status: in-progress
+status: done
+completed: 2026-06-24
+pr: https://github.com/rumdice/platformA/pull/104
 ---
 
 # Sprint #71 — 오목 게임서버 완성도 100% 달성
