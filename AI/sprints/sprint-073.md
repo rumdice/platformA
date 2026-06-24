@@ -3,7 +3,9 @@ sprint: 73
 title: Utils.API 헬스체크 추가
 branch: 2026-06-25_AddUtilsHealthcheck
 date: 2026-06-25
-status: in-progress
+status: done
+completed: 2026-06-25
+pr: https://github.com/rumdice/platformA/pull/106
 ---
 
 # Sprint #73 — Utils.API 헬스체크 추가
