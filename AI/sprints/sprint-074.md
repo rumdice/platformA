@@ -3,7 +3,9 @@ sprint: 74
 title: Gomoku E2E 자동화
 branch: 2026-06-25_AddGomokuE2EAutomation
 date: 2026-06-25
-status: in-progress
+status: done
+completed: 2026-06-25
+pr: https://github.com/rumdice/platformA/pull/107
 ---
 
 # Sprint #74 — Gomoku E2E 자동화
@@ -14,14 +16,14 @@ DummyClient에 `--e2e` CLI 모드를 추가하여 오목 E2E 테스트를 스크
 
 ## 태스크
 
-- [ ] DummyClient `Program.cs`에 `--e2e <번호>` / `--e2e all` / `--list` CLI 모드 추가
-- [ ] `TeeWriter` 구현 — Console + File 동시 출력
-- [ ] `logs/e2e-{yyyyMMdd-HHmmss}.log` 자동 생성
-- [ ] `TwoPlayerGomokuScenario` 명시적 `bool` 반환으로 수정
-- [ ] `scripts/run-e2e.sh` (bash) 실행 스크립트 작성
-- [ ] `scripts/run-e2e.ps1` (PowerShell) 실행 스크립트 작성
-- [ ] `logs/` 디렉토리 `.gitignore` 등록
-- [ ] 빌드/테스트 통과 확인
+- [x] DummyClient `Program.cs`에 `--e2e <번호>` / `--e2e all` / `--list` CLI 모드 추가
+- [x] `TeeWriter` 구현 — Console + File 동시 출력
+- [x] `logs/e2e-{yyyyMMdd-HHmmss}.log` 자동 생성
+- [x] `TwoPlayerGomokuScenario` 명시적 `bool` 반환으로 수정
+- [x] `scripts/run-e2e.sh` (bash) 실행 스크립트 작성
+- [x] `scripts/run-e2e.ps1` (PowerShell) 실행 스크립트 작성
+- [x] `logs/` 디렉토리 `.gitignore` 등록 (기존 `[Ll]ogs/` 패턴으로 이미 커버)
+- [x] 빌드/테스트 통과 확인
 
 ## 배경
 
