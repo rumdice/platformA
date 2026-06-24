@@ -236,7 +236,8 @@ return {members[1], members[3]}";
                     .Where(m => m.Status == MatchStatus.Pending && m.CreatedAt < cutoff)
                     .ToListAsync();
 
-                if (stale.Count == 0) return;
+                if (stale.Count == 0)
+                    return;
 
                 foreach (var record in stale)
                     record.Status = MatchStatus.Cancelled;

@@ -424,18 +424,18 @@ namespace PlatformA.Tests.Matching.API
             await using (var db = dbFactory.CreateDbContext())
             {
                 db.Players.AddRange(
-                    new Player { Id = userId,     Username = "draw_player20001", PasswordHash = "hash", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = userId, Username = "draw_player20001", PasswordHash = "hash", CreatedAt = DateTime.UtcNow },
                     new Player { Id = opponentId, Username = "draw_player20002", PasswordHash = "hash", CreatedAt = DateTime.UtcNow }
                 );
                 db.MatchRecords.Add(new MatchRecord
                 {
-                    Player1Id  = userId,
-                    Player2Id  = opponentId,
-                    Status     = MatchStatus.Completed,
-                    WinnerId   = null,           // 무승부
-                    GameType   = "gomoku",
-                    RoomId     = testRoomId,
-                    CreatedAt  = DateTime.UtcNow,
+                    Player1Id = userId,
+                    Player2Id = opponentId,
+                    Status = MatchStatus.Completed,
+                    WinnerId = null,           // 무승부
+                    GameType = "gomoku",
+                    RoomId = testRoomId,
+                    CreatedAt = DateTime.UtcNow,
                 });
                 await db.SaveChangesAsync();
             }
@@ -478,18 +478,18 @@ namespace PlatformA.Tests.Matching.API
             await using (var db = dbFactory.CreateDbContext())
             {
                 db.Players.AddRange(
-                    new Player { Id = userId,     Username = "win_player20003", PasswordHash = "hash", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = userId, Username = "win_player20003", PasswordHash = "hash", CreatedAt = DateTime.UtcNow },
                     new Player { Id = opponentId, Username = "win_player20004", PasswordHash = "hash", CreatedAt = DateTime.UtcNow }
                 );
                 db.MatchRecords.Add(new MatchRecord
                 {
-                    Player1Id  = userId,
-                    Player2Id  = opponentId,
-                    Status     = MatchStatus.Completed,
-                    WinnerId   = userId,         // 요청자가 승자
-                    GameType   = "gomoku",
-                    RoomId     = testRoomId,
-                    CreatedAt  = DateTime.UtcNow,
+                    Player1Id = userId,
+                    Player2Id = opponentId,
+                    Status = MatchStatus.Completed,
+                    WinnerId = userId,         // 요청자가 승자
+                    GameType = "gomoku",
+                    RoomId = testRoomId,
+                    CreatedAt = DateTime.UtcNow,
                 });
                 await db.SaveChangesAsync();
             }

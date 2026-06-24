@@ -132,7 +132,8 @@ namespace PlatformA.Game.Gomoku.Core
         /// <summary>연결 끊김으로 인한 게임 종료 처리.</summary>
         public void HandleDisconnect(GomokuSession session)
         {
-            if (GameState == GomokuGameState.Finished) return;
+            if (GameState == GomokuGameState.Finished)
+                return;
 
             if (GameState == GomokuGameState.WaitingPlayers)
             {

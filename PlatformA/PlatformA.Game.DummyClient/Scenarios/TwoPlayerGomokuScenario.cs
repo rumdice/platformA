@@ -17,7 +17,9 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         public static async Task RunAsync()
         {
-            try { Console.Clear(); } catch { }
+            try
+            { Console.Clear(); }
+            catch { }
             Console.WriteLine("==================================================");
             Console.WriteLine("   [시나리오 9] Two-Player Gomoku E2E 검증");
             Console.WriteLine("==================================================\n");
@@ -115,7 +117,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 Console.WriteLine($"[{label}] Lobby SignalR 연결 성공");
 
                 // P2는 100ms 뒤에 RequestMatch
-                if (label == "P2") await Task.Delay(100, ct);
+                if (label == "P2")
+                    await Task.Delay(100, ct);
 
                 // RequestMatch 호출
                 await lobby.InvokeAsync("RequestMatch", "gomoku", ct);
@@ -178,7 +181,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     while (true)
                     {
                         byte[]? frame = await PacketHelper.ReceiveFrameAsync(tcp, ct);
-                        if (frame == null) break;
+                        if (frame == null)
+                            break;
                         Packet envelope = PacketHelper.ParseEnvelope(frame);
                         switch (envelope.PayloadCase)
                         {
@@ -273,7 +277,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     // SBoardUpdate 수신 또는 짧게 대기
                     await Task.Delay(200, gameLinked.Token);
 
-                    if (gameOverTcs.Task.IsCompleted) break;
+                    if (gameOverTcs.Task.IsCompleted)
+                        break;
                 }
                 catch (OperationCanceledException) { break; }
             }
