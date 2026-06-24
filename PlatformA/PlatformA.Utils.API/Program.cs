@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -7,7 +8,6 @@ using PlatformA.Library.Helper;
 using PlatformA.Utils.API;
 using PlatformA.Utils.API.Services;
 using StackExchange.Redis;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 

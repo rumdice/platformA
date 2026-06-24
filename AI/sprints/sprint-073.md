@@ -15,11 +15,11 @@ Utils.API에 `/healthz`(liveness)와 `/readyz`(Redis readiness) 엔드포인트�
 
 ## 태스크
 
-- [ ] Program.cs에 `AddHealthChecks()` 등록 (Redis readiness 포함)
-- [ ] `/healthz` liveness 엔드포인트 추가 (`Predicate = _ => false`)
-- [ ] `/readyz` readiness 엔드포인트 추가 (Redis 체크, 503 가능)
-- [ ] `WriteJsonResponse` 헬퍼 추가 (JSON 형식 응답)
-- [ ] 빌드/테스트 통과 확인
+- [x] Program.cs에 `AddHealthChecks()` 등록 (Redis readiness 포함)
+- [x] `/healthz` liveness 엔드포인트 추가 (`Predicate = _ => false`)
+- [x] `/readyz` readiness 엔드포인트 추가 (Redis 체크, 503 가능)
+- [x] `WriteJsonResponse` 헬퍼 추가 (JSON 형식 응답)
+- [x] 빌드/테스트 통과 확인
 
 ## 배경
 
