@@ -18,17 +18,22 @@ namespace PlatformA.Matching.API.Services
         private readonly ILogger<GameMatchService> _logger;
         private readonly IDbContextFactory<DbWebAppContext> _dbFactory;
 
-        // Lua: 가장 오래 기다린 유저 2명을 원자적으로 pop
-        // ZPOPMIN은 [member, score, member, score, ...] 형식으로 반환
-        private const string POP_TWO_SCRIPT = @"
-local members = redis.call('ZPOPMIN', KEYS[1], 2)
-if #members < 4 then
-    if #members == 2 then
-        redis.call('ZADD', KEYS[1], members[2], members[1])
+        // Lua: 원자적 pop-or-enqueue 매칭 스크립트
+        // ARGV[1]=score(timestamp), ARGV[2]=userId
+        // 반환값: 상대 userId 문자열 (매칭 성사) 또는 {} (큐 대기)
+        // POP_TWO_SCRIPT 방식(2명 pop 후 C# ZADD)은 동시 요청 시 레이스 조건으로
+        // 모든 유저가 빈 큐를 보고 큐에만 쌓혀 매칭이 발생하지 않는 버그가 있었음.
+        private const string MATCH_OR_QUEUE_SCRIPT = @"
+local candidate = redis.call('ZPOPMIN', KEYS[1], 1)
+if #candidate >= 2 then
+    if candidate[1] == ARGV[2] then
+        redis.call('ZADD', KEYS[1], candidate[2], candidate[1])
+        return {}
     end
-    return {}
+    return {candidate[1]}
 end
-return {members[1], members[3]}";
+redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+return {}";
 
         public GameMatchService(
             RedisManager redisManager,
@@ -93,15 +98,16 @@ return {members[1], members[3]}";
             string queueKey = $"{Consts.MATCH_QUEUE_KEY}:{gameType}";
             double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            // 원자적 pop — 대기 중인 상대가 있으면 즉시 매칭
+            // 원자적 pop-or-enqueue: 상대가 있으면 즉시 매칭, 없으면 큐에 추가
+            // 스크립트 내부에서 ZADD까지 처리하므로 C# ZADD 분리 없음 (레이스 조건 해결)
             var rawResult = await _redisManager.ExecuteAsync(db =>
                 db.ScriptEvaluateAsync(
-                    POP_TWO_SCRIPT,
+                    MATCH_OR_QUEUE_SCRIPT,
                     new RedisKey[] { queueKey },
-                    Array.Empty<RedisValue>()));
+                    new RedisValue[] { score, userId }));
             var popResult = (RedisValue[]?)rawResult ?? Array.Empty<RedisValue>();
 
-            if (popResult.Length >= 1 && int.TryParse((string?)popResult[0], out int opponentId) && opponentId != userId)
+            if (popResult.Length >= 1 && int.TryParse((string?)popResult[0], out int opponentId))
             {
                 // 상대 발견 — 즉시 매칭
                 string roomId = Guid.NewGuid().ToString("N")[..12];
@@ -155,9 +161,7 @@ return {members[1], members[3]}";
                 return new MatchResultDto { Host = host, Port = port, RoomId = roomId };
             }
 
-            // 상대 없음 — 대기열에 추가
-            await _redisManager.ExecuteAsync(db =>
-                db.SortedSetAddAsync(queueKey, userId, score));
+            // 상대 없음 — 스크립트가 이미 큐에 추가함
             _logger.LogInformation("[Matching] 대기열 진입 — User:{U} gameType:{T}", userId, gameType);
             return null;
         }

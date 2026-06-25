@@ -58,9 +58,13 @@ builder.Services.AddSignalR();
 // ── HttpClient ─────────────────────────────────────────────────
 builder.Services.AddHttpClient("MatchingAPI", client =>
 {
-    string url = Environment.GetEnvironmentVariable("MATCHING_API_URL") ?? "http://localhost:7002";
+    string url = Environment.GetEnvironmentVariable("MATCHING_API_URL") ?? "https://localhost:7002";
     client.BaseAddress = new Uri(url);
     client.Timeout = TimeSpan.FromSeconds(30);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    // 로컬 개발 환경 자체 서명 인증서 무시
+    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
 });
 
 // ── 서비스 ────────────────────────────────────────────────────

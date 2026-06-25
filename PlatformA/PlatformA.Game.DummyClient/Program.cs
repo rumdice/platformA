@@ -5,6 +5,26 @@ namespace PlatformA.Game.DummyClient
 
     internal class Program
     {
+        private static string FindRepoRoot()
+        {
+            string? dir = Directory.GetCurrentDirectory();
+            while (dir != null)
+            {
+                if (Directory.GetFiles(dir, "*.sln").Length > 0 ||
+                    Directory.Exists(Path.Combine(dir, ".git")))
+                    return dir;
+                dir = Path.GetDirectoryName(dir);
+            }
+            return Directory.GetCurrentDirectory();
+        }
+
+        private static async Task<bool> RunAllScenariosAsync()
+        {
+            bool s9 = await TwoPlayerGomokuScenario.RunAsync(interactive: false);
+            bool s10 = await MassGomokuE2EScenario.RunAsync(interactive: false);
+            return s9 && s10;
+        }
+
         static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -15,7 +35,8 @@ namespace PlatformA.Game.DummyClient
                 if (args[0] == "--list")
                 {
                     Console.WriteLine("사용 가능한 E2E 시나리오:");
-                    Console.WriteLine("  9   — [시나리오 9] Two-Player Gomoku E2E 검증");
+                    Console.WriteLine("  9   — [시나리오 9]  Two-Player Gomoku E2E 검증 (2명, 서비스 직접 실행)");
+                    Console.WriteLine("  10  — [시나리오 10] Mass Gomoku E2E — 1000명 동시 + Failover (서비스 자동 관리)");
                     Console.WriteLine("  all — 모든 E2E 시나리오 순차 실행");
                     Environment.Exit(0);
                     return;
@@ -38,19 +59,40 @@ namespace PlatformA.Game.DummyClient
                     Console.WriteLine();
 
                     bool success = false;
+                    bool managedServices = scenario is "10" or "all";
+                    string repoRoot = FindRepoRoot();
+
                     try
                     {
+                        if (managedServices)
+                        {
+                            bool ready = await ServiceManager.EnsureAllRunningAsync(repoRoot);
+                            if (!ready)
+                            {
+                                Console.WriteLine("[E2E] ❌ 서비스 기동 실패. 테스트를 중단합니다.");
+                                tee.Dispose();
+                                Environment.Exit(1);
+                                return;
+                            }
+                        }
+
                         success = scenario switch
                         {
-                            "9" => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
-                            "all" => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
-                            _ => throw new ArgumentException($"알 수 없는 시나리오 번호: {scenario}")
+                            "9"   => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
+                            "10"  => await MassGomokuE2EScenario.RunAsync(interactive: false),
+                            "all" => await RunAllScenariosAsync(),
+                            _     => throw new ArgumentException($"알 수 없는 시나리오 번호: {scenario}")
                         };
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[E2E] ❌ 예외 발생: {ex.Message}");
                         success = false;
+                    }
+                    finally
+                    {
+                        if (managedServices)
+                            ServiceManager.StopStarted();
                     }
 
                     Console.WriteLine();
@@ -82,6 +124,7 @@ namespace PlatformA.Game.DummyClient
                 Console.WriteLine(" 7. [시나리오 7] 단일 유저 로그인/재로그인/대기열 인증 통합 테스트");
                 Console.WriteLine(" 8. [시나리오 8] 단일 유저 중복 로그인 방어 검증");
                 Console.WriteLine(" 9. [시나리오 9] 두 명 자동 매칭 → Gomoku 게임 완주 E2E 검증");
+                Console.WriteLine("10. [시나리오 10] 1000명 동시 Gomoku E2E + Failover 검증 (서비스 자동 관리)");
                 Console.WriteLine(" 0. 종료");
                 Console.WriteLine("==================================================");
                 Console.Write("원하는 테스트 모드의 번호를 입력하세요: ");
@@ -117,6 +160,9 @@ namespace PlatformA.Game.DummyClient
                         break;
                     case "9":
                         await TwoPlayerGomokuScenario.RunAsync();
+                        break;
+                    case "10":
+                        await MassGomokuE2EScenario.RunAsync(interactive: true);
                         break;
                     case "0":
                         return;
