@@ -26,7 +26,13 @@ namespace PlatformA.Game.Gomoku.Core
         private TurnManager? _turn;
 
         // 결과 보고용 HttpClient — 인스턴스 재사용으로 소켓 고갈 방지
-        private static readonly HttpClient _httpClient = new HttpClient
+        // 로컬 개발 환경의 자체 서명 인증서를 무시하는 핸들러 사용
+        private static readonly HttpClient _httpClient = new HttpClient(
+            new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+            })
         {
             BaseAddress = new Uri(Consts.MATCHING_API_BASE_URL),
             Timeout = TimeSpan.FromSeconds(5),
