@@ -72,6 +72,7 @@ public static class MassGomokuE2EScenario
         Reset();
         PrintHeader();
 
+        string startTimestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
         var sw = Stopwatch.StartNew();
         using var rootCts = new CancellationTokenSource(TimeSpan.FromSeconds(TOTAL_TIMEOUT_SEC));
         var ct = rootCts.Token;
@@ -94,7 +95,7 @@ public static class MassGomokuE2EScenario
         displayCts.Cancel();
         try { await displayTask; } catch (OperationCanceledException) { }
 
-        bool passed = PrintReport(sw.Elapsed);
+        bool passed = PrintReport(sw.Elapsed, startTimestamp);
 
         if (interactive)
         {
@@ -416,7 +417,7 @@ public static class MassGomokuE2EScenario
     }
 
     // ── 최종 리포트 ────────────────────────────────────────────────────────────
-    private static bool PrintReport(TimeSpan elapsed)
+    private static bool PrintReport(TimeSpan elapsed, string startTimestamp)
     {
         int foTotal     = (int)(USER_COUNT * (FO_A + FO_B + FO_C));
         int normalExpected = USER_COUNT - foTotal;
@@ -503,7 +504,46 @@ public static class MassGomokuE2EScenario
             : "  ❌ OVERALL FAIL — 기준 미달 항목 있음");
         Console.WriteLine("══════════════════════════════════════════════════════════════════");
 
+        SaveJsonReport(elapsed, startTimestamp, passed);
+
         return passed;
+    }
+
+    private static void SaveJsonReport(TimeSpan elapsed, string startTimestamp, bool passed)
+    {
+        try
+        {
+            var report = new
+            {
+                scenario = "MassGomokuE2E",
+                date = DateTime.UtcNow.ToString("o"),
+                userCount = USER_COUNT,
+                spawnRate = SPAWN_RATE,
+                maxGameConcurrency = MAX_GAME_CONCURRENCY,
+                totalElapsedSeconds = Math.Round(elapsed.TotalSeconds, 1),
+                loginOk = _loginOk, loginFail = _loginFail,
+                queueOk = _queueOk, queueFail = _queueFail,
+                activeOk = _activeOk, activeFail = _activeFail,
+                lobbyOk = _lobbyOk, lobbyFail = _lobbyFail,
+                matchReq = _matchReq, matchOk = _matchOk, matchTimeout = _matchTimeout,
+                tcpOk = _tcpOk, tcpFail = _tcpFail,
+                gameStartOk = _gameStartOk,
+                gameOverOk = _gameOverOk, gameOverFail = _gameOverFail,
+                verifyOk = _verifyOk, verifyFail = _verifyFail,
+                win = _win, lose = _lose, draw = _draw,
+                failoverA = _failoverA, failoverB = _failoverB, failoverC = _failoverC,
+                passed,
+            };
+            string reportDir = Path.Combine(AppContext.BaseDirectory, "reports");
+            Directory.CreateDirectory(reportDir);
+            string reportPath = Path.Combine(reportDir, $"e2e-{startTimestamp}.json");
+            File.WriteAllText(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+            Console.WriteLine($"  리포트 저장: {reportPath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  [경고] JSON 리포트 저장 실패: {ex.Message}");
+        }
     }
 
     private static void PrintHeader()
