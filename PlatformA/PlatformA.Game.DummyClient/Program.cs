@@ -78,10 +78,10 @@ namespace PlatformA.Game.DummyClient
 
                         success = scenario switch
                         {
-                            "9"   => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
-                            "10"  => await MassGomokuE2EScenario.RunAsync(interactive: false),
+                            "9" => await TwoPlayerGomokuScenario.RunAsync(interactive: false),
+                            "10" => await MassGomokuE2EScenario.RunAsync(interactive: false),
                             "all" => await RunAllScenariosAsync(),
-                            _     => throw new ArgumentException($"알 수 없는 시나리오 번호: {scenario}")
+                            _ => throw new ArgumentException($"알 수 없는 시나리오 번호: {scenario}")
                         };
                     }
                     catch (Exception ex)
