@@ -3,7 +3,9 @@ sprint: 75
 title: Mass Gomoku E2E 결과 문서화
 branch: 2026-06-29_DocumentE2EReport
 date: 2026-06-29
-status: in-progress
+status: done
+completed: 2026-06-29
+pr: https://github.com/rumdice/platformA/pull/108
 ---
 
 # Sprint #75 — Mass Gomoku E2E 결과 문서화

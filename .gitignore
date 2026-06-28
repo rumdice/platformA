@@ -13,8 +13,8 @@ CLAUDE.local.md
 AI/reports/generated-*.md
 
 # E2E 실행 로그 및 JSON 리포트 — 로컬 생성물, git 추적 불필요
-**/logs/
-**/reports/
+/PlatformA/**/logs/
+/PlatformA/**/reports/
 
 # User-specific files
 *.rsuser
