@@ -7,11 +7,11 @@ namespace PlatformA.Game.DummyClient
     {
         private static string FindRepoRoot()
         {
+            // .git 우선: git 루트를 찾아야 spec.Project 경로가 올바르게 조합됨
             string? dir = Directory.GetCurrentDirectory();
             while (dir != null)
             {
-                if (Directory.GetFiles(dir, "*.sln").Length > 0 ||
-                    Directory.Exists(Path.Combine(dir, ".git")))
+                if (Directory.Exists(Path.Combine(dir, ".git")))
                     return dir;
                 dir = Path.GetDirectoryName(dir);
             }

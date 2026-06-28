@@ -92,8 +92,8 @@ namespace PlatformA.Game.DummyClient
             {
                 string projPath = Path.Combine(_repoRoot, spec.Project.Replace('/', Path.DirectorySeparatorChar));
                 string args = string.IsNullOrEmpty(spec.LaunchProfile)
-                    ? $"run --project \"{projPath}\""
-                    : $"run --project \"{projPath}\" --launch-profile {spec.LaunchProfile}";
+                    ? $"run --no-build --project \"{projPath}\""
+                    : $"run --no-build --project \"{projPath}\" --launch-profile {spec.LaunchProfile}";
 
                 var psi = new ProcessStartInfo
                 {
