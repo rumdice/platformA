@@ -20,6 +20,7 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp
         public virtual DbSet<Player> Players { get; set; }
         public virtual DbSet<PlayerStat> PlayerStats { get; set; }
         public virtual DbSet<MatchRecord> MatchRecords { get; set; }
+        public virtual DbSet<PlayerRating> PlayerRatings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -91,6 +92,23 @@ namespace PlatformA.MySqlDB.Lib.DBWebApp
                       .HasForeignKey(e => e.WinnerId)
                       .IsRequired(false)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // PlayerRating ─ 1:1 관계 (Player ↔ PlayerRating, PK = PlayerId)
+            modelBuilder.Entity<PlayerRating>(entity =>
+            {
+                entity.ToTable("player_ratings");
+                entity.HasKey(e => e.PlayerId);
+                entity.Property(e => e.Rating).HasDefaultValue(1000.0);
+                entity.Property(e => e.WinCount).HasDefaultValue(0);
+                entity.Property(e => e.LoseCount).HasDefaultValue(0);
+                entity.Property(e => e.DrawCount).HasDefaultValue(0);
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                entity.HasOne(e => e.Player)
+                      .WithOne()
+                      .HasForeignKey<PlayerRating>(e => e.PlayerId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Item>(entity =>

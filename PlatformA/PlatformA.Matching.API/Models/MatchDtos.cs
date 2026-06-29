@@ -51,4 +51,14 @@ namespace PlatformA.Matching.API.Models
         [MaxLength(50)]
         public string Reason { get; set; } = string.Empty;
     }
+
+    /// <summary>GET /api/gamematch/rating/{userId} 응답 DTO.</summary>
+    public class PlayerRatingDto
+    {
+        public int PlayerId { get; set; }
+        public double Rating { get; set; }
+        public int WinCount { get; set; }
+        public int LoseCount { get; set; }
+        public int DrawCount { get; set; }
+    }
 }

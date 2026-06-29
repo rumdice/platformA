@@ -514,5 +514,74 @@ namespace PlatformA.Tests.Matching.API
                 .Any(e => e.GetProperty("result").GetString() == "승리");
             Assert.True(foundWin, "승리 결과의 매칭 이력이 반환되어야 합니다.");
         }
+
+        // ── GetRating (GET /api/gamematch/rating/{userId}) ────────────────────
+
+        [Fact]
+        public async Task GetRating_ValidUserId_NoRecord_ReturnsDefaultRating()
+        {
+            // DB에 PlayerRating 없는 userId → 기본값(Rating=1000, Win/Lose/Draw=0) 반환 → 200
+            const int userId = 88881;
+
+            var response = await _client.GetAsync($"/api/gamematch/rating/{userId}");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(userId, json.GetProperty("playerId").GetInt32());
+            Assert.Equal(1000.0, json.GetProperty("rating").GetDouble());
+            Assert.Equal(0, json.GetProperty("winCount").GetInt32());
+            Assert.Equal(0, json.GetProperty("loseCount").GetInt32());
+            Assert.Equal(0, json.GetProperty("drawCount").GetInt32());
+        }
+
+        [Fact]
+        public async Task GetRating_ValidUserId_ExistingRecord_ReturnsActualRating()
+        {
+            // DB에 PlayerRating이 있는 userId → 실제 값 반환 → 200
+            const int userId = 88882;
+
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.Add(new Player
+                {
+                    Id = userId,
+                    Username = "rating_player88882",
+                    PasswordHash = "hash",
+                    CreatedAt = DateTime.UtcNow
+                });
+                db.PlayerRatings.Add(new PlayerRating
+                {
+                    PlayerId = userId,
+                    Rating = 1234.5,
+                    WinCount = 10,
+                    LoseCount = 3,
+                    DrawCount = 2,
+                    UpdatedAt = DateTime.UtcNow
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var response = await _client.GetAsync($"/api/gamematch/rating/{userId}");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(userId, json.GetProperty("playerId").GetInt32());
+            Assert.Equal(1234.5, json.GetProperty("rating").GetDouble());
+            Assert.Equal(10, json.GetProperty("winCount").GetInt32());
+            Assert.Equal(3, json.GetProperty("loseCount").GetInt32());
+            Assert.Equal(2, json.GetProperty("drawCount").GetInt32());
+        }
+
+        [Fact]
+        public async Task GetRating_InvalidUserId_ReturnsBadRequest()
+        {
+            // userId=0 → 컨트롤러에서 BadRequest 반환
+            var response = await _client.GetAsync("/api/gamematch/rating/0");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }

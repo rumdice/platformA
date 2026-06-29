@@ -20,8 +20,7 @@ namespace PlatformA.Game.DummyClient
             new("Ticketing.API", "PlatformA/PlatformA.Ticketing.API", "https://localhost:7003/healthz", "https", SkipSsl: true),
             new("Matching.API",  "PlatformA/PlatformA.Matching.API",  "https://localhost:7002/healthz", "https", SkipSsl: true),
             new("Game.Lobby",    "PlatformA/PlatformA.Game.Lobby",    "http://localhost:7777/healthz"),
-            // Gomoku: HttpListener(/healthz)는 Windows 비관리자 환경에서 실패할 수 있으므로 TCP:7778 직접 체크
-            new("Game.Gomoku",   "PlatformA/PlatformA.Game.Gomoku",   "", TcpPort: 7778),
+            new("Game.Gomoku",   "PlatformA/PlatformA.Game.Gomoku",   "http://localhost:7779/healthz"),
         ];
 
         private static readonly List<(string Name, Process Proc)> _started = [];

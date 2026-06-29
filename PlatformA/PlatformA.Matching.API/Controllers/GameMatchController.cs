@@ -128,6 +128,29 @@ namespace PlatformA.Matching.API.Controllers
             return Ok(history);
         }
 
+        /// <summary>
+        /// ELO 레이팅 조회: 특정 플레이어의 현재 레이팅과 전적을 반환합니다.
+        /// 인증 불필요 (공개 정보).
+        /// </summary>
+        [HttpGet("rating/{userId:int}")]
+        public async Task<IActionResult> GetRating(int userId)
+        {
+            if (userId <= 0)
+                return BadRequest(new { Message = "유효하지 않은 사용자 ID입니다." });
+
+            PlayerRatingDto? rating = await _matchService.GetPlayerRatingDtoAsync(userId);
+            if (rating == null)
+                return Ok(new PlayerRatingDto
+                {
+                    PlayerId = userId,
+                    Rating = Consts.DEFAULT_PLAYER_RATING,
+                    WinCount = 0,
+                    LoseCount = 0,
+                    DrawCount = 0,
+                });
+            return Ok(rating);
+        }
+
         private int ExtractPlayerId()
         {
             string authHeader = Request.Headers["Authorization"].ToString();

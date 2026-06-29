@@ -166,7 +166,7 @@ return {}";
             return null;
         }
 
-        /// <summary>게임 종료 후 MatchRecord에 결과를 업데이트합니다.</summary>
+        /// <summary>게임 종료 후 MatchRecord에 결과를 업데이트하고 ELO 레이팅을 갱신합니다.</summary>
         public async Task<bool> UpdateMatchResultAsync(string roomId, int winnerId, string reason)
         {
             try
@@ -191,12 +191,82 @@ return {}";
                 _logger.LogInformation(
                     "[Matching] MatchRecord 결과 업데이트 — RoomId: {RoomId}, WinnerId: {WinnerId}, Reason: {Reason}",
                     roomId, winnerId, reason);
+
+                // ELO 레이팅 갱신 (무승부 winnerId=0 포함)
+                _ = UpdateEloRatingsAsync(record.Player1Id, record.Player2Id, winnerId);
                 return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Matching] MatchRecord 결과 업데이트 실패 — RoomId: {RoomId}", roomId);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// ELO 레이팅 계산 및 DB/Redis 갱신.
+        /// K=32 (300전 미만), K=16 (300전 이상). winnerId=0은 무승부.
+        /// </summary>
+        private async Task UpdateEloRatingsAsync(int player1Id, int player2Id, int winnerId)
+        {
+            try
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+
+                PlayerRating r1 = await db.PlayerRatings.FindAsync(player1Id)
+                    ?? new PlayerRating { PlayerId = player1Id };
+                PlayerRating r2 = await db.PlayerRatings.FindAsync(player2Id)
+                    ?? new PlayerRating { PlayerId = player2Id };
+
+                int totalGames1 = r1.WinCount + r1.LoseCount + r1.DrawCount;
+                int totalGames2 = r2.WinCount + r2.LoseCount + r2.DrawCount;
+                double k1 = totalGames1 < 300 ? 32.0 : 16.0;
+                double k2 = totalGames2 < 300 ? 32.0 : 16.0;
+
+                double e1 = 1.0 / (1.0 + Math.Pow(10.0, (r2.Rating - r1.Rating) / 400.0));
+                double e2 = 1.0 - e1;
+
+                double s1, s2;
+                if (winnerId == 0)
+                { s1 = 0.5; s2 = 0.5; r1.DrawCount++; r2.DrawCount++; }
+                else if (winnerId == player1Id)
+                { s1 = 1.0; s2 = 0.0; r1.WinCount++; r2.LoseCount++; }
+                else
+                { s1 = 0.0; s2 = 1.0; r1.LoseCount++; r2.WinCount++; }
+
+                r1.Rating = Math.Max(0, r1.Rating + k1 * (s1 - e1));
+                r2.Rating = Math.Max(0, r2.Rating + k2 * (s2 - e2));
+                r1.UpdatedAt = DateTime.UtcNow;
+                r2.UpdatedAt = DateTime.UtcNow;
+
+                if (db.Entry(r1).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+                    db.PlayerRatings.Add(r1);
+                if (db.Entry(r2).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+                    db.PlayerRatings.Add(r2);
+
+                await db.SaveChangesAsync();
+
+                // Redis 캐시 갱신 (TTL 1시간)
+                await _redisManager.ExecuteAsync(db2 =>
+                    db2.StringSetAsync(
+                        $"{Consts.PLAYER_RATING_KEY_PREFIX}{player1Id}",
+                        ((int)r1.Rating).ToString(),
+                        TimeSpan.FromHours(1)));
+                await _redisManager.ExecuteAsync(db2 =>
+                    db2.StringSetAsync(
+                        $"{Consts.PLAYER_RATING_KEY_PREFIX}{player2Id}",
+                        ((int)r2.Rating).ToString(),
+                        TimeSpan.FromHours(1)));
+
+                _logger.LogInformation(
+                    "[Matching] ELO 갱신 — P1:{P1} {R1:.0}→{NR1:.0}, P2:{P2} {R2:.0}→{NR2:.0}",
+                    player1Id, r1.Rating - k1 * (s1 - e1), r1.Rating,
+                    player2Id, r2.Rating - k2 * (s2 - e2), r2.Rating);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "[Matching] ELO 레이팅 갱신 실패 — P1:{P1}, P2:{P2}", player1Id, player2Id);
             }
         }
 
@@ -253,6 +323,23 @@ return {}";
             {
                 _logger.LogError(ex, "[Matching] AbandonStaleMatches 실패");
             }
+        }
+
+        /// <summary>플레이어의 ELO 레이팅을 DB에서 조회합니다. 없으면 null.</summary>
+        public async Task<PlayerRatingDto?> GetPlayerRatingDtoAsync(int userId)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            PlayerRating? r = await db.PlayerRatings.FindAsync(userId);
+            if (r == null)
+                return null;
+            return new PlayerRatingDto
+            {
+                PlayerId = r.PlayerId,
+                Rating = r.Rating,
+                WinCount = r.WinCount,
+                LoseCount = r.LoseCount,
+                DrawCount = r.DrawCount,
+            };
         }
 
         /// <summary>플레이어의 최근 매칭 이력을 반환합니다.</summary>

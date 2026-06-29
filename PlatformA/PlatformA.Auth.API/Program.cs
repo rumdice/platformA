@@ -54,7 +54,7 @@ builder.Services.AddScoped<PlayerService>();
 builder.Services.AddSingleton<RedisRateLimiterService>(sp =>
 {
     var svc = new RedisRateLimiterService(sp.GetRequiredService<RedisManager>());
-    svc.AddPolicy("login", permitLimit: 10, window: TimeSpan.FromMinutes(1));
+    svc.AddPolicy("login", permitLimit: 100, window: TimeSpan.FromMinutes(1));
     return svc;
 });
 
