@@ -3,7 +3,9 @@ sprint: 76
 title: 오목 상용화 개선 4종
 branch: 2026-06-29_CommercializeGomoku
 date: 2026-06-29
-status: in-progress
+status: done
+completed: 2026-06-29
+pr: https://github.com/rumdice/platformA/pull/109
 ---
 
 # Sprint #76 — 오목 상용화 개선 4종
