@@ -136,10 +136,10 @@ namespace PlatformA.MySqlDB.Lib.Migrations.WebApp
                 name: "ix_match_records_player2id_created_at",
                 table: "match_records");
 
-            migrationBuilder.DropColumn(name: "game_type",     table: "match_records");
+            migrationBuilder.DropColumn(name: "game_type", table: "match_records");
             migrationBuilder.DropColumn(name: "player1rating", table: "match_records");
             migrationBuilder.DropColumn(name: "player2rating", table: "match_records");
-            migrationBuilder.DropColumn(name: "room_id",       table: "match_records");
+            migrationBuilder.DropColumn(name: "room_id", table: "match_records");
 
             migrationBuilder.CreateIndex(
                 name: "ix_match_records_player1id",

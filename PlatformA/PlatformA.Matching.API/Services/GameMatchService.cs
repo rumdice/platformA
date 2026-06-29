@@ -227,9 +227,12 @@ return {}";
                 double e2 = 1.0 - e1;
 
                 double s1, s2;
-                if (winnerId == 0)       { s1 = 0.5; s2 = 0.5; r1.DrawCount++; r2.DrawCount++; }
-                else if (winnerId == player1Id) { s1 = 1.0; s2 = 0.0; r1.WinCount++; r2.LoseCount++; }
-                else                     { s1 = 0.0; s2 = 1.0; r1.LoseCount++; r2.WinCount++; }
+                if (winnerId == 0)
+                { s1 = 0.5; s2 = 0.5; r1.DrawCount++; r2.DrawCount++; }
+                else if (winnerId == player1Id)
+                { s1 = 1.0; s2 = 0.0; r1.WinCount++; r2.LoseCount++; }
+                else
+                { s1 = 0.0; s2 = 1.0; r1.LoseCount++; r2.WinCount++; }
 
                 r1.Rating = Math.Max(0, r1.Rating + k1 * (s1 - e1));
                 r2.Rating = Math.Max(0, r2.Rating + k2 * (s2 - e2));
