@@ -205,24 +205,33 @@ namespace PlatformA.Game.Gomoku.Core
 
         private async Task ReportMatchResultAsync(int winnerId, GameOverReason reason)
         {
-            try
+            var payload = new
             {
-                var payload = new
+                RoomId = _roomId,
+                WinnerId = winnerId,
+                Reason = reason.ToString(),
+            };
+            string json = JsonSerializer.Serialize(payload);
+
+            int[] delaysMs = [0, 1000, 2000];
+            for (int attempt = 0; attempt < delaysMs.Length; attempt++)
+            {
+                if (delaysMs[attempt] > 0)
+                    await Task.Delay(delaysMs[attempt]);
+                try
                 {
-                    RoomId = _roomId,
-                    WinnerId = winnerId,
-                    Reason = reason.ToString(),
-                };
-                string json = JsonSerializer.Serialize(payload);
-                using var content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage resp = await _httpClient.PostAsync("/api/gamematch/result", content);
-                if (!resp.IsSuccessStatusCode)
-                    Console.WriteLine($"[GomokuRoom {_roomId}] 결과 보고 실패: HTTP {(int)resp.StatusCode}");
+                    using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    HttpResponseMessage resp = await _httpClient.PostAsync("/api/gamematch/result", content);
+                    if (resp.IsSuccessStatusCode)
+                        return;
+                    Console.WriteLine($"[GomokuRoom {_roomId}] 결과 보고 실패(시도{attempt + 1}/3): HTTP {(int)resp.StatusCode}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[GomokuRoom {_roomId}] 결과 보고 예외(시도{attempt + 1}/3): {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[GomokuRoom {_roomId}] 결과 보고 예외: {ex.Message}");
-            }
+            Console.Error.WriteLine($"[GomokuRoom {_roomId}] 결과 보고 3회 모두 실패 — WinnerId={winnerId}");
         }
 
         private static byte[] BuildPacket(ProtoPacket envelope)

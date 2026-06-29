@@ -411,16 +411,24 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
         private static async Task<bool> VerifyMatchRecordAsync(HttpClient http, CancellationToken ct)
         {
-            try
+            // GomokuRoom→Matching.API 결과 보고가 비동기로 진행 중일 수 있으므로 재시도
+            for (int attempt = 0; attempt < 3; attempt++)
             {
-                var resp = await http.GetAsync($"{Consts.MATCHING_API_BASE_URL}/api/gamematch/history", ct);
-                if (!resp.IsSuccessStatusCode)
-                    return false;
-                var json = await resp.Content.ReadAsStringAsync(ct);
-                using var doc = JsonDocument.Parse(json);
-                return doc.RootElement.GetArrayLength() > 0;
+                if (attempt > 0)
+                    await Task.Delay(3000, ct);
+                try
+                {
+                    var resp = await http.GetAsync($"{Consts.MATCHING_API_BASE_URL}/api/gamematch/history", ct);
+                    if (!resp.IsSuccessStatusCode)
+                        continue;
+                    var json = await resp.Content.ReadAsStringAsync(ct);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.GetArrayLength() > 0)
+                        return true;
+                }
+                catch { }
             }
-            catch { return false; }
+            return false;
         }
 
         // ── 실시간 진행 출력 ───────────────────────────────────────────────────────
