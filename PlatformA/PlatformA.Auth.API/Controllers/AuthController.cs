@@ -29,7 +29,7 @@ namespace PlatformA.Auth.API.Controllers
         {
             bool allowed = await _rateLimiterService.IsAllowedAsync("login", request.Username);
             if (!allowed)
-                return StatusCode(429, "Too many requests. Please try again later.");
+                return StatusCode(429, "Too many requests");
 
             int? playerId = await _playerService.LoginAsync(request.Username, request.Password);
             if (playerId == null)
