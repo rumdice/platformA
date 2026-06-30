@@ -5,6 +5,7 @@ branch: 2026-06-30_FixGomokuE2EHealthCheck
 date: 2026-06-30
 status: done
 completed: 2026-06-30
+pr: https://github.com/rumdice/platformA/pull/113
 ---
 
 # Sprint #79 — Game.Gomoku E2E 헬스체크 수정
