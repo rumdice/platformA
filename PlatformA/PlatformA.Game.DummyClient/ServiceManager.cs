@@ -20,7 +20,7 @@ namespace PlatformA.Game.DummyClient
             new("Ticketing.API", "PlatformA/PlatformA.Ticketing.API", "https://localhost:7003/healthz", "https", SkipSsl: true),
             new("Matching.API",  "PlatformA/PlatformA.Matching.API",  "https://localhost:7002/healthz", "https", SkipSsl: true),
             new("Game.Lobby",    "PlatformA/PlatformA.Game.Lobby",    "http://localhost:7777/healthz"),
-            new("Game.Gomoku",   "PlatformA/PlatformA.Game.Gomoku",   "http://localhost:7779/healthz"),
+            new("Game.Gomoku",   "PlatformA/PlatformA.Game.Gomoku",   "http://localhost:7779/healthz", TcpPort: 7778),
         ];
 
         private static readonly List<(string Name, Process Proc)> _started = [];

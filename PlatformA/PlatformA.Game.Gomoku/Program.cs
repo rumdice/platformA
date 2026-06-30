@@ -23,9 +23,9 @@ RedisManager.Instance.Init(
 _ = Task.Run(async () =>
 {
     using var httpListener = new HttpListener();
-    httpListener.Prefixes.Add("http://+:7779/");
+    httpListener.Prefixes.Add("http://localhost:7779/");
     httpListener.Start();
-    Console.WriteLine("[Gomoku HealthCheck] Listening on http://+:7779/ (healthz + readyz)");
+    Console.WriteLine("[Gomoku HealthCheck] Listening on http://localhost:7779/ (healthz + readyz)");
 
     using var httpClient = new HttpClient(
         new HttpClientHandler
