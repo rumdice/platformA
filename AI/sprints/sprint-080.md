@@ -3,7 +3,9 @@ sprint: 80
 title: /e2e 시나리오 9 TCP 헬스체크
 branch: 2026-07-01_FixE2EScenario9TcpHealth
 date: 2026-07-01
-status: in-progress
+status: done
+completed: 2026-07-01
+pr: https://github.com/rumdice/platformA/pull/114
 ---
 
 # Sprint #80 — /e2e 시나리오 9 TCP 헬스체크
