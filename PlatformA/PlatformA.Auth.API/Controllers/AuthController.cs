@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using PlatformA.Auth.API.Filters;
 using PlatformA.Auth.API.Models;
 using PlatformA.Auth.API.Services;
 using PlatformA.Library.Common;
+using PlatformA.Library.RateLimit;
 
 namespace PlatformA.Auth.API.Controllers
 {
@@ -11,21 +11,26 @@ namespace PlatformA.Auth.API.Controllers
     public class AuthController(
         RefreshTokenService refreshTokenService,
         PlayerService playerService,
-        ILogger<AuthController> logger) : ControllerBase
+        ILogger<AuthController> logger,
+        RedisRateLimiterService rateLimiterService) : ControllerBase
     {
         private readonly RefreshTokenService _refreshTokenService = refreshTokenService;
         private readonly PlayerService _playerService = playerService;
         private readonly ILogger<AuthController> _logger = logger;
+        private readonly RedisRateLimiterService _rateLimiterService = rateLimiterService;
 
         /// <summary>
         /// POST /api/auth/login
         /// 신규 유저는 자동 등록, 기존 유저는 비밀번호 검증 후
         /// Access Token(15분) + Refresh Token(7일)을 함께 발급합니다.
         /// </summary>
-        [RedisRateLimit("login")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            bool allowed = await _rateLimiterService.IsAllowedAsync("login", request.Username);
+            if (!allowed)
+                return StatusCode(429, "Too many requests. Please try again later.");
+
             int? playerId = await _playerService.LoginAsync(request.Username, request.Password);
             if (playerId == null)
             {

@@ -53,7 +53,7 @@ return 1";
         /// 요청 허용 여부를 Redis에서 원자적으로 검사합니다.
         /// BrokenCircuitException(회로차단기 개방) 또는 기타 Redis 오류 시 fail-open 처리합니다.
         /// </summary>
-        public async Task<bool> IsAllowedAsync(string policyName, string clientIp)
+        public async Task<bool> IsAllowedAsync(string policyName, string identifier)
         {
             if (!_policies.TryGetValue(policyName, out var policy))
                 return true;
@@ -61,7 +61,7 @@ return 1";
             try
             {
                 long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                string key = $"rl:{policyName}:{clientIp}";
+                string key = $"rl:{policyName}:{identifier}";
 
                 var result = (int)await _redisManager.ExecuteAsync(db =>
                     db.ScriptEvaluateAsync(
