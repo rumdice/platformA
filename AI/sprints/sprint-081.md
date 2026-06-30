@@ -3,7 +3,9 @@ sprint: 81
 title: Library.Game 추상화 완성
 branch: 2026-07-01_CompleteLibraryGameAbstraction
 date: 2026-07-01
-status: in-progress
+status: done
+completed: 2026-07-01
+pr: https://github.com/rumdice/platformA/pull/115
 ---
 
 # Sprint #81 — Library.Game 추상화 완성
@@ -12,15 +14,15 @@ status: in-progress
 PlatformA.Library.Game에 게임 서버 공통 인터페이스와 추상 기반 클래스를 완성하여 Gomoku 이후 LegendHero·BattleWar 게임 서버가 상속·확장할 수 있는 구조를 만든다.
 
 ## 태스크
-- [ ] 현재 Library.Game 구조 분석 (기존 3개 파일 파악)
-- [ ] IGameSession 인터페이스 정의
-- [ ] IGameRoom 인터페이스 정의
-- [ ] IGameRoomManager 인터페이스 정의
-- [ ] GameSessionBase 추상 기반 클래스 구현
-- [ ] GameRoomBase 추상 기반 클래스 구현
-- [ ] GameRoomManagerBase 추상 기반 클래스 구현
-- [ ] Game.Gomoku의 기존 클래스를 추상 기반 클래스 상속으로 리팩토링
-- [ ] 빌드·테스트 통과 확인
+- [x] 현재 Library.Game 구조 분석 (기존 3개 파일 파악)
+- [x] IGameSession 인터페이스 정의
+- [x] IGameRoom 인터페이스 정의
+- [x] IGameRoomManager 인터페이스 정의
+- [x] GameSessionBase 추상 기반 클래스 구현
+- [x] GameRoomBase 추상 기반 클래스 구현
+- [x] GameRoomManagerBase 추상 기반 클래스 구현
+- [x] Game.Gomoku의 기존 클래스를 추상 기반 클래스 상속으로 리팩토링
+- [x] 빌드·테스트 통과 확인
 
 ## 배경
 현재 PlatformA.Library.Game은 완성도 30% (GameSession, GameRoom, GameRoomManager 파일 존재)이며
