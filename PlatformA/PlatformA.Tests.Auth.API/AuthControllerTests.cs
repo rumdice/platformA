@@ -2,8 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Moq;
 using PlatformA.Auth.API.Models;
 using PlatformA.Tests.Auth.API.Helpers;
+using StackExchange.Redis;
 using Xunit;
 
 namespace PlatformA.Tests.Auth.API
@@ -71,6 +73,38 @@ namespace PlatformA.Tests.Auth.API
                 new { username = "validuser", password = "pass" });
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Login_UserRateLimitExceeded_Returns429()
+        {
+            // rl:login:{username} 키에 대해서만 ScriptEvaluateAsync가 0 반환 → Rate Limit 초과
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys.Length > 0 && ((string)keys[0]).StartsWith("rl:login:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(0L));
+
+            try
+            {
+                var response = await _client.PostAsJsonAsync("/api/auth/login",
+                    new { username = "rl_blocked_user", password = "pass1234" });
+
+                Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+            }
+            finally
+            {
+                // 다른 테스트에 영향이 없도록 기본값(허용)으로 복원
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.Is<RedisKey[]>(keys => keys.Length > 0 && ((string)keys[0]).StartsWith("rl:login:")),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+            }
         }
 
         // ── Refresh ──────────────────────────────────────────────────────────

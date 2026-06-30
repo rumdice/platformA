@@ -124,6 +124,10 @@ namespace PlatformA.Library.Common
             Environment.GetEnvironmentVariable("MATCHING_API_BASE_URL")
             ?? "https://localhost:7002";
 
+        // Auth.API — 로그인 Rate Limit 키 접두사 (식별자: username 기반)
+        // 실제 키: rl:login:{username} (RedisRateLimiterService가 조합)
+        public const string RATE_LIMIT_LOGIN_PREFIX = "rl:login:";
+
         // Utils.API — Short URL ({0}: 단축 코드)
         public const string REDIS_SHORT_URL_KEY = "url:{0}";
         public const string REDIS_SHORT_URL_STATS_KEY = "stats:{0}";

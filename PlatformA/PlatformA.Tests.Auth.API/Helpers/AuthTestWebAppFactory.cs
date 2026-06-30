@@ -91,7 +91,7 @@ namespace PlatformA.Tests.Auth.API.Helpers
                 });
 
                 // 3. RedisRateLimiterService → 상한값 1000으로 재등록
-                //    login 엔드포인트의 [RedisRateLimit] 필터가 테스트를 차단하지 않도록
+                //    AuthController.Login이 직접 IsAllowedAsync를 호출하므로 테스트가 차단되지 않도록
                 var rateLimiterDesc = services.SingleOrDefault(
                     d => d.ServiceType == typeof(RedisRateLimiterService));
                 if (rateLimiterDesc != null)
