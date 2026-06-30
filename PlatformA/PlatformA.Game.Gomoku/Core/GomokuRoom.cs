@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using PlatformA.Game.Gomoku.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Game.Core;
@@ -24,6 +25,10 @@ namespace PlatformA.Game.Gomoku.Core
         private readonly string _roomId;
         private Board _board = new Board();
         private TurnManager? _turn;
+
+        private static ILogger? _logger;
+
+        internal static void SetLogger(ILogger logger) => _logger = logger;
 
         // 결과 보고용 HttpClient — 인스턴스 재사용으로 소켓 고갈 방지
         // 로컬 개발 환경의 자체 서명 인증서를 무시하는 핸들러 사용
@@ -77,19 +82,26 @@ namespace PlatformA.Game.Gomoku.Core
             // 턴 타임아웃 감시 루프 — 1초 간격으로 Push() 안에서 체크
             _ = Task.Run(async () =>
             {
-                while (GameState == GomokuGameState.InProgress)
+                try
                 {
-                    await Task.Delay(1000);
-                    Push(() =>
+                    while (GameState == GomokuGameState.InProgress)
                     {
-                        if (GameState != GomokuGameState.InProgress || _turn == null)
-                            return;
-                        if (_turn.IsTimeout())
+                        await Task.Delay(1000);
+                        Push(() =>
                         {
-                            int winner = _turn.GetOpponentId(_turn.CurrentTurnPlayerId);
-                            FinishGame(winner, GameOverReason.Timeout);
-                        }
-                    });
+                            if (GameState != GomokuGameState.InProgress || _turn == null)
+                                return;
+                            if (_turn.IsTimeout())
+                            {
+                                int winner = _turn.GetOpponentId(_turn.CurrentTurnPlayerId);
+                                FinishGame(winner, GameOverReason.Timeout);
+                            }
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "[GomokuRoom {RoomId}] 턴 타임아웃 루프 예외 — 루프 종료", _roomId);
                 }
             });
         }
