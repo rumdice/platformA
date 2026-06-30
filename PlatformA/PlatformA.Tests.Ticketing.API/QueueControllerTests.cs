@@ -201,5 +201,257 @@ namespace PlatformA.Tests.Ticketing.API
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
+
+        // ── 추가 케이스 (Sprint #78) ─────────────────────────────────────────
+
+        [Fact]
+        public async Task EnterQueue_InvalidToken_Returns401()
+        {
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "invalid.jwt.token");
+
+            var response = await client.PostAsync("/api/queue/enter", null);
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task EnterQueue_QueueFull_Returns400()
+        {
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                        && !((string)keys[0]).StartsWith("rl:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(-1L));
+
+            try
+            {
+                var client = CreateAuthenticatedClient(10);
+
+                var response = await client.PostAsync("/api/queue/enter", null);
+
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<RedisKey[]>(),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+            }
+        }
+
+        [Fact]
+        public async Task GetStatus_HighRank_Returns10000msDelay()
+        {
+            // rank 200 > 100 → CalculateSmartPollDelay = 10000
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                        && !((string)keys[0]).StartsWith("rl:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(200L));
+
+            try
+            {
+                var client = CreateAuthenticatedClient(11);
+
+                var response = await client.GetAsync("/api/queue/status");
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+                Assert.Equal("Waiting", json.GetProperty("status").GetString());
+                Assert.Equal(10000, json.GetProperty("nextPollDelay").GetInt32());
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<RedisKey[]>(),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+            }
+        }
+
+        [Fact]
+        public async Task GetStatus_MidRank_Returns5000msDelay()
+        {
+            // rank 75 > 50 → CalculateSmartPollDelay = 5000
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                        && !((string)keys[0]).StartsWith("rl:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(75L));
+
+            try
+            {
+                var client = CreateAuthenticatedClient(12);
+
+                var response = await client.GetAsync("/api/queue/status");
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+                Assert.Equal("Waiting", json.GetProperty("status").GetString());
+                Assert.Equal(5000, json.GetProperty("nextPollDelay").GetInt32());
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<RedisKey[]>(),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+            }
+        }
+
+        [Fact]
+        public async Task GetStatus_LowRank_Returns3000msDelay()
+        {
+            // rank 30 > 10 → CalculateSmartPollDelay = 3000
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                        && !((string)keys[0]).StartsWith("rl:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(30L));
+
+            try
+            {
+                var client = CreateAuthenticatedClient(13);
+
+                var response = await client.GetAsync("/api/queue/status");
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+                Assert.Equal("Waiting", json.GetProperty("status").GetString());
+                Assert.Equal(3000, json.GetProperty("nextPollDelay").GetInt32());
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<RedisKey[]>(),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+            }
+        }
+
+        [Fact]
+        public async Task LeaveQueue_ActiveTicket_Returns400()
+        {
+            // LeaveQueueAsync → false (ScriptEvaluateAsync non-rl → 0L)
+            // IsActiveAsync → true (KeyExistsAsync → true) → 400
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                        && !((string)keys[0]).StartsWith("rl:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(0L));
+
+            _factory.MockRedisDb
+                .Setup(x => x.KeyExistsAsync(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(true);
+
+            try
+            {
+                var client = CreateAuthenticatedClient(14);
+
+                var response = await client.PostAsync("/api/queue/leave", null);
+
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<RedisKey[]>(),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+
+                _factory.MockRedisDb
+                    .Setup(x => x.KeyExistsAsync(
+                        It.IsAny<RedisKey>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(false);
+            }
+        }
+
+        [Fact]
+        public async Task LeaveQueue_InvalidToken_Returns401()
+        {
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "invalid.jwt.token");
+
+            var response = await client.PostAsync("/api/queue/leave", null);
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task EnterQueue_RateLimitExceeded_Returns429()
+        {
+            // rl:queue:{ip} 키에 대해서만 0L 반환 → [RedisRateLimit("queue")] 차단 → 429
+            _factory.MockRedisDb
+                .Setup(x => x.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                        && ((string)keys[0]).StartsWith("rl:queue:")),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()))
+                .ReturnsAsync(RedisResult.Create(0L));
+
+            try
+            {
+                var client = CreateAuthenticatedClient(15);
+
+                var response = await client.PostAsync("/api/queue/enter", null);
+
+                Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.ScriptEvaluateAsync(
+                        It.IsAny<string>(),
+                        It.Is<RedisKey[]>(keys => keys != null && keys.Length > 0
+                            && ((string)keys[0]).StartsWith("rl:queue:")),
+                        It.IsAny<RedisValue[]>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(RedisResult.Create(1L));
+            }
+        }
     }
 }
