@@ -7,7 +7,7 @@ namespace PlatformA.Library.Game.Core
     /// 게임 방 단위 상태 관리자. 입장·퇴장·브로드캐스트 모든 로직은
     /// <see cref="JobQueue"/>를 통해 단일 스레드로 직렬화되므로 별도 lock 없이 안전합니다.
     /// </summary>
-    public class GameRoom
+    public class GameRoom : IGameRoom
     {
         /// <summary>방 고유 ID. Matching.API에서 발급됩니다.</summary>
         public int RoomId { get; set; }
@@ -22,7 +22,7 @@ namespace PlatformA.Library.Game.Core
         }
 
         /// <summary>플레이어를 방에 입장시킵니다. JobQueue 내부에서만 호출해야 합니다.</summary>
-        public void Enter(GameSession session)
+        public virtual void Enter(GameSession session)
         {
             _sessions.Add(session);
             session.Room = this;
@@ -30,7 +30,7 @@ namespace PlatformA.Library.Game.Core
         }
 
         /// <summary>플레이어를 방에서 퇴장시킵니다. JobQueue 내부에서만 호출해야 합니다.</summary>
-        public void Leave(GameSession session)
+        public virtual void Leave(GameSession session)
         {
             _sessions.Remove(session);
             session.Room = null;
@@ -38,7 +38,7 @@ namespace PlatformA.Library.Game.Core
         }
 
         /// <summary>방 내 모든 플레이어에게 패킷을 비동기 전송합니다.</summary>
-        public void Broadcast(byte[] packet)
+        public virtual void Broadcast(byte[] packet)
         {
             foreach (var session in _sessions)
                 _ = session.SendAsync(packet);
