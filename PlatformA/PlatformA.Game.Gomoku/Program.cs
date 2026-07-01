@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
+using PlatformA.Game.Gomoku.Core;
 using PlatformA.Game.Gomoku.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Core;
@@ -16,85 +17,94 @@ using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
 RedisManager.Instance.Init(
     Consts.REDIS_CONNECTION_STRING,
     loggerFactory.CreateLogger<RedisManager>());
+GomokuRoom.SetLogger(loggerFactory.CreateLogger<GomokuRoom>());
 
 // 헬스체크 HTTP 서버 (포트 7779)
 // /healthz → liveness: 프로세스 생존 여부만 확인 (항상 200)
 // /readyz  → readiness: Matching.API /healthz 응답 확인
+var healthCheckLogger = loggerFactory.CreateLogger("Gomoku.HealthCheck");
 _ = Task.Run(async () =>
 {
-    using var httpListener = new HttpListener();
-    httpListener.Prefixes.Add("http://localhost:7779/");
-    httpListener.Start();
-    Console.WriteLine("[Gomoku HealthCheck] Listening on http://localhost:7779/ (healthz + readyz)");
-
-    using var httpClient = new HttpClient(
-        new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
-        })
+    try
     {
-        BaseAddress = new Uri(Consts.MATCHING_API_BASE_URL),
-        Timeout = TimeSpan.FromSeconds(3),
-    };
+        using var httpListener = new HttpListener();
+        httpListener.Prefixes.Add("http://localhost:7779/");
+        httpListener.Start();
+        Console.WriteLine("[Gomoku HealthCheck] Listening on http://localhost:7779/ (healthz + readyz)");
 
-    while (true)
-    {
-        try
+        using var httpClient = new HttpClient(
+            new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+            })
         {
-            HttpListenerContext ctx = await httpListener.GetContextAsync();
-            string path = ctx.Request.Url?.AbsolutePath ?? "";
-            string json;
-            int statusCode;
+            BaseAddress = new Uri(Consts.MATCHING_API_BASE_URL),
+            Timeout = TimeSpan.FromSeconds(3),
+        };
 
-            if (path == "/healthz")
+        while (true)
+        {
+            try
             {
-                json = """{"status":"alive"}""";
-                statusCode = 200;
-            }
-            else if (path == "/readyz")
-            {
-                try
+                HttpListenerContext ctx = await httpListener.GetContextAsync();
+                string path = ctx.Request.Url?.AbsolutePath ?? "";
+                string json;
+                int statusCode;
+
+                if (path == "/healthz")
                 {
-                    var resp = await httpClient.GetAsync("/healthz");
-                    if (resp.IsSuccessStatusCode)
+                    json = """{"status":"alive"}""";
+                    statusCode = 200;
+                }
+                else if (path == "/readyz")
+                {
+                    try
                     {
-                        json = """{"status":"ready","matching_api":"ok"}""";
-                        statusCode = 200;
+                        var resp = await httpClient.GetAsync("/healthz");
+                        if (resp.IsSuccessStatusCode)
+                        {
+                            json = """{"status":"ready","matching_api":"ok"}""";
+                            statusCode = 200;
+                        }
+                        else
+                        {
+                            json = $"""{"{"}"status":"degraded","matching_api":"http_{(int)resp.StatusCode}"{"}"}""";
+                            statusCode = 503;
+                        }
                     }
-                    else
+                    catch
                     {
-                        json = $"""{"{"}"status":"degraded","matching_api":"http_{(int)resp.StatusCode}"{"}"}""";
+                        json = """{"status":"degraded","matching_api":"unreachable"}""";
                         statusCode = 503;
                     }
                 }
-                catch
+                else
                 {
-                    json = """{"status":"degraded","matching_api":"unreachable"}""";
-                    statusCode = 503;
+                    json = """{"status":"not_found"}""";
+                    statusCode = 404;
                 }
-            }
-            else
-            {
-                json = """{"status":"not_found"}""";
-                statusCode = 404;
-            }
 
-            byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
-            ctx.Response.StatusCode = statusCode;
-            ctx.Response.ContentType = "application/json";
-            ctx.Response.ContentLength64 = body.Length;
-            await ctx.Response.OutputStream.WriteAsync(body);
-            ctx.Response.Close();
+                byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
+                ctx.Response.StatusCode = statusCode;
+                ctx.Response.ContentType = "application/json";
+                ctx.Response.ContentLength64 = body.Length;
+                await ctx.Response.OutputStream.WriteAsync(body);
+                ctx.Response.Close();
+            }
+            catch (HttpListenerException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                healthCheckLogger.LogError(ex, "[HealthCheck] 요청 처리 오류");
+            }
         }
-        catch (HttpListenerException)
-        {
-            break;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[HealthCheck] 오류: {ex.Message}");
-        }
+    }
+    catch (Exception ex)
+    {
+        healthCheckLogger.LogCritical(ex, "[HealthCheck] 헬스체크 서버 시작 실패 — 치명적 오류");
     }
 });
 
