@@ -80,8 +80,8 @@ task JSON이 없으면 `/plan`을 먼저 실행하라고 안내하고 **중단**
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
 TODAY=$(date +%Y-%m-%d)
-ACTIVE=$(ls "${REPO_ROOT}/.claude/plan/${TODAY}_[0-9][0-9][0-9]_"*.md 2>/dev/null | wc -l)
-ARCHIVED=$(ls "${REPO_ROOT}/.claude/plan/processed/${TODAY}_[0-9][0-9][0-9]_"*.md 2>/dev/null | wc -l)
+ACTIVE=$(ls "${REPO_ROOT}/.claude/plan/${TODAY}_"[0-9][0-9][0-9]_*.md 2>/dev/null | wc -l)
+ARCHIVED=$(ls "${REPO_ROOT}/.claude/plan/processed/${TODAY}_"[0-9][0-9][0-9]_*.md 2>/dev/null | wc -l)
 EXISTING=$((ACTIVE + ARCHIVED))
 TASK_NUM=$(printf "%03d" $((EXISTING + 1)))
 ```
