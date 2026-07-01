@@ -3,7 +3,9 @@ sprint: 83
 title: ServiceManager -c Release 플래그 추가
 branch: 2026-07-01_FixServiceManagerReleaseBuild
 date: 2026-07-01
-status: in-progress
+status: done
+completed: 2026-07-01
+pr: https://github.com/rumdice/platformA/pull/117
 ---
 
 # Sprint #83 — ServiceManager -c Release 플래그 추가
