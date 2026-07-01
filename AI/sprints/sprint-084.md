@@ -3,7 +3,9 @@ sprint: 84
 title: GomokuRoom 핵심 게임 로직 단위 테스트
 branch: 2026-07-02_AddGomokuRoomTests
 date: 2026-07-02
-status: in-progress
+status: done
+completed: 2026-07-02
+pr: https://github.com/rumdice/platformA/pull/118
 ---
 
 # Sprint #84 — GomokuRoom 핵심 게임 로직 단위 테스트
