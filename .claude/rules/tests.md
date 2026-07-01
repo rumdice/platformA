@@ -47,5 +47,5 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 | `PlatformA.Tests.Utils.API` | net10.0 | 32 | 직접 교체 | InMemory SQLite |
 | `PlatformA.Tests.Ticketing.API` | net10.0 | 13 | Reflection 주입 | 없음 |
 | `PlatformA.Tests.Matching.API` | net10.0 | 28 | Reflection 주입 | InMemory EF Core |
-| `PlatformA.Tests.Game.Gomoku` | net10.0 | 47 | — | — |
+| `PlatformA.Tests.Game.Gomoku` | net10.0 | 52 | - | - |
 | `PlatformA.Tests.Game.Lobby` | net10.0 | 74 | — | — |

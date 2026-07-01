@@ -10,7 +10,7 @@ namespace PlatformA.Library.Game.Network
     /// 게임 서버용 TCP 세션 베이스. 인증·방 관리·분산락 해제를 담당합니다.
     /// 게임별 세션은 이 클래스를 상속하여 OnRecv를 구현합니다.
     /// </summary>
-    public abstract class GameSession : Session
+    public abstract class GameSession : Session, IGameSession
     {
         /// <summary>인증 완료 후 부여되는 플레이어 ID. 인증 전에는 0입니다.</summary>
         public int SessionId { get; set; }

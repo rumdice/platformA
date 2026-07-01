@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using PlatformA.Game.Gomoku.Network;
 using PlatformA.Library.Common;
 using PlatformA.Library.Game.Core;
+using PlatformA.Library.Game.Network;
 using PlatformA.Library.Packets;
 using ProtoPacket = PlatformA.Library.Packets.Packet;
 
@@ -49,7 +50,7 @@ namespace PlatformA.Game.Gomoku.Core
         }
 
         /// <summary>플레이어 입장. 2명이 모이면 게임을 자동 시작합니다.</summary>
-        public new void Enter(GomokuSession session)
+        public override void Enter(GameSession session)
         {
             base.Enter(session);
             if (Sessions.Count == 2)
