@@ -159,7 +159,8 @@ namespace PlatformA.Tests.Game.Gomoku
             {
                 for (int y = 0; y < Board.Size; y++)
                 {
-                    if (x == 0 && y == 0) continue;
+                    if (x == 0 && y == 0)
+                        continue;
                     int phase = (x % 4 + 2 * (y % 4)) % 4;
                     StoneColor color = phase < 2 ? StoneColor.StoneBlack : StoneColor.StoneWhite;
                     board.PlaceStone(x, y, color);
