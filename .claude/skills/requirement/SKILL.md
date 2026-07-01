@@ -74,14 +74,14 @@ task JSON이 없으면 `/plan`을 먼저 실행하라고 안내하고 **중단**
 
 ### 2단계 — 태스크 번호 결정
 
-오늘 날짜로 이미 생성된 `.claude/plan/` 파일 수를 세어 다음 번호를 결정한다.
-`processed/`로 이동된 당일 파일도 포함하여 중복 번호를 방지한다:
+오늘 날짜로 이미 생성된 NNN 명세 파일 수를 세어 다음 번호를 결정한다.
+번호 없는 소스 파일(사용자 제출 입력 파일)은 카운트에서 제외하여 번호 gap을 방지한다:
 
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
 TODAY=$(date +%Y-%m-%d)
-ACTIVE=$(ls "${REPO_ROOT}/.claude/plan/${TODAY}_"*.md 2>/dev/null | wc -l)
-ARCHIVED=$(ls "${REPO_ROOT}/.claude/plan/processed/${TODAY}_"*.md 2>/dev/null | wc -l)
+ACTIVE=$(ls "${REPO_ROOT}/.claude/plan/${TODAY}_[0-9][0-9][0-9]_"*.md 2>/dev/null | wc -l)
+ARCHIVED=$(ls "${REPO_ROOT}/.claude/plan/processed/${TODAY}_[0-9][0-9][0-9]_"*.md 2>/dev/null | wc -l)
 EXISTING=$((ACTIVE + ARCHIVED))
 TASK_NUM=$(printf "%03d" $((EXISTING + 1)))
 ```
