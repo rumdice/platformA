@@ -109,7 +109,7 @@ if [ "$SCENARIO" = "9" ]; then
   echo ""
   echo "▶ [시나리오 9] 기존 서비스 정리 후 재기동..."
   kill_port 7001; kill_port 7002; kill_port 7003
-  kill_port 7777; kill_port 7779
+  kill_port 7777; kill_port 7778
   sleep 2
 
   # 서비스 백그라운드 실행
@@ -133,13 +133,13 @@ if [ "$SCENARIO" = "9" ]; then
     T=$(check_http "https://localhost:7003/healthz")
     M=$(check_http "https://localhost:7002/healthz")
     L=$(check_http "http://localhost:7777/healthz")
-    G=$(check_http "http://localhost:7779/healthz")
+    G=$(check_tcp "localhost" 7778)
     READY=0
     [ "$A" != "000" ] && READY=$((READY+1))
     [ "$T" != "000" ] && READY=$((READY+1))
     [ "$M" != "000" ] && READY=$((READY+1))
     [ "$L" != "000" ] && READY=$((READY+1))
-    [ "$G" != "000" ] && READY=$((READY+1))
+    [ "$G" = "OK" ] && READY=$((READY+1))
     if [ "$READY" -eq 5 ]; then
       echo "✅ 전체 서비스 준비 완료 (${i}*2초)"
       break
@@ -197,7 +197,7 @@ fi
 if [ "$SCENARIO" = "9" ]; then
   echo ""
   echo "▶ [시나리오 9] 백그라운드 서비스 종료 중..."
-  for PORT in 7001 7002 7003 7777 7779; do
+  for PORT in 7001 7002 7003 7777 7778; do
     powershell -c "
       Get-NetTCPConnection -LocalPort $PORT -State Listen -ErrorAction SilentlyContinue |
       ForEach-Object { Stop-Process -Id \$_.OwningProcess -Force -ErrorAction SilentlyContinue }
