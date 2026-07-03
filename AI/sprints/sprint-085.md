@@ -3,7 +3,9 @@ sprint: 85
 title: ELO MMR 기반 매칭 구현
 branch: 2026-07-03_AddEloMmrMatching
 date: 2026-07-03
-status: in-progress
+status: done
+completed: 2026-07-03
+pr: https://github.com/rumdice/platformA/pull/119
 ---
 
 # Sprint #85 — ELO MMR 기반 매칭 구현
@@ -13,15 +15,15 @@ TryMatchAsync를 ELO 레이팅 기반 3단계 범위 매칭(TTL 기반 대기시
 K-factor 감소로 MMR 희석을 방지한다. ELO 통합 테스트 5개 추가.
 
 ## 태스크
-- [ ] `Consts.cs` 상수 4개 추가 (MATCH_RATING_RANGE, MID, WIDE, WAIT_KEY_PREFIX)
-- [ ] `GameMatchService.cs` Lua 스크립트 교체 + TryMatchAsync 3단계 범위 매칭 구현
-- [ ] `GameMatchService.cs` CancelMatchAsync gameType 파라미터 + wait key DEL 추가
-- [ ] `GameMatchService.cs` UpdateMatchResultAsync K-factor 계산 + await 전환
-- [ ] `GameMatchService.cs` UpdateEloRatingsAsync kMultiplier 파라미터 추가
-- [ ] `GameMatchController.cs` CancelMatch에 [FromQuery] gameType 파라미터 추가
-- [ ] `GameMatchControllerTests.cs` ELO 통합 테스트 5개 추가 (28→33개)
-- [ ] `DummyClient` 매칭 재시도 로직 + matchTimeout/avgRatingDiff 리포트 항목 추가
-- [ ] `dotnet test PlatformA.sln -q` 전체 통과 (246 → 251개)
+- [x] `Consts.cs` 상수 4개 추가 (MATCH_RATING_RANGE, MID, WIDE, WAIT_KEY_PREFIX)
+- [x] `GameMatchService.cs` Lua 스크립트 교체 + TryMatchAsync 3단계 범위 매칭 구현
+- [x] `GameMatchService.cs` CancelMatchAsync gameType 파라미터 + wait key DEL 추가
+- [x] `GameMatchService.cs` UpdateMatchResultAsync K-factor 계산 + await 전환
+- [x] `GameMatchService.cs` UpdateEloRatingsAsync kMultiplier 파라미터 추가
+- [x] `GameMatchController.cs` CancelMatch에 [FromQuery] gameType 파라미터 추가
+- [x] `GameMatchControllerTests.cs` ELO 통합 테스트 5개 추가 (28→33개)
+- [x] `DummyClient` 매칭 재시도 로직 + matchTimeout/avgRatingDiff 리포트 항목 추가
+- [x] `dotnet test PlatformA.sln -q` 전체 통과 (246 → 251개)
 
 ## 배경
 현재 TryMatchAsync는 timestamp를 SortedSet score로 사용하는 선착순(FIFO) 매칭.
