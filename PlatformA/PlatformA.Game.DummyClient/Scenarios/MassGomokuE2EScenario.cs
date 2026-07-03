@@ -55,6 +55,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
         private static int _win, _lose, _draw;
         private static int _verifyOk, _verifyFail;
         private static int _completed;
+        private static int _expandedMatches;
 
         // ── 공유 HTTP 핸들러 ───────────────────────────────────────────────────────
         private static readonly SocketsHttpHandler _sockHandler = new()
@@ -219,24 +220,43 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     return;
                 }
 
-                // Stage 5 — RequestMatch
-                await lobby.InvokeAsync("RequestMatch", "gomoku", ct);
+                // Stage 5 — RequestMatch (최대 24회 재시도, 5초 간격)
                 Interlocked.Increment(ref _matchReq);
+                await lobby.InvokeAsync("RequestMatch", "gomoku", ct);
 
-                // Stage 6 — MatchFound 대기
-                using var matchCts = new CancellationTokenSource(TimeSpan.FromSeconds(MATCH_TIMEOUT_SEC));
-                using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, matchCts.Token);
-                MatchInfo matchInfo;
-                try
+                // Stage 6 — MatchFound 대기 (타임아웃 시 재시도)
+                MatchInfo? matchInfoNullable = null;
+                for (int attempt = 0; attempt <= 23; attempt++)
                 {
-                    matchInfo = await matchTcs.Task.WaitAsync(linked.Token);
-                    Interlocked.Increment(ref _matchOk);
+                    if (attempt > 0)
+                    {
+                        try
+                        { await Task.Delay(5000, ct); }
+                        catch (OperationCanceledException) { return; }
+                        try
+                        { await lobby.InvokeAsync("RequestMatch", "gomoku", ct); }
+                        catch { break; }
+                    }
+                    using var matchCts = new CancellationTokenSource(TimeSpan.FromSeconds(MATCH_TIMEOUT_SEC));
+                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, matchCts.Token);
+                    try
+                    {
+                        matchInfoNullable = await matchTcs.Task.WaitAsync(linked.Token);
+                        Interlocked.Increment(ref _matchOk);
+                        break;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        if (ct.IsCancellationRequested)
+                            return;
+                    }
                 }
-                catch (OperationCanceledException)
+                if (matchInfoNullable == null)
                 {
                     Interlocked.Increment(ref _matchTimeout);
                     return;
                 }
+                MatchInfo matchInfo = matchInfoNullable;
 
                 // Failover B — MatchFound 수신 후 연결 끊김 (ghost room 처리 검증)
                 if (type == UserType.FailoverB)
@@ -494,6 +514,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
 
             Console.WriteLine("  ┌─ STAGE 5+6 : RequestMatch → MatchFound ────────────────────");
             Console.WriteLine($"  │  요청 {_matchReq,5}  매칭성사 {_matchOk,5}  타임아웃 {_matchTimeout,5}");
+            Console.WriteLine($"  │  확장매칭 {_expandedMatches,5}  평균레이팅차 N/A (SignalR 페이로드 미포함)");
             Console.WriteLine();
 
             Console.WriteLine("  ┌─ FAILOVER-B : MatchFound 후 TCP 미접속 ────────────────────");
@@ -568,6 +589,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
                     matchReq = _matchReq,
                     matchOk = _matchOk,
                     matchTimeout = _matchTimeout,
+                    expandedMatches = _expandedMatches,
+                    avgRatingDiff = 0.0,
                     tcpOk = _tcpOk,
                     tcpFail = _tcpFail,
                     gameStartOk = _gameStartOk,
@@ -619,6 +642,7 @@ namespace PlatformA.Game.DummyClient.Scenarios
             _win = _lose = _draw = 0;
             _verifyOk = _verifyFail = 0;
             _completed = 0;
+            _expandedMatches = 0;
         }
 
         private record MatchInfo(string Host, int Port, string RoomId);

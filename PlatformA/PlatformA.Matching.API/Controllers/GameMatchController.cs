@@ -31,16 +31,16 @@ namespace PlatformA.Matching.API.Controllers
         }
 
         /// <summary>
-        /// 매칭 취소: 대기열에서 본인을 제거합니다.
+        /// 매칭 취소: gameType별 대기열 + wait key에서 본인을 제거합니다.
         /// </summary>
         [HttpDelete("CancelMatch")]
-        public async Task<IActionResult> CancelMatch()
+        public async Task<IActionResult> CancelMatch([FromQuery] string gameType = "gomoku")
         {
             int playerId = ExtractPlayerId();
             if (playerId <= 0)
                 return Unauthorized(new { Message = "유효하지 않은 토큰입니다." });
 
-            bool removed = await _matchService.RemovePlayerFromQueueAsync(playerId);
+            bool removed = await _matchService.CancelMatchAsync(playerId, gameType);
             return removed
                 ? Ok(new { Message = "매칭이 취소되었습니다." })
                 : NotFound(new { Message = "대기열에서 찾을 수 없습니다." });
