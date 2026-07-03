@@ -18,21 +18,28 @@ namespace PlatformA.Matching.API.Services
         private readonly ILogger<GameMatchService> _logger;
         private readonly IDbContextFactory<DbWebAppContext> _dbFactory;
 
-        // Lua: 원자적 pop-or-enqueue 매칭 스크립트
-        // ARGV[1]=score(timestamp), ARGV[2]=userId
-        // 반환값: 상대 userId 문자열 (매칭 성사) 또는 {} (큐 대기)
-        // POP_TWO_SCRIPT 방식(2명 pop 후 C# ZADD)은 동시 요청 시 레이스 조건으로
-        // 모든 유저가 빈 큐를 보고 큐에만 쌓혀 매칭이 발생하지 않는 버그가 있었음.
-        private const string MATCH_OR_QUEUE_SCRIPT = @"
-local candidate = redis.call('ZPOPMIN', KEYS[1], 1)
-if #candidate >= 2 then
-    if candidate[1] == ARGV[2] then
-        redis.call('ZADD', KEYS[1], candidate[2], candidate[1])
-        return {}
+        // KEYS[1]=queueKey, ARGV[1]=userId, ARGV[2]=minScore, ARGV[3]=maxScore
+        // 범위 내 자신을 제외한 첫 번째 상대를 원자적으로 pop.
+        private const string MATCH_STRICT_SCRIPT = @"
+local candidates = redis.call('ZRANGEBYSCORE', KEYS[1], ARGV[2], ARGV[3])
+for i = 1, #candidates do
+    if candidates[i] ~= ARGV[1] then
+        redis.call('ZREM', KEYS[1], candidates[i])
+        return {candidates[i]}
     end
+end
+return {}";
+
+        // KEYS[1]=queueKey, ARGV[1]=userId
+        // ZPOPMIN fallback: 자신이 pop되면 원복.
+        private const string MATCH_FALLBACK_SCRIPT = @"
+local candidate = redis.call('ZPOPMIN', KEYS[1], 1)
+if #candidate >= 2 and candidate[1] ~= ARGV[1] then
     return {candidate[1]}
 end
-redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+if #candidate >= 2 then
+    redis.call('ZADD', KEYS[1], candidate[2], candidate[1])
+end
 return {}";
 
         public GameMatchService(
@@ -90,80 +97,196 @@ return {}";
 
         /// <summary>
         /// Lobby 서버가 호출하는 즉시 매칭 시도 메서드.
-        /// 같은 gameType의 대기열에 상대가 있으면 즉시 매칭하고 게임 서버 접속 정보를 반환합니다.
-        /// 상대가 없으면 대기열에 추가 후 null을 반환합니다.
+        /// ELO 레이팅 기반 3단계 범위 매칭: Stage1(±200) → Stage2/3(TTL 기반 ±400/±800) → Fallback(ZPOPMIN).
+        /// 상대를 찾지 못하면 대기열에 추가 후 null을 반환합니다.
         /// </summary>
         public async Task<MatchResultDto?> TryMatchAsync(int userId, string gameType)
         {
             string queueKey = $"{Consts.MATCH_QUEUE_KEY}:{gameType}";
-            double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            string waitKey = $"{Consts.MATCH_WAIT_KEY_PREFIX}{gameType}:{userId}";
+            int selfRating = await GetPlayerRatingAsync(userId);
 
-            // 원자적 pop-or-enqueue: 상대가 있으면 즉시 매칭, 없으면 큐에 추가
-            // 스크립트 내부에서 ZADD까지 처리하므로 C# ZADD 분리 없음 (레이스 조건 해결)
+            // Stage 1: 즉시 ±200 엄격 범위
+            int? opponentId = await TryStrictMatchInternalAsync(queueKey, userId, selfRating, Consts.MATCH_RATING_RANGE);
+            if (opponentId.HasValue)
+                return await FinalizeMatchAsync(userId, opponentId.Value, gameType, selfRating);
+
+            // Stage 2/3: 대기 시간 기반 확장 범위 (30s→±400, 60s→±800, 90s→ZPOPMIN)
+            opponentId = await TryExpandedMatchAsync(queueKey, gameType, userId, selfRating);
+            if (opponentId.HasValue)
+                return await FinalizeMatchAsync(userId, opponentId.Value, gameType, selfRating);
+
+            // 매칭 실패 → 대기열 진입
+            await _redisManager.ExecuteAsync(db =>
+                db.SortedSetAddAsync(queueKey, userId, selfRating));
+            await _redisManager.ExecuteAsync(db =>
+                db.StringSetAsync(waitKey, "1",
+                    TimeSpan.FromSeconds(Consts.MATCH_TIMEOUT_SECONDS), When.NotExists));
+
+            _logger.LogInformation("[Matching] 대기열 진입 — User:{U} Rating:{R} gameType:{T}",
+                userId, selfRating, gameType);
+            return null;
+        }
+
+        /// <summary>MATCH_STRICT_SCRIPT: ZRANGEBYSCORE 범위 내 원자적 매칭.</summary>
+        private async Task<int?> TryStrictMatchInternalAsync(
+            string queueKey, int userId, int selfRating, int range)
+        {
+            double minScore = selfRating - range;
+            double maxScore = selfRating + range;
+
             var rawResult = await _redisManager.ExecuteAsync(db =>
                 db.ScriptEvaluateAsync(
-                    MATCH_OR_QUEUE_SCRIPT,
+                    MATCH_STRICT_SCRIPT,
                     new RedisKey[] { queueKey },
-                    new RedisValue[] { score, userId }));
+                    new RedisValue[] { userId, minScore, maxScore }));
+
             var popResult = (RedisValue[]?)rawResult ?? Array.Empty<RedisValue>();
-
             if (popResult.Length >= 1 && int.TryParse((string?)popResult[0], out int opponentId))
+                return opponentId;
+
+            return null;
+        }
+
+        /// <summary>
+        /// 큐 전체 순회 후 각 후보의 wait key TTL로 경과 시간을 계산하여 확장 범위 매칭 시도.
+        /// 90s+ 후보가 있으면 ZPOPMIN fallback 사용.
+        /// </summary>
+        private async Task<int?> TryExpandedMatchAsync(
+            string queueKey, string gameType, int userId, int selfRating)
+        {
+            var allMembers = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetRangeByRankWithScoresAsync(queueKey));
+
+            if (allMembers == null || allMembers.Length == 0)
+                return null;
+
+            bool hasFallbackCandidate = false;
+
+            foreach (var entry in allMembers)
             {
-                // 상대 발견 — 즉시 매칭
-                string roomId = Guid.NewGuid().ToString("N")[..12];
-                string host = GetGameServerHost(gameType);
-                int port = GetGameServerPort(gameType);
-                int p1Rating = await GetPlayerRatingAsync(userId);
-                int p2Rating = await GetPlayerRatingAsync(opponentId);
+                if (!int.TryParse((string?)entry.Element, out int candidateId))
+                    continue;
+                if (candidateId == userId)
+                    continue;
 
-                await RecordMatchStartAsync(userId, opponentId, gameType, roomId, p1Rating, p2Rating);
+                string candidateWaitKey = $"{Consts.MATCH_WAIT_KEY_PREFIX}{gameType}:{candidateId}";
+                TimeSpan? ttl = await _redisManager.ExecuteAsync(db =>
+                    db.KeyTimeToLiveAsync(candidateWaitKey));
 
-                // 두 플레이어 모두 game_transfer 티켓 발급
-                string matchJson = System.Text.Json.JsonSerializer.Serialize(
-                    new { roomId, host, port, gameType });
+                if (ttl == null || ttl.Value.TotalSeconds <= 0)
+                    continue; // wait key 만료 (자동 타임아웃)
 
-                await _redisManager.ExecuteAsync(db =>
-                    db.StringSetAsync(
-                        $"{Consts.GAME_TRANSFER_KEY_PREFIX}{opponentId}",
-                        matchJson,
-                        TimeSpan.FromMinutes(5)));
+                int elapsed = Consts.MATCH_TIMEOUT_SECONDS - (int)ttl.Value.TotalSeconds;
 
-                await _redisManager.ExecuteAsync(db =>
-                    db.StringSetAsync(
-                        $"{Consts.GAME_TRANSFER_KEY_PREFIX}{userId}",
-                        matchJson,
-                        TimeSpan.FromMinutes(5)));
-
-                // 두 플레이어에게 Redis Pub/Sub으로 매칭 알림 (Game.Lobby SignalR push용)
-                string notifyOpponent = System.Text.Json.JsonSerializer.Serialize(
-                    new { userId = opponentId, host, port, roomId, gameType });
-                string notifySelf = System.Text.Json.JsonSerializer.Serialize(
-                    new { userId, host, port, roomId, gameType });
-
-                try
+                if (elapsed >= 90)
                 {
-                    await _redisManager.GetSubscriber().PublishAsync(
-                        RedisChannel.Literal(Consts.MATCH_FOUND_CHANNEL), notifyOpponent);
-                    await _redisManager.GetSubscriber().PublishAsync(
-                        RedisChannel.Literal(Consts.MATCH_FOUND_CHANNEL), notifySelf);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "[Matching] MatchFound publish 실패 — User:{UserId}, Opponent:{OpponentId}, Room:{RoomId}, GameType:{GameType}",
-                        userId, opponentId, roomId, gameType);
+                    hasFallbackCandidate = true;
+                    continue;
                 }
 
-                _logger.LogInformation("[Matching] 즉시 매칭 성사 — User:{U} vs User:{O} room:{R} type:{T}",
-                    userId, opponentId, roomId, gameType);
+                int range;
+                if (elapsed >= 60)
+                    range = Consts.MATCH_RATING_RANGE_WIDE; // ±800
+                else if (elapsed >= 30)
+                    range = Consts.MATCH_RATING_RANGE_MID;  // ±400
+                else
+                    continue; // Stage 1 범위 미확장
 
-                return new MatchResultDto { Host = host, Port = port, RoomId = roomId };
+                if (Math.Abs(entry.Score - selfRating) <= range)
+                {
+                    bool removed = await _redisManager.ExecuteAsync(db =>
+                        db.SortedSetRemoveAsync(queueKey, candidateId));
+                    if (removed)
+                        return candidateId;
+                }
             }
 
-            // 상대 없음 — 스크립트가 이미 큐에 추가함
-            _logger.LogInformation("[Matching] 대기열 진입 — User:{U} gameType:{T}", userId, gameType);
+            // 90s+ 후보가 있으면 ZPOPMIN fallback
+            if (hasFallbackCandidate)
+            {
+                var rawResult = await _redisManager.ExecuteAsync(db =>
+                    db.ScriptEvaluateAsync(
+                        MATCH_FALLBACK_SCRIPT,
+                        new RedisKey[] { queueKey },
+                        new RedisValue[] { userId }));
+
+                var popResult = (RedisValue[]?)rawResult ?? Array.Empty<RedisValue>();
+                if (popResult.Length >= 1 && int.TryParse((string?)popResult[0], out int fallbackId))
+                    return fallbackId;
+            }
+
             return null;
+        }
+
+        /// <summary>
+        /// 매칭 성사 후처리: wait key 정리, MatchRecord 생성, game_transfer 발급, SignalR 알림.
+        /// </summary>
+        private async Task<MatchResultDto?> FinalizeMatchAsync(
+            int userId, int opponentId, string gameType, int selfRating)
+        {
+            // 상대의 wait key 삭제 (자동 만료 전 명시적 제거)
+            string opponentWaitKey = $"{Consts.MATCH_WAIT_KEY_PREFIX}{gameType}:{opponentId}";
+            await _redisManager.ExecuteAsync(db => db.KeyDeleteAsync(opponentWaitKey));
+
+            string roomId = Guid.NewGuid().ToString("N")[..12];
+            string host = GetGameServerHost(gameType);
+            int port = GetGameServerPort(gameType);
+            int opponentRating = await GetPlayerRatingAsync(opponentId);
+
+            await RecordMatchStartAsync(userId, opponentId, gameType, roomId, selfRating, opponentRating);
+
+            string matchJson = System.Text.Json.JsonSerializer.Serialize(
+                new { roomId, host, port, gameType });
+
+            await _redisManager.ExecuteAsync(db =>
+                db.StringSetAsync(
+                    $"{Consts.GAME_TRANSFER_KEY_PREFIX}{opponentId}",
+                    matchJson,
+                    TimeSpan.FromMinutes(5)));
+
+            await _redisManager.ExecuteAsync(db =>
+                db.StringSetAsync(
+                    $"{Consts.GAME_TRANSFER_KEY_PREFIX}{userId}",
+                    matchJson,
+                    TimeSpan.FromMinutes(5)));
+
+            string notifyOpponent = System.Text.Json.JsonSerializer.Serialize(
+                new { userId = opponentId, host, port, roomId, gameType });
+            string notifySelf = System.Text.Json.JsonSerializer.Serialize(
+                new { userId, host, port, roomId, gameType });
+
+            try
+            {
+                await _redisManager.GetSubscriber().PublishAsync(
+                    RedisChannel.Literal(Consts.MATCH_FOUND_CHANNEL), notifyOpponent);
+                await _redisManager.GetSubscriber().PublishAsync(
+                    RedisChannel.Literal(Consts.MATCH_FOUND_CHANNEL), notifySelf);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "[Matching] MatchFound publish 실패 — User:{UserId}, Opponent:{OpponentId}, Room:{RoomId}",
+                    userId, opponentId, roomId);
+            }
+
+            _logger.LogInformation(
+                "[Matching] 매칭 성사 — User:{U}(R:{UR}) vs User:{O}(R:{OR}) room:{R} type:{T}",
+                userId, selfRating, opponentId, opponentRating, roomId, gameType);
+
+            return new MatchResultDto { Host = host, Port = port, RoomId = roomId };
+        }
+
+        /// <summary>gameType별 큐 + wait key에서 유저를 제거합니다. true이면 실제로 제거됨.</summary>
+        public async Task<bool> CancelMatchAsync(int userId, string gameType)
+        {
+            string queueKey = $"{Consts.MATCH_QUEUE_KEY}:{gameType}";
+            string waitKey = $"{Consts.MATCH_WAIT_KEY_PREFIX}{gameType}:{userId}";
+            bool removed = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetRemoveAsync(queueKey, userId));
+            await _redisManager.ExecuteAsync(db => db.KeyDeleteAsync(waitKey));
+            return removed;
         }
 
         /// <summary>게임 종료 후 MatchRecord에 결과를 업데이트하고 ELO 레이팅을 갱신합니다.</summary>
@@ -192,8 +315,17 @@ return {}";
                     "[Matching] MatchRecord 결과 업데이트 — RoomId: {RoomId}, WinnerId: {WinnerId}, Reason: {Reason}",
                     roomId, winnerId, reason);
 
-                // ELO 레이팅 갱신 (무승부 winnerId=0 포함)
-                _ = UpdateEloRatingsAsync(record.Player1Id, record.Player2Id, winnerId);
+                // 레이팅 차이에 따라 K-factor를 감소시켜 광범위 매칭 시 MMR 희석 방지
+                int ratingDiff = Math.Abs(record.Player1Rating - record.Player2Rating);
+                double kMultiplier = ratingDiff switch
+                {
+                    <= 200 => 1.0,
+                    <= 400 => 0.5,
+                    <= 800 => 0.25,
+                    _ => 0.125
+                };
+
+                await UpdateEloRatingsAsync(record.Player1Id, record.Player2Id, winnerId, kMultiplier);
                 return true;
             }
             catch (Exception ex)
@@ -206,8 +338,10 @@ return {}";
         /// <summary>
         /// ELO 레이팅 계산 및 DB/Redis 갱신.
         /// K=32 (300전 미만), K=16 (300전 이상). winnerId=0은 무승부.
+        /// kMultiplier: 광범위 매칭일수록 K를 줄여 MMR 희석 방지.
         /// </summary>
-        private async Task UpdateEloRatingsAsync(int player1Id, int player2Id, int winnerId)
+        private async Task UpdateEloRatingsAsync(
+            int player1Id, int player2Id, int winnerId, double kMultiplier = 1.0)
         {
             try
             {
@@ -220,8 +354,8 @@ return {}";
 
                 int totalGames1 = r1.WinCount + r1.LoseCount + r1.DrawCount;
                 int totalGames2 = r2.WinCount + r2.LoseCount + r2.DrawCount;
-                double k1 = totalGames1 < 300 ? 32.0 : 16.0;
-                double k2 = totalGames2 < 300 ? 32.0 : 16.0;
+                double k1 = (totalGames1 < 300 ? 32.0 : 16.0) * kMultiplier;
+                double k2 = (totalGames2 < 300 ? 32.0 : 16.0) * kMultiplier;
 
                 double e1 = 1.0 / (1.0 + Math.Pow(10.0, (r2.Rating - r1.Rating) / 400.0));
                 double e2 = 1.0 - e1;
@@ -259,9 +393,8 @@ return {}";
                         TimeSpan.FromHours(1)));
 
                 _logger.LogInformation(
-                    "[Matching] ELO 갱신 — P1:{P1} {R1:.0}→{NR1:.0}, P2:{P2} {R2:.0}→{NR2:.0}",
-                    player1Id, r1.Rating - k1 * (s1 - e1), r1.Rating,
-                    player2Id, r2.Rating - k2 * (s2 - e2), r2.Rating);
+                    "[Matching] ELO 갱신 (K×{KM:.2f}) — P1:{P1} →{NR1:.0}, P2:{P2} →{NR2:.0}",
+                    kMultiplier, player1Id, r1.Rating, player2Id, r2.Rating);
             }
             catch (Exception ex)
             {

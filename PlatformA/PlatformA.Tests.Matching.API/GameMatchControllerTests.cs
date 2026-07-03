@@ -583,5 +583,245 @@ namespace PlatformA.Tests.Matching.API
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        // ── ELO 통합 테스트 (UpdateEloRatingsAsync awaited) ───────────────────
+
+        [Fact]
+        public async Task ReportMatchResult_Player1Wins_IncreasesPlayer1Rating()
+        {
+            const int p1Id = 40001;
+            const int p2Id = 40002;
+            string roomId = Guid.NewGuid().ToString("N")[..12];
+
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = p1Id, Username = $"elo_p{p1Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = p2Id, Username = $"elo_p{p2Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow }
+                );
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = p1Id,
+                    Player2Id = p2Id,
+                    Status = MatchStatus.InProgress,
+                    GameType = "gomoku",
+                    RoomId = roomId,
+                    Player1Rating = 1000,
+                    Player2Rating = 1000, // diff=0 → kMultiplier=1.0
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = roomId, WinnerId = p1Id, Reason = "FiveInRow" });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                var r1 = await db.PlayerRatings.FindAsync(p1Id);
+                var r2 = await db.PlayerRatings.FindAsync(p2Id);
+                Assert.NotNull(r1);
+                Assert.NotNull(r2);
+                Assert.True(r1!.Rating > 1000, "P1 승리 후 레이팅이 증가해야 합니다.");
+                Assert.True(r2!.Rating < 1000, "P2 패배 후 레이팅이 감소해야 합니다.");
+                Assert.Equal(1, r1.WinCount);
+                Assert.Equal(1, r2.LoseCount);
+            }
+        }
+
+        [Fact]
+        public async Task ReportMatchResult_Player2Wins_IncreasesPlayer2Rating()
+        {
+            const int p1Id = 40003;
+            const int p2Id = 40004;
+            string roomId = Guid.NewGuid().ToString("N")[..12];
+
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = p1Id, Username = $"elo_p{p1Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = p2Id, Username = $"elo_p{p2Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow }
+                );
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = p1Id,
+                    Player2Id = p2Id,
+                    Status = MatchStatus.InProgress,
+                    GameType = "gomoku",
+                    RoomId = roomId,
+                    Player1Rating = 1000,
+                    Player2Rating = 1000,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = roomId, WinnerId = p2Id, Reason = "FiveInRow" });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                var r1 = await db.PlayerRatings.FindAsync(p1Id);
+                var r2 = await db.PlayerRatings.FindAsync(p2Id);
+                Assert.NotNull(r1);
+                Assert.NotNull(r2);
+                Assert.True(r1!.Rating < 1000, "P1 패배 후 레이팅이 감소해야 합니다.");
+                Assert.True(r2!.Rating > 1000, "P2 승리 후 레이팅이 증가해야 합니다.");
+                Assert.Equal(1, r1.LoseCount);
+                Assert.Equal(1, r2.WinCount);
+            }
+        }
+
+        [Fact]
+        public async Task ReportMatchResult_Draw_BothRatingsAdjustedAndDrawCountIncremented()
+        {
+            const int p1Id = 40005;
+            const int p2Id = 40006;
+            string roomId = Guid.NewGuid().ToString("N")[..12];
+
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = p1Id, Username = $"elo_p{p1Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = p2Id, Username = $"elo_p{p2Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow }
+                );
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = p1Id,
+                    Player2Id = p2Id,
+                    Status = MatchStatus.InProgress,
+                    GameType = "gomoku",
+                    RoomId = roomId,
+                    Player1Rating = 1000,
+                    Player2Rating = 1000,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            // WinnerId=0 → 무승부
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = roomId, WinnerId = 0, Reason = "FullBoard" });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                var r1 = await db.PlayerRatings.FindAsync(p1Id);
+                var r2 = await db.PlayerRatings.FindAsync(p2Id);
+                Assert.NotNull(r1);
+                Assert.NotNull(r2);
+                Assert.Equal(1, r1!.DrawCount);
+                Assert.Equal(1, r2!.DrawCount);
+                // 동일 레이팅 무승부 → ELO 변동 없음
+                Assert.Equal(1000.0, r1.Rating, precision: 1);
+                Assert.Equal(1000.0, r2.Rating, precision: 1);
+            }
+        }
+
+        [Fact]
+        public async Task ReportMatchResult_LargeRatingDiff_SmallerEloChange()
+        {
+            // ratingDiff=600 → kMultiplier=0.25 → ELO 변동이 정상 매칭보다 4배 작아야 함
+            const int p1Id = 40007;
+            const int p2Id = 40008;
+            string roomId = Guid.NewGuid().ToString("N")[..12];
+
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = p1Id, Username = $"elo_p{p1Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = p2Id, Username = $"elo_p{p2Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow }
+                );
+                // P2 레이팅 1600 사전 시드
+                db.PlayerRatings.Add(new PlayerRating
+                {
+                    PlayerId = p2Id,
+                    Rating = 1600.0,
+                    UpdatedAt = DateTime.UtcNow
+                });
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = p1Id,
+                    Player2Id = p2Id,
+                    Status = MatchStatus.InProgress,
+                    GameType = "gomoku",
+                    RoomId = roomId,
+                    Player1Rating = 1000,
+                    Player2Rating = 1600, // diff=600 → kMultiplier=0.25
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = roomId, WinnerId = p1Id, Reason = "FiveInRow" });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                var r1 = await db.PlayerRatings.FindAsync(p1Id);
+                var r2 = await db.PlayerRatings.FindAsync(p2Id);
+                Assert.NotNull(r1);
+                Assert.NotNull(r2);
+                // kMultiplier=0.25: P1(저레이팅) 업셋 승리이지만 K가 1/4로 줄었으므로 변동 < 15
+                double p1Change = r1!.Rating - 1000.0;
+                Assert.True(p1Change > 0 && p1Change < 15.0,
+                    $"레이팅 변동 {p1Change:.2f}은 kMultiplier=0.25 적용으로 15 미만이어야 합니다.");
+            }
+        }
+
+        [Fact]
+        public async Task ReportMatchResult_NewPlayer_WinCountAndRatingUpdated()
+        {
+            // PlayerRating DB 기록 없는 신규 플레이어 → 기본 1000에서 시작, 승리 후 WinCount=1
+            const int p1Id = 40009;
+            const int p2Id = 40010;
+            string roomId = Guid.NewGuid().ToString("N")[..12];
+
+            var dbFactory = _factory.Services.GetRequiredService<IDbContextFactory<DbWebAppContext>>();
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                db.Players.AddRange(
+                    new Player { Id = p1Id, Username = $"elo_p{p1Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow },
+                    new Player { Id = p2Id, Username = $"elo_p{p2Id}", PasswordHash = "h", CreatedAt = DateTime.UtcNow }
+                );
+                // PlayerRating 시드 없음 — 신규 플레이어 (기본 1000 적용)
+                db.MatchRecords.Add(new MatchRecord
+                {
+                    Player1Id = p1Id,
+                    Player2Id = p2Id,
+                    Status = MatchStatus.InProgress,
+                    GameType = "gomoku",
+                    RoomId = roomId,
+                    Player1Rating = 1000,
+                    Player2Rating = 1000,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var response = await _client.PostAsJsonAsync("/api/gamematch/result",
+                new { RoomId = roomId, WinnerId = p1Id, Reason = "FiveInRow" });
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            await using (var db = dbFactory.CreateDbContext())
+            {
+                var r1 = await db.PlayerRatings.FindAsync(p1Id);
+                Assert.NotNull(r1);
+                Assert.Equal(1, r1!.WinCount);
+                Assert.True(r1.Rating > 1000, "신규 플레이어 첫 승리 후 레이팅이 증가해야 합니다.");
+            }
+        }
     }
 }

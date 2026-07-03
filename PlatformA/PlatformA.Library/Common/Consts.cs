@@ -106,9 +106,15 @@ namespace PlatformA.Library.Common
             Environment.GetEnvironmentVariable("MATCH_HUB_URL")
             ?? "https://localhost:7002/hubs/matching";
 
-        // Redis Sorted Set 기반 매칭 대기열 (score = 입장 시각 UnixMs, 타임아웃 추적 가능)
+        // Redis Sorted Set 기반 매칭 대기열 (score = ELO 레이팅, TTL wait key로 대기 시간 추적)
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
         public const int MATCH_TIMEOUT_SECONDS = 120; // 2분 초과 시 MatchTimeout 이벤트 push
+
+        // ELO 기반 범위 매칭 — 대기 시간 경과에 따라 단계적 범위 확장
+        public const int MATCH_RATING_RANGE = 200;       // Stage 1: 즉시 (±200)
+        public const int MATCH_RATING_RANGE_MID = 400;   // Stage 2: 30s 경과 (±400)
+        public const int MATCH_RATING_RANGE_WIDE = 800;  // Stage 3: 60s 경과 (±800)
+        public const string MATCH_WAIT_KEY_PREFIX = "queue:wait:"; // TTL wait key prefix
 
         // 매칭 성사 알림 채널 — Matching.API publish → Game.Lobby MatchNotificationService subscribe
         // 메시지 포맷: { "userId": int, "host": string, "port": int, "roomId": string, "gameType": string }
