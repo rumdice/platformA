@@ -87,12 +87,23 @@ return {}";
                 db.SortedSetLengthAsync(Consts.MATCH_QUEUE_KEY));
         }
 
-        /// <summary>플레이어 MMR을 Redis에서 조회합니다. 없으면 기본값(1000)을 반환합니다.</summary>
+        /// <summary>플레이어 MMR을 조회합니다. Redis hit → 즉시 반환. Redis miss → DB fallback 후 재캐싱. DB miss → 기본값(1000).</summary>
         public async Task<int> GetPlayerRatingAsync(int userId)
         {
             string ratingKey = $"{Consts.PLAYER_RATING_KEY_PREFIX}{userId}";
             string? val = await _redisManager.ExecuteAsync(db => db.StringGetAsync(ratingKey));
-            return int.TryParse(val, out int rating) ? rating : Consts.DEFAULT_PLAYER_RATING;
+            if (int.TryParse(val, out int cachedRating))
+                return cachedRating;
+
+            await using var dbContext = await _dbFactory.CreateDbContextAsync();
+            PlayerRating? playerRating = await dbContext.PlayerRatings.FindAsync(userId);
+            if (playerRating == null)
+                return Consts.DEFAULT_PLAYER_RATING;
+
+            int rating = (int)playerRating.Rating;
+            await _redisManager.ExecuteAsync(db =>
+                db.StringSetAsync(ratingKey, rating.ToString(), TimeSpan.FromHours(1)));
+            return rating;
         }
 
         /// <summary>
