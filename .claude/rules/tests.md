@@ -10,10 +10,11 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 - 한국어 네이밍 금지 — 모두 영어로 작성
 
 ## 통합 테스트 구조 (컨트롤러 테스트)
-- `IClassFixture<TFactory>` 패턴 필수
+- `IClassFixture<TFactory>` 패턴 필수 (단일 클래스) / `ICollectionFixture<TFactory>` + `[Collection]` (다중 클래스가 동일 팩토리 공유 시)
 - 팩토리 클래스는 `Helpers/` 디렉토리에 위치
 - `WebApplicationFactoryClientOptions { AllowAutoRedirect = false }` — 302 직접 검증 시 필수
 - 각 테스트 메서드는 독립적이어야 함 (테스트 간 상태 공유 금지)
+- **RedisManager.Instance는 프로세스 단위 싱글톤**: 동일 API 프로젝트를 대상으로 두 개 이상의 `WebApplicationFactory`를 생성하면 각 팩토리가 `_redis` 필드를 덮어써 Mock 오염이 발생한다. 반드시 `[CollectionDefinition]` + `[Collection]` + `ICollectionFixture`로 하나의 팩토리 인스턴스만 유지할 것
 
 ## Redis Mock 규칙
 - Auth.API / Ticketing.API / Matching.API: Reflection 주입 패턴 (`FieldInfo.SetValue`) — `_redis`, `_pipeline` 필드
@@ -46,6 +47,6 @@ globs: ["PlatformA/PlatformA.Tests.*/**"]
 | `PlatformA.Tests.Auth.API` | net10.0 | 24 | Reflection 주입 | InMemory SQLite |
 | `PlatformA.Tests.Utils.API` | net10.0 | 32 | 직접 교체 | InMemory SQLite |
 | `PlatformA.Tests.Ticketing.API` | net10.0 | 21 | Reflection 주입 | 없음 |
-| `PlatformA.Tests.Matching.API` | net10.0 | 28 | Reflection 주입 | InMemory EF Core |
+| `PlatformA.Tests.Matching.API` | net10.0 | 37 | Reflection 주입 | InMemory EF Core |
 | `PlatformA.Tests.Game.Gomoku` | net10.0 | 67 | - | - |
 | `PlatformA.Tests.Game.Lobby` | net10.0 | 74 | — | — |
