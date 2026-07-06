@@ -13,9 +13,9 @@ Redis miss 시 기본값 1000 대신 DB PlayerRatings 테이블을 조회하여 
 DB hit 시 Redis에 1시간 TTL로 재캐싱한다. ELO/MMR 매칭 신뢰도 안정화.
 
 ## 태스크
-- [ ] `GameMatchService.GetPlayerRatingAsync` DB fallback 추가 (Redis hit → 즉시 반환, Redis miss → DB 조회 → 재캐싱 → 반환, DB miss → 1000)
-- [ ] 테스트 4개 추가 (Redis hit, Redis miss+DB hit, DB fallback 후 재캐싱 확인, DB miss 기본값)
-- [ ] `dotnet test PlatformA.sln -q` 전체 통과
+- [x] `GameMatchService.GetPlayerRatingAsync` DB fallback 추가 (Redis hit → 즉시 반환, Redis miss → DB 조회 → 재캐싱 → 반환, DB miss → 1000)
+- [x] 테스트 4개 추가 (Redis hit, Redis miss+DB hit, DB fallback 후 재캐싱 확인, DB miss 기본값)
+- [x] `dotnet test PlatformA.sln -q` 전체 통과
 
 ## 배경
 현재 GetPlayerRatingAsync는 Redis miss 시 DB를 조회하지 않고 DEFAULT_PLAYER_RATING(1000)을 반환한다.

@@ -117,12 +117,18 @@ namespace PlatformA.Tests.Matching.API
             bool recacheCalled = _factory.MockRedisDb.Invocations
                 .Any(invocation =>
                 {
-                    if (invocation.Method.Name != "StringSetAsync") return false;
-                    if (invocation.Arguments.Count < 3) return false;
-                    if (invocation.Arguments[0] is not RedisKey key) return false;
-                    if (key.ToString() != "player:rating:50003") return false;
-                    if (invocation.Arguments[1] is not RedisValue val) return false;
-                    if (val.ToString() != "1420") return false;
+                    if (invocation.Method.Name != "StringSetAsync")
+                        return false;
+                    if (invocation.Arguments.Count < 3)
+                        return false;
+                    if (invocation.Arguments[0] is not RedisKey key)
+                        return false;
+                    if (key.ToString() != "player:rating:50003")
+                        return false;
+                    if (invocation.Arguments[1] is not RedisValue val)
+                        return false;
+                    if (val.ToString() != "1420")
+                        return false;
                     // Expiration(1h) → ToString() == "EX 3600"
                     var expiryStr = invocation.Arguments[2]?.ToString() ?? string.Empty;
                     return expiryStr == "EX 3600";
