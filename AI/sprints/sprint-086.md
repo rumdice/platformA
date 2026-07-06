@@ -3,7 +3,9 @@ sprint: 86
 title: GetPlayerRatingAsync DB Fallback
 branch: 2026-07-06_RatingDbFallback
 date: 2026-07-06
-status: in-progress
+status: done
+completed: 2026-07-06
+pr: https://github.com/rumdice/platformA/pull/120
 ---
 
 # Sprint #86 — GetPlayerRatingAsync DB Fallback
