@@ -14,7 +14,11 @@ using StackExchange.Redis;
 
 namespace PlatformA.Tests.Matching.API
 {
-    public class GameMatchControllerTests : IClassFixture<MatchingTestWebAppFactory>
+    [CollectionDefinition("MatchingApiCollection")]
+    public class MatchingApiCollection : ICollectionFixture<MatchingTestWebAppFactory> { }
+
+    [Collection("MatchingApiCollection")]
+    public class GameMatchControllerTests
     {
         private readonly MatchingTestWebAppFactory _factory;
         private readonly HttpClient _client;
