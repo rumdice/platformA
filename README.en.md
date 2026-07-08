@@ -8,7 +8,7 @@
 
 **High-performance distributed multiplayer game backend built on .NET 10.**
 
-- **ELO-based matchmaking** with 3-stage range expansion (±200 → ±400 → ±800) and K-factor dampening
+- **ELO-based matchmaking** with 3-stage range expansion (±200 → ±400 → ±800) and K-factor dampening to prevent MMR dilution
 - **Redis Cluster** (3 master + 3 replica) for distributed state, rate limiting, and atomic Lua operations
 - **Dual-protocol game server**: REST/SignalR for lobby & matchmaking, TCP Protobuf for real-time gameplay
 
@@ -20,11 +20,11 @@
 flowchart LR
     Client(["Client / DummyClient"])
 
-    subgraph API["API Layer (HTTPS)"]
-        Auth["Auth API\n:7001"]
-        Ticket["Ticketing API\n:7003"]
-        Match["Matching API\n:7002"]
-        Utils["Utils API\n:7004"]
+    subgraph API["API Layer"]
+        Auth["Auth API\n:7001 HTTPS REST"]
+        Ticket["Ticketing API\n:7003 REST + SignalR"]
+        Match["Matching API\n:7002 REST + SignalR"]
+        Utils["Utils API\n:7004 HTTPS REST"]
     end
 
     subgraph Game["Game Layer"]
@@ -38,17 +38,39 @@ flowchart LR
         SQLite[("SQLite\nUtils only")]
     end
 
-    Client -->|JWT| Auth
-    Client -->|Queue ticket| Ticket
-    Client -->|Match request| Match
-    Client -->|WebSocket| Lobby
-    Lobby -->|Match found| Gomoku
-    Client -->|TCP Binary| Gomoku
+    Client -->|Login / JWT issuance| Auth
+    Client -->|Queue ticket request| Ticket
+    Client <-->|JWT-based WebSocket| Lobby
 
-    Auth & Ticket & Match --> Redis
-    Auth & Match --> MySQL
+    Lobby -->|Match request · cancel · status| Match
+    Match -->|MatchFound Publish| Redis
+    Redis -->|Match result Subscribe| Lobby
+    Lobby -->|host · port · roomId| Client
+
+    Client -->|TCP connect\nJWT + roomId| Gomoku
+    Gomoku -->|Game start · result report| Match
+
+    Auth --> Redis
+    Auth --> MySQL
     Ticket --> Redis
+    Match --> Redis
+    Match --> MySQL
+    Gomoku --> Redis
     Utils --> SQLite
+```
+
+### Main User Flow
+
+```text
+Authenticate
+→ Join queue
+→ Connect to Lobby
+→ Request match via Matching API
+→ Receive MatchFound notification
+→ Get game server connection info
+→ Connect to Gomoku TCP server
+→ Play game
+→ Report game result
 ```
 
 ---
@@ -57,10 +79,10 @@ flowchart LR
 
 | Service | Port | Protocol | Role |
 |---------|------|----------|------|
-| **Auth API** | 7001 | HTTPS REST | JWT issuance & refresh, BCrypt auth, auto-register |
-| **Ticketing API** | 7003 | HTTPS REST + SignalR | Queue management (max 10,000), entry tickets |
-| **Matching API** | 7002 | HTTPS REST + SignalR | 1v1 ELO matchmaking, match records, result reporting |
-| **Game.Lobby** | 7777 | HTTP + SignalR | Lobby hub, match requests, user presence |
+| **Auth API** | 7001 | HTTPS REST | JWT issuance & refresh, BCrypt auth, auto-register new users |
+| **Ticketing API** | 7003 | HTTPS REST + SignalR | Queue management, entry ticket issuance |
+| **Matching API** | 7002 | HTTPS REST + SignalR | 1v1 ELO matchmaking, match records, game start & result reporting |
+| **Game.Lobby** | 7777 | HTTP + SignalR | Lobby hub, match request relay, user presence, MatchFound delivery |
 | **Game.Gomoku** | 7778 | TCP Binary (Protobuf) | Real-time Gomoku PvP game server |
 | **Utils API** | 7004 | HTTPS REST | URL shortening (Snowflake + Base62), click analytics |
 
@@ -73,14 +95,16 @@ flowchart LR
 | **Runtime** | .NET 10.0 (C#) | — |
 | **Database** | MariaDB/MySQL (EF Core) · SQLite | `Pomelo.EntityFrameworkCore.MySql` · `Microsoft.EntityFrameworkCore.Sqlite` |
 | **Cache / State** | Redis Cluster | `StackExchange.Redis` 2.10.1 · `RedLock.net` 2.3.2 |
-| **Communication** | REST · SignalR WebSocket · TCP Binary | `Google.Protobuf` 3.29.3 · `Microsoft.AspNetCore.SignalR` |
+| **Communication** | REST · SignalR WebSocket · TCP Binary | `Google.Protobuf` 3.29.3 · ASP.NET Core SignalR |
 | **Auth** | JWT (15 min access + 7 day refresh) · BCrypt | `System.IdentityModel.Tokens.Jwt` 8.16 · `BCrypt.Net-Next` 4.0.3 |
 | **Resilience** | Circuit breaker · Retry · Rate limiting | `Polly` 8.4.1 · Redis Lua scripts |
 | **I/O** | High-perf buffer management | `System.IO.Pipelines` 10.0 |
 | **Logging** | Structured logging | `log4net` 2.0.17 |
 | **API Docs** | OpenAPI / Scalar UI | `Microsoft.AspNetCore.OpenApi` · `Scalar.AspNetCore` 2.14 |
 | **Infrastructure** | Container · CI | Docker · GitHub Actions |
-| **Testing** | Unit & integration tests | `xUnit` · `Moq` · `InMemory DB` — 255 tests / 6 projects |
+| **Testing** | Unit & integration tests | `xUnit` · `Moq` · InMemory DB — 6 test projects |
+
+> Test counts change frequently as features are added; they are not fixed in this README. Check `dotnet test` output or CI results for the latest numbers.
 
 ---
 
@@ -95,7 +119,7 @@ flowchart LR
     R(["/requirement\nSpec file"])
     I(["/impact\nRisk analysis"])
     S(["/start\nCoding mode"])
-    C(["Coding\nLLM implements"])
+    C(["Coding\nDev + LLM collaboration"])
     T(["/test-gen\nTest generation"])
     D(["/done\nBuild + Test + Push"])
     V(["/review\nCode review"])
@@ -110,34 +134,34 @@ flowchart LR
 | `/requirement` | Claude Code | Writes spec file, checks ADR conflicts |
 | `/impact` | Claude Code | Classifies risk (HIGH / MEDIUM / LOW), checks references |
 | `/start` | Claude Code | Claims job lock, transitions to coding mode |
-| Coding | LLM (Claude) | Implements per spec; file-by-file with progress output |
-| `/test-gen` | Claude Code + `test-writer` agent | Generates xUnit tests matching existing factory patterns |
+| Coding | Dev + LLM | Developer defines design direction & boundaries; LLM assists with implementation |
+| `/test-gen` | Claude Code + `test-writer` agent | Generates xUnit tests reusing existing factory patterns |
 | `/done` | Claude Code | Runs `dotnet build`, `dotnet format`, `dotnet test`; pushes only on full pass |
-| `/review` | Claude Code | Checks ADR compliance, security, DI, Redis key rules |
+| `/review` | Dev + Claude Code | Reviews execution flow, ADR compliance, security, DI, Redis keys, concurrency |
 | `/pr` | Claude Code + GitHub CLI | Creates PR, archives spec, records cost log |
 
-**Infrastructure behind the workflow:**
+### Workflow Infrastructure
 
-```
-Claude Code (LLM)  ─── writes code, drives pipeline
+```text
+Claude Code (LLM)  ─── assists with code, drives pipeline
        │
        ├── PostgreSQL (SDLC DB)  ─── tracks job/step/gate state
        ├── n8n                   ─── orchestrates GitHub ↔ DB events
-       └── GitHub Actions        ─── CI: build, test, lint (read-only; no DB access)
+       └── GitHub Actions        ─── CI: build, test, lint
 ```
 
-**AI Workflow Tech Stack:**
+### AI Workflow Tech Stack
 
 | Category | Tool | Version / Notes |
 |----------|------|----------------|
 | LLM Agent | Claude Code | claude-sonnet-4-6 |
 | SDLC State DB | PostgreSQL | `platforma_sdlc` schema, `sdlc.ai_jobs` table |
 | Orchestration | n8n | GitHub ↔ DB event bridge |
-| CI/CD | GitHub Actions | Build, test, lint only (no direct DB access) |
+| CI/CD | GitHub Actions | Build, test, lint only |
 | PR Management | GitHub CLI (`gh`) | PR creation, queries, labels |
 | DB Scripts | Python + psycopg2 | `.github/scripts/db_write.py` — local only |
 | Sprint Tracking | Markdown (`AI/sprints/`) | `sprint-NNN.md` with YAML frontmatter |
-| Architecture Decisions | ADR (`AI/adr/`) | 11 recorded decisions |
+| Architecture Decisions | ADR (`AI/adr/`) | Architectural decision records |
 
 > See [`CLAUDE.md`](CLAUDE.md) for the full workflow definition and [`AI/adr/`](AI/adr/) for architectural decisions.
 
@@ -149,19 +173,25 @@ Claude Code (LLM)  ─── writes code, drives pipeline
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- MySQL / MariaDB running on `localhost:3306` (root password: `pass1234`)
+- MySQL / MariaDB running on `localhost:3306`
+- A local DB account and password
+- If EF Core CLI is missing: `dotnet tool install --global dotnet-ef`
+
+> Keep passwords and connection strings out of source code and public docs. Use User Secrets, environment variables, or local-only configuration instead.
 
 ### 1. Start Redis Cluster
 
 ```bash
 cd PlatformA/docker/redis-cluster
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 2. Initialize Databases (first run only)
 
+Omitting the password after `-p` lets the CLI prompt you securely.
+
 ```bash
-mysql -u root -ppass1234 -e "CREATE DATABASE IF NOT EXISTS db_WebApp; CREATE DATABASE IF NOT EXISTS db_LogApp;"
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS db_WebApp; CREATE DATABASE IF NOT EXISTS db_LogApp;"
 ```
 
 ### 3. Apply EF Core Migrations
@@ -184,7 +214,17 @@ cd PlatformA/PlatformA.Game.Lobby    && dotnet run   # http://localhost:7777
 cd PlatformA/PlatformA.Game.Gomoku   && dotnet run   # tcp://localhost:7778
 ```
 
-> **Note**: Start services in the order above. Auth API must be healthy before Matching API begins matchmaking.
+> **Recommended order:** When validating the full user flow, start services in the order above: Auth → Ticketing → Matching → Lobby → Gomoku.  
+> Matching API's readiness dependencies are Redis and MySQL; Auth API is not a direct startup dependency for Matching API.
+
+### 5. Health Check
+
+Services that support it expose these endpoints:
+
+```text
+/healthz  → process liveness
+/readyz   → readiness including Redis, DB, and other external dependencies
+```
 
 ---
 
@@ -209,27 +249,31 @@ cd PlatformA
 dotnet test PlatformA.sln -q
 ```
 
-| Test Project | Tests | Focus |
-|-------------|-------|-------|
-| `Tests.Auth.API` | 24 | JWT, BCrypt, registration |
-| `Tests.Ticketing.API` | 21 | Queue logic, rate limits |
-| `Tests.Matching.API` | 37 | ELO matching, DB fallback |
-| `Tests.Utils.API` | 28 | URL shortening, Base62 |
-| `Tests.Game.Gomoku` | 62 | Game logic, win detection |
-| `Tests.Game.Lobby` | 64 | SignalR hub, match flow |
-| **Total** | **255** | |
+| Test Project | Focus |
+|-------------|-------|
+| `PlatformA.Tests.Auth.API` | JWT, BCrypt, registration |
+| `PlatformA.Tests.Ticketing.API` | Queue logic, rate limits |
+| `PlatformA.Tests.Matching.API` | ELO matching, DB fallback |
+| `PlatformA.Tests.Utils.API` | URL shortening, Base62 |
+| `PlatformA.Tests.Game.Gomoku` | Game logic, win detection |
+| `PlatformA.Tests.Game.Lobby` | SignalR hub, match flow |
+
+When updating test counts in documentation, do not manually sum per-project numbers — use the actual `dotnet test` or CI output as the authoritative source.
 
 ---
 
 ## Project Structure
 
-```
+```text
 platformA/
+├── README.md
+├── README.en.md
 ├── PlatformA/
 │   ├── PlatformA.sln
-│   ├── PlatformA.Library/           # Shared: Redis, JWT, Consts, TCP base
-│   ├── PlatformA.Library.Game/      # Game infra: GameSession, GameRoom, JobQueue
+│   ├── PlatformA.Library/           # Shared: Redis, JWT, TCP, Packet base
+│   ├── PlatformA.Library.Game/      # Game infra: GameSession, GameRoom
 │   ├── PlatformA.MySqlDB.Lib/       # EF Core contexts & migrations
+│   ├── PlatformA.SdlcDB.Lib/        # SDLC PostgreSQL data layer
 │   ├── PlatformA.Auth.API/          # Authentication service
 │   ├── PlatformA.Ticketing.API/     # Queue management service
 │   ├── PlatformA.Matching.API/      # Matchmaking service
@@ -237,20 +281,41 @@ platformA/
 │   ├── PlatformA.Game.Gomoku/       # Gomoku game server (TCP)
 │   ├── PlatformA.Utils.API/         # URL shortening service
 │   ├── PlatformA.Game.DummyClient/  # E2E test client
-│   └── PlatformA.Tests.*/           # Test projects (6)
+│   └── PlatformA.Tests.*/           # Test projects
 ├── AI/
 │   ├── ARCHITECTURE.md              # System design overview
-│   ├── adr/                         # Architectural Decision Records (11)
+│   ├── adr/                         # Architectural Decision Records
 │   ├── sprints/                     # Sprint history
 │   └── workreport/                  # Daily work reports
 └── Docs/
     ├── api-guide/                   # API documentation
-    └── architecture/                # Sequence diagrams, DB schema
+    ├── architecture/                # Sequence diagrams, DB schema
+    └── developer-guide/             # Game server · packet · dev guides
 ```
+
+---
+
+## Documentation Maintenance
+
+- Root `README.md` is the authoritative project overview document.
+- `README.en.md` must maintain the same structure and core facts as the Korean README.
+- If `PlatformA/README.md` exists separately, scope it to local run instructions only and remove unrelated template content.
+- Values that change frequently (ports, package versions, test counts) must be verified against code or CI results before updating.
+- Keep Mermaid service connections aligned with actual call directions in the code.
 
 ---
 
 ## Contributing
 
-All changes go through a branch workflow: create a feature branch → implement → build & test → pull request into `main`.  
+All changes go through a branch workflow:
+
+```text
+Create feature branch
+→ Record requirements and impact scope
+→ Implement
+→ Build & test
+→ Code review
+→ Pull request into main
+```
+
 See [`CLAUDE.md`](CLAUDE.md) for the full AI-assisted SDLC pipeline used in this project.
