@@ -18,50 +18,36 @@
 
 ```mermaid
 flowchart TB
-    Client(["클라이언트 / DummyClient"])
+    Client(["클라이언트"])
 
-    subgraph AuthQ["서비스 레이어 (인증, 대기열)"]
-        direction LR
-        Auth["Auth API\n:7001 HTTPS REST"]
-        Ticket["Ticketing API\n:7003"]
-    end
+    Auth["Auth API\n로그인 · 토큰 발급"]
+    Ticket["Ticketing API\n대기열 관리"]
+    Lobby["Game.Lobby\n로비 허브"]
+    Match["Matching API\n매칭 · 전적 기록"]
+    Gomoku["Game.Gomoku\n게임 서버"]
+    Utils["Utils API\nURL 단축"]
 
-    subgraph GameLayer["인게임 레이어 (로비, 게임)"]
+    subgraph DB["데이터 저장소"]
         direction LR
-        Lobby["Game.Lobby\n:7777 SignalR"]
-        Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
-    end
-
-    subgraph SvcEtc["서비스 레이어 (매칭, 기타)"]
-        direction LR
-        Match["Matching API\n:7002"]
-        Utils["Utils API\n:7004"]
-    end
-
-    subgraph Data["데이터 레이어"]
-        direction LR
-        Redis[("Redis Cluster\n6371-6376")]
-        MySQL[("MySQL / MariaDB\ndb_WebApp · db_LogApp")]
+        Redis[("Redis\n캐시 · 매칭 상태")]
+        MySQL[("MySQL\n플레이어 · 전적")]
         SQLite[("SQLite\nUtils 전용")]
     end
 
-    Client -->|JWT 발급| Auth
-    Client -->|대기열 진입| Ticket
-    Ticket ~~~ Lobby
-    Client -->|WebSocket 접속| Lobby
-    Lobby -->|게임 서버 접속 정보| Client
-    Client -->|TCP · JWT · roomId| Gomoku
+    Client -->|"① 로그인"| Auth
+    Client -->|"② 대기열 입장"| Ticket
+    Client -->|"③ 로비 접속"| Lobby
+    Lobby  -->|"④ 매칭 신청"| Match
+    Match  -->|"⑤ 매칭 완료"| Lobby
+    Lobby  -->|"⑥ 게임 서버 안내"| Client
+    Client -->|"⑦ 게임 접속"| Gomoku
+    Gomoku -->|"⑧ 결과 기록"| Match
 
-    Lobby -->|매칭 요청·취소·상태| Match
-    Match -->|MatchFound Publish| Redis
-    Redis -->|결과 Subscribe| Lobby
-    Gomoku -->|게임 결과 보고| Match
-
-    Auth -.-> Redis & MySQL
+    Auth   -.-> Redis & MySQL
     Ticket -.-> Redis
-    Match -.-> Redis & MySQL
+    Match  -.-> Redis & MySQL
     Gomoku -.-> Redis
-    Utils -.-> SQLite
+    Utils  -.-> SQLite
 ```
 
 ### 주요 사용자 흐름

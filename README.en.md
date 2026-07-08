@@ -18,50 +18,36 @@
 
 ```mermaid
 flowchart TB
-    Client(["Client / DummyClient"])
+    Client(["Client"])
 
-    subgraph AuthQ["Service Layer (Auth, Queue)"]
-        direction LR
-        Auth["Auth API\n:7001 HTTPS REST"]
-        Ticket["Ticketing API\n:7003"]
-    end
+    Auth["Auth API\nLogin · Token issuance"]
+    Ticket["Ticketing API\nQueue management"]
+    Lobby["Game.Lobby\nLobby hub"]
+    Match["Matching API\nMatchmaking · Records"]
+    Gomoku["Game.Gomoku\nGame server"]
+    Utils["Utils API\nURL shortening"]
 
-    subgraph GameLayer["In-Game Layer (Lobby, Game)"]
+    subgraph DB["Data Storage"]
         direction LR
-        Lobby["Game.Lobby\n:7777 SignalR"]
-        Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
-    end
-
-    subgraph SvcEtc["Service Layer (Matching, Misc)"]
-        direction LR
-        Match["Matching API\n:7002"]
-        Utils["Utils API\n:7004"]
-    end
-
-    subgraph Data["Data Layer"]
-        direction LR
-        Redis[("Redis Cluster\n6371-6376")]
-        MySQL[("MySQL / MariaDB\ndb_WebApp · db_LogApp")]
+        Redis[("Redis\nCache · Match state")]
+        MySQL[("MySQL\nPlayers · Records")]
         SQLite[("SQLite\nUtils only")]
     end
 
-    Client -->|JWT issuance| Auth
-    Client -->|Join queue| Ticket
-    Ticket ~~~ Lobby
-    Client -->|WebSocket connect| Lobby
-    Lobby -->|Game server info| Client
-    Client -->|TCP · JWT · roomId| Gomoku
+    Client -->|"① Login"| Auth
+    Client -->|"② Join queue"| Ticket
+    Client -->|"③ Connect to lobby"| Lobby
+    Lobby  -->|"④ Request match"| Match
+    Match  -->|"⑤ Match found"| Lobby
+    Lobby  -->|"⑥ Game server info"| Client
+    Client -->|"⑦ Connect to game"| Gomoku
+    Gomoku -->|"⑧ Report result"| Match
 
-    Lobby -->|Match request · cancel · status| Match
-    Match -->|MatchFound Publish| Redis
-    Redis -->|Result Subscribe| Lobby
-    Gomoku -->|Game result report| Match
-
-    Auth -.-> Redis & MySQL
+    Auth   -.-> Redis & MySQL
     Ticket -.-> Redis
-    Match -.-> Redis & MySQL
+    Match  -.-> Redis & MySQL
     Gomoku -.-> Redis
-    Utils -.-> SQLite
+    Utils  -.-> SQLite
 ```
 
 ### Main User Flow
