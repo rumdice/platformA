@@ -17,46 +17,46 @@
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     Client(["Client / DummyClient"])
 
-    subgraph API["API Layer"]
-        Auth["Auth API\n:7001 HTTPS REST"]
-        Ticket["Ticketing API\n:7003 REST + SignalR"]
-        Match["Matching API\n:7002 REST + SignalR"]
-        Utils["Utils API\n:7004 HTTPS REST"]
-    end
-
-    subgraph Game["Game Layer"]
-        Lobby["Game.Lobby\n:7777 SignalR"]
-        Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
+    subgraph Svc["Service Layer"]
+        direction LR
+        subgraph API["API Layer"]
+            Auth["Auth API\n:7001 HTTPS REST"]
+            Ticket["Ticketing API\n:7003"]
+            Match["Matching API\n:7002"]
+            Utils["Utils API\n:7004"]
+        end
+        subgraph Game["Game Layer"]
+            Lobby["Game.Lobby\n:7777 SignalR"]
+            Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
+        end
     end
 
     subgraph Data["Data Layer"]
+        direction LR
         Redis[("Redis Cluster\n6371-6376")]
         MySQL[("MySQL / MariaDB\ndb_WebApp · db_LogApp")]
         SQLite[("SQLite\nUtils only")]
     end
 
-    Client -->|Login / JWT issuance| Auth
-    Client -->|Queue ticket request| Ticket
-    Client <-->|JWT-based WebSocket| Lobby
+    Client -->|JWT issuance| Auth
+    Client -->|Queue ticket| Ticket
+    Client -->|WebSocket connect| Lobby
+    Client -->|TCP · JWT · roomId| Gomoku
 
     Lobby -->|Match request · cancel · status| Match
     Match -->|MatchFound Publish| Redis
-    Redis -->|Match result Subscribe| Lobby
+    Redis -->|Result Subscribe| Lobby
     Lobby -->|host · port · roomId| Client
+    Gomoku -->|Game result report| Match
 
-    Client -->|TCP connect\nJWT + roomId| Gomoku
-    Gomoku -->|Game start · result report| Match
-
-    Auth --> Redis
-    Auth --> MySQL
-    Ticket --> Redis
-    Match --> Redis
-    Match --> MySQL
-    Gomoku --> Redis
-    Utils --> SQLite
+    Auth -.-> Redis & MySQL
+    Ticket -.-> Redis
+    Match -.-> Redis & MySQL
+    Gomoku -.-> Redis
+    Utils -.-> SQLite
 ```
 
 ### Main User Flow

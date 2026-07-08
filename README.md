@@ -17,46 +17,46 @@
 ## 아키텍처
 
 ```mermaid
-flowchart LR
+flowchart TB
     Client(["클라이언트 / DummyClient"])
 
-    subgraph API["API 레이어"]
-        Auth["Auth API\n:7001 HTTPS REST"]
-        Ticket["Ticketing API\n:7003 REST + SignalR"]
-        Match["Matching API\n:7002 REST + SignalR"]
-        Utils["Utils API\n:7004 HTTPS REST"]
-    end
-
-    subgraph Game["게임 레이어"]
-        Lobby["Game.Lobby\n:7777 SignalR"]
-        Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
+    subgraph Svc["서비스 레이어"]
+        direction LR
+        subgraph API["API 레이어"]
+            Auth["Auth API\n:7001 HTTPS REST"]
+            Ticket["Ticketing API\n:7003"]
+            Match["Matching API\n:7002"]
+            Utils["Utils API\n:7004"]
+        end
+        subgraph Game["게임 레이어"]
+            Lobby["Game.Lobby\n:7777 SignalR"]
+            Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
+        end
     end
 
     subgraph Data["데이터 레이어"]
+        direction LR
         Redis[("Redis Cluster\n6371-6376")]
         MySQL[("MySQL / MariaDB\ndb_WebApp · db_LogApp")]
         SQLite[("SQLite\nUtils 전용")]
     end
 
-    Client -->|로그인 / JWT 발급| Auth
-    Client -->|대기열 티켓 요청| Ticket
-    Client <-->|JWT 기반 WebSocket| Lobby
+    Client -->|JWT 발급| Auth
+    Client -->|대기열 티켓| Ticket
+    Client -->|WebSocket 접속| Lobby
+    Client -->|TCP · JWT · roomId| Gomoku
 
-    Lobby -->|매칭 요청·취소·상태 조회| Match
+    Lobby -->|매칭 요청·취소·상태| Match
     Match -->|MatchFound Publish| Redis
-    Redis -->|매칭 결과 Subscribe| Lobby
+    Redis -->|결과 Subscribe| Lobby
     Lobby -->|host · port · roomId| Client
+    Gomoku -->|게임 결과 보고| Match
 
-    Client -->|TCP 접속\nJWT + roomId| Gomoku
-    Gomoku -->|게임 시작·결과 보고| Match
-
-    Auth --> Redis
-    Auth --> MySQL
-    Ticket --> Redis
-    Match --> Redis
-    Match --> MySQL
-    Gomoku --> Redis
-    Utils --> SQLite
+    Auth -.-> Redis & MySQL
+    Ticket -.-> Redis
+    Match -.-> Redis & MySQL
+    Gomoku -.-> Redis
+    Utils -.-> SQLite
 ```
 
 ### 주요 사용자 흐름
