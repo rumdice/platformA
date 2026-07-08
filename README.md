@@ -1,5 +1,6 @@
 # PlatformA
 
+[![GitHub](https://img.shields.io/badge/GitHub-rumdice%2FplatformA-181717?logo=github)](https://github.com/rumdice/platformA)
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -124,6 +125,19 @@ Claude Code (LLM)  ─── 코드 작성, 파이프라인 구동
        ├── n8n                   ─── GitHub ↔ DB 이벤트 오케스트레이션
        └── GitHub Actions        ─── CI: 빌드·테스트·린트 (읽기 전용; DB 접근 금지)
 ```
+
+**AI 워크플로우 기술 스택:**
+
+| 구분 | 도구 | 버전 / 비고 |
+|------|------|-----------|
+| LLM 에이전트 | Claude Code | claude-sonnet-4-6 |
+| SDLC 상태 DB | PostgreSQL | `platforma_sdlc` 스키마, `sdlc.ai_jobs` 테이블 |
+| 오케스트레이션 | n8n | GitHub ↔ DB 이벤트 브리지 |
+| CI/CD | GitHub Actions | 빌드·테스트·린트 전용 (DB 직접 접근 금지) |
+| PR 관리 | GitHub CLI (`gh`) | PR 생성·조회·레이블 |
+| DB 접근 스크립트 | Python + psycopg2 | `.github/scripts/db_write.py` 등 로컬 전용 |
+| 스프린트 추적 | Markdown (`AI/sprints/`) | `sprint-NNN.md` YAML 프론트매터 |
+| 아키텍처 결정 | ADR (`AI/adr/`) | 11개 의사결정 기록 |
 
 > 전체 워크플로우 정의는 [`CLAUDE.md`](CLAUDE.md), 아키텍처 결정 이력은 [`AI/adr/`](AI/adr/) 참조.
 

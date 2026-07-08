@@ -1,5 +1,6 @@
 # PlatformA
 
+[![GitHub](https://img.shields.io/badge/GitHub-rumdice%2FplatformA-181717?logo=github)](https://github.com/rumdice/platformA)
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -124,6 +125,19 @@ Claude Code (LLM)  ─── writes code, drives pipeline
        ├── n8n                   ─── orchestrates GitHub ↔ DB events
        └── GitHub Actions        ─── CI: build, test, lint (read-only; no DB access)
 ```
+
+**AI Workflow Tech Stack:**
+
+| Category | Tool | Version / Notes |
+|----------|------|----------------|
+| LLM Agent | Claude Code | claude-sonnet-4-6 |
+| SDLC State DB | PostgreSQL | `platforma_sdlc` schema, `sdlc.ai_jobs` table |
+| Orchestration | n8n | GitHub ↔ DB event bridge |
+| CI/CD | GitHub Actions | Build, test, lint only (no direct DB access) |
+| PR Management | GitHub CLI (`gh`) | PR creation, queries, labels |
+| DB Scripts | Python + psycopg2 | `.github/scripts/db_write.py` — local only |
+| Sprint Tracking | Markdown (`AI/sprints/`) | `sprint-NNN.md` with YAML frontmatter |
+| Architecture Decisions | ADR (`AI/adr/`) | 11 recorded decisions |
 
 > See [`CLAUDE.md`](CLAUDE.md) for the full workflow definition and [`AI/adr/`](AI/adr/) for architectural decisions.
 
