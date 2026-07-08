@@ -20,20 +20,23 @@
 flowchart TB
     Client(["클라이언트 / DummyClient"])
 
-    subgraph AuthQ["인증 · 대기열"]
+    subgraph AuthQ["서비스 레이어 (인증, 대기열)"]
         direction LR
         Auth["Auth API\n:7001 HTTPS REST"]
         Ticket["Ticketing API\n:7003"]
     end
 
-    subgraph GameLayer["게임 레이어"]
+    subgraph GameLayer["인게임 레이어 (로비, 게임)"]
         direction LR
         Lobby["Game.Lobby\n:7777 SignalR"]
         Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
     end
 
-    Match["Matching API\n:7002"]
-    Utils["Utils API\n:7004"]
+    subgraph SvcEtc["서비스 레이어 (매칭, 기타)"]
+        direction LR
+        Match["Matching API\n:7002"]
+        Utils["Utils API\n:7004"]
+    end
 
     subgraph Data["데이터 레이어"]
         direction LR
@@ -53,7 +56,6 @@ flowchart TB
     Match -->|MatchFound Publish| Redis
     Redis -->|결과 Subscribe| Lobby
     Gomoku -->|게임 결과 보고| Match
-    Match ~~~ Utils
 
     Auth -.-> Redis & MySQL
     Ticket -.-> Redis
