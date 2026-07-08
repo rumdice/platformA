@@ -5,6 +5,7 @@ branch: 2026-07-08_AddProjectReadme
 date: 2026-07-08
 status: done
 completed: 2026-07-08
+pr: https://github.com/rumdice/platformA/pull/121
 ---
 
 # Sprint #87 — GitHub README 작성
