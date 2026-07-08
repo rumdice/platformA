@@ -20,19 +20,20 @@
 flowchart TB
     Client(["클라이언트 / DummyClient"])
 
-    subgraph Svc["서비스 레이어"]
+    subgraph AuthQ["인증 · 대기열"]
         direction LR
-        subgraph API["API 레이어"]
-            Auth["Auth API\n:7001 HTTPS REST"]
-            Ticket["Ticketing API\n:7003"]
-            Match["Matching API\n:7002"]
-            Utils["Utils API\n:7004"]
-        end
-        subgraph Game["게임 레이어"]
-            Lobby["Game.Lobby\n:7777 SignalR"]
-            Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
-        end
+        Auth["Auth API\n:7001 HTTPS REST"]
+        Ticket["Ticketing API\n:7003"]
     end
+
+    subgraph GameLayer["게임 레이어"]
+        direction LR
+        Lobby["Game.Lobby\n:7777 SignalR"]
+        Gomoku["Game.Gomoku\n:7778 TCP Protobuf"]
+    end
+
+    Match["Matching API\n:7002"]
+    Utils["Utils API\n:7004"]
 
     subgraph Data["데이터 레이어"]
         direction LR
@@ -42,15 +43,17 @@ flowchart TB
     end
 
     Client -->|JWT 발급| Auth
-    Client -->|대기열 티켓| Ticket
+    Client -->|대기열 진입| Ticket
+    Ticket ~~~ Lobby
     Client -->|WebSocket 접속| Lobby
+    Lobby -->|게임 서버 접속 정보| Client
     Client -->|TCP · JWT · roomId| Gomoku
 
     Lobby -->|매칭 요청·취소·상태| Match
     Match -->|MatchFound Publish| Redis
     Redis -->|결과 Subscribe| Lobby
-    Lobby -->|host · port · roomId| Client
     Gomoku -->|게임 결과 보고| Match
+    Match ~~~ Utils
 
     Auth -.-> Redis & MySQL
     Ticket -.-> Redis
