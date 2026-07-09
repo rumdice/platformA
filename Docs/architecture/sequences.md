@@ -85,41 +85,57 @@ sequenceDiagram
 
 ---
 
-## 3. 매칭 요청 → Game Server 접속
+## 3. 매칭 요청 → Game.Gomoku 접속
+
+> **현재 아키텍처**: 클라이언트는 Matching.API에 직접 접근하지 않습니다.
+> 모든 매칭 흐름은 Game.Lobby SignalR 허브를 경유합니다.
 
 ```mermaid
 sequenceDiagram
   participant C as 클라이언트
-  participant M as Matching API
-  participant G as Game Server
+  participant L as Game.Lobby (SignalR :7777)
+  participant M as Matching API (내부 HTTP :7002)
   participant R as Redis
   participant DB as MariaDB
+  participant G as Game.Gomoku (TCP :7778)
 
-  C->>+M: POST /api/GameMatch/RequestMatch (JWT)
-  M->>+R: ZADD queue:gamematch:1v1 score=now playerId
+  C->>+L: SignalR 연결 /hubs/lobby
+  C->>L: RequestMatch("gomoku")
+  L->>L: JWT → playerId 추출<br/>Context.Items["MatchGameType"] = "gomoku"
+
+  L->>+M: POST /api/gamematch/request<br/>{userId, gameType} (내부 HTTP)
+  M->>+R: ZADD queue:gamematch:gomoku score=ELO playerId
   R-->>-M: OK
-  M-->>-C: 200 (매칭 대기 중)
-
-  C->>M: SignalR 연결 /hubs/matching (JWT)
-  M->>M: JWT 검증 → 그룹 "User_{playerId}" 등록
+  M-->>-L: 200 (매칭 대기 중)
+  L-->>C: SignalR ACK
 
   Note over M,R: 백그라운드 워커 (200ms 주기)
   loop 매칭 처리
-    M->>+R: Lua: ZPOPMIN queue:gamematch:1v1 COUNT 2
+    M->>+R: Lua: ELO 범위 내 후보 조회 (±200 → ±400 → ±800)
     R-->>-M: [player1, player2] or []
 
     alt 2명 확보
       M->>R: INCR global:room_id → roomId
       M->>+DB: INSERT match_records (player1, player2, InProgress)
       DB-->>-M: OK
-      M->>R: PUBLISH channel:match_success {roomId, [p1,p2]}
-      M-->>C: SignalR "MatchFound"<br/>{roomId, gameServerIp, port: 7777}
+      M->>R: PUBLISH MATCH_FOUND_CHANNEL {roomId, [p1, p2], gameType}
     else 타임아웃 (2분 초과)
-      M-->>C: SignalR "MatchTimeout"
+      M->>R: ZREM queue:gamematch:gomoku playerId
+      M->>R: PUBLISH MATCH_FOUND_CHANNEL {timeout: true, userId}
     end
   end
 
-  C->>+G: TCP Connect :7777
+  Note over L,R: MatchNotificationService (Game.Lobby 내 BackgroundService)
+  L->>+R: SUB MATCH_FOUND_CHANNEL
+  R-->>-L: 매칭 성사 이벤트 수신
+
+  alt MatchFound
+    L-->>C: SignalR "MatchFound"<br/>{roomId, gameServerIp, port: 7778}
+  else MatchTimeout
+    L-->>C: SignalR "MatchTimeout"
+  end
+
+  C->>+G: TCP Connect :7778
   C->>G: CLogin {roomId, jwtToken}
   G->>G: JWT 검증 → playerId 추출
   G->>+R: EXISTS ticket:active:user:{playerId}
@@ -127,8 +143,26 @@ sequenceDiagram
   G->>R: DEL ticket:active:user:{playerId} (티켓 회수)
   G->>+R: SET player:login_lock:{playerId} guid NX EX 86400
   R-->>-G: OK (락 획득)
-  G->>G: GameRoom.Enter(session)
+  G->>G: GomokuRoom.Enter(session)
   G-->>-C: SLogin {success: LoginSuccess, playerId}
+```
+
+**매칭 취소 (CancelMatch):**
+
+```mermaid
+sequenceDiagram
+  participant C as 클라이언트
+  participant L as Game.Lobby (SignalR)
+  participant M as Matching API (내부 HTTP)
+  participant R as Redis
+
+  C->>+L: SignalR CancelMatch
+  L->>L: Context.Items["MatchGameType"] 조회
+  L->>+M: POST /api/gamematch/cancel<br/>{userId, gameType} (내부 HTTP)
+  M->>+R: ZREM queue:gamematch:{gameType} userId
+  R-->>-M: 1 (제거됨) or 0 (없음)
+  M-->>-L: 200 or 404
+  L-->>-C: SignalR ACK
 ```
 
 ---

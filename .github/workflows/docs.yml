@@ -51,6 +51,9 @@ jobs:
       - name: Generate API-guide docs
         run: python .github/scripts/generate_api_docs.py
 
+      - name: Generate architecture docs
+        run: python .github/scripts/generate_architecture_docs.py
+
       - name: Generate DB schema doc
         run: python .github/scripts/generate_db_schema.py
 
