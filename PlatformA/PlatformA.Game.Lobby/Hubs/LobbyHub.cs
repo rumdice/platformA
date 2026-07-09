@@ -51,19 +51,20 @@ namespace PlatformA.Game.Lobby.Hubs
                 _presence.Unregister(userId);
                 _logger.LogInformation("[Lobby] 연결 해제 — User_{UserId}", userId);
 
-                // 매칭 대기 중이었다면 자동 취소
-                try
+                // 매칭 대기 중이었다면 자동 취소 (JWT 없이 내부 전용 엔드포인트 호출)
+                if (Context.Items.TryGetValue("MatchGameType", out object? gt) && gt is string gameType)
                 {
-                    using HttpClient http = _httpClientFactory.CreateClient("MatchingAPI");
-                    string? token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
-                    if (!string.IsNullOrEmpty(token))
-                        http.DefaultRequestHeaders.Authorization =
-                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                    await http.DeleteAsync("/api/gamematch/CancelMatch");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "[Lobby] OnDisconnected CancelMatch 실패 — User_{UserId}", userId);
+                    try
+                    {
+                        using HttpClient http = _httpClientFactory.CreateClient("MatchingAPI");
+                        string body = JsonSerializer.Serialize(new { UserId = userId, GameType = gameType });
+                        using HttpContent content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+                        await http.PostAsync("/api/gamematch/cancel", content);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "[Lobby] OnDisconnected CancelMatch 실패 — User_{UserId}", userId);
+                    }
                 }
             }
 
@@ -89,6 +90,7 @@ namespace PlatformA.Game.Lobby.Hubs
                 return;
 
             _logger.LogInformation("[Lobby] 매칭 신청 — User_{UserId} gameType={GameType}", userId, gameType);
+            Context.Items["MatchGameType"] = gameType;
 
             try
             {
@@ -138,17 +140,17 @@ namespace PlatformA.Game.Lobby.Hubs
 
             _logger.LogInformation("[Lobby] 매칭 취소 — User_{UserId}", userId);
 
+            string resolvedGameType = !string.IsNullOrEmpty(gameType)
+                ? gameType
+                : (Context.Items.TryGetValue("MatchGameType", out object? gt) && gt is string s ? s : "gomoku");
+
             try
             {
                 using HttpClient http = _httpClientFactory.CreateClient("MatchingAPI");
+                string body = JsonSerializer.Serialize(new { UserId = userId, GameType = resolvedGameType });
+                using HttpContent content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
 
-                // JWT 전달 (Matching.API는 수동 토큰 검증)
-                string? token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
-                if (!string.IsNullOrEmpty(token))
-                    http.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                HttpResponseMessage resp = await http.DeleteAsync("/api/gamematch/CancelMatch");
+                HttpResponseMessage resp = await http.PostAsync("/api/gamematch/cancel", content);
 
                 if (resp.IsSuccessStatusCode)
                     await Clients.Caller.SendAsync("MatchCancelled", new { message = "매칭이 취소되었습니다." });
@@ -167,15 +169,14 @@ namespace PlatformA.Game.Lobby.Hubs
             if (!TryGetUserId(out int userId))
                 return;
 
+            string gameType = Context.Items.TryGetValue("MatchGameType", out object? gt) && gt is string s
+                ? s
+                : "gomoku";
+
             try
             {
                 using HttpClient http = _httpClientFactory.CreateClient("MatchingAPI");
-                string? token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
-                if (!string.IsNullOrEmpty(token))
-                    http.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                HttpResponseMessage resp = await http.GetAsync("/api/gamematch/Status");
+                HttpResponseMessage resp = await http.GetAsync($"/api/gamematch/status/{userId}?gameType={gameType}");
                 if (resp.IsSuccessStatusCode)
                 {
                     string json = await resp.Content.ReadAsStringAsync();

@@ -32,16 +32,14 @@ namespace PlatformA.Tests.Matching.API
             });
         }
 
-        // ── RequestMatch ─────────────────────────────────────────────────────
+        // ── CancelMatchInternal (POST /api/gamematch/cancel) ────────────────
 
         [Fact]
-        public async Task RequestMatch_ValidToken_Returns200()
+        public async Task CancelInternal_PlayerInQueue_Returns200()
         {
-            string token = TokenManager.GenerateJwtToken(1);
-            _client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await _client.PostAsync("/api/gamematch/RequestMatch", null);
+            // SortedSetRemoveAsync → true (기본 Mock 설정)
+            var response = await _client.PostAsJsonAsync("/api/gamematch/cancel",
+                new { UserId = 2, GameType = "gomoku" });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -50,39 +48,7 @@ namespace PlatformA.Tests.Matching.API
         }
 
         [Fact]
-        public async Task RequestMatch_NoToken_Returns401()
-        {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-
-            var response = await client.PostAsync("/api/gamematch/RequestMatch", null);
-
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
-
-        // ── CancelMatch ──────────────────────────────────────────────────────
-
-        [Fact]
-        public async Task CancelMatch_ValidToken_PlayerInQueue_Returns200()
-        {
-            // SortedSetRemoveAsync → true (기본 Mock 설정)
-            string token = TokenManager.GenerateJwtToken(2);
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await client.DeleteAsync("/api/gamematch/CancelMatch");
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task CancelMatch_ValidToken_PlayerNotInQueue_Returns404()
+        public async Task CancelInternal_PlayerNotInQueue_Returns404()
         {
             // SortedSetRemoveAsync → false (대기열에 없음)
             _factory.MockRedisDb
@@ -92,55 +58,40 @@ namespace PlatformA.Tests.Matching.API
                     It.IsAny<CommandFlags>()))
                 .ReturnsAsync(false);
 
-            string token = TokenManager.GenerateJwtToken(3);
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            try
             {
-                AllowAutoRedirect = false
-            });
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _client.PostAsJsonAsync("/api/gamematch/cancel",
+                    new { UserId = 3, GameType = "gomoku" });
 
-            var response = await client.DeleteAsync("/api/gamematch/CancelMatch");
-
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-
-            // Mock 복원
-            _factory.MockRedisDb
-                .Setup(x => x.SortedSetRemoveAsync(
-                    It.IsAny<RedisKey>(),
-                    It.IsAny<RedisValue>(),
-                    It.IsAny<CommandFlags>()))
-                .ReturnsAsync(true);
+                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.SortedSetRemoveAsync(
+                        It.IsAny<RedisKey>(),
+                        It.IsAny<RedisValue>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync(true);
+            }
         }
 
         [Fact]
-        public async Task CancelMatch_NoToken_Returns401()
+        public async Task CancelInternal_InvalidUserId_Returns400()
         {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
+            var response = await _client.PostAsJsonAsync("/api/gamematch/cancel",
+                new { UserId = 0, GameType = "gomoku" });
 
-            var response = await client.DeleteAsync("/api/gamematch/CancelMatch");
-
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        // ── GetStatus ────────────────────────────────────────────────────────
+        // ── GetStatusInternal (GET /api/gamematch/status/{userId}) ───────────
 
         [Fact]
-        public async Task GetStatus_ValidToken_PlayerInQueue_Returns200_WithRankTotal()
+        public async Task StatusInternal_PlayerInQueue_Returns200_WithRankTotal()
         {
-            // ZRANK → 0 (첫 번째), ZCARD → 5 (기본 Mock 설정)
-            string token = TokenManager.GenerateJwtToken(4);
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await client.GetAsync("/api/gamematch/Status");
+            // SortedSetRankAsync → 0, SortedSetLengthAsync → 5 (기본 Mock 설정)
+            var response = await _client.GetAsync("/api/gamematch/status/4?gameType=gomoku");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -150,9 +101,9 @@ namespace PlatformA.Tests.Matching.API
         }
 
         [Fact]
-        public async Task GetStatus_ValidToken_PlayerNotInQueue_Returns404()
+        public async Task StatusInternal_PlayerNotInQueue_Returns404()
         {
-            // ZRANK → null (대기열에 없음)
+            // SortedSetRankAsync → null (대기열에 없음)
             _factory.MockRedisDb
                 .Setup(x => x.SortedSetRankAsync(
                     It.IsAny<RedisKey>(),
@@ -161,39 +112,30 @@ namespace PlatformA.Tests.Matching.API
                     It.IsAny<CommandFlags>()))
                 .ReturnsAsync((long?)null);
 
-            string token = TokenManager.GenerateJwtToken(5);
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            try
             {
-                AllowAutoRedirect = false
-            });
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _client.GetAsync("/api/gamematch/status/5?gameType=gomoku");
 
-            var response = await client.GetAsync("/api/gamematch/Status");
-
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-
-            // Mock 복원
-            _factory.MockRedisDb
-                .Setup(x => x.SortedSetRankAsync(
-                    It.IsAny<RedisKey>(),
-                    It.IsAny<RedisValue>(),
-                    It.IsAny<Order>(),
-                    It.IsAny<CommandFlags>()))
-                .ReturnsAsync((long?)0);
+                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            }
+            finally
+            {
+                _factory.MockRedisDb
+                    .Setup(x => x.SortedSetRankAsync(
+                        It.IsAny<RedisKey>(),
+                        It.IsAny<RedisValue>(),
+                        It.IsAny<Order>(),
+                        It.IsAny<CommandFlags>()))
+                    .ReturnsAsync((long?)0);
+            }
         }
 
         [Fact]
-        public async Task GetStatus_NoToken_Returns401()
+        public async Task StatusInternal_InvalidUserId_Returns400()
         {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
+            var response = await _client.GetAsync("/api/gamematch/status/0");
 
-            var response = await client.GetAsync("/api/gamematch/Status");
-
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         // ── RequestMatchFromLobby (POST /api/gamematch/request) ──────────────

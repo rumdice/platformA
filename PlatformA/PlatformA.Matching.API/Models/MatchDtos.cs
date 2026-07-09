@@ -52,6 +52,18 @@ namespace PlatformA.Matching.API.Models
         public string Reason { get; set; } = string.Empty;
     }
 
+    /// <summary>POST /api/gamematch/cancel 요청 DTO (Lobby 내부 전용).</summary>
+    public class CancelMatchRequestDto
+    {
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "UserId는 1 이상이어야 합니다.")]
+        public int UserId { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string GameType { get; set; } = "gomoku";
+    }
+
     /// <summary>GET /api/gamematch/rating/{userId} 응답 DTO.</summary>
     public class PlayerRatingDto
     {

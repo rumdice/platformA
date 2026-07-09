@@ -98,14 +98,6 @@ namespace PlatformA.Library.Common
             Environment.GetEnvironmentVariable("TICKET_API_URL")
             ?? "https://localhost:7003";
 
-        public static readonly string MATCH_API_URL =
-            Environment.GetEnvironmentVariable("MATCH_API_URL")
-            ?? "https://localhost:7002/api/GameMatch/RequestMatch";
-
-        public static readonly string MATCH_HUB_URL =
-            Environment.GetEnvironmentVariable("MATCH_HUB_URL")
-            ?? "https://localhost:7002/hubs/matching";
-
         // Redis Sorted Set 기반 매칭 대기열 (score = ELO 레이팅, TTL wait key로 대기 시간 추적)
         public const string MATCH_QUEUE_KEY = "queue:gamematch:1v1";
         public const int MATCH_TIMEOUT_SECONDS = 120; // 2분 초과 시 MatchTimeout 이벤트 push
