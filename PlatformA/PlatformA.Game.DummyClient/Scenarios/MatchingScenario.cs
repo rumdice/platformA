@@ -40,7 +40,8 @@ namespace PlatformA.Game.DummyClient.Scenarios
             if (enterRes.StatusCode == HttpStatusCode.Unauthorized)
             {
                 session = await TryRefreshOrExitAsync(httpClient, session);
-                if (session == null) return;
+                if (session == null)
+                    return;
                 enterRes = await httpClient.PostAsync($"{Consts.TICKET_API_URL}/api/queue/enter", null);
             }
             if (!enterRes.IsSuccessStatusCode)
@@ -56,10 +57,12 @@ namespace PlatformA.Game.DummyClient.Scenarios
                 if (statusRes.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     session = await TryRefreshOrExitAsync(httpClient, session);
-                    if (session == null) return;
+                    if (session == null)
+                        return;
                     statusRes = await httpClient.GetAsync($"{Consts.TICKET_API_URL}/api/queue/status");
                 }
-                if (!statusRes.IsSuccessStatusCode) return;
+                if (!statusRes.IsSuccessStatusCode)
+                    return;
 
                 var statusData = await statusRes.Content.ReadFromJsonAsync<QueueStatusDto>();
                 if (statusData?.Status == "Active")
