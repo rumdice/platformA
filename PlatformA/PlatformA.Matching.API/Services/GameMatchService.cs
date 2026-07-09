@@ -52,41 +52,6 @@ return {}";
             _dbFactory = dbFactory;
         }
 
-        /// <summary>
-        /// [Deprecated] 구 단일 큐에 유저를 추가합니다. GameMatchController.RequestMatch에서 호출.
-        /// 현재 매칭 경로는 TryMatchAsync(gameType)를 통한 gameType별 큐입니다.
-        /// </summary>
-        public async Task AddPlayerToQueueAsync(int userId)
-        {
-            _logger.LogInformation("[Matching] 유저 큐 진입 — UserId: {UserId}", userId);
-            double score = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            await _redisManager.ExecuteAsync(db =>
-                db.SortedSetAddAsync(Consts.MATCH_QUEUE_KEY, userId, score));
-            _logger.LogInformation("[Matching] Redis 대기열 진입 완료 — UserId: {UserId}", userId);
-        }
-
-        /// <summary>[Deprecated] 구 단일 큐에서 유저를 제거합니다. true이면 실제로 제거됨.</summary>
-        public async Task<bool> RemovePlayerFromQueueAsync(int userId)
-        {
-            return await _redisManager.ExecuteAsync(db =>
-                db.SortedSetRemoveAsync(Consts.MATCH_QUEUE_KEY, userId));
-        }
-
-        /// <summary>[Deprecated] 구 단일 큐에서 유저의 대기열 순위를 반환합니다. 없으면 -1.</summary>
-        public async Task<long> GetQueueRankAsync(int userId)
-        {
-            long? rank = await _redisManager.ExecuteAsync(db =>
-                db.SortedSetRankAsync(Consts.MATCH_QUEUE_KEY, userId));
-            return rank ?? -1;
-        }
-
-        /// <summary>[Deprecated] 구 단일 큐의 현재 대기 총 인원을 반환합니다.</summary>
-        public async Task<long> GetQueueLengthAsync()
-        {
-            return await _redisManager.ExecuteAsync(db =>
-                db.SortedSetLengthAsync(Consts.MATCH_QUEUE_KEY));
-        }
-
         /// <summary>플레이어 MMR을 조회합니다. Redis hit → 즉시 반환. Redis miss → DB fallback 후 재캐싱. DB miss → 기본값(1000).</summary>
         public async Task<int> GetPlayerRatingAsync(int userId)
         {
@@ -287,6 +252,19 @@ return {}";
                 userId, selfRating, opponentId, opponentRating, roomId, gameType);
 
             return new MatchResultDto { Host = host, Port = port, RoomId = roomId };
+        }
+
+        /// <summary>gameType별 큐에서 유저의 대기 순위와 전체 인원을 반환합니다. 대기 중이 아니면 (-1, 0).</summary>
+        public async Task<(long rank, long total)> GetQueueStatusAsync(int userId, string gameType)
+        {
+            string queueKey = $"{Consts.MATCH_QUEUE_KEY}:{gameType}";
+            long? rank = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetRankAsync(queueKey, userId));
+            if (rank == null)
+                return (-1, 0);
+            long total = await _redisManager.ExecuteAsync(db =>
+                db.SortedSetLengthAsync(queueKey));
+            return (rank.Value, total);
         }
 
         /// <summary>gameType별 큐 + wait key에서 유저를 제거합니다. true이면 실제로 제거됨.</summary>
