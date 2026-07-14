@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>TCP 패킷 프로토콜 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="TCP 패킷 프로토콜 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="tcp-패킷-프로토콜">TCP 패킷 프로토콜</h1>
+
+<p>PlatformA 게임 서버는 TCP 소켓 위에서 Protobuf 기반 바이너리 프레이밍 프로토콜을 사용합니다.
+이 문서는 ADR-007(Protobuf 전환)과 ADR-005(Envelope 와이어 포맷)를 기반으로 작성됩니다.</p>
+<hr>
+<h2 id="와이어-포맷-wire-format">와이어 포맷 (Wire Format)</h2>
+<p>모든 TCP 프레임은 2바이트 헤더와 Protobuf Envelope 페이로드로 구성됩니다.</p>
+<pre><code>┌─────────────────┬──────────────────────────────────────┐
+│  size (2B LE)   │  Packet envelope (Protobuf, N bytes)  │
+└─────────────────┴──────────────────────────────────────┘
+</code></pre>
+<ul>
+<li><code>size</code>: 프레임 전체 크기 (2 + envelope 바이트 수), <strong>Little Endian ushort</strong></li>
+<li><code>Packet envelope</code>: <code>Packet { oneof payload { ... } }</code> 메시지를 Protobuf 직렬화한 바이트</li>
+</ul>
+<blockquote>
+<p>ADR-005: 구형 4바이트 헤더(<code>ushort size | ushort packetId</code>)에서 2바이트 헤더로 변경되었습니다.
+<code>packetId</code>는 Protobuf <code>oneof</code> field tag(1~6)로 대체되어 컴파일 타임 타입 체크가 가능합니다.</p>
+</blockquote>
+<hr>
+<h2 id="protobuf-envelope-구조">Protobuf Envelope 구조</h2>
+<p>모든 패킷은 <code>Packet</code> 메시지로 감싸져 전송됩니다. <code>oneof payload</code> 필드의 tag 번호가 패킷 종류를 식별합니다.</p>
+<pre><code class="lang-proto">// PlatformA.Library/Packets/Proto/packets.proto
+
+message Packet {
+    oneof payload {
+        CMove      c_move       = 1;
+        SMove      s_move       = 2;
+        CLogin     c_login      = 3;
+        SLogin     s_login      = 4;
+        CEnterRoom c_enter_room = 5;
+        SEnterRoom s_enter_room = 6;
+    }
+}
+</code></pre>
+<p><code>Packet.PayloadOneofCase</code> 열거형 값(1~6)이 패킷 식별자로 사용됩니다.</p>
+<hr>
+<h2 id="패킷-목록">패킷 목록</h2>
+<!-- PACKET_LIST_START -->
+<h3 id="클라이언트--서버-cxxx">클라이언트 → 서버 (CXxx)</h3>
+<table>
+<thead>
+<tr>
+<th>패킷</th>
+<th>oneof tag</th>
+<th>필드</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CMove</code></td>
+<td>1</td>
+<td><code>float x</code>, <code>float y</code>, <code>float z</code></td>
+<td>이동 요청</td>
+</tr>
+<tr>
+<td><code>CLogin</code></td>
+<td>3</td>
+<td><code>int32 room_id</code>, <code>string jwt_token</code></td>
+<td>로그인 요청</td>
+</tr>
+<tr>
+<td><code>CEnterRoom</code></td>
+<td>5</td>
+<td><code>int32 room_id</code></td>
+<td>방 이동 요청</td>
+</tr>
+<tr>
+<td><code>CPlaceStone</code></td>
+<td>7</td>
+<td><code>int32 x</code>, <code>int32 y</code></td>
+<td>돌 놓기 요청</td>
+</tr>
+<tr>
+<td><code>CMatchRequest</code></td>
+<td>11</td>
+<td><code>string game_type</code></td>
+<td>매칭 요청</td>
+</tr>
+</tbody>
+</table>
+<h3 id="서버--클라이언트-sxxx">서버 → 클라이언트 (SXxx)</h3>
+<table>
+<thead>
+<tr>
+<th>패킷</th>
+<th>oneof tag</th>
+<th>필드</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SMove</code></td>
+<td>2</td>
+<td><code>int32 player_id</code>, <code>float x</code>, <code>float y</code>, <code>float z</code></td>
+<td>이동 브로드캐스트</td>
+</tr>
+<tr>
+<td><code>SLogin</code></td>
+<td>4</td>
+<td><code>LoginResultCode result_code</code>, <code>int32 player_id</code></td>
+<td>로그인 결과</td>
+</tr>
+<tr>
+<td><code>SEnterRoom</code></td>
+<td>6</td>
+<td><code>EnterRoomResultCode result_code</code>, <code>int32 room_id</code></td>
+<td>방 이동 결과</td>
+</tr>
+<tr>
+<td><code>SBoardUpdate</code></td>
+<td>8</td>
+<td><code>int32 x</code>, <code>int32 y</code>, <code>StoneColor color</code>, <code>int32 next_turn_player_id</code></td>
+<td>돌 놓기 결과 브로드캐스트</td>
+</tr>
+<tr>
+<td><code>SGameStart</code></td>
+<td>9</td>
+<td><code>int32 player1_id</code>, <code>int32 player2_id</code>, <code>int32 first_turn_player_id</code></td>
+<td>게임 시작 (선후 공개)</td>
+</tr>
+<tr>
+<td><code>SGameOver</code></td>
+<td>10</td>
+<td><code>int32 winner_id</code>, <code>GameOverReason reason</code>, <code>string lobby_url</code></td>
+<td>게임 종료</td>
+</tr>
+<tr>
+<td><code>SMatchFound</code></td>
+<td>12</td>
+<td><code>MatchRequestResultCode result_code</code>, <code>string host</code>, <code>int32 port</code>, <code>string room_id</code></td>
+<td>매칭 성사 및 게임 서버 접속 정보 전달</td>
+</tr>
+</tbody>
+</table>
+<!-- PACKET_LIST_END -->
+<!-- ENUM_LIST_START -->
+<h3 id="결과-코드-열거형">결과 코드 열거형</h3>
+<p><strong>LoginResultCode</strong></p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>LOGIN_SUCCESS</code></td>
+<td>(proto3 기본값 — wire에 포함되지 않음)</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>LOGIN_INVALID_TOKEN</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>LOGIN_NOT_IN_QUEUE</code></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>LOGIN_DUPLICATE</code></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>LOGIN_ROOM_NOT_FOUND</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>EnterRoomResultCode</strong></p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>ENTER_ROOM_SUCCESS</code></td>
+<td>(proto3 기본값 — wire에 포함되지 않음)</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>ENTER_ROOM_NOT_FOUND</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>StoneColor</strong></p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>STONE_NONE</code></td>
+<td>(proto3 기본값 — wire에 포함되지 않음)</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>STONE_BLACK</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>STONE_WHITE</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>GameOverReason</strong></p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>FIVE_IN_ROW</code></td>
+<td>(proto3 기본값 — wire에 포함되지 않음)</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>TIMEOUT</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>DISCONNECT</code></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>DRAW</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>MatchRequestResultCode</strong></p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>MATCH_QUEUED</code></td>
+<td>(proto3 기본값 — wire에 포함되지 않음)</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>MATCH_FOUND</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>MATCH_FAILED</code></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>MATCH_CANCELLED</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<!-- ENUM_LIST_END -->
+<blockquote>
+<p><strong>proto3 기본값 주의</strong>: 값이 <code>0</code>인 enum 필드(예: <code>LOGIN_SUCCESS = 0</code>)는 wire에 포함되지 않습니다.
+수신 측은 필드 부재를 기본값(0 = 성공)으로 복원하므로 의미상 동일하지만, 혼동에 주의하세요.</p>
+</blockquote>
+<hr>
+<h2 id="로그인-시퀀스">로그인 시퀀스</h2>
+<pre><code class="lang-mermaid">sequenceDiagram
+    participant Client
+    participant GameSession
+    participant Redis
+    participant GameRoom
+
+    Client-&gt;&gt;GameSession: TCP 연결
+    GameSession--&gt;&gt;Client: (연결 수락, 인증 대기)
+
+    Client-&gt;&gt;GameSession: CLogin { room_id, jwt_token }
+    GameSession-&gt;&gt;GameSession: JWT 검증 (TokenManager)
+
+    alt JWT 무효
+        GameSession--&gt;&gt;Client: SLogin { LOGIN_INVALID_TOKEN }
+        GameSession-&gt;&gt;Client: Disconnect
+    end
+
+    GameSession-&gt;&gt;Redis: KeyExists(ticket:active:user:{playerId})
+    alt 입장권 없음
+        GameSession--&gt;&gt;Client: SLogin { LOGIN_NOT_IN_QUEUE }
+        GameSession-&gt;&gt;Client: Disconnect
+    end
+
+    GameSession-&gt;&gt;Redis: KeyDelete(ticket:active:user:{playerId})
+    GameSession-&gt;&gt;Redis: AcquireLock(player:login_lock:{playerId})
+
+    alt 중복 로그인
+        GameSession--&gt;&gt;Client: SLogin { LOGIN_DUPLICATE }
+        GameSession-&gt;&gt;Client: Disconnect
+    end
+
+    GameSession-&gt;&gt;GameRoom: room.Push(() =&gt; room.Enter(session))
+    GameRoom--&gt;&gt;Client: SLogin { LOGIN_SUCCESS, player_id }
+</code></pre>
+<hr>
+<h2 id="이동-브로드캐스트-시퀀스">이동 브로드캐스트 시퀀스</h2>
+<pre><code class="lang-mermaid">sequenceDiagram
+    participant Client
+    participant GameSession
+    participant GameRoom
+    participant OtherClients
+
+    Client-&gt;&gt;GameSession: CMove { x, y, z }
+    GameSession-&gt;&gt;GameRoom: room.Push(() =&gt; Broadcast)
+    Note over GameRoom: JobQueue 내부에서 실행 (Zero-Lock)
+    GameRoom-&gt;&gt;OtherClients: SMove { player_id, x, y, z }
+</code></pre>
+<hr>
+<h2 id="패킷-직렬화--역직렬화">패킷 직렬화 / 역직렬화</h2>
+<h3 id="송신-서버--클라이언트">송신 (서버 → 클라이언트)</h3>
+<pre><code class="lang-csharp">// PacketHandler.cs의 BuildResponsePacket 헬퍼
+private static byte[] BuildResponsePacket(ProtoPacket envelope)
+{
+    byte[] envelopeBytes = envelope.ToByteArray();
+    ushort size = (ushort)(2 + envelopeBytes.Length);
+    byte[] buf = new byte[size];
+    BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(0, 2), size);
+    envelopeBytes.CopyTo(buf, 2);
+    return buf;
+}
+
+// 사용 예시
+room.Broadcast(BuildResponsePacket(new ProtoPacket
+{
+    SMove = new SMove
+    {
+        PlayerId = session.SessionId,
+        X = moveReq.X,
+        Y = moveReq.Y,
+        Z = moveReq.Z,
+    },
+}));
+</code></pre>
+<h3 id="수신-클라이언트--서버">수신 (클라이언트 → 서버)</h3>
+<pre><code class="lang-csharp">// GameSession.OnRecv — 헤더 2바이트 건너뛰고 Envelope 파싱
+protected override void OnRecv(ReadOnlySequence&lt;byte&gt; packet)
+{
+    ReadOnlySpan&lt;byte&gt; span = packet.IsSingleSegment
+        ? packet.FirstSpan
+        : packet.ToArray().AsSpan();
+
+    // offset 2부터 Packet envelope 파싱
+    ReadOnlySpan&lt;byte&gt; envelopeBytes = span.Slice(2);
+    try
+    {
+        ProtoPacket envelope = ProtoPacket.Parser.ParseFrom(envelopeBytes);
+        PacketManager&lt;GameSession&gt;.Instance.HandlePacket(this, envelope);
+    }
+    catch (InvalidProtocolBufferException ex)
+    {
+        Console.WriteLine($&quot;[OnRecv] 잘못된 패킷: {ex.Message}&quot;);
+        Disconnect();
+    }
+}
+</code></pre>
+<hr>
+<h2 id="패킷-핸들러-등록">패킷 핸들러 등록</h2>
+<p><code>[PacketHandler]</code> 어트리뷰트에 <code>Packet.PayloadOneofCase</code> 값을 지정합니다.</p>
+<pre><code class="lang-csharp">// PacketHandler.cs
+[PacketHandler(ProtoPacket.PayloadOneofCase.CMove)]
+public static void Handle_C_Move(GameSession session, ProtoPacket packet)
+{
+    CMove moveReq = packet.CMove;
+
+    GameRoom room = session.Room;
+    if (room == null) return;
+
+    room.Push(() =&gt;
+    {
+        // GameRoom의 JobQueue 내부에서만 게임 상태를 수정합니다.
+        room.Broadcast(BuildResponsePacket(new ProtoPacket
+        {
+            SMove = new SMove { PlayerId = session.SessionId, X = moveReq.X, ... },
+        }));
+    });
+}
+</code></pre>
+<blockquote>
+<p><strong>중요</strong>: 게임 상태 수정은 반드시 <code>room.Push()</code> 내부에서만 수행합니다.
+<code>Push()</code> 밖에서 게임 상태를 수정하면 레이스 컨디션이 발생합니다.</p>
+</blockquote>
+<hr>
+<h2 id="새-패킷-추가-절차">새 패킷 추가 절차</h2>
+<pre><code class="lang-mermaid">flowchart LR
+    A[&quot;1. packets.proto에&lt;br/&gt;message 추가&quot;] --&gt; B[&quot;2. Packet.oneof에&lt;br/&gt;필드 추가&quot;]
+    B --&gt; C[&quot;3. PacketHandler.cs에&lt;br/&gt;[PacketHandler] 핸들러 추가&quot;]
+    C --&gt; D[&quot;4. Round-trip 테스트 추가&quot;]
+</code></pre>
+<ol>
+<li><code>PlatformA.Library/Packets/Proto/packets.proto</code>에 <code>message</code> 정의 추가</li>
+<li><code>Packet { oneof payload { ... } }</code>에 새 필드 추가</li>
+<li><code>PlatformA.Game.Server/Packet/PacketHandler.cs</code>에 핸들러 추가</li>
+<li><code>PacketFramingTests.cs</code>에 round-trip 테스트 추가</li>
+</ol>
+<hr>
+<h2 id="네임스페이스-충돌-처리">네임스페이스 충돌 처리</h2>
+<p><code>PlatformA.Game.Server.Packet</code> 네임스페이스가 <code>Packet</code> 클래스를 가립니다.
+<code>GameSession.cs</code>와 <code>PacketHandler.cs</code>에서 아래 별칭을 사용합니다.</p>
+<pre><code class="lang-csharp">using ProtoPacket = PlatformA.Library.Packets.Packet;
+</code></pre>
+<hr>
+<h2 id="참조-문서">참조 문서</h2>
+<ul>
+<li><code>PlatformA.Library/Packets/Proto/packets.proto</code> — 패킷 IDL 정의</li>
+<li><code>PlatformA.Game.Server/Network/GameSession.cs</code> — 수신 처리</li>
+<li><code>PlatformA.Game.Server/Packet/PacketHandler.cs</code> — 핸들러 구현</li>
+<li><code>AI/adr/003-protobuf-packet-migration.md</code> — Protobuf 전환 결정</li>
+<li><code>AI/adr/005-protobuf-envelope-wire-format.md</code> — Envelope 와이어 포맷 결정</li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/developer-guide/packet-protocol.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>PlatformA 개발자 문서 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="PlatformA 개발자 문서 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="favicon.ico">
+      <link rel="stylesheet" href="styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="styles/docfx.css">
+      <link rel="stylesheet" href="styles/main.css">
+      <meta property="docfx:navrel" content="toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="index.html">
+                <img id="logo" class="svg" src="logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="platforma-개발자-문서">PlatformA 개발자 문서</h1>
+
+<p><strong>.NET 기반 고성능 분산 멀티플레이어 게임 백엔드 플랫폼</strong></p>
+<p>최대 10,000명 동시 대기열, 200ms 매칭 주기, Redis Cluster 기반 분산 아키텍처를 제공합니다.</p>
+<hr>
+<h2 id="빠른-시작">빠른 시작</h2>
+<table>
+<thead>
+<tr>
+<th>대상</th>
+<th>시작 위치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>신규 개발자</strong></td>
+<td><a href="developer-guide/getting-started.html">로컬 환경 세팅</a></td>
+</tr>
+<tr>
+<td><strong>아키텍처 파악</strong></td>
+<td><a href="architecture/overview.html">시스템 개요</a></td>
+</tr>
+<tr>
+<td><strong>API 연동</strong></td>
+<td><a href="api-guide/auth.html">Auth API 가이드</a></td>
+</tr>
+<tr>
+<td><strong>운영/배포</strong></td>
+<td><a href="operations/deployment.html">배포 가이드</a></td>
+</tr>
+<tr>
+<td><strong>비개발자</strong></td>
+<td><a href="stakeholder/overview.html">PlatformA란?</a></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="시스템-구성">시스템 구성</h2>
+<pre><code class="lang-mermaid">graph LR
+  C[클라이언트] --&gt; A[Auth API\n:7001]
+  C --&gt; T[Ticketing API\n:7003]
+  T --&gt; M[Matching API\n:7002]
+  C --&gt; M
+  M --&gt; G[Game Server\n:7777 TCP]
+  C --&gt; G
+
+  A &amp; T &amp; M &amp; G --&gt; R[(Redis Cluster\n6-node)]
+  A &amp; M --&gt; DB[(MariaDB)]
+</code></pre>
+<hr>
+<h2 id="서비스-요약">서비스 요약</h2>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>역할</th>
+<th>프로토콜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auth API</strong></td>
+<td>JWT 로그인·갱신·로그아웃</td>
+<td>HTTPS REST</td>
+</tr>
+<tr>
+<td><strong>Ticketing API</strong></td>
+<td>대기열 관리·입장권 발급</td>
+<td>HTTPS REST + SignalR</td>
+</tr>
+<tr>
+<td><strong>Matching API</strong></td>
+<td>1:1 매칭 엔진</td>
+<td>HTTPS REST + SignalR</td>
+</tr>
+<tr>
+<td><strong>Game Server</strong></td>
+<td>실시간 게임 세션·패킷 처리</td>
+<td>TCP Binary (Protobuf)</td>
+</tr>
+<tr>
+<td><strong>Utils API</strong></td>
+<td>URL 단축·IP 조회·통계</td>
+<td>HTTPS REST</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="기술-스택">기술 스택</h2>
+<ul>
+<li><strong>런타임</strong>: <!-- RUNTIME_VERSION -->.NET ? / .NET 10.0<!-- /RUNTIME_VERSION --></li>
+<li><strong>데이터</strong>: Redis 7 Cluster (6-node) · MariaDB (MySQL 8)</li>
+<li><strong>프로토콜</strong>: REST · SignalR · TCP Binary (Protobuf)</li>
+<li><strong>인프라</strong>: Docker Compose · Kubernetes (kind/EKS)</li>
+<li><strong>테스트</strong>: xUnit · <!-- TEST_COUNT -->108개<!-- /TEST_COUNT --> 테스트</li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/index.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="styles/docfx.js"></script>
+    <script type="text/javascript" src="styles/main.js"></script>
+  </body>
+</html>

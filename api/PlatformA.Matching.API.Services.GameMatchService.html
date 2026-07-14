@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class GameMatchService | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class GameMatchService | PlatformA 개발자 문서 ">
+    
+    <meta name="description" content="게임서버용 매칭 엔진. 모든 Redis 명령은 RedisManager.ExecuteAsync를 통해 Polly 파이프라인이 적용됩니다.">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="PlatformA.Matching.API.Services.GameMatchService">
+
+
+
+  <h1 id="PlatformA_Matching_API_Services_GameMatchService" data-uid="PlatformA.Matching.API.Services.GameMatchService" class="text-break">Class GameMatchService</h1>
+  <div class="markdown level0 summary"><p>게임서버용 매칭 엔진.
+모든 Redis 명령은 RedisManager.ExecuteAsync를 통해 Polly 파이프라인이 적용됩니다.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+    <div class="level1"><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.backgroundservice">BackgroundService</a></div>
+    <div class="level2"><span class="xref">GameMatchService</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.ihostedservice">IHostedService</a></div>
+    <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.backgroundservice.dispose">BackgroundService.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.backgroundservice.startasync">BackgroundService.StartAsync(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.backgroundservice.stopasync">BackgroundService.StopAsync(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.backgroundservice.executetask">BackgroundService.ExecuteTask</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="PlatformA.html">PlatformA</a>.<a class="xref" href="PlatformA.Matching.html">Matching</a>.<a class="xref" href="PlatformA.Matching.API.html">API</a>.<a class="xref" href="PlatformA.Matching.API.Services.html">Services</a></h6>
+  <h6><strong>Assembly</strong>: PlatformA.Matching.API.dll</h6>
+  <h5 id="PlatformA_Matching_API_Services_GameMatchService_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class GameMatchService : BackgroundService, IHostedService, IDisposable</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService__ctor_PlatformA_Library_Core_RedisManager_Microsoft_Extensions_Logging_ILogger_PlatformA_Matching_API_Services_GameMatchService__Microsoft_EntityFrameworkCore_IDbContextFactory_PlatformA_MySqlDB_Lib_DBWebApp_DbWebAppContext__.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.%23ctor(PlatformA.Library.Core.RedisManager%2CMicrosoft.Extensions.Logging.ILogger%7BPlatformA.Matching.API.Services.GameMatchService%7D%2CMicrosoft.EntityFrameworkCore.IDbContextFactory%7BPlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L45">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService__ctor_" data-uid="PlatformA.Matching.API.Services.GameMatchService.#ctor*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService__ctor_PlatformA_Library_Core_RedisManager_Microsoft_Extensions_Logging_ILogger_PlatformA_Matching_API_Services_GameMatchService__Microsoft_EntityFrameworkCore_IDbContextFactory_PlatformA_MySqlDB_Lib_DBWebApp_DbWebAppContext__" data-uid="PlatformA.Matching.API.Services.GameMatchService.#ctor(PlatformA.Library.Core.RedisManager,Microsoft.Extensions.Logging.ILogger{PlatformA.Matching.API.Services.GameMatchService},Microsoft.EntityFrameworkCore.IDbContextFactory{PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext})">GameMatchService(RedisManager, ILogger&lt;GameMatchService&gt;, IDbContextFactory&lt;DbWebAppContext&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public GameMatchService(RedisManager redisManager, ILogger&lt;GameMatchService&gt; logger, IDbContextFactory&lt;DbWebAppContext&gt; dbFactory)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="PlatformA.Library.Core.RedisManager.html">RedisManager</a></td>
+        <td><span class="parametername">redisManager</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.ilogger-1">ILogger</a>&lt;<a class="xref" href="PlatformA.Matching.API.Services.GameMatchService.html">GameMatchService</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.idbcontextfactory-1">IDbContextFactory</a>&lt;<a class="xref" href="PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.html">DbWebAppContext</a>&gt;</td>
+        <td><span class="parametername">dbFactory</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_CancelMatchAsync_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.CancelMatchAsync(System.Int32%2CSystem.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L271">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_CancelMatchAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.CancelMatchAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_CancelMatchAsync_System_Int32_System_String_" data-uid="PlatformA.Matching.API.Services.GameMatchService.CancelMatchAsync(System.Int32,System.String)">CancelMatchAsync(int, string)</h4>
+  <div class="markdown level1 summary"><p>gameType별 큐 + wait key에서 유저를 제거합니다. true이면 실제로 제거됨.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; CancelMatchAsync(int userId, string gameType)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">gameType</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_ExecuteAsync_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.ExecuteAsync(System.Threading.CancellationToken)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L501">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_ExecuteAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.ExecuteAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_ExecuteAsync_System_Threading_CancellationToken_" data-uid="PlatformA.Matching.API.Services.GameMatchService.ExecuteAsync(System.Threading.CancellationToken)">ExecuteAsync(CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>백그라운드 워커 — stale Pending 레코드 정리 전용.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override Task ExecuteAsync(CancellationToken stoppingToken)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></td>
+        <td><span class="parametername">stoppingToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.backgroundservice.executeasync">BackgroundService.ExecuteAsync(CancellationToken)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_GetMatchHistoryAsync_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.GetMatchHistoryAsync(System.Int32%2CSystem.Int32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L468">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_GetMatchHistoryAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetMatchHistoryAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_GetMatchHistoryAsync_System_Int32_System_Int32_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetMatchHistoryAsync(System.Int32,System.Int32)">GetMatchHistoryAsync(int, int)</h4>
+  <div class="markdown level1 summary"><p>플레이어의 최근 매칭 이력을 반환합니다.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;List&lt;MatchHistoryDto&gt;&gt; GetMatchHistoryAsync(int userId, int limit = 20)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">limit</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="PlatformA.Matching.API.Models.MatchHistoryDto.html">MatchHistoryDto</a>&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_GetPlayerRatingAsync_System_Int32_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.GetPlayerRatingAsync(System.Int32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L56">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_GetPlayerRatingAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetPlayerRatingAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_GetPlayerRatingAsync_System_Int32_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetPlayerRatingAsync(System.Int32)">GetPlayerRatingAsync(int)</h4>
+  <div class="markdown level1 summary"><p>플레이어 MMR을 조회합니다. Redis hit → 즉시 반환. Redis miss → DB fallback 후 재캐싱. DB miss → 기본값(1000).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;int&gt; GetPlayerRatingAsync(int userId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_GetPlayerRatingDtoAsync_System_Int32_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.GetPlayerRatingDtoAsync(System.Int32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L451">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_GetPlayerRatingDtoAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetPlayerRatingDtoAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_GetPlayerRatingDtoAsync_System_Int32_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetPlayerRatingDtoAsync(System.Int32)">GetPlayerRatingDtoAsync(int)</h4>
+  <div class="markdown level1 summary"><p>플레이어의 ELO 레이팅을 DB에서 조회합니다. 없으면 null.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;PlayerRatingDto?&gt; GetPlayerRatingDtoAsync(int userId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="PlatformA.Matching.API.Models.PlayerRatingDto.html">PlayerRatingDto</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_GetQueueStatusAsync_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.GetQueueStatusAsync(System.Int32%2CSystem.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L258">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_GetQueueStatusAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetQueueStatusAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_GetQueueStatusAsync_System_Int32_System_String_" data-uid="PlatformA.Matching.API.Services.GameMatchService.GetQueueStatusAsync(System.Int32,System.String)">GetQueueStatusAsync(int, string)</h4>
+  <div class="markdown level1 summary"><p>gameType별 큐에서 유저의 대기 순위와 전체 인원을 반환합니다. 대기 중이 아니면 (-1, 0).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;(long rank, long total)&gt; GetQueueStatusAsync(int userId, string gameType)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">gameType</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;(<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetuple-system.int64,system.int64-.rank">rank</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetuple-system.int64,system.int64-.total">total</a>)&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_NotifyMatchStartedAsync_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.NotifyMatchStartedAsync(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L396">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_NotifyMatchStartedAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.NotifyMatchStartedAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_NotifyMatchStartedAsync_System_String_" data-uid="PlatformA.Matching.API.Services.GameMatchService.NotifyMatchStartedAsync(System.String)">NotifyMatchStartedAsync(string)</h4>
+  <div class="markdown level1 summary"><p>게임 서버에서 두 플레이어가 입장했음을 알리고 Status를 InProgress로 전환합니다.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; NotifyMatchStartedAsync(string roomId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">roomId</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_TryMatchAsync_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.TryMatchAsync(System.Int32%2CSystem.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L79">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_TryMatchAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.TryMatchAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_TryMatchAsync_System_Int32_System_String_" data-uid="PlatformA.Matching.API.Services.GameMatchService.TryMatchAsync(System.Int32,System.String)">TryMatchAsync(int, string)</h4>
+  <div class="markdown level1 summary"><p>Lobby 서버가 호출하는 즉시 매칭 시도 메서드.
+ELO 레이팅 기반 3단계 범위 매칭: Stage1(±200) → Stage2/3(TTL 기반 ±400/±800) → Fallback(ZPOPMIN).
+상대를 찾지 못하면 대기열에 추가 후 null을 반환합니다.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;MatchResultDto?&gt; TryMatchAsync(int userId, string gameType)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">gameType</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="PlatformA.Matching.API.Models.MatchResultDto.html">MatchResultDto</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService_UpdateMatchResultAsync_System_String_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService.UpdateMatchResultAsync(System.String%2CSystem.Int32%2CSystem.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L282">View Source</a>
+  </span>
+  <a id="PlatformA_Matching_API_Services_GameMatchService_UpdateMatchResultAsync_" data-uid="PlatformA.Matching.API.Services.GameMatchService.UpdateMatchResultAsync*"></a>
+  <h4 id="PlatformA_Matching_API_Services_GameMatchService_UpdateMatchResultAsync_System_String_System_Int32_System_String_" data-uid="PlatformA.Matching.API.Services.GameMatchService.UpdateMatchResultAsync(System.String,System.Int32,System.String)">UpdateMatchResultAsync(string, int, string)</h4>
+  <div class="markdown level1 summary"><p>게임 종료 후 MatchRecord에 결과를 업데이트하고 ELO 레이팅을 갱신합니다.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; UpdateMatchResultAsync(string roomId, int winnerId, string reason)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">roomId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">winnerId</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">reason</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.ihostedservice">IHostedService</a>
+  </div>
+  <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a>
+  </div>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Matching_API_Services_GameMatchService.md&amp;value=---%0Auid%3A%20PlatformA.Matching.API.Services.GameMatchService%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Matching.API/Services/GameMatchService.cs/#L15" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

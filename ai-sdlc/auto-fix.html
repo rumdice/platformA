@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC CI 실패 감지 및 수동 수정 정책 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC CI 실패 감지 및 수동 수정 정책 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-ci-실패-감지-및-수동-수정-정책">AI_SDLC CI 실패 감지 및 수동 수정 정책</h1>
+
+<p>작성일: 2026-06-08 | 최종 수정: 2026-06-17 | 관련 스프린트: #49, #63</p>
+<blockquote>
+<p><strong>[2026-06-17 업데이트]</strong> Sprint #63(PR #95)에서 <code>auto-fix.yml</code>이 삭제되었다.
+AI가 CI 실패를 자동으로 수정하는 워크플로는 더 이상 존재하지 않는다.
+현재는 n8n이 실패를 감지하여 DB에 기록하고, 사람이 수동으로 수정하는 방식을 사용한다.</p>
+</blockquote>
+<h2 id="1-현재-ci-실패-처리-흐름">1. 현재 CI 실패 처리 흐름</h2>
+<pre><code>CI 실패 발생 (GitHub Actions)
+  ↓
+n8n GitHub CI Failure Monitor (10분 폴링)
+  → 커서 기반 폴링 — last_checked_at 이후 실패만 조회
+  ↓
+sdlc.ai_failures INSERT (n8n → PostgreSQL)
+  → ON CONFLICT DO NOTHING (중복 방어)
+  ↓
+session-start.sh / /workflow 0.5단계
+  → 미해결 CI 실패 목록 알림
+  ↓
+개발자가 해당 브랜치에서 수동 수정 후 /done 재실행
+</code></pre>
+<p>n8n 아키텍처 상세: <a href="n8n.html">n8n 문서</a></p>
+<h2 id="2-auto-fixyml-삭제-이유-sprint-63">2. auto-fix.yml 삭제 이유 (Sprint #63)</h2>
+<p>Sprint #63(PR #95)에서 <code>auto-fix.yml</code>을 삭제한 이유:</p>
+<ol>
+<li><strong>별도 API 과금</strong>: <code>ANTHROPIC_API_KEY</code>를 GitHub Secret에 별도 등록해야 하며
+클라우드에서 Anthropic API를 직접 호출 → 예상치 못한 비용 발생 가능</li>
+<li><strong>DB 격리 원칙 위반</strong>: GitHub Actions runner(클라우드 VM)가 로컬 PostgreSQL에
+접근하려는 구조 → CLAUDE.md에 명시된 격리 원칙 위반</li>
+<li><strong>미등록 상태</strong>: <code>ANTHROPIC_API_KEY</code>가 등록된 적 없어 실제로 동작한 적 없음</li>
+<li><strong>설계 방향</strong>: 자동 수정보다 빠른 감지 + 명확한 사람 개입이 더 안전</li>
+</ol>
+<h2 id="3-failure_type별-현재-정책">3. failure_type별 현재 정책</h2>
+<table>
+<thead>
+<tr>
+<th>failure_type</th>
+<th style="text-align: center;">자동 감지 (n8n)</th>
+<th style="text-align: center;">자동 수정</th>
+<th>처리 방법</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>format_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>개발자가 <code>dotnet format</code> 후 재push</td>
+</tr>
+<tr>
+<td><code>style_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>개발자가 <code>dotnet format style</code> 후 재push</td>
+</tr>
+<tr>
+<td><code>docs_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>개발자가 <code>/doc-writer api-guide</code> 실행</td>
+</tr>
+<tr>
+<td><code>build_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>개발자가 빌드 오류 수정 후 재push</td>
+</tr>
+<tr>
+<td><code>test_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>개발자가 테스트 실패 원인 분석 후 수정</td>
+</tr>
+<tr>
+<td><code>sdlc_gate_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>개발자가 누락된 SDLC 단계(/impact, /test-gen 등) 실행</td>
+</tr>
+<tr>
+<td><code>db_migration_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>항상 사람이 직접 검토</td>
+</tr>
+<tr>
+<td><code>security_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>항상 사람이 직접 검토</td>
+</tr>
+<tr>
+<td><code>deploy_failed</code></td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;"><strong>No</strong></td>
+<td>환경 의존성 큼, 수동 확인 필요</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-미해결-실패-확인-방법">4. 미해결 실패 확인 방법</h2>
+<pre><code class="lang-bash"># 특정 브랜치 미해결 실패 조회
+python .github/scripts/record_failure.py --list-unresolved --branch {브랜치명}
+
+# 전체 미해결 실패 조회
+python .github/scripts/record_failure.py --list-unresolved
+
+# 수동으로 resolved 처리
+python .github/scripts/record_failure.py --resolve --branch {브랜치명} --type {failure_type}
+</code></pre>
+<p>세션 시작 시 <code>session-start.sh</code>가 main 브랜치에서 전체 미해결 목록을 자동 출력한다.
+<code>/workflow</code> 스킬 0.5단계에서도 작업 시작 전 미해결 실패를 알린다.</p>
+<h2 id="5-ci-실패-기록-유지-원칙">5. CI 실패 기록 유지 원칙</h2>
+<ul>
+<li><code>sdlc.ai_failures.resolved = false</code> → 미처리 상태</li>
+<li><code>sdlc.ai_failures.resolved = true</code> → 처리 완료 (수동 resolved 또는 /done 성공 후 자동 처리)</li>
+<li>임시 테스트 브랜치나 삭제된 브랜치의 실패는 수동으로 <code>resolved=true</code> 처리 가능</li>
+<li><strong>retry_count</strong> 필드는 현재 사용하지 않음 (auto-fix 제거로 재시도 루프 없음)</li>
+</ul>
+<h2 id="6-자동-수정-금지-파일-참고">6. 자동 수정 금지 파일 (참고)</h2>
+<p>과거 auto-fix 정책에서 자동 수정이 금지되었던 파일 목록 (현재는 어차피 자동 수정 없음):</p>
+<pre><code>PlatformA.Library/**
+**/Migrations/**
+**/*Context.cs
+**/*Entities/**
+**/*Auth*
+**/*Token*
+**/*Jwt*
+**/Consts.cs
+.github/workflows/**
+</code></pre>
+<h2 id="7-관련-문서">7. 관련 문서</h2>
+<ul>
+<li>n8n CI 실패 감지 설정: <a href="n8n.html">n8n 문서</a></li>
+<li>Job Lock (현재는 /start에서만 사용): <a href="job-lock.html">Job Lock 문서</a></li>
+<li>GitHub Actions 격리 원칙: <a href="github-actions.html">GitHub Actions 문서</a></li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/auto-fix.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

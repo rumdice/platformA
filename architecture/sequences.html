@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>시퀀스 다이어그램 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="시퀀스 다이어그램 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="시퀀스-다이어그램">시퀀스 다이어그램</h1>
+
+<h2 id="1-로그인--인증-플로우">1. 로그인 / 인증 플로우</h2>
+<pre><code class="lang-mermaid">sequenceDiagram
+  participant C as 클라이언트
+  participant A as Auth API
+  participant DB as MariaDB
+  participant R as Redis
+
+  C-&gt;&gt;+A: POST /api/Auth/login&lt;br/&gt;{username, password}
+  A-&gt;&gt;A: RedisRateLimit 체크 (10회/분)
+  A-&gt;&gt;+DB: SELECT * FROM players WHERE username=?
+  DB--&gt;&gt;-A: 결과 반환
+
+  alt 신규 유저
+    A-&gt;&gt;A: BCrypt.HashPassword(password)
+    A-&gt;&gt;DB: INSERT INTO players VALUES (...)
+    Note over A,DB: 동시 가입 Race Condition → 1062 Duplicate Key 감지 후 재조회
+  else 기존 유저
+    A-&gt;&gt;A: BCrypt.Verify(입력값, 저장된 해시)
+  end
+
+  A-&gt;&gt;A: GenerateJwtToken(playerId) ← 15분 유효
+  A-&gt;&gt;A: GenerateRefreshToken(playerId) ← &quot;playerId:uuid&quot;
+  A-&gt;&gt;+R: SET refresh:{playerId} token EX 604800
+  R--&gt;&gt;-A: OK
+  A--&gt;&gt;-C: 200 {token, refreshToken, playerId}
+</code></pre>
+<p><strong>Token Rotation (POST /api/Auth/refresh):</strong></p>
+<pre><code class="lang-mermaid">sequenceDiagram
+  participant C as 클라이언트
+  participant A as Auth API
+  participant R as Redis
+
+  C-&gt;&gt;+A: POST /api/Auth/refresh&lt;br/&gt;{refreshToken}
+  A-&gt;&gt;A: refreshToken에서 playerId 파싱
+  A-&gt;&gt;+R: Lua: GET refresh:{playerId}&lt;br/&gt;→ 일치 확인 → DEL (원자적)
+  R--&gt;&gt;-A: 이전 토큰 반환 (또는 null)
+
+  alt 토큰 일치
+    A-&gt;&gt;A: 새 AccessToken + RefreshToken 생성
+    A-&gt;&gt;R: SET refresh:{playerId} newToken EX 604800
+    A--&gt;&gt;C: 200 {token, refreshToken}
+  else 불일치 / 만료
+    A--&gt;&gt;-C: 401 Unauthorized
+  end
+</code></pre>
+<hr>
+<h2 id="2-대기열-진입--입장권-발급">2. 대기열 진입 → 입장권 발급</h2>
+<pre><code class="lang-mermaid">sequenceDiagram
+  participant C as 클라이언트
+  participant T as Ticketing API
+  participant R as Redis
+
+  C-&gt;&gt;+T: POST /api/queue/enter (JWT)
+  T-&gt;&gt;T: JWT → playerId 추출
+  T-&gt;&gt;+R: Lua: ZCARD {ticket:queue}:global&lt;br/&gt;&lt; 10,000이면 ZADD (원자적)
+  R--&gt;&gt;-T: rank
+  T--&gt;&gt;-C: 200 {rank, nextPollDelay}
+
+  loop Smart Polling
+    C-&gt;&gt;+T: GET /api/queue/status (JWT)
+    T-&gt;&gt;+R: EXISTS ticket:active:user:{userId}
+    R--&gt;&gt;-T: 0 or 1
+
+    alt Active (입장권 발급됨)
+      T--&gt;&gt;C: 200 {status: &quot;Active&quot;}
+    else 대기 중
+      T-&gt;&gt;R: Lua: ZADD heartbeat + ZRANK queue (원자적)
+      T--&gt;&gt;-C: 200 {rank, nextPollDelay}
+    end
+  end
+
+  Note over T,R: 백그라운드 워커가 주기적으로&lt;br/&gt;대기열 앞 N명에게 입장권 발급&lt;br/&gt;(ticket:active:user:{userId} TTL 5분)
+</code></pre>
+<hr>
+<h2 id="3-매칭-요청--gamegomoku-접속">3. 매칭 요청 → Game.Gomoku 접속</h2>
+<blockquote>
+<p><strong>현재 아키텍처</strong>: 클라이언트는 Matching.API에 직접 접근하지 않습니다.
+모든 매칭 흐름은 Game.Lobby SignalR 허브를 경유합니다.</p>
+</blockquote>
+<pre><code class="lang-mermaid">sequenceDiagram
+  participant C as 클라이언트
+  participant L as Game.Lobby (SignalR :7777)
+  participant M as Matching API (내부 HTTP :7002)
+  participant R as Redis
+  participant DB as MariaDB
+  participant G as Game.Gomoku (TCP :7778)
+
+  C-&gt;&gt;+L: SignalR 연결 /hubs/lobby
+  C-&gt;&gt;L: RequestMatch(&quot;gomoku&quot;)
+  L-&gt;&gt;L: JWT → playerId 추출&lt;br/&gt;Context.Items[&quot;MatchGameType&quot;] = &quot;gomoku&quot;
+
+  L-&gt;&gt;+M: POST /api/gamematch/request&lt;br/&gt;{userId, gameType} (내부 HTTP)
+  M-&gt;&gt;+R: ZADD queue:gamematch:gomoku score=ELO playerId
+  R--&gt;&gt;-M: OK
+  M--&gt;&gt;-L: 200 (매칭 대기 중)
+  L--&gt;&gt;C: SignalR ACK
+
+  Note over M,R: 백그라운드 워커 (200ms 주기)
+  loop 매칭 처리
+    M-&gt;&gt;+R: Lua: ELO 범위 내 후보 조회 (±200 → ±400 → ±800)
+    R--&gt;&gt;-M: [player1, player2] or []
+
+    alt 2명 확보
+      M-&gt;&gt;R: INCR global:room_id → roomId
+      M-&gt;&gt;+DB: INSERT match_records (player1, player2, InProgress)
+      DB--&gt;&gt;-M: OK
+      M-&gt;&gt;R: PUBLISH MATCH_FOUND_CHANNEL {roomId, [p1, p2], gameType}
+    else 타임아웃 (2분 초과)
+      M-&gt;&gt;R: ZREM queue:gamematch:gomoku playerId
+      M-&gt;&gt;R: PUBLISH MATCH_FOUND_CHANNEL {timeout: true, userId}
+    end
+  end
+
+  Note over L,R: MatchNotificationService (Game.Lobby 내 BackgroundService)
+  L-&gt;&gt;+R: SUB MATCH_FOUND_CHANNEL
+  R--&gt;&gt;-L: 매칭 성사 이벤트 수신
+
+  alt MatchFound
+    L--&gt;&gt;C: SignalR &quot;MatchFound&quot;&lt;br/&gt;{roomId, gameServerIp, port: 7778}
+  else MatchTimeout
+    L--&gt;&gt;C: SignalR &quot;MatchTimeout&quot;
+  end
+
+  C-&gt;&gt;+G: TCP Connect :7778
+  C-&gt;&gt;G: CLogin {roomId, jwtToken}
+  G-&gt;&gt;G: JWT 검증 → playerId 추출
+  G-&gt;&gt;+R: EXISTS ticket:active:user:{playerId}
+  R--&gt;&gt;-G: 1 (입장권 확인됨)
+  G-&gt;&gt;R: DEL ticket:active:user:{playerId} (티켓 회수)
+  G-&gt;&gt;+R: SET player:login_lock:{playerId} guid NX EX 86400
+  R--&gt;&gt;-G: OK (락 획득)
+  G-&gt;&gt;G: GomokuRoom.Enter(session)
+  G--&gt;&gt;-C: SLogin {success: LoginSuccess, playerId}
+</code></pre>
+<p><strong>매칭 취소 (CancelMatch):</strong></p>
+<pre><code class="lang-mermaid">sequenceDiagram
+  participant C as 클라이언트
+  participant L as Game.Lobby (SignalR)
+  participant M as Matching API (내부 HTTP)
+  participant R as Redis
+
+  C-&gt;&gt;+L: SignalR CancelMatch
+  L-&gt;&gt;L: Context.Items[&quot;MatchGameType&quot;] 조회
+  L-&gt;&gt;+M: POST /api/gamematch/cancel&lt;br/&gt;{userId, gameType} (내부 HTTP)
+  M-&gt;&gt;+R: ZREM queue:gamematch:{gameType} userId
+  R--&gt;&gt;-M: 1 (제거됨) or 0 (없음)
+  M--&gt;&gt;-L: 200 or 404
+  L--&gt;&gt;-C: SignalR ACK
+</code></pre>
+<hr>
+<h2 id="4-game-server-패킷-처리-플로우">4. Game Server 패킷 처리 플로우</h2>
+<pre><code class="lang-mermaid">flowchart TD
+  A[TCP 패킷 수신] --&gt; B[&quot;4바이트 크기 헤더 파싱\n(Little-Endian)&quot;]
+  B --&gt; C[&quot;Protobuf Envelope 파싱\nPacket.Parser.ParseFrom(buffer)&quot;]
+  C --&gt; D{PayloadOneofCase}
+
+  D --&gt;|CLogin| E[Handle_C_Login]
+  D --&gt;|CMove| F[Handle_C_Move]
+  D --&gt;|CEnterRoom| G[Handle_C_EnterRoom]
+  D --&gt;|미등록| H[로그 경고 후 무시]
+
+  E --&gt; E1[JWT 검증]
+  E1 --&gt;|실패| E2[&quot;SLogin(LoginInvalidToken)\n→ Disconnect&quot;]
+  E1 --&gt;|성공| E3[Redis: Active 입장권 확인]
+  E3 --&gt;|없음| E4[&quot;SLogin(LoginNotInQueue)\n→ Disconnect&quot;]
+  E3 --&gt;|있음| E5[Redis: SET NX 분산 락]
+  E5 --&gt;|락 실패 = 중복 로그인| E6[&quot;SLogin(LoginDuplicate)\n→ Disconnect&quot;]
+  E5 --&gt;|락 성공| E7[GameRoom.Enter(session)]
+  E7 --&gt; E8[&quot;SLogin(LoginSuccess) 응답&quot;]
+
+  F --&gt; F1[&quot;room.Push(JobQueue)&quot;]
+  F1 --&gt; F2[&quot;room.Broadcast(SMove)\n→ 방의 모든 세션에 전송&quot;]
+
+  G --&gt; G1[GameRoomManager.FindRoom]
+  G1 --&gt;|없음| G2[&quot;SEnterRoom(NotFound)&quot;]
+  G1 --&gt;|있음| G3[&quot;currentRoom.Leave\n→ newRoom.Enter\n→ SEnterRoom(Success)&quot;]
+
+  style E2 fill:#ffcccc
+  style E4 fill:#ffcccc
+  style E6 fill:#ffcccc
+  style G2 fill:#ffcccc
+  style E8 fill:#ccffcc
+  style F2 fill:#ccffcc
+  style G3 fill:#ccffcc
+</code></pre>
+<hr>
+<h2 id="5-세션-종료-플로우">5. 세션 종료 플로우</h2>
+<pre><code class="lang-mermaid">sequenceDiagram
+  participant G as Game Server
+  participant R as Redis
+
+  Note over G: TCP 연결 종료 감지 (OnDisconnected)
+  G-&gt;&gt;G: session.Room?.Push(room.Leave(session))
+  G-&gt;&gt;+R: Lua: GET player:login_lock:{playerId}&lt;br/&gt;→ guid 일치 확인 → DEL
+  Note over G,R: 내 락만 해제 (Fire-and-Forget)
+  R--&gt;&gt;-G: 1 (삭제됨)
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/architecture/sequences.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

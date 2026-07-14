@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>PlatformA란 무엇인가요? | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="PlatformA란 무엇인가요? | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="platforma란-무엇인가요">PlatformA란 무엇인가요?</h1>
+
+<p>PlatformA는 <strong>온라인 멀티플레이어 게임을 운영하기 위한 서버 시스템</strong>입니다.<br>
+게임 클라이언트(앱이나 웹 게임)가 여러 플레이어를 연결하고, 공정하게 대기시키고, 적절한 상대와 매칭해 주는 모든 과정을 처리합니다.</p>
+<hr>
+<h2 id="쉽게-말하면-스마트-놀이공원-운영-시스템">쉽게 말하면: &quot;스마트 놀이공원 운영 시스템&quot;</h2>
+<p>PlatformA의 역할을 놀이공원에 비유하면 이렇습니다:</p>
+<table>
+<thead>
+<tr>
+<th>PlatformA 서비스</th>
+<th>놀이공원 비유</th>
+<th>하는 일</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auth API</strong></td>
+<td>입구 신분 확인소</td>
+<td>플레이어의 신원을 확인하고 입장 팔찌(토큰)를 발급</td>
+</tr>
+<tr>
+<td><strong>Ticketing API</strong></td>
+<td>어트랙션 대기 번호표 발권기</td>
+<td>게임 대기열에 줄을 세우고 순서가 되면 번호표(입장권) 발급</td>
+</tr>
+<tr>
+<td><strong>Matching API</strong></td>
+<td>짝 맞춰주는 안내원</td>
+<td>비슷한 수준의 플레이어 2명을 찾아 같은 게임방으로 안내</td>
+</tr>
+<tr>
+<td><strong>Game Server</strong></td>
+<td>실제 어트랙션 공간</td>
+<td>두 플레이어가 실시간으로 게임을 즐기는 공간</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="핵심-수치">핵심 수치</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>수치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>최대 동시 대기 인원</td>
+<td><strong>10,000명</strong></td>
+</tr>
+<tr>
+<td>매칭 처리 주기</td>
+<td><strong>200ms</strong> (0.2초마다)</td>
+</tr>
+<tr>
+<td>입장권 유효 시간</td>
+<td><strong>5분</strong></td>
+</tr>
+<tr>
+<td>Access Token 유효 시간</td>
+<td><strong>15분</strong></td>
+</tr>
+<tr>
+<td>Refresh Token 유효 시간</td>
+<td><strong>7일</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="보안-특징">보안 특징</h2>
+<p>PlatformA는 다음과 같은 방식으로 보안을 유지합니다:</p>
+<ul>
+<li><strong>1회용 입장권</strong>: 게임 서버에 접속하면 입장권이 즉시 회수됩니다. 같은 입장권으로 두 번 입장할 수 없습니다.</li>
+<li><strong>자동 만료</strong>: 대기 중 5분 이상 응답이 없으면 대기열에서 자동으로 제거됩니다. (이른바 &quot;유령 유저&quot; 방지)</li>
+<li><strong>중복 로그인 방지</strong>: 동일 계정으로 두 곳에서 동시에 게임 서버에 접속할 수 없습니다.</li>
+<li><strong>요청 횟수 제한</strong>: 로그인 API는 1분에 최대 10회, 대기열 API는 1초에 최대 5회로 제한됩니다. (과부하 방지)</li>
+</ul>
+<hr>
+<h2 id="시스템이-처리하는-규모">시스템이 처리하는 규모</h2>
+<pre><code class="lang-mermaid">graph LR
+  subgraph &quot;동시에 처리 가능한 것&quot;
+    A[&quot;대기열 10,000명&quot;]
+    B[&quot;0.2초마다 매칭 진행&quot;]
+    C[&quot;분산 캐시 6개 노드&quot;]
+    D[&quot;자동 유저 관리&quot;]
+  end
+</code></pre>
+<hr>
+<h2 id="기술-독립성">기술 독립성</h2>
+<p>PlatformA는 특정 게임 장르에 종속되지 않습니다. 다음과 같은 게임에 적용할 수 있습니다:</p>
+<ul>
+<li>1:1 대전 게임 (현재 기본 지원)</li>
+<li>팀 대전 (N명 매칭으로 확장 가능)</li>
+<li>실시간 멀티플레이어 게임</li>
+</ul>
+<hr>
+<blockquote>
+<p>기술적인 세부 내용이 궁금하시면 <a href="../architecture/overview.html">아키텍처 개요</a> 페이지를 참고하세요.</p>
+</blockquote>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/stakeholder/overview.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

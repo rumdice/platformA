@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>모니터링 가이드 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="모니터링 가이드 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="모니터링-가이드">모니터링 가이드</h1>
+
+<p>이 문서는 PlatformA 각 서비스의 헬스체크 엔드포인트, 로그 레벨 설정, Redis/MariaDB 연결 상태 확인 방법을 설명합니다.</p>
+<hr>
+<h2 id="헬스체크-엔드포인트">헬스체크 엔드포인트</h2>
+<p>모든 HTTP API 서비스는 두 가지 헬스체크 엔드포인트를 공통으로 제공합니다.</p>
+<table>
+<thead>
+<tr>
+<th>엔드포인트</th>
+<th>용도</th>
+<th>응답 형식</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /healthz</code></td>
+<td>Liveness — 프로세스 생존 여부 확인 (외부 의존성 체크 없음)</td>
+<td><code>200 Healthy</code> (텍스트)</td>
+</tr>
+<tr>
+<td><code>GET /readyz</code></td>
+<td>Readiness — 외부 의존성(Redis, MariaDB) 연결 가능 여부 확인</td>
+<td><code>200 / 503</code> (JSON)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="서비스별-헬스체크-url">서비스별 헬스체크 URL</h3>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>Liveness</th>
+<th>Readiness</th>
+<th>체크 항목</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth API</td>
+<td><code>https://localhost:7001/healthz</code></td>
+<td><code>https://localhost:7001/readyz</code></td>
+<td>Redis + MariaDB (db_WebApp)</td>
+</tr>
+<tr>
+<td>Ticketing API</td>
+<td><code>https://localhost:7003/healthz</code></td>
+<td><code>https://localhost:7003/readyz</code></td>
+<td>Redis</td>
+</tr>
+<tr>
+<td>Matching API</td>
+<td><code>https://localhost:7002/healthz</code></td>
+<td><code>https://localhost:7002/readyz</code></td>
+<td>Redis</td>
+</tr>
+<tr>
+<td>Utils API</td>
+<td>헬스체크 미등록</td>
+<td>헬스체크 미등록</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Utils API(<code>PlatformA.Utils.API</code>)는 Program.cs에 헬스체크가 등록되어 있지 않습니다.</p>
+</blockquote>
+<h3 id="readiness-응답-예시">Readiness 응답 예시</h3>
+<pre><code class="lang-json">{
+  &quot;status&quot;: &quot;Healthy&quot;,
+  &quot;duration&quot;: 12.34,
+  &quot;checks&quot;: {
+    &quot;redis&quot;: {
+      &quot;status&quot;: &quot;Healthy&quot;,
+      &quot;description&quot;: null,
+      &quot;duration&quot;: 3.21
+    },
+    &quot;mysql-webapp&quot;: {
+      &quot;status&quot;: &quot;Healthy&quot;,
+      &quot;description&quot;: &quot;MariaDB db_WebApp 연결 정상&quot;,
+      &quot;duration&quot;: 8.12
+    }
+  }
+}
+</code></pre>
+<p>비정상 시 HTTP 상태 코드는 <code>503 Service Unavailable</code>이며, <code>status</code> 필드 값이 <code>Unhealthy</code>로 반환됩니다.</p>
+<h3 id="헬스체크-확인-명령">헬스체크 확인 명령</h3>
+<pre><code class="lang-bash"># Auth API liveness 확인
+curl -f https://localhost:7001/healthz -k
+
+# Auth API readiness 확인 (Redis + MariaDB)
+curl -s https://localhost:7001/readyz -k | python -m json.tool
+
+# Ticketing API readiness 확인 (Redis)
+curl -s https://localhost:7003/readyz -k | python -m json.tool
+
+# Matching API readiness 확인 (Redis)
+curl -s https://localhost:7002/readyz -k | python -m json.tool
+</code></pre>
+<hr>
+<h2 id="로그-설정">로그 설정</h2>
+<h3 id="로깅-아키텍처">로깅 아키텍처</h3>
+<p>모든 HTTP API 서비스(Auth, Ticketing, Matching API)는 ASP.NET Core 기본 콘솔 프로바이더를 제거하고 <strong>log4net</strong>을 단일 로깅 프로바이더로 사용합니다. Utils API는 log4net 설정 없이 기본 ASP.NET Core 로깅을 사용합니다.</p>
+<h3 id="로그-레벨">로그 레벨</h3>
+<table>
+<thead>
+<tr>
+<th>대상</th>
+<th>레벨</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>루트 로거 (애플리케이션 코드)</td>
+<td><code>INFO</code></td>
+<td>INFO 이상 모든 로그 출력</td>
+</tr>
+<tr>
+<td><code>Microsoft.*</code> (프레임워크 내부)</td>
+<td><code>WARN</code></td>
+<td>노이즈 감소를 위해 WARN 이상만 출력</td>
+</tr>
+</tbody>
+</table>
+<h3 id="로그-파일-경로">로그 파일 경로</h3>
+<p>각 서비스는 실행 디렉토리 기준으로 날짜별 롤링 파일에 로그를 기록합니다.</p>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>로그 파일 경로 패턴</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth API</td>
+<td><code>logs/auth-api-yyyyMMdd.log</code></td>
+</tr>
+<tr>
+<td>Ticketing API</td>
+<td><code>logs/ticketing-api-yyyyMMdd.log</code></td>
+</tr>
+<tr>
+<td>Matching API</td>
+<td><code>logs/matching-api-yyyyMMdd.log</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>롤링 정책</strong>: 날짜 + 크기(10MB) 복합 방식, 최대 10개 파일 보관</p>
+<h3 id="로그-포맷">로그 포맷</h3>
+<pre><code># 콘솔 출력 (짧은 형식)
+HH:mm:ss.fff [LEVEL] LoggerName - 메시지
+
+# 파일 출력 (상세 형식)
+yyyy-MM-dd HH:mm:ss.fff [ThreadId] LEVEL LoggerName - 메시지
+</code></pre>
+<h3 id="로그-레벨-변경">로그 레벨 변경</h3>
+<p>로그 레벨 변경은 각 서비스의 <code>log4net.config</code> 파일에서 수행합니다. <code>appsettings.json</code>은 로그 레벨을 관리하지 않습니다.</p>
+<pre><code class="lang-xml">&lt;!-- log4net.config — 루트 로거 레벨 변경 예시 --&gt;
+&lt;root&gt;
+  &lt;level value=&quot;DEBUG&quot; /&gt;  &lt;!-- INFO → DEBUG로 변경 --&gt;
+  &lt;appender-ref ref=&quot;ConsoleAppender&quot; /&gt;
+  &lt;appender-ref ref=&quot;RollingFileAppender&quot; /&gt;
+&lt;/root&gt;
+</code></pre>
+<blockquote>
+<p>변경 후 서비스를 재시작해야 적용됩니다.</p>
+</blockquote>
+<hr>
+<h2 id="redis-연결-상태-확인">Redis 연결 상태 확인</h2>
+<h3 id="클러스터-구성">클러스터 구성</h3>
+<p>PlatformA는 Redis 7.x 클러스터를 사용합니다 (마스터 3개, 슬레이브 3개).</p>
+<table>
+<thead>
+<tr>
+<th>노드</th>
+<th>역할</th>
+<th>포트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>redis-master-1</td>
+<td>Master</td>
+<td>6371</td>
+</tr>
+<tr>
+<td>redis-master-2</td>
+<td>Master</td>
+<td>6372</td>
+</tr>
+<tr>
+<td>redis-master-3</td>
+<td>Master</td>
+<td>6373</td>
+</tr>
+<tr>
+<td>redis-slave-1~3</td>
+<td>Replica</td>
+<td>6374~6376</td>
+</tr>
+</tbody>
+</table>
+<p>연결 문자열 (기본값, <code>REDIS_CONNECTION_STRING</code> 환경변수로 오버라이드 가능):</p>
+<pre><code>127.0.0.1:6371,127.0.0.1:6372,127.0.0.1:6373
+</code></pre>
+<h3 id="클러스터-상태-확인-명령">클러스터 상태 확인 명령</h3>
+<pre><code class="lang-bash"># 클러스터 전체 상태 확인
+docker exec redis-master-1 redis-cli -p 6371 cluster info
+
+# 정상 출력 예시:
+# cluster_state:ok
+# cluster_slots_assigned:16384
+# cluster_known_nodes:6
+
+# 노드 목록 확인
+docker exec redis-master-1 redis-cli -p 6371 cluster nodes
+
+# 각 마스터 ping 테스트
+redis-cli -p 6371 ping
+redis-cli -p 6372 ping
+redis-cli -p 6373 ping
+</code></pre>
+<h3 id="주요-redis-키-확인">주요 Redis 키 확인</h3>
+<pre><code class="lang-bash"># 대기열 상태 확인
+redis-cli -p 6371 ZCARD &quot;{ticket:queue}:global&quot;
+redis-cli -p 6371 ZRANGE &quot;{ticket:queue}:global&quot; 0 -1 WITHSCORES
+
+# 하트비트 상태 확인
+redis-cli -p 6371 HGETALL &quot;{ticket:queue}:heartbeats&quot;
+
+# Active 유저 수 확인
+redis-cli -p 6371 KEYS &quot;ticket:active:user:*&quot;
+
+# 매칭 대기열 상태 확인
+redis-cli -p 6371 ZCARD &quot;queue:gamematch:1v1&quot;
+redis-cli -p 6371 ZRANGE &quot;queue:gamematch:1v1&quot; 0 -1 WITHSCORES
+</code></pre>
+<hr>
+<h2 id="mariadb-연결-상태-확인">MariaDB 연결 상태 확인</h2>
+<h3 id="데이터베이스-구성">데이터베이스 구성</h3>
+<table>
+<thead>
+<tr>
+<th>DB 이름</th>
+<th>용도</th>
+<th>EF Core Context</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>db_WebApp</code></td>
+<td>플레이어, 아이템, 매칭 기록</td>
+<td><code>DbWebAppContext</code></td>
+</tr>
+<tr>
+<td><code>db_LogApp</code></td>
+<td>접속 로그</td>
+<td><code>DbLogAppContext</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="연결-확인-명령">연결 확인 명령</h3>
+<pre><code class="lang-bash"># MySQL 서버 접속 가능 여부 확인
+mysql -u root -ppass1234 -e &quot;SELECT 1;&quot;
+
+# 데이터베이스 목록 확인
+mysql -u root -ppass1234 -e &quot;SHOW DATABASES;&quot;
+
+# db_WebApp 테이블 목록 확인
+mysql -u root -ppass1234 -e &quot;USE db_WebApp; SHOW TABLES;&quot;
+
+# Migration 히스토리 확인 (EF Core)
+mysql -u root -ppass1234 -e &quot;SELECT * FROM db_WebApp.__EFMigrationsHistory;&quot;
+</code></pre>
+<h3 id="ef-core-migration-상태-확인">EF Core Migration 상태 확인</h3>
+<pre><code class="lang-bash">cd PlatformA/PlatformA.MySqlDB.Lib
+
+# 적용된 Migration 목록
+dotnet ef migrations list --context DbWebAppContext
+dotnet ef migrations list --context DbLogAppContext
+</code></pre>
+<hr>
+<h2 id="모니터링-흐름">모니터링 흐름</h2>
+<pre><code class="lang-mermaid">flowchart TD
+    LB[로드 밸런서 / 클라이언트] --&gt;|HTTPS| Auth[Auth API :7001]
+    LB --&gt;|HTTPS| Ticketing[Ticketing API :7003]
+    LB --&gt;|HTTPS| Matching[Matching API :7002]
+
+    Auth --&gt;|/healthz| Liveness_A[Liveness 200 OK]
+    Auth --&gt;|/readyz| Readiness_A{Redis + MariaDB}
+    Readiness_A --&gt;|정상| Healthy_A[200 Healthy JSON]
+    Readiness_A --&gt;|장애| Unhealthy_A[503 Unhealthy JSON]
+
+    Ticketing --&gt;|/healthz| Liveness_T[Liveness 200 OK]
+    Ticketing --&gt;|/readyz| Readiness_T{Redis}
+    Readiness_T --&gt;|정상| Healthy_T[200 Healthy JSON]
+    Readiness_T --&gt;|장애| Unhealthy_T[503 Unhealthy JSON]
+
+    Matching --&gt;|/healthz| Liveness_M[Liveness 200 OK]
+    Matching --&gt;|/readyz| Readiness_M{Redis}
+    Readiness_M --&gt;|정상| Healthy_M[200 Healthy JSON]
+    Readiness_M --&gt;|장애| Unhealthy_M[503 Unhealthy JSON]
+
+    Auth &amp; Ticketing &amp; Matching --&gt;|StackExchange.Redis| Redis[Redis Cluster\n6371~6376]
+    Auth &amp; Matching --&gt;|EF Core| MariaDB[MariaDB :3306\ndb_WebApp]
+
+    Auth &amp; Ticketing &amp; Matching --&gt;|log4net| Logs[logs/*.log\n날짜별 롤링]
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/operations/monitoring.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

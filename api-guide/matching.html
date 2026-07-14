@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Matching API | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Matching API | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="matching-api">Matching API</h1>
+
+<p>1v1 게임 매칭 대기열 및 주식 주문 처리를 담당하는 서비스입니다.
+SignalR Hub(<code>/hubs/matching</code>)를 통해 매칭 결과(MatchFound / MatchTimeout)를 Push합니다.</p>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>개발 환경 기본 URL</td>
+<td><code>https://localhost:7002</code></td>
+</tr>
+<tr>
+<td>런타임</td>
+<td>.NET 10.0</td>
+</tr>
+<tr>
+<td>인증 방식</td>
+<td>Bearer Token (JWT) — Authorization 헤더 필요</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="공통-오류-응답-형식">공통 오류 응답 형식</h2>
+<pre><code class="lang-json">{ &quot;message&quot;: &quot;설명 메시지&quot; }
+</code></pre>
+<hr>
+<h2 id="엔드포인트">엔드포인트</h2>
+<h3 id="post-apigamematchrequest">POST /api/gamematch/request</h3>
+<p>Lobby 서버 전용: 매칭 요청 및 즉시 게임 서버 접속 정보 반환. JWT 인증 없이 Lobby 서버 내부에서 호출됩니다.</p>
+<p><strong>요청 Body</strong></p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약 조건</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>int</td>
+<td>✓</td>
+<td>범위 1, int.MaxValue, ErrorMessage = &quot;UserId는 1 이상이어야 합니다.&quot;</td>
+</tr>
+<tr>
+<td>gameType</td>
+<td>string</td>
+<td>✓</td>
+<td>최대 50자</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-json">{
+  &quot;userId&quot;: 0,
+  &quot;gameType&quot;: &quot;&lt;gameType&gt;&quot;
+}
+</code></pre>
+<p><strong>응답 202</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="post-apigamematchcancel">POST /api/gamematch/cancel</h3>
+<p>Lobby 서버 전용: 매칭 취소. JWT 없음, body에 userId/gameType을 전달합니다.</p>
+<p><strong>요청 Body</strong></p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약 조건</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userId</td>
+<td>int</td>
+<td>✓</td>
+<td>범위 1, int.MaxValue, ErrorMessage = &quot;UserId는 1 이상이어야 합니다.&quot;</td>
+</tr>
+<tr>
+<td>gameType</td>
+<td>string</td>
+<td>✓</td>
+<td>최대 50자</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-json">{
+  &quot;userId&quot;: 0,
+  &quot;gameType&quot;: &quot;&lt;gameType&gt;&quot;
+}
+</code></pre>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="get-apigamematchstatususeridint">GET /api/gamematch/status/{userId:int}</h3>
+<p>Lobby 서버 전용: 대기열 상태 조회. JWT 없음, userId 경로 파라미터와 gameType 쿼리 파라미터를 사용합니다.</p>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+<tr>
+<td>404</td>
+<td>리소스를 찾을 수 없음</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="post-apigamematchstart">POST /api/gamematch/start</h3>
+<p>게임 서버 전용: 두 플레이어가 모두 입장했음을 알리고 Status를 InProgress로 전환합니다. 인증 불필요 (내부 서비스 간 통신).</p>
+<p><strong>요청 Body</strong></p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약 조건</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>roomId</td>
+<td>string</td>
+<td>✓</td>
+<td>최대 100자</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-json">{
+  &quot;roomId&quot;: &quot;&lt;roomId&gt;&quot;
+}
+</code></pre>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+<tr>
+<td>404</td>
+<td>리소스를 찾을 수 없음</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="post-apigamematchresult">POST /api/gamematch/result</h3>
+<p>게임 서버 전용: 게임 종료 후 결과를 보고합니다. 인증 불필요 (내부 서비스 간 통신).</p>
+<p><strong>요청 Body</strong></p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약 조건</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>roomId</td>
+<td>string</td>
+<td>✓</td>
+<td>최대 100자</td>
+</tr>
+<tr>
+<td>winnerId</td>
+<td>int</td>
+<td></td>
+<td>범위 0, int.MaxValue, ErrorMessage = &quot;WinnerId는 0(무승부</td>
+</tr>
+<tr>
+<td>reason</td>
+<td>string</td>
+<td>✓</td>
+<td>최대 50자</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-json">{
+  &quot;roomId&quot;: &quot;&lt;roomId&gt;&quot;,
+  &quot;winnerId&quot;: 0,
+  &quot;reason&quot;: &quot;&lt;reason&gt;&quot;
+}
+</code></pre>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+<tr>
+<td>404</td>
+<td>리소스를 찾을 수 없음</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="get-apigamematchhistory">GET /api/gamematch/history</h3>
+<p>매칭 이력 조회: 인증된 플레이어의 최근 20건 매칭 이력을 반환합니다.</p>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>유효하지 않거나 만료된 토큰</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="get-apigamematchratinguseridint">GET /api/gamematch/rating/{userId:int}</h3>
+<p>ELO 레이팅 조회: 특정 플레이어의 현재 레이팅과 전적을 반환합니다. 인증 불필요 (공개 정보).</p>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="post-apiorders">POST /api/orders</h3>
+<p><strong>요청 Body</strong></p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약 조건</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>int (0=Buy, 1=Sell)</td>
+<td></td>
+<td>—</td>
+</tr>
+<tr>
+<td>price</td>
+<td>decimal</td>
+<td></td>
+<td>—</td>
+</tr>
+<tr>
+<td>quantity</td>
+<td>long</td>
+<td></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-json">{
+  &quot;type&quot;: 0,
+  &quot;price&quot;: 0.0,
+  &quot;quantity&quot;: 0
+}
+</code></pre>
+<p><strong>응답 202</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<hr>
+<h2 id="signalr-이벤트">SignalR 이벤트</h2>
+<table>
+<thead>
+<tr>
+<th>이벤트</th>
+<th>발생 조건</th>
+<th>페이로드</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MatchFound</code></td>
+<td>매칭 성사</td>
+<td><code>{ gameServerIp, gameServerPort, roomId }</code></td>
+</tr>
+<tr>
+<td><code>MatchTimeout</code></td>
+<td>대기 120초 초과</td>
+<td><em>(없음)</em></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>이 파일은 <code>.github/scripts/generate_api_docs.py</code>로 자동 생성됩니다.</strong> 수동 편집 내용은 다음 실행 시 덮어씌워집니다. 내용 변경이 필요하면 컨트롤러 XML 주석 또는 스크립트를 수정하세요.</p>
+</blockquote>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/api-guide/matching.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC Phase A/B/C — DB Primary 전환 로드맵 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC Phase A/B/C — DB Primary 전환 로드맵 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-phase-abc--db-primary-전환-로드맵">AI_SDLC Phase A/B/C — DB Primary 전환 로드맵</h1>
+
+<p>작성일: 2026-06-08 | 최종 수정: 2026-06-11</p>
+<h2 id="현재-상태-phase-c--db-단독-운영-2026-06-10-">현재 상태: Phase C — DB 단독 운영 (2026-06-10 ~)</h2>
+<table>
+<thead>
+<tr>
+<th>데이터 소스</th>
+<th>역할</th>
+<th>신뢰도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL <code>sdlc.ai_jobs</code></td>
+<td><strong>단일 진실 공급원</strong></td>
+<td>primary (필수)</td>
+</tr>
+<tr>
+<td><code>AI/tasks/*.json</code></td>
+<td>읽기 전용 아카이브</td>
+<td>쓰기 중단</td>
+</tr>
+<tr>
+<td><code>AI/SPRINT.md</code></td>
+<td>자동 재생성 파일</td>
+<td>DB에서 생성</td>
+</tr>
+<tr>
+<td><code>AI/cost-log.md</code></td>
+<td>읽기 전용 아카이브</td>
+<td>DB report로 대체</td>
+</tr>
+</tbody>
+</table>
+<h2 id="단계별-전환-이력">단계별 전환 이력</h2>
+<h3 id="phase-a--dual-write-파일-우선">Phase A — dual-write (파일 우선)</h3>
+<p><strong>상태</strong>: ✅ 완료 (2026-06-05 ~ 2026-06-08)</p>
+<ul>
+<li>모든 SDLC 스킬이 파일 + DB 동시 기록</li>
+<li>DB 실패 시 파일 fallback (exit 0, <code>|| true</code>)</li>
+<li><code>check_sdlc_consistency.py</code>로 정합성 감시</li>
+</ul>
+<hr>
+<h3 id="phase-b--db-우선-파일-보조">Phase B — DB 우선 (파일 보조)</h3>
+<p><strong>상태</strong>: ✅ 완료 (2026-06-08 ~ 2026-06-10)</p>
+<ul>
+<li>gate 검사 primary: DB SELECT (파일 fallback 유지)</li>
+<li>cost-log.md: DB에서 생성되는 report로 전환 시작</li>
+</ul>
+<p><strong>Phase B 종료 조건</strong> (4개 충족):</p>
+<ol>
+<li>✅ DB write 실패율 7일 평균 &lt; 1%</li>
+<li>✅ <code>check_sdlc_consistency.py --check --strict</code> 불일치 0건</li>
+<li>✅ gate 검사 DB SELECT primary 전환</li>
+<li>✅ PostgreSQL 정기 백업 정책 (<code>backup_sdlc_db.sh</code> 7일 보관)</li>
+</ol>
+<hr>
+<h3 id="phase-c--db-단독-2026-06-10-">Phase C — DB 단독 (2026-06-10 ~)</h3>
+<p><strong>상태</strong>: ✅ 운영 중</p>
+<p><strong>제거된 항목</strong>:</p>
+<ul>
+<li><code>AI/tasks/*.json</code> 신규 쓰기</li>
+<li>task JSON 기반 gate 검사 fallback</li>
+<li><code>AI/cost-log.md</code> 직접 append</li>
+</ul>
+<p><strong>Phase C 전환 조건</strong> (5개 충족):</p>
+<ol>
+<li>✅ Phase B 조건 4개 전체 충족</li>
+<li>✅ <code>generate_cost_log_from_db.py</code> DB 기반 cost-log 출력 가능</li>
+<li>✅ <code>check_sdlc_consistency.py --strict</code> exit 0 안정</li>
+<li>✅ gate 검사 파일 fallback 제거 dry-run 통과</li>
+<li>✅ Sprint #52(AdoptPhaseCDbOnly) — Phase C 첫 스프린트 완료</li>
+</ol>
+<p>자세한 전환 절차: <a href="phase-c-db-only.html">Phase C DB 단독 운영</a></p>
+<h2 id="append-only-파일-충돌-완화-정책">Append-only 파일 충돌 완화 정책</h2>
+<p>Phase A 이전에는 <code>AI/SPRINT.md</code>와 <code>AI/cost-log.md</code>에 같은 날 여러 PR이 동시에 수정하면
+merge conflict가 발생했습니다. Phase A에서 아래 정책으로 완화, Phase C에서 근본 해결되었습니다.</p>
+<h3 id="sprintmd-phase-a--c-전환">SPRINT.md (Phase A → C 전환)</h3>
+<ul>
+<li><strong>Phase A</strong>: <code>AI/sprints/sprint-NNN.md</code>로 분산, SPRINT.md는 인덱스/요약만 유지</li>
+<li><strong>Phase C</strong>: SPRINT.md는 PR 머지 후 <code>generate_sprint_md.py</code>가 DB 기반으로 자동 재생성</li>
+</ul>
+<h3 id="cost-logmd-phase-a--c-전환">cost-log.md (Phase A → C 전환)</h3>
+<ul>
+<li><strong>Phase A</strong>: <code>sdlc.ai_model_runs</code>에 병행 기록, 충돌 시 스프린트 번호 오름차순 정렬</li>
+<li><strong>Phase C</strong>: <code>AI/cost-log.md</code> append 중단, <code>generate_cost_log_from_db.py</code>로 DB→파일 변환</li>
+</ul>
+<h3 id="충돌-발생-시-수동-해결-phase-b까지-유효">충돌 발생 시 수동 해결 (Phase B까지 유효)</h3>
+<p>SPRINT.md 충돌: 두 섹션 모두 보존, 낮은 번호 먼저 배치.
+cost-log.md 충돌: 두 행 모두 보존, 스프린트 번호 오름차순 정렬.</p>
+<h2 id="전환-금지-조건">전환 금지 조건</h2>
+<p>아래 조건이 하나라도 해당하면 다음 Phase로 전환하지 않는다:</p>
+<ul>
+<li>DB 연결 실패가 하루에 1회 이상 발생</li>
+<li><code>check_sdlc_consistency.py --strict</code>에서 불일치 &gt; 0</li>
+<li>PostgreSQL 인스턴스에 백업 정책 없음</li>
+</ul>
+<h2 id="마일스톤">마일스톤</h2>
+<table>
+<thead>
+<tr>
+<th>마일스톤</th>
+<th>완료 시점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase A 완료</td>
+<td>2026-06-08</td>
+</tr>
+<tr>
+<td>Phase B 완료</td>
+<td>2026-06-10</td>
+</tr>
+<tr>
+<td>Phase C 선언</td>
+<td>2026-06-10 (Sprint #52)</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/phases.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

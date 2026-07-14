@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class RefreshTokenService | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class RefreshTokenService | PlatformA 개발자 문서 ">
+    
+    <meta name="description" content="Redis 기반 Refresh Token 관리 서비스. [키 구조] refresh:{playerId} → refreshToken 문자열  유저 1명당 Redis 키가 정확히 1개이므로, 재로그인 시 SET 덮어쓰기만으로 기존 토큰이 자동 폐기됩니다 (단일 세션 정책, 중복 로그인 불허). Refresh Token 포맷: &amp;quot;{playerId}:{random}&amp;quot; — playerId를 파싱하여 역방향 인덱스 없이 Redis 키를 직접 계산합니다.  RedisManager.ExecuteAsync를 통해 Polly 회로차단기 + 재시도가 적용됩니다.">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="PlatformA.Auth.API.Services.RefreshTokenService">
+
+
+
+  <h1 id="PlatformA_Auth_API_Services_RefreshTokenService" data-uid="PlatformA.Auth.API.Services.RefreshTokenService" class="text-break">Class RefreshTokenService</h1>
+  <div class="markdown level0 summary"><p>Redis 기반 Refresh Token 관리 서비스.</p>
+<p>[키 구조] refresh:{playerId} → refreshToken 문자열</p>
+<ul>
+<li>유저 1명당 Redis 키가 정확히 1개이므로, 재로그인 시 SET 덮어쓰기만으로
+기존 토큰이 자동 폐기됩니다 (단일 세션 정책, 중복 로그인 불허).</li>
+<li>Refresh Token 포맷: &quot;{playerId}:{random}&quot; — playerId를 파싱하여
+역방향 인덱스 없이 Redis 키를 직접 계산합니다.</li>
+</ul>
+<p>RedisManager.ExecuteAsync를 통해 Polly 회로차단기 + 재시도가 적용됩니다.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+    <div class="level1"><span class="xref">RefreshTokenService</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="PlatformA.html">PlatformA</a>.<a class="xref" href="PlatformA.Auth.html">Auth</a>.<a class="xref" href="PlatformA.Auth.API.html">API</a>.<a class="xref" href="PlatformA.Auth.API.Services.html">Services</a></h6>
+  <h6><strong>Assembly</strong>: PlatformA.Auth.API.dll</h6>
+  <h5 id="PlatformA_Auth_API_Services_RefreshTokenService_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class RefreshTokenService</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Auth_API_Services_RefreshTokenService__ctor_PlatformA_Library_Core_RedisManager_Microsoft_Extensions_Logging_ILogger_PlatformA_Auth_API_Services_RefreshTokenService__.md&amp;value=---%0Auid%3A%20PlatformA.Auth.API.Services.RefreshTokenService.%23ctor(PlatformA.Library.Core.RedisManager%2CMicrosoft.Extensions.Logging.ILogger%7BPlatformA.Auth.API.Services.RefreshTokenService%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Auth.API/Services/RefreshTokenService.cs/#L19">View Source</a>
+  </span>
+  <a id="PlatformA_Auth_API_Services_RefreshTokenService__ctor_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.#ctor*"></a>
+  <h4 id="PlatformA_Auth_API_Services_RefreshTokenService__ctor_PlatformA_Library_Core_RedisManager_Microsoft_Extensions_Logging_ILogger_PlatformA_Auth_API_Services_RefreshTokenService__" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.#ctor(PlatformA.Library.Core.RedisManager,Microsoft.Extensions.Logging.ILogger{PlatformA.Auth.API.Services.RefreshTokenService})">RefreshTokenService(RedisManager, ILogger&lt;RefreshTokenService&gt;)</h4>
+  <div class="markdown level1 summary"><p>Redis 기반 Refresh Token 관리 서비스.</p>
+<p>[키 구조] refresh:{playerId} → refreshToken 문자열</p>
+<ul>
+<li>유저 1명당 Redis 키가 정확히 1개이므로, 재로그인 시 SET 덮어쓰기만으로
+기존 토큰이 자동 폐기됩니다 (단일 세션 정책, 중복 로그인 불허).</li>
+<li>Refresh Token 포맷: &quot;{playerId}:{random}&quot; — playerId를 파싱하여
+역방향 인덱스 없이 Redis 키를 직접 계산합니다.</li>
+</ul>
+<p>RedisManager.ExecuteAsync를 통해 Polly 회로차단기 + 재시도가 적용됩니다.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public RefreshTokenService(RedisManager redisManager, ILogger&lt;RefreshTokenService&gt; logger)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="PlatformA.Library.Core.RedisManager.html">RedisManager</a></td>
+        <td><span class="parametername">redisManager</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.ilogger-1">ILogger</a>&lt;<a class="xref" href="PlatformA.Auth.API.Services.RefreshTokenService.html">RefreshTokenService</a>&gt;</td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Auth_API_Services_RefreshTokenService_GetAndRevokeAsync_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Auth.API.Services.RefreshTokenService.GetAndRevokeAsync(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Auth.API/Services/RefreshTokenService.cs/#L42">View Source</a>
+  </span>
+  <a id="PlatformA_Auth_API_Services_RefreshTokenService_GetAndRevokeAsync_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.GetAndRevokeAsync*"></a>
+  <h4 id="PlatformA_Auth_API_Services_RefreshTokenService_GetAndRevokeAsync_System_String_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.GetAndRevokeAsync(System.String)">GetAndRevokeAsync(string)</h4>
+  <div class="markdown level1 summary"><p>토큰 검증과 폐기를 원자적으로 수행합니다 (Lua GET+COMPARE+DEL).</p>
+<ol>
+<li>토큰에서 playerId를 파싱하여 Redis 키를 계산합니다.</li>
+<li>저장된 토큰과 요청 토큰을 비교합니다 (토큰 재사용 공격 방지).</li>
+<li>일치하면 원자적으로 삭제하고 playerId를 반환합니다.</li>
+</ol>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;int?&gt; GetAndRevokeAsync(string refreshToken)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">refreshToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>?&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Auth_API_Services_RefreshTokenService_RevokeAsync_System_String_.md&amp;value=---%0Auid%3A%20PlatformA.Auth.API.Services.RefreshTokenService.RevokeAsync(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Auth.API/Services/RefreshTokenService.cs/#L84">View Source</a>
+  </span>
+  <a id="PlatformA_Auth_API_Services_RefreshTokenService_RevokeAsync_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.RevokeAsync*"></a>
+  <h4 id="PlatformA_Auth_API_Services_RefreshTokenService_RevokeAsync_System_String_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.RevokeAsync(System.String)">RevokeAsync(string)</h4>
+  <div class="markdown level1 summary"><p>Refresh Token을 즉시 폐기합니다 (로그아웃 외 강제 무효화 용도).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RevokeAsync(string refreshToken)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">refreshToken</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Auth_API_Services_RefreshTokenService_SaveAsync_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20PlatformA.Auth.API.Services.RefreshTokenService.SaveAsync(System.String%2CSystem.Int32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Auth.API/Services/RefreshTokenService.cs/#L28">View Source</a>
+  </span>
+  <a id="PlatformA_Auth_API_Services_RefreshTokenService_SaveAsync_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.SaveAsync*"></a>
+  <h4 id="PlatformA_Auth_API_Services_RefreshTokenService_SaveAsync_System_String_System_Int32_" data-uid="PlatformA.Auth.API.Services.RefreshTokenService.SaveAsync(System.String,System.Int32)">SaveAsync(string, int)</h4>
+  <div class="markdown level1 summary"><p>Refresh Token을 Redis에 저장합니다.
+키: refresh:{userId} — 기존 토큰이 있으면 덮어써서 자동 폐기합니다 (재로그인 시 단일 세션 보장).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task SaveAsync(string refreshToken, int userId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td><span class="parametername">refreshToken</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td><span class="parametername">userId</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_Auth_API_Services_RefreshTokenService.md&amp;value=---%0Auid%3A%20PlatformA.Auth.API.Services.RefreshTokenService%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.Auth.API/Services/RefreshTokenService.cs/#L19" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

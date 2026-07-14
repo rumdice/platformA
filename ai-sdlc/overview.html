@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI SDLC 개요 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI SDLC 개요 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai-sdlc-개요">AI SDLC 개요</h1>
+
+<p>PlatformA AI SDLC(Software Development Life Cycle)는 Claude Code CLI를 핵심으로 한
+AI 기반 개발 자동화 시스템입니다.</p>
+<h2 id="목적">목적</h2>
+<p>반복적인 개발 작업(요구사항 분석, 코딩, 테스트 생성, 리뷰, PR 생성)을 AI가 수행하고
+사람은 설계 결정과 PR 검수·머지만 담당하는 구조입니다.</p>
+<h2 id="핵심-구성-요소">핵심 구성 요소</h2>
+<table>
+<thead>
+<tr>
+<th>구성 요소</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Code CLI</td>
+<td>코딩 에이전트 (<code>.claude/skills/</code> 스킬로 제어)</td>
+</tr>
+<tr>
+<td>PostgreSQL <code>platforma_sdlc</code></td>
+<td>작업 상태·이력 단일 진실 공급원</td>
+</tr>
+<tr>
+<td>n8n</td>
+<td>CI 실패 감지 → auto-fix dispatch 오케스트레이터</td>
+</tr>
+<tr>
+<td>GitHub Actions</td>
+<td>CI/CD + auto-fix 실행 환경</td>
+</tr>
+</tbody>
+</table>
+<h2 id="워크플로-한-줄-요약">워크플로 한 줄 요약</h2>
+<pre><code>사용자: /workflow 작업설명
+  → /plan  → /requirement → /impact → /start → (코딩) → /test-gen → /done → /review → /pr
+  → GitHub에서 PR 검토 후 머지
+</code></pre>
+<h2 id="현재-phase">현재 Phase</h2>
+<p><strong>Phase C — DB 단독 운영</strong> (2026-06-10 ~)</p>
+<ul>
+<li>task JSON 파일 신규 쓰기 중단, DB <code>sdlc.ai_jobs</code>가 단일 진실 공급원</li>
+<li>모든 게이트 판정(requirement_done, impact_done, test_generated, review_completed)을 DB에서 읽음</li>
+<li>SPRINT.md는 PR 머지 후 <code>generate_sprint_md.py</code>가 DB 기반으로 자동 재생성</li>
+</ul>
+<h2 id="문서-구성">문서 구성</h2>
+<table>
+<thead>
+<tr>
+<th>문서</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="workflow.html">Workflow</a></td>
+<td>전체 파이프라인 흐름</td>
+</tr>
+<tr>
+<td><a href="phases.html">Phase A/B/C</a></td>
+<td>DB 마이그레이션 로드맵</td>
+</tr>
+<tr>
+<td><a href="phase-c-db-only.html">Phase C DB 단독 운영</a></td>
+<td>현재 운영 방식 상세</td>
+</tr>
+<tr>
+<td><a href="gates.html">Gate 판정</a></td>
+<td>각 스킬 통과 조건</td>
+</tr>
+<tr>
+<td><a href="db-schema.html">DB Schema</a></td>
+<td><code>sdlc.*</code> 테이블 명세</td>
+</tr>
+<tr>
+<td><a href="job-lock.html">Job Lock</a></td>
+<td>동시 실행 방지 메커니즘</td>
+</tr>
+<tr>
+<td><a href="cost-and-reports.html">Cost &amp; Reports</a></td>
+<td>토큰 비용 추적</td>
+</tr>
+<tr>
+<td><a href="auto-fix.html">Auto Fix</a></td>
+<td>CI 실패 자동 수정 정책</td>
+</tr>
+<tr>
+<td><a href="n8n.html">n8n</a></td>
+<td>실패 모니터 워크플로</td>
+</tr>
+<tr>
+<td><a href="github-actions.html">GitHub Actions</a></td>
+<td>CI/CD + docs 파이프라인</td>
+</tr>
+<tr>
+<td><a href="backup-restore.html">Backup / Restore</a></td>
+<td>DB 백업·복구 절차</td>
+</tr>
+<tr>
+<td><a href="troubleshooting.html">Troubleshooting</a></td>
+<td>문제 해결 가이드</td>
+</tr>
+<tr>
+<td><a href="skill-reference.html">Skill Reference</a></td>
+<td>스킬 목록 (자동 생성)</td>
+</tr>
+<tr>
+<td><a href="automation-map.html">Automation Map</a></td>
+<td>자동화 워크플로 맵 (자동 생성)</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/overview.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

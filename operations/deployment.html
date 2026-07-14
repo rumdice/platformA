@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>배포 가이드 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="배포 가이드 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="배포-가이드">배포 가이드</h1>
+
+<p>PlatformA는 두 가지 배포 방법을 지원합니다.</p>
+<ul>
+<li><strong>Docker Compose</strong>: 로컬 개발 환경 및 통합 검증용</li>
+<li><strong>Kubernetes</strong>: 프로덕션 환경 (예정)</li>
+</ul>
+<hr>
+<h2 id="서비스-포트-맵">서비스 포트 맵</h2>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>로컬 개발 포트</th>
+<th>Docker Compose 포트</th>
+<th>프로토콜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth API</td>
+<td>7001 (HTTPS)</td>
+<td>7001 (HTTPS)</td>
+<td>HTTP/S</td>
+</tr>
+<tr>
+<td>Matching API</td>
+<td>7002 (HTTPS)</td>
+<td>7002 (HTTPS)</td>
+<td>HTTP/S + SignalR</td>
+</tr>
+<tr>
+<td>Ticketing API</td>
+<td>7003 (HTTPS)</td>
+<td>7003 (HTTPS)</td>
+<td>HTTP/S + SignalR</td>
+</tr>
+<tr>
+<td>Utils API</td>
+<td>(launchSettings 참조)</td>
+<td>7004 (HTTPS)</td>
+<td>HTTP/S</td>
+</tr>
+<tr>
+<td>Game Server</td>
+<td>7777 (TCP)</td>
+<td>7777 (TCP)</td>
+<td>Binary TCP</td>
+</tr>
+<tr>
+<td>Redis 노드 1</td>
+<td>6371</td>
+<td>6381</td>
+<td>TCP</td>
+</tr>
+<tr>
+<td>Redis 노드 2</td>
+<td>6372</td>
+<td>6382</td>
+<td>TCP</td>
+</tr>
+<tr>
+<td>Redis 노드 3</td>
+<td>6373</td>
+<td>6383</td>
+<td>TCP</td>
+</tr>
+<tr>
+<td>MariaDB</td>
+<td>3306</td>
+<td>13306</td>
+<td>TCP</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="전체-아키텍처">전체 아키텍처</h2>
+<pre><code class="lang-mermaid">graph TD
+    Client[&quot;클라이언트\n(Web/Mobile/DummyClient)&quot;]
+
+    subgraph &quot;HTTP/S 레이어&quot;
+        AuthAPI[&quot;Auth API\n:7001 (HTTPS)&quot;]
+        MatchAPI[&quot;Matching API\n:7002 (HTTPS)&quot;]
+        TicketAPI[&quot;Ticketing API\n:7003 (HTTPS)&quot;]
+        UtilsAPI[&quot;Utils API\n:7004 (HTTPS)&quot;]
+    end
+
+    subgraph &quot;인프라&quot;
+        Redis[&quot;Redis Cluster\n3 Master + 3 Replica\n:6381~6383&quot;]
+        MariaDB[&quot;MariaDB\n:13306&quot;]
+    end
+
+    GameServer[&quot;Game Server\n:7777 (TCP Binary)&quot;]
+
+    Client --&gt;|&quot;1. 로그인/토큰&quot;| AuthAPI
+    Client --&gt;|&quot;2. 대기열&quot;| TicketAPI
+    Client --&gt;|&quot;3. 매칭 요청&quot;| MatchAPI
+    Client --&gt;|&quot;유틸리티&quot;| UtilsAPI
+    Client --&gt;|&quot;4. 게임플레이 (TCP)&quot;| GameServer
+
+    AuthAPI --&gt; MariaDB
+    AuthAPI --&gt; Redis
+    TicketAPI --&gt; Redis
+    MatchAPI --&gt; Redis
+    MatchAPI --&gt;|&quot;Pub/Sub&quot;| GameServer
+    UtilsAPI --&gt; Redis
+</code></pre>
+<hr>
+<h2 id="방법-1-docker-compose-권장--로컬-통합-환경">방법 1: Docker Compose (권장 — 로컬 통합 환경)</h2>
+<h3 id="사전-요구사항">사전 요구사항</h3>
+<ul>
+<li>Docker Desktop 설치 및 실행 중</li>
+<li>.NET SDK 10.0 이상 (인증서 생성용)</li>
+</ul>
+<h3 id="1단계-개발용-https-인증서-내보내기">1단계: 개발용 HTTPS 인증서 내보내기</h3>
+<pre><code class="lang-powershell"># PlatformA/PlatformA.Auth.API 등 각 API가 HTTPS로 동작하므로 인증서가 필요합니다.
+cd PlatformA\docker\certs
+dotnet dev-certs https --export-path devcert.pfx --password &quot;localdev&quot;
+</code></pre>
+<blockquote>
+<p><code>PlatformA/docker/certs/devcert.pfx</code> 파일이 생성되면 준비 완료입니다.
+이 파일은 <code>.gitignore</code>에 등록되어 있으므로 커밋하지 않아도 됩니다.</p>
+</blockquote>
+<h3 id="2단계-전체-스택-시작">2단계: 전체 스택 시작</h3>
+<pre><code class="lang-powershell"># PlatformA 디렉토리에서 실행
+cd PlatformA
+docker-compose -f docker/docker-compose.full.yml up -d --build
+</code></pre>
+<p>빌드 및 클러스터 초기화까지 약 1~2분 소요됩니다.</p>
+<h3 id="3단계-헬스체크">3단계: 헬스체크</h3>
+<pre><code class="lang-powershell"># Redis 클러스터 상태 확인
+docker exec redis-node-1 redis-cli -p 6379 cluster info | Select-String &quot;cluster_state&quot;
+
+# MariaDB 접속 확인
+docker exec mariadb-full mariadb -uroot -ppass1234 -e &quot;SHOW DATABASES;&quot;
+
+# Auth API 응답 확인
+Invoke-WebRequest -Uri &quot;https://localhost:7001/api/Auth/login&quot; -Method POST `
+  -ContentType &quot;application/json&quot; `
+  -Body '{&quot;username&quot;:&quot;testuser&quot;,&quot;password&quot;:&quot;test123&quot;}' `
+  -SkipCertificateCheck
+</code></pre>
+<h3 id="4단계-종료">4단계: 종료</h3>
+<pre><code class="lang-powershell"># 컨테이너 종료 (데이터 유지)
+docker-compose -f docker/docker-compose.full.yml down
+
+# 컨테이너 + 볼륨 전체 초기화 (데이터 삭제)
+docker-compose -f docker/docker-compose.full.yml down -v
+</code></pre>
+<h3 id="환경-변수-docker-composefullyml-기준">환경 변수 (docker-compose.full.yml 기준)</h3>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>환경 변수</th>
+<th>기본값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>auth-api</td>
+<td><code>JWT_SECRET</code></td>
+<td><code>YourSuperSecretKeyForPlatformAMSA!@#123</code></td>
+</tr>
+<tr>
+<td>auth-api</td>
+<td><code>REDIS_CONNECTION_STRING</code></td>
+<td><code>redis-node-1:6379,redis-node-2:6379,redis-node-3:6379</code></td>
+</tr>
+<tr>
+<td>auth-api</td>
+<td><code>MYSQL_WEBAPP_CONNECTION_STRING</code></td>
+<td><code>Server=mariadb;Port=3306;Database=db_WebApp;User=root;Password=pass1234</code></td>
+</tr>
+<tr>
+<td>matching-api</td>
+<td><code>JWT_SECRET</code></td>
+<td>(동일)</td>
+</tr>
+<tr>
+<td>matching-api</td>
+<td><code>REDIS_CONNECTION_STRING</code></td>
+<td>(동일)</td>
+</tr>
+<tr>
+<td>ticketing-api</td>
+<td><code>QUEUE_BASE_RATE</code></td>
+<td><code>50</code></td>
+</tr>
+<tr>
+<td>ticketing-api</td>
+<td><code>QUEUE_MAX_RATE</code></td>
+<td><code>500</code></td>
+</tr>
+<tr>
+<td>utils-api</td>
+<td><code>SNOWFLAKE_WORKER_ID</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td>utils-api</td>
+<td><code>SNOWFLAKE_DATACENTER_ID</code></td>
+<td><code>1</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>보안 주의</strong>: 프로덕션에서는 <code>JWT_SECRET</code>과 <code>MARIADB_ROOT_PASSWORD</code>를 반드시 변경하십시오.</p>
+</blockquote>
+<hr>
+<h2 id="방법-2-로컬-직접-실행-개발디버깅용">방법 2: 로컬 직접 실행 (개발/디버깅용)</h2>
+<h3 id="의존성-시작-순서">의존성 시작 순서</h3>
+<p>반드시 아래 순서로 시작해야 합니다.</p>
+<pre><code class="lang-powershell"># 1. Redis 클러스터 시작 (로컬 Docker)
+cd Redis
+docker-compose up -d
+Start-Sleep -Seconds 15  # 클러스터 초기화 대기
+
+# 2. Redis 클러스터 상태 확인
+docker exec -it redis-master-1 redis-cli -p 6371 cluster nodes
+
+# 3. DB 마이그레이션 적용 (최초 실행 또는 신규 마이그레이션 시)
+cd PlatformA\PlatformA.MySqlDB.Lib
+dotnet ef database update --context DbWebAppContext
+
+# 4. Auth API 실행 (HTTPS :7001)
+cd PlatformA\PlatformA.Auth.API
+dotnet run
+
+# 5. Ticketing API 실행 (HTTPS :7003)
+cd PlatformA\PlatformA.Ticketing.API
+dotnet run
+
+# 6. Matching API 실행 (HTTPS :7002)
+cd PlatformA\PlatformA.Matching.API
+dotnet run
+
+# 7. Game Server 실행 (TCP :7777)
+cd PlatformA\PlatformA.Game.Server
+dotnet run
+
+# 8. (선택) Utils API 실행
+cd PlatformA\PlatformA.Utils.API
+dotnet run
+</code></pre>
+<h3 id="dummyclient에서-로컬-서버-연결-시-환경-변수">DummyClient에서 로컬 서버 연결 시 환경 변수</h3>
+<pre><code class="lang-powershell">$env:AUTH_API_URL       = &quot;https://localhost:7001/api/Auth/login&quot;
+$env:AUTH_API_REFRESH_URL = &quot;https://localhost:7001/api/Auth/refresh&quot;
+$env:TICKET_API_URL     = &quot;https://localhost:7003&quot;
+$env:MATCH_API_URL      = &quot;https://localhost:7002/api/GameMatch/RequestMatch&quot;
+$env:MATCH_HUB_URL      = &quot;https://localhost:7002/hubs/matching&quot;
+$env:GAME_SERVER_IP     = &quot;127.0.0.1&quot;
+$env:REDIS_CONNECTION_STRING = &quot;127.0.0.1:6381,127.0.0.1:6382,127.0.0.1:6383&quot;
+</code></pre>
+<hr>
+<h2 id="방법-3-개별-docker-이미지-빌드">방법 3: 개별 Docker 이미지 빌드</h2>
+<pre><code class="lang-powershell"># PlatformA 디렉토리에서 실행 (Dockerfile이 이 컨텍스트를 기준으로 작성됨)
+cd PlatformA
+
+# Auth API
+docker build -f PlatformA.Auth.API/Dockerfile -t platformA-auth:latest .
+
+# Matching API
+docker build -f PlatformA.Matching.API/Dockerfile -t platformA-matching:latest .
+
+# Ticketing API
+docker build -f PlatformA.Ticketing.API/Dockerfile -t platformA-ticketing:latest .
+
+# Utils API
+docker build -f PlatformA.Utils.API/Dockerfile -t platformA-utils:latest .
+
+# Game Server
+docker build -f PlatformA.Game.Server/Dockerfile -t platformA-game:latest .
+</code></pre>
+<hr>
+<h2 id="db-마이그레이션">DB 마이그레이션</h2>
+<pre><code class="lang-powershell">cd PlatformA\PlatformA.MySqlDB.Lib
+
+# WebApp DB 마이그레이션 생성
+dotnet ef migrations add &lt;마이그레이션이름&gt; --context DbWebAppContext --output-dir Migrations/WebApp
+
+# WebApp DB 마이그레이션 적용
+dotnet ef database update --context DbWebAppContext
+
+# LogApp DB 마이그레이션 생성
+dotnet ef migrations add &lt;마이그레이션이름&gt; --context DbLogAppContext --output-dir Migrations/LogApp
+
+# LogApp DB 마이그레이션 적용
+dotnet ef database update --context DbLogAppContext
+</code></pre>
+<hr>
+<h2 id="트러블슈팅">트러블슈팅</h2>
+<h3 id="redis-클러스터-연결-실패">Redis 클러스터 연결 실패</h3>
+<pre><code class="lang-powershell"># 클러스터 상태 확인
+docker exec redis-node-1 redis-cli -p 6379 cluster info
+
+# 클러스터 초기화가 완료되지 않은 경우 재시작
+docker-compose -f docker/docker-compose.full.yml restart redis-cluster-init
+</code></pre>
+<h3 id="mariadb-접속-실패">MariaDB 접속 실패</h3>
+<pre><code class="lang-powershell"># 헬스체크 상태 확인
+docker inspect mariadb-full --format &quot;{{.State.Health.Status}}&quot;
+
+# 로그 확인
+docker logs mariadb-full --tail 50
+</code></pre>
+<h3 id="https-인증서-오류-개발-환경">HTTPS 인증서 오류 (개발 환경)</h3>
+<pre><code class="lang-powershell"># 인증서 재생성
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+cd PlatformA\docker\certs
+dotnet dev-certs https --export-path devcert.pfx --password &quot;localdev&quot;
+</code></pre>
+<h3 id="빌드-오류">빌드 오류</h3>
+<pre><code class="lang-powershell"># 전체 솔루션 클린 빌드
+cd PlatformA
+dotnet clean PlatformA.sln
+dotnet build PlatformA.sln
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/operations/deployment.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

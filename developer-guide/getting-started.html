@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>로컬 환경 세팅 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="로컬 환경 세팅 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="로컬-환경-세팅">로컬 환경 세팅</h1>
+
+<h2 id="사전-요구사항">사전 요구사항</h2>
+<table>
+<thead>
+<tr>
+<th>도구</th>
+<th>버전</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.NET SDK</td>
+<td>10.0+</td>
+<td>서비스 빌드</td>
+</tr>
+<tr>
+<td>Docker Desktop</td>
+<td>최신</td>
+<td>Redis 클러스터, MariaDB</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>최신</td>
+<td>소스 관리</td>
+</tr>
+</tbody>
+</table>
+<h2 id="저장소-클론">저장소 클론</h2>
+<pre><code class="lang-bash">git clone https://github.com/rumdice/platformA.git
+cd platformA
+</code></pre>
+<h2 id="인프라-시작">인프라 시작</h2>
+<pre><code class="lang-powershell"># Redis 클러스터 (6-node)
+cd PlatformA/docker/redis-cluster
+docker-compose up -d
+
+# MariaDB
+cd PlatformA/docker/mariadb
+docker-compose up -d
+</code></pre>
+<h2 id="빌드-및-실행">빌드 및 실행</h2>
+<pre><code class="lang-powershell"># 전체 솔루션 빌드
+cd PlatformA
+dotnet build PlatformA.sln
+
+# 테스트
+dotnet test PlatformA.sln
+</code></pre>
+<p>각 서비스는 Visual Studio Code의 <code>.vscode/launch.json</code>에 등록된 디버그 구성으로 실행하거나, 개별 <code>dotnet run</code> 명령을 사용한다.</p>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>포트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth API</td>
+<td>HTTPS 7001</td>
+</tr>
+<tr>
+<td>Matching API</td>
+<td>HTTPS 7002</td>
+</tr>
+<tr>
+<td>Ticketing API</td>
+<td>HTTPS 7003</td>
+</tr>
+<tr>
+<td>Utils API</td>
+<td>HTTPS 7004</td>
+</tr>
+<tr>
+<td>Game Server</td>
+<td>TCP 7777</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/developer-guide/getting-started.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

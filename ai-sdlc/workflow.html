@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI SDLC Workflow | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI SDLC Workflow | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai-sdlc-workflow">AI SDLC Workflow</h1>
+
+<h2 id="전체-파이프라인">전체 파이프라인</h2>
+<pre><code>사용자 입력
+    │
+    ▼
+/workflow 작업설명  ←── 또는 .claude/plan/*.md 파일 제공
+    │
+    ├─ 1. /plan        브랜치 생성 + DB ai_jobs 초기화 + sprint-NNN.md 생성
+    ├─ 2. /requirement 요구사항 명세 파일 생성 + DESIGN_REVIEW
+    ├─ 3. /impact      영향 범위 분석 (코드 수정 전)
+    ├─ 4. /start       Job Lock claim + 명세 파일 읽기 + 작업 지시서 출력
+    ├─ 5. (코딩)        Claude가 코드 직접 수정
+    ├─ 6. /test-gen    변경 파일 기반 테스트 케이스 생성
+    ├─ 7. /done        빌드·포맷·테스트 검증 → push
+    ├─ 8. /review      패턴·보안·아키텍처 리뷰
+    └─ 9. /pr          sprint-NNN.md 완료 처리 + PR 생성 + 비용 기록
+            │
+            ▼
+    사람이 PR 검토 후 머지
+            │
+            ▼
+    CI — Build &amp; Test → Docs 자동 재생성 → GitHub Pages 배포
+</code></pre>
+<h2 id="스킬-역할">스킬 역할</h2>
+<table>
+<thead>
+<tr>
+<th>스킬</th>
+<th>단계</th>
+<th>주요 산출물</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/plan</code></td>
+<td>Stage 1</td>
+<td>브랜치, DB ai_jobs, sprint-NNN.md</td>
+</tr>
+<tr>
+<td><code>/requirement</code></td>
+<td>Stage 2</td>
+<td>명세 파일 (.claude/plan/), DESIGN_REVIEW</td>
+</tr>
+<tr>
+<td><code>/impact</code></td>
+<td>사전 분석</td>
+<td>위험도 판정, DB impact 기록</td>
+</tr>
+<tr>
+<td><code>/start</code></td>
+<td>코딩 진입</td>
+<td>Job Lock claim, 작업 지시서</td>
+</tr>
+<tr>
+<td><code>/test-gen</code></td>
+<td>테스트</td>
+<td>xUnit 테스트 파일</td>
+</tr>
+<tr>
+<td><code>/done</code></td>
+<td>검증</td>
+<td>빌드·테스트 통과 확인, push</td>
+</tr>
+<tr>
+<td><code>/review</code></td>
+<td>리뷰</td>
+<td>패턴·보안 체크리스트 결과</td>
+</tr>
+<tr>
+<td><code>/pr</code></td>
+<td>완료</td>
+<td>PR URL, 비용 기록, Job Lock release</td>
+</tr>
+</tbody>
+</table>
+<h2 id="게이트-검사-흐름">게이트 검사 흐름</h2>
+<p><code>/done</code>과 <code>/pr</code>은 push 전·PR 생성 전에 아래 게이트를 DB에서 확인합니다:</p>
+<pre><code>requirement_done  ←─ /requirement 완료 시 DB에 기록
+impact_done       ←─ /impact 완료 시 DB에 기록
+test_generated    ←─ /test-gen 완료 시 DB에 기록
+review_completed  ←─ /review 완료 시 DB에 기록
+adr_required      ←─ /requirement의 DESIGN_REVIEW가 ADR 필요 판정 시 true
+</code></pre>
+<p>모든 게이트가 통과해야 <code>/pr</code>이 PR을 생성합니다.</p>
+<h2 id="단독-실행-수동-워크플로">단독 실행 (수동 워크플로)</h2>
+<p>완전 자동화가 아닌 단계별 실행도 가능합니다:</p>
+<pre><code class="lang-bash">/plan 작업설명    # Stage 1
+/requirement      # Stage 2
+/impact           # 사전 분석
+/start            # 코딩 시작
+# (코딩)
+/test-gen         # 테스트 생성
+/done             # 검증 및 push
+/review           # 리뷰
+/pr               # PR 생성
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/workflow.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

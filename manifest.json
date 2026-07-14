@@ -1,0 +1,2395 @@
+{
+  "source_base_path": "/home/runner/work/platformA/platformA/Docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/auto-fix.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/auto-fix.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/automation-map.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/automation-map.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/backup-restore.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/backup-restore.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/cost-and-reports.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/cost-and-reports.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/db-schema.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/db-schema.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/gates.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/gates.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/github-actions.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/github-actions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/job-lock.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/job-lock.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/n8n.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/n8n.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/phase-c-db-only.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/phase-c-db-only.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/phases.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/phases.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/skill-reference.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/skill-reference.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "ai-sdlc/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/toc.html"
+        },
+        ".json": {
+          "relative_path": "ai-sdlc/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/troubleshooting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ai-sdlc/workflow.md",
+      "output": {
+        ".html": {
+          "relative_path": "ai-sdlc/workflow.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api-guide/auth.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-guide/auth.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api-guide/game-server-protocol.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-guide/game-server-protocol.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api-guide/matching.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-guide/matching.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api-guide/ticketing.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-guide/ticketing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api-guide/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api-guide/toc.html"
+        },
+        ".json": {
+          "relative_path": "api-guide/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api-guide/utils.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-guide/utils.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Controllers.AuthController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Controllers.AuthController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Controllers.AuthController",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Controllers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Controllers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Controllers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Filters.RedisRateLimitAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Filters.RedisRateLimitAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Filters.RedisRateLimitAttribute",
+      "Summary": "<p sourcefile=\"api/PlatformA.Auth.API.Filters.RedisRateLimitAttribute.yml\" sourcestartlinenumber=\"1\">Redis 기반 분산 Rate Limiting 속성.\n[EnableRateLimiting] 대신 사용하며, 여러 인스턴스 간 카운터를 공유합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Filters.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Filters.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Filters",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.HealthChecks.DbWebAppHealthCheck.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.HealthChecks.DbWebAppHealthCheck.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.HealthChecks.DbWebAppHealthCheck",
+      "Summary": "<p sourcefile=\"api/PlatformA.Auth.API.HealthChecks.DbWebAppHealthCheck.yml\" sourcestartlinenumber=\"1\">db_WebApp MariaDB 연결 상태를 확인합니다.\nIDbContextFactory를 사용해 짧은 수명의 컨텍스트로 연결을 테스트합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.HealthChecks.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.HealthChecks.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.HealthChecks",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Models.LoginRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Models.LoginRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Models.LoginRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Models.LoginResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Models.LoginResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Models.LoginResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Models.LogoutRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Models.LogoutRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Models.LogoutRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Models.RefreshRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Models.RefreshRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Models.RefreshRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Models.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Models",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Services.PlayerService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Services.PlayerService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Services.PlayerService",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Services.RefreshTokenService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Services.RefreshTokenService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Services.RefreshTokenService",
+      "Summary": "<p sourcefile=\"api/PlatformA.Auth.API.Services.RefreshTokenService.yml\" sourcestartlinenumber=\"1\">Redis 기반 Refresh Token 관리 서비스.</p>\n<p sourcefile=\"api/PlatformA.Auth.API.Services.RefreshTokenService.yml\" sourcestartlinenumber=\"3\">[키 구조] refresh:{playerId} → refreshToken 문자열</p>\n<ul sourcefile=\"api/PlatformA.Auth.API.Services.RefreshTokenService.yml\" sourcestartlinenumber=\"4\">\n<li sourcefile=\"api/PlatformA.Auth.API.Services.RefreshTokenService.yml\" sourcestartlinenumber=\"4\">유저 1명당 Redis 키가 정확히 1개이므로, 재로그인 시 SET 덮어쓰기만으로\n기존 토큰이 자동 폐기됩니다 (단일 세션 정책, 중복 로그인 불허).</li>\n<li sourcefile=\"api/PlatformA.Auth.API.Services.RefreshTokenService.yml\" sourcestartlinenumber=\"6\">Refresh Token 포맷: &quot;{playerId}:{random}&quot; — playerId를 파싱하여\n역방향 인덱스 없이 Redis 키를 직접 계산합니다.</li>\n</ul>\n<p sourcefile=\"api/PlatformA.Auth.API.Services.RefreshTokenService.yml\" sourcestartlinenumber=\"9\">RedisManager.ExecuteAsync를 통해 Polly 회로차단기 + 재시도가 적용됩니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Auth.API.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Auth.API.Services.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Auth.API.Services",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Common.Consts.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Common.Consts.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Common.Consts",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Common.MatchSuccessEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Common.MatchSuccessEvent.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Common.MatchSuccessEvent",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Common.TokenManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Common.TokenManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Common.TokenManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Common.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Common.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Common",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Core.JobQueue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Core.JobQueue.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Core.JobQueue",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Core.RedisLockManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Core.RedisLockManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Core.RedisLockManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Core.RedisManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Core.RedisManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Core.RedisManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Core.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Core.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Core",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Helper.Base62Converter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Helper.Base62Converter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Helper.Base62Converter",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Helper.SnowflakeGenerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Helper.SnowflakeGenerator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Helper.SnowflakeGenerator",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Helper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Helper.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Helper",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Network.Session.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Network.Session.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Network.Session",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Network.SessionManager-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Network.SessionManager-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Network.SessionManager<T>",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Network.SessionManager-1.yml\" sourcestartlinenumber=\"1\">누가 누가 접속했는지 접속한 자들 (Session)을 관리하는 매니저\n전체 서버에 오직 하나만 존재해야 하므로 싱글톤</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Network.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Network",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.CEnterRoom.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.CEnterRoom.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.CEnterRoom",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.CEnterRoom.yml\" sourcestartlinenumber=\"1\">C_EnterRoom (PacketID = 5) — Client → Server: 방 이동 요청</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.CLogin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.CLogin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.CLogin",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.CLogin.yml\" sourcestartlinenumber=\"1\">C_Login (PacketID = 3) — Client → Server: 로그인 요청</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.CMatchRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.CMatchRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.CMatchRequest",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.CMatchRequest.yml\" sourcestartlinenumber=\"1\">C_MatchRequest — Client → Lobby: 매칭 요청</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.CMove.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.CMove.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.CMove",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.CMove.yml\" sourcestartlinenumber=\"1\">C_Move (PacketID = 1) — Client → Server: 이동 요청</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.CPlaceStone.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.CPlaceStone.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.CPlaceStone",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.CPlaceStone.yml\" sourcestartlinenumber=\"1\">C_PlaceStone — Client → Server: 돌 놓기 요청</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.EnterRoomResultCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.EnterRoomResultCode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.EnterRoomResultCode",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.GameOverReason.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.GameOverReason.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.GameOverReason",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.LoginResultCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.LoginResultCode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.LoginResultCode",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.MatchRequestResultCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.MatchRequestResultCode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.MatchRequestResultCode",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.Packet.PayloadOneofCase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.Packet.PayloadOneofCase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.Packet.PayloadOneofCase",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.Packet.PayloadOneofCase.yml\" sourcestartlinenumber=\"1\">Enum of possible cases for the &quot;payload&quot; oneof.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.Packet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.Packet.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.Packet",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.Packet.yml\" sourcestartlinenumber=\"1\">Packet — 모든 메시지를 감싸는 envelope. oneof field tag 가 packetId 역할을 대체한다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.PacketHandlerAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.PacketHandlerAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.PacketHandlerAttribute",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.PacketHandlerDelegate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.PacketHandlerDelegate-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.PacketHandlerDelegate<T>",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.PacketManager-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.PacketManager-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.PacketManager<T>",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.PacketsReflection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.PacketsReflection.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.PacketsReflection",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.PacketsReflection.yml\" sourcestartlinenumber=\"1\">Holder for reflection information generated from Packets/Proto/packets.proto</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SBoardUpdate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SBoardUpdate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SBoardUpdate",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SBoardUpdate.yml\" sourcestartlinenumber=\"1\">S_BoardUpdate — Server → Client: 돌 놓기 결과 브로드캐스트</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SEnterRoom.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SEnterRoom.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SEnterRoom",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SEnterRoom.yml\" sourcestartlinenumber=\"1\">S_EnterRoom (PacketID = 6) — Server → Client: 방 이동 결과</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SGameOver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SGameOver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SGameOver",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SGameOver.yml\" sourcestartlinenumber=\"1\">S_GameOver — Server → Client: 게임 종료</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SGameStart.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SGameStart.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SGameStart",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SGameStart.yml\" sourcestartlinenumber=\"1\">S_GameStart — Server → Client: 게임 시작 (선후 공개)</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SLogin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SLogin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SLogin",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SLogin.yml\" sourcestartlinenumber=\"1\">S_Login (PacketID = 4) — Server → Client: 로그인 결과</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SMatchFound.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SMatchFound.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SMatchFound",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SMatchFound.yml\" sourcestartlinenumber=\"1\">S_MatchFound — Lobby → Client: 매칭 성사 및 게임 서버 접속 정보 전달</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.SMove.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.SMove.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.SMove",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.Packets.SMove.yml\" sourcestartlinenumber=\"1\">S_Move (PacketID = 2) — Server → Client: 이동 브로드캐스트</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.StoneColor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.StoneColor.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets.StoneColor",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.Packets.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.Packets.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.Packets",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.RateLimit.RateLimitPolicy.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.RateLimit.RateLimitPolicy.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.RateLimit.RateLimitPolicy",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.RateLimit.RedisRateLimiterService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.RateLimit.RedisRateLimiterService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.RateLimit.RedisRateLimiterService",
+      "Summary": "<p sourcefile=\"api/PlatformA.Library.RateLimit.RedisRateLimiterService.yml\" sourcestartlinenumber=\"1\">Redis 기반 분산 Sliding-Window Rate Limiter.\nRedisManager.ExecuteAsync를 통해 Polly 회로차단기가 적용됩니다.\nRedis 장애 시 fail-open(허용) 처리하여 서비스 가용성을 유지합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Library.RateLimit.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Library.RateLimit.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Library.RateLimit",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Controllers.GameMatchController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Controllers.GameMatchController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Controllers.GameMatchController",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Controllers.OrderController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Controllers.OrderController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Controllers.OrderController",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Controllers.OrderController.yml\" sourcestartlinenumber=\"1\">주식 매도/매수 벡엔드 API</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Controllers.OrderRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Controllers.OrderRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Controllers.OrderRequest",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Controllers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Controllers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Controllers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Hubs.MatchingHub.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Hubs.MatchingHub.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Hubs.MatchingHub",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Hubs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Hubs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Hubs",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.CancelMatchRequestDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.CancelMatchRequestDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.CancelMatchRequestDto",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Models.CancelMatchRequestDto.yml\" sourcestartlinenumber=\"1\">POST /api/gamematch/cancel 요청 DTO (Lobby 내부 전용).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.MatchHistoryDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.MatchHistoryDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.MatchHistoryDto",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.MatchRequestDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.MatchRequestDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.MatchRequestDto",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.MatchResultDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.MatchResultDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.MatchResultDto",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.MatchResultReportDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.MatchResultReportDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.MatchResultReportDto",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Models.MatchResultReportDto.yml\" sourcestartlinenumber=\"1\">Game.Gomoku → Matching.API 게임 결과 보고 DTO.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.MatchStartNotifyDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.MatchStartNotifyDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.MatchStartNotifyDto",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Models.MatchStartNotifyDto.yml\" sourcestartlinenumber=\"1\">Game.Gomoku → Matching.API 게임 시작 알림 DTO.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.PlayerRatingDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.PlayerRatingDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models.PlayerRatingDto",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Models.PlayerRatingDto.yml\" sourcestartlinenumber=\"1\">GET /api/gamematch/rating/{userId} 응답 DTO.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Models.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Models",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Services.EngineService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Services.EngineService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Services.EngineService",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Services.EngineService.yml\" sourcestartlinenumber=\"1\">주식 매도/매수 매칭 엔진을 백그라운드 서비스로 구현.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Services.GameMatchService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Services.GameMatchService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Services.GameMatchService",
+      "Summary": "<p sourcefile=\"api/PlatformA.Matching.API.Services.GameMatchService.yml\" sourcestartlinenumber=\"1\">게임서버용 매칭 엔진.\n모든 Redis 명령은 RedisManager.ExecuteAsync를 통해 Polly 파이프라인이 적용됩니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Matching.API.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Matching.API.Services.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Matching.API.Services",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MatchingEngine.Order.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MatchingEngine.Order.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MatchingEngine.Order",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MatchingEngine.OrderBook.OrderBookSnapshot.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MatchingEngine.OrderBook.OrderBookSnapshot.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MatchingEngine.OrderBook.OrderBookSnapshot",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MatchingEngine.OrderBook.PriceLevel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MatchingEngine.OrderBook.PriceLevel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MatchingEngine.OrderBook.PriceLevel",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MatchingEngine.OrderBook.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MatchingEngine.OrderBook.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MatchingEngine.OrderBook",
+      "Summary": "<p sourcefile=\"api/PlatformA.MatchingEngine.OrderBook.yml\" sourcestartlinenumber=\"1\">주식 매도 매수 엔진</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MatchingEngine.OrderType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MatchingEngine.OrderType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MatchingEngine.OrderType",
+      "Summary": "<p sourcefile=\"api/PlatformA.MatchingEngine.OrderType.yml\" sourcestartlinenumber=\"1\">주식 매도/매수 사용 DTO</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MatchingEngine.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MatchingEngine.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MatchingEngine",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContextFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContextFactory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContextFactory",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBLogApp.DbLogAppContextFactory.yml\" sourcestartlinenumber=\"1\">EF Core CLI 도구가 라이브러리 단독으로 실행될 수 있도록 design-time factory를 제공합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.Entities.AccessLog.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.Entities.AccessLog.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBLogApp.Entities.AccessLog",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBLogApp.Entities.AccessLog.yml\" sourcestartlinenumber=\"1\">유저의 인증 관련 행동 기록 (login / logout / refresh)</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.Entities.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.Entities.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBLogApp.Entities",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBLogApp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBLogApp",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.DbWebAppContextFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.DbWebAppContextFactory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.DbWebAppContextFactory",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.DbWebAppContextFactory.yml\" sourcestartlinenumber=\"1\">EF Core CLI 도구가 라이브러리 단독으로 실행될 수 있도록 design-time factory를 제공합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.DbWebAppContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.EfmigrationsHistory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.EfmigrationsHistory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.EfmigrationsHistory",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.EfmigrationsHistory.yml\" sourcestartlinenumber=\"1\">EF Core 마이그레이션 이력 테이블. 자동 관리되며 직접 수정하지 않습니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Item.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Item.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.Item",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Item.yml\" sourcestartlinenumber=\"1\">테이블: item\n플레이어 보유 아이템 정보.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchRecord.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchRecord.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchRecord",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchRecord.yml\" sourcestartlinenumber=\"1\">테이블: match_records\n매칭 이력. Matching.API 와 Game.Server 가 공유합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchStatus",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.MatchStatus.yml\" sourcestartlinenumber=\"1\">match_records.status 컬럼 값</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Player.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Player.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.Player",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Player.yml\" sourcestartlinenumber=\"1\">테이블: players\n플랫폼 계정 정보. Auth.API 로그인/회원가입에서 사용합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerRating.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerRating.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerRating",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerRating.yml\" sourcestartlinenumber=\"1\">테이블: player_ratings\n플레이어 ELO 레이팅. 게임 종료 시 Matching.API가 자동 업데이트합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerStat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerStat.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerStat",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.PlayerStat.yml\" sourcestartlinenumber=\"1\">테이블: player_stats\n플레이어 누적 전적. players 와 1:1 관계입니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Shop.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Shop.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.Shop",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.Shop.yml\" sourcestartlinenumber=\"1\">테이블: shop\n상점 상품 정보.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.User.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.User.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities.User",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.User.yml\" sourcestartlinenumber=\"1\">테이블: user\n게임 내 유저 정보.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.Entities.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp.Entities",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.DBWebApp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.DBWebApp",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.LogApp.InitialCreate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.LogApp.InitialCreate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.Migrations.LogApp.InitialCreate",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.Migrations.LogApp.InitialCreate.yml\" sourcestartlinenumber=\"1\">A base class inherited by each EF Core migration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.LogApp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.LogApp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.Migrations.LogApp",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.AddGameTypeAndRatingToMatchRecords.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.AddGameTypeAndRatingToMatchRecords.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.Migrations.WebApp.AddGameTypeAndRatingToMatchRecords",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.Migrations.WebApp.AddGameTypeAndRatingToMatchRecords.yml\" sourcestartlinenumber=\"1\">A base class inherited by each EF Core migration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.AddPlayerRatings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.AddPlayerRatings.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.Migrations.WebApp.AddPlayerRatings",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.Migrations.WebApp.AddPlayerRatings.yml\" sourcestartlinenumber=\"1\">A base class inherited by each EF Core migration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.InitialCreate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.InitialCreate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.Migrations.WebApp.InitialCreate",
+      "Summary": "<p sourcefile=\"api/PlatformA.MySqlDB.Lib.Migrations.WebApp.InitialCreate.yml\" sourcestartlinenumber=\"1\">A base class inherited by each EF Core migration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.MySqlDB.Lib.Migrations.WebApp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.MySqlDB.Lib.Migrations.WebApp",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiFailure.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiFailure.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Entities.AiFailure",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiJob.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiJob.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Entities.AiJob",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiJobStep.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiJobStep.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Entities.AiJobStep",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiModelRun.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Entities.AiModelRun.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Entities.AiModelRun",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Entities.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Entities.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Entities",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Migrations.AddGitHubFailureIdentity.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Migrations.AddGitHubFailureIdentity.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Migrations.AddGitHubFailureIdentity",
+      "Summary": "<p sourcefile=\"api/PlatformA.SdlcDB.Lib.Migrations.AddGitHubFailureIdentity.yml\" sourcestartlinenumber=\"1\">A base class inherited by each EF Core migration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Migrations.InitialSdlcDb.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Migrations.InitialSdlcDb.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Migrations.InitialSdlcDb",
+      "Summary": "<p sourcefile=\"api/PlatformA.SdlcDB.Lib.Migrations.InitialSdlcDb.yml\" sourcestartlinenumber=\"1\">A base class inherited by each EF Core migration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.Migrations.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.Migrations.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.Migrations",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.SdlcDbContext.Factory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.SdlcDbContext.Factory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.SdlcDbContext.Factory",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.SdlcDbContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.SdlcDbContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib.SdlcDbContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.SdlcDB.Lib.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.SdlcDB.Lib.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.SdlcDB.Lib",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Controllers.QueueController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Controllers.QueueController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Controllers.QueueController",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Controllers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Controllers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Controllers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Filters.RedisRateLimitAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Filters.RedisRateLimitAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Filters.RedisRateLimitAttribute",
+      "Summary": "<p sourcefile=\"api/PlatformA.Ticketing.API.Filters.RedisRateLimitAttribute.yml\" sourcestartlinenumber=\"1\">Redis 기반 분산 Rate Limiting 속성.\n[EnableRateLimiting] 대신 사용하며, 여러 인스턴스 간 카운터를 공유합니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Filters.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Filters.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Filters",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Hubs.QueueHub.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Hubs.QueueHub.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Hubs.QueueHub",
+      "Summary": "<p sourcefile=\"api/PlatformA.Ticketing.API.Hubs.QueueHub.yml\" sourcestartlinenumber=\"1\">대기열 SignalR 허브.\n클라이언트가 대기열 진입 후 연결하면, QueueWorkerService가 Active 전환 시\n&quot;QueueActivated&quot; 이벤트를 push하여 폴링 없이 즉시 알림.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Hubs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Hubs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Hubs",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Services.QueueService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Services.QueueService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Services.QueueService",
+      "Summary": "<p sourcefile=\"api/PlatformA.Ticketing.API.Services.QueueService.yml\" sourcestartlinenumber=\"1\">게임 입장 대기열 서비스.\n모든 Redis 명령은 RedisManager.ExecuteAsync를 통해 Polly 파이프라인이 적용됩니다.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Services.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Services",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Workers.QueueWorkerService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Workers.QueueWorkerService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Workers.QueueWorkerService",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Ticketing.API.Workers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Ticketing.API.Workers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Ticketing.API.Workers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.AppDbContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.AppDbContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.AppDbContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Controllers.UtilController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Controllers.UtilController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Controllers.UtilController",
+      "Summary": "<p sourcefile=\"api/PlatformA.Utils.API.Controllers.UtilController.yml\" sourcestartlinenumber=\"1\">atomicUtils 유틸리티 페이지에서 요청하는 벡엔드 API</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Controllers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Controllers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Controllers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Models.DB.ShortUrl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Models.DB.ShortUrl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Models.DB.ShortUrl",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Models.DB.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Models.DB.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Models.DB",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Models.UrlRequestDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Models.UrlRequestDto.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Models.UrlRequestDto",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Models.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Models",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Services.StatSyncsService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Services.StatSyncsService.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Services.StatSyncsService",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.Services.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API.Services",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/PlatformA.Utils.API.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/PlatformA.Utils.API.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "PlatformA.Utils.API",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "architecture/database-schema.md",
+      "output": {
+        ".html": {
+          "relative_path": "architecture/database-schema.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "architecture/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "architecture/overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "architecture/redis-keyspace.md",
+      "output": {
+        ".html": {
+          "relative_path": "architecture/redis-keyspace.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "architecture/sequences.md",
+      "output": {
+        ".html": {
+          "relative_path": "architecture/sequences.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "architecture/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "architecture/toc.html"
+        },
+        ".json": {
+          "relative_path": "architecture/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "developer-guide/coding-patterns.md",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/coding-patterns.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "developer-guide/docs-contributing.md",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/docs-contributing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "developer-guide/game-server-architecture.md",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/game-server-architecture.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "developer-guide/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "developer-guide/packet-protocol.md",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/packet-protocol.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "developer-guide/redis-patterns.md",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/redis-patterns.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "developer-guide/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "developer-guide/toc.html"
+        },
+        ".json": {
+          "relative_path": "developer-guide/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "e2e/2026-06-30.md",
+      "output": {
+        ".html": {
+          "relative_path": "e2e/2026-06-30.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "e2e/2026-07-01.md",
+      "output": {
+        ".html": {
+          "relative_path": "e2e/2026-07-01.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "e2e/gomoku-mass-e2e-2026-06-29.md",
+      "output": {
+        ".html": {
+          "relative_path": "e2e/gomoku-mass-e2e-2026-06-29.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "lecture-04-delegate-action-func.md",
+      "output": {
+        ".html": {
+          "relative_path": "lecture-04-delegate-action-func.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "operations/deployment.md",
+      "output": {
+        ".html": {
+          "relative_path": "operations/deployment.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "operations/monitoring.md",
+      "output": {
+        ".html": {
+          "relative_path": "operations/monitoring.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "operations/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "operations/toc.html"
+        },
+        ".json": {
+          "relative_path": "operations/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "operations/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "operations/troubleshooting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "stakeholder/faq.md",
+      "output": {
+        ".html": {
+          "relative_path": "stakeholder/faq.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "stakeholder/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "stakeholder/overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "stakeholder/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "stakeholder/toc.html"
+        },
+        ".json": {
+          "relative_path": "stakeholder/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "stakeholder/user-journey.md",
+      "output": {
+        ".html": {
+          "relative_path": "stakeholder/user-journey.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

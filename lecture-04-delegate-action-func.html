@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Lecture 4 — Action / delegate / Func / 이벤트 핸들러 콜백 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Lecture 4 — Action / delegate / Func / 이벤트 핸들러 콜백 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="favicon.ico">
+      <link rel="stylesheet" href="styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="styles/docfx.css">
+      <link rel="stylesheet" href="styles/main.css">
+      <meta property="docfx:navrel" content="toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="index.html">
+                <img id="logo" class="svg" src="logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="lecture-4--action--delegate--func--이벤트-핸들러-콜백">Lecture 4 — Action / delegate / Func / 이벤트 핸들러 콜백</h1>
+
+<blockquote>
+<p>예시 코드는 모두 이 프로젝트(PlatformA + Game.Gomoku)에서 가져왔다.</p>
+</blockquote>
+<hr>
+<h2 id="1-핵심-결론">1. 핵심 결론</h2>
+<p>이 키워드들은 한 문장으로 요약된다.</p>
+<pre><code>메서드를 변수처럼 저장하고, 나중에 또는 다른 곳에서 실행하는 방법이다.
+</code></pre>
+<p>보통 코드는 데이터를 변수에 담는다.</p>
+<pre><code class="lang-csharp">int userId  = 42;
+string gameType = &quot;gomoku&quot;;
+</code></pre>
+<p>delegate / Action / Func 은 <strong>메서드 자체</strong>를 변수에 담는다.</p>
+<pre><code class="lang-csharp">// GameRoom 안에 Action 큐가 있다
+Queue&lt;Action&gt; _jobQueue = new Queue&lt;Action&gt;();
+
+// 나중에 실행할 &quot;돌 놓기&quot; 로직을 큐에 집어넣는다
+Action job = () =&gt; room.HandlePlaceStone(session, x, y);
+_jobQueue.Enqueue(job);
+
+// 꺼내서 실행
+job.Invoke();
+</code></pre>
+<p>이것이 가능해지면 코드를 <strong>나중에(큐에 쌓아두고)</strong> 실행하거나,
+<strong>바깥에서 주입</strong>하거나, <strong>조건에 따라 교체</strong>할 수 있다.</p>
+<hr>
+<h2 id="2-delegate--패킷-핸들러의-타입을-직접-정의한다">2. delegate — 패킷 핸들러의 타입을 직접 정의한다</h2>
+<p><code>delegate</code>는 메서드의 생김새(파라미터, 반환 타입)를 하나의 타입으로 선언하는 키워드다.</p>
+<p><code>PacketManager.cs</code>에서 가장 직접적인 형태로 쓰인다.</p>
+<pre><code class="lang-csharp">// PacketManager.cs
+
+// &quot;이런 형태의 메서드를 담을 수 있는 타입&quot;을 선언한다
+public delegate void PacketHandlerDelegate&lt;T&gt;(T session, Packet packet)
+    where T : Session;
+
+// 선언한 타입으로 딕셔너리를 만든다 — 패킷 종류(ID)와 처리 메서드를 매핑한다
+private Dictionary&lt;Packet.PayloadOneofCase, PacketHandlerDelegate&lt;T&gt;&gt; _handlers
+    = new Dictionary&lt;Packet.PayloadOneofCase, PacketHandlerDelegate&lt;T&gt;&gt;();
+</code></pre>
+<p>메서드를 값처럼 꺼내 딕셔너리에 저장하고, 패킷이 도착하면 꺼내 실행한다.</p>
+<pre><code class="lang-csharp">// 등록 — [PacketHandler] 어트리뷰트가 붙은 메서드를 리플렉션으로 찾아 딕셔너리에 넣는다
+PacketHandlerDelegate&lt;T&gt; handler =
+    (PacketHandlerDelegate&lt;T&gt;)Delegate.CreateDelegate(
+        typeof(PacketHandlerDelegate&lt;T&gt;), method);
+
+_handlers.Add(attribute.OneofCase, handler);
+// [PacketManager] 라우팅 등록 완료: CPlaceStone -&gt; Handle_C_PlaceStone()
+
+// 실행 — 패킷이 도착하면 ID로 꺼내 호출한다
+public void HandlePacket(T session, Packet packet)
+{
+    if (_handlers.TryGetValue(packet.PayloadCase, out PacketHandlerDelegate&lt;T&gt; handler))
+        handler.Invoke(session, packet);  // 저장해둔 메서드를 실행
+}
+</code></pre>
+<pre><code>패킷 종류가 CLogin      이면 → Handle_C_Login()  실행
+패킷 종류가 CPlaceStone 이면 → Handle_C_PlaceStone() 실행
+</code></pre>
+<p>if/switch 없이 새 패킷 처리를 <code>[PacketHandler]</code> 어트리뷰트만 붙여 추가할 수 있다.</p>
+<hr>
+<h2 id="3-action--반환값-없는-메서드를-큐에-담는다">3. Action — 반환값 없는 메서드를 큐에 담는다</h2>
+<p><code>Action</code>은 <code>void</code>를 반환하는 메서드를 담을 수 있는 미리 정의된 타입이다.</p>
+<pre><code>Action            → void를 반환하는 메서드
+Action&lt;T&gt;         → T 파라미터 하나를 받고 void를 반환하는 메서드
+</code></pre>
+<h3 id="3-1-jobqueue--action을-줄-세워-순차-실행한다">3-1. JobQueue — Action을 줄 세워 순차 실행한다</h3>
+<p><code>JobQueue.cs</code>가 이 패턴의 교과서다.</p>
+<pre><code class="lang-csharp">// JobQueue.cs
+
+// Action 타입의 큐 — 실행할 메서드들이 줄을 선다
+private Queue&lt;Action&gt; _jobQueue = new Queue&lt;Action&gt;();
+
+// 외부에서 실행할 메서드를 큐에 넣는다
+public void Push(Action job)
+{
+    lock (_lock)
+    {
+        _jobQueue.Enqueue(job);   // 메서드를 저장
+
+        if (!_isExecuting)
+        {
+            isFirst = true;
+            _isExecuting = true;
+        }
+    }
+    if (isFirst) Flush();
+}
+
+// 쌓인 일거리를 차례로 꺼내 실행한다
+private void Flush()
+{
+    while (true)
+    {
+        Action? action = null;
+        lock (_lock)
+        {
+            if (_jobQueue.Count == 0) { _isExecuting = false; return; }
+            action = _jobQueue.Dequeue();
+        }
+        action.Invoke();  // 저장해뒀던 메서드를 실행
+    }
+}
+</code></pre>
+<p><code>GameRoom.cs</code>가 이 JobQueue를 감싸서 공개한다.</p>
+<pre><code class="lang-csharp">// GameRoom.cs
+
+public void Push(Action job)
+{
+    _jobQueue.Push(job);
+}
+</code></pre>
+<h3 id="3-2-roompush----멀티스레드-안에서-안전하게-게임-상태를-바꾼다">3-2. room.Push(() =&gt; ...) — 멀티스레드 안에서 안전하게 게임 상태를 바꾼다</h3>
+<p>패킷 핸들러(<code>GomokuPacketHandler.cs</code>)가 <code>room.Push()</code>를 쓰는 방식이다.</p>
+<pre><code class="lang-csharp">// GomokuPacketHandler.cs
+
+[PacketHandler(ProtoPacket.PayloadOneofCase.CPlaceStone)]
+public static void Handle_C_PlaceStone(GomokuSession session, ProtoPacket packet)
+{
+    CPlaceStone req = packet.CPlaceStone;
+    if (session.Room is not GomokuRoom room)
+        return;
+
+    // &quot;돌 놓기&quot;를 지금 실행하지 않는다
+    // 람다(Action)로 감싸서 큐에 넣는다 — 나중에 단일 스레드로 실행됨
+    room.Push(() =&gt; room.HandlePlaceStone(session, req.X, req.Y));
+}
+</code></pre>
+<p>로그인 처리도 같은 패턴이다.</p>
+<pre><code class="lang-csharp">room.Push(() =&gt;
+{
+    room.Enter(session);                    // 방 입장
+    _ = session.SendAsync(BuildResponsePacket(new ProtoPacket
+    {
+        SLogin = new SLogin
+        {
+            ResultCode = LoginResultCode.LoginSuccess,
+            PlayerId = playerId
+        },
+    }));                                    // 성공 응답 전송
+});
+</code></pre>
+<pre><code>Push()를 호출한 스레드는 여럿이어도 괜찮다.
+실제로 room.Enter()와 room.HandlePlaceStone()은
+항상 한 번에 하나씩, 순서대로 실행된다.
+→ lock 없이 레이스 컨디션 차단.
+</code></pre>
+<h3 id="3-3-턴-타임아웃-감시--별도-스레드에서-push로-안전하게-개입한다">3-3. 턴 타임아웃 감시 — 별도 스레드에서 Push()로 안전하게 개입한다</h3>
+<p><code>GomokuRoom.cs</code>의 타임아웃 루프가 이 패턴을 잘 보여준다.</p>
+<pre><code class="lang-csharp">// GomokuRoom.cs
+
+_ = Task.Run(async () =&gt;
+{
+    while (GameState == GomokuGameState.InProgress)
+    {
+        await Task.Delay(1000);  // 1초 대기
+
+        // 별도 스레드이지만 Push()로 게임 상태를 안전하게 조작한다
+        Push(() =&gt;
+        {
+            if (GameState != GomokuGameState.InProgress || _turn == null)
+                return;
+            if (_turn.IsTimeout())
+            {
+                int winner = _turn.GetOpponentId(_turn.CurrentTurnPlayerId);
+                FinishGame(winner, GameOverReason.Timeout);
+            }
+        });
+    }
+});
+</code></pre>
+<p>타임아웃 감시는 별도 스레드에서 돌지만, 실제 <code>FinishGame()</code> 호출은 <code>Push()</code> 안에서 이루어진다. 결과적으로 게임 상태는 항상 단일 스레드에서만 변경된다.</p>
+<hr>
+<h2 id="4-func--반환값-있는-메서드를-변수에-담는다">4. Func — 반환값 있는 메서드를 변수에 담는다</h2>
+<p><code>Action</code>과 동일한 개념이지만 마지막 타입 파라미터가 반환 타입이다.</p>
+<pre><code>Func&lt;TResult&gt;         → TResult를 반환하는 메서드
+Func&lt;T, TResult&gt;      → T를 받아서 TResult를 반환하는 메서드
+Func&lt;T, Task&lt;TResult&gt;&gt;→ T를 받아서 비동기로 TResult를 반환하는 메서드
+</code></pre>
+<h3 id="4-1-redismanagerexecuteasync--redis-연결-관리를-캡슐화한다">4-1. RedisManager.ExecuteAsync — Redis 연결 관리를 캡슐화한다</h3>
+<p><code>GameMatchService.cs</code>에서 가장 많이 반복되는 구조다.</p>
+<pre><code class="lang-csharp">// GameMatchService.cs
+
+// Func&lt;IDatabase, Task&lt;string?&gt;&gt; 을 람다로 전달
+string? val = await _redisManager.ExecuteAsync(
+    db =&gt; db.StringGetAsync(ratingKey));
+
+// Func&lt;IDatabase, Task&lt;bool&gt;&gt; 을 람다로 전달
+bool removed = await _redisManager.ExecuteAsync(
+    db =&gt; db.SortedSetRemoveAsync(queueKey, userId));
+
+// Func&lt;IDatabase, Task&lt;bool&gt;&gt; + TTL 포함
+await _redisManager.ExecuteAsync(db =&gt;
+    db.StringSetAsync(ratingKey, rating.ToString(), TimeSpan.FromHours(1)));
+</code></pre>
+<p><code>ExecuteAsync</code> 내부에서 Redis 연결을 열고, Polly 재시도 파이프라인을 적용하고, 전달받은 람다를 실행한다. 호출부는 Redis 연결 관리를 신경 쓰지 않는다.</p>
+<pre><code>ExecuteAsync가 담당하는 것 : Redis 연결 열기, 재시도, 회로차단기
+호출부가 담당하는 것     : &quot;무엇을 조회/저장할지&quot;만 람다로 전달
+</code></pre>
+<p><code>GomokuPacketHandler.cs</code>에서도 같은 패턴이 나온다.</p>
+<pre><code class="lang-csharp">// GomokuPacketHandler.cs
+
+// Func&lt;IDatabase, Task&lt;string?&gt;&gt;
+string? transferJson = await RedisManager.Instance.ExecuteAsync(
+    db =&gt; db.StringGetAsync(transferKey));
+
+// Func&lt;IDatabase, Task&lt;bool&gt;&gt;
+await RedisManager.Instance.ExecuteAsync(
+    db =&gt; db.KeyDeleteAsync(transferKey));  // 티켓 소비 (한 번만 사용 가능)
+</code></pre>
+<h3 id="4-2-linq-체인--func이-연속으로-쌓인다">4-2. LINQ 체인 — Func이 연속으로 쌓인다</h3>
+<p><code>GameMatchService.cs</code>의 이력 조회가 대표적이다.</p>
+<pre><code class="lang-csharp">// GameMatchService.cs
+
+return await db.MatchRecords
+    .Where(m =&gt; m.Player1Id == userId || m.Player2Id == userId)  // Func&lt;MatchRecord, bool&gt;
+    .OrderByDescending(m =&gt; m.CreatedAt)                          // Func&lt;MatchRecord, DateTime&gt;
+    .Take(limit)
+    .Select(m =&gt; new MatchHistoryDto                              // Func&lt;MatchRecord, MatchHistoryDto&gt;
+    {
+        MatchId    = m.Id,
+        OpponentId = m.Player1Id == userId ? m.Player2Id : m.Player1Id,
+        Result     = m.Status != MatchStatus.Completed ? &quot;미완료&quot;
+                         : m.WinnerId == null         ? &quot;무승부&quot;
+                         : m.WinnerId == userId       ? &quot;승리&quot; : &quot;패배&quot;,
+        MatchedAt  = m.CreatedAt,
+    })
+    .ToListAsync();
+</code></pre>
+<p><code>Where</code>, <code>OrderByDescending</code>, <code>Select</code>는 내부적으로 전부 <code>Func</code> 파라미터를 받는다. 각 단계에서 &quot;어떤 조건으로 필터할지&quot;, &quot;어떤 필드로 정렬할지&quot;, &quot;어떤 형태로 변환할지&quot;를 람다로 주입한다.</p>
+<hr>
+<h2 id="5-channel--고속-action-큐의-비동기-버전-engineservice">5. Channel — 고속 Action 큐의 비동기 버전 (EngineService)</h2>
+<p>주식 매칭 엔진(<code>EngineService.cs</code>)은 <code>Action</code> 대신 <code>Channel&lt;Order&gt;</code>를 사용한다.
+개념은 <code>JobQueue</code>와 같되, 비동기 I/O에 최적화되어 있다.</p>
+<pre><code class="lang-csharp">// EngineService.cs
+
+// 고속 비동기 큐 — 주문(Order)이 들어오면 담아두고 소비자가 꺼낸다
+private readonly Channel&lt;Order&gt; _orderChannel = Channel.CreateUnbounded&lt;Order&gt;(
+    new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
+</code></pre>
+<pre><code>JobQueue (Action 기반)       → 게임 방 로직 (CPlaceStone, Enter, Leave)
+Channel&lt;Order&gt; (Order 기반)  → 주식 주문 매칭 (Buy/Sell 체결)
+둘 다 &quot;하나씩 순서대로&quot; 처리하여 lock 없이 상태를 보호한다.
+</code></pre>
+<p><strong>Producer</strong> — 컨트롤러가 주문을 넣는다.</p>
+<pre><code class="lang-csharp">public async ValueTask EnqueueOrderAsync(Order order)
+{
+    await _orderChannel.Writer.WriteAsync(order);  // 큐에 쏙 집어넣고 바로 리턴
+}
+</code></pre>
+<p><strong>Consumer</strong> — 백그라운드 워커가 하나씩 꺼내 처리한다.</p>
+<pre><code class="lang-csharp">protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    await foreach (var order in _orderChannel.Reader.ReadAllAsync(stoppingToken))
+    {
+        _orderBook.ProcessOrder(order);  // 이 블록은 절대 동시 실행되지 않는다
+
+        var snapshot = _orderBook.GetSnapshot();
+        await _hubContext.Clients.All.SendAsync(&quot;ReceiveOrderBook&quot;, snapshot);
+        await _hubContext.Clients.All.SendAsync(&quot;ReceiveLog&quot;, $&quot;주문(ID:{order.Id}) 처리됨&quot;);
+    }
+}
+</code></pre>
+<hr>
+<h2 id="6-backgroundserviceexecuteasync--프레임워크가-콜백을-호출한다">6. BackgroundService.ExecuteAsync — 프레임워크가 콜백을 호출한다</h2>
+<p><code>GameMatchService.cs</code>와 <code>EngineService.cs</code>는 둘 다 <code>BackgroundService</code>를 상속한다.</p>
+<pre><code class="lang-csharp">// GameMatchService.cs
+public class GameMatchService : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        int tickCount = 0;
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            tickCount++;
+            if (tickCount &gt;= 1500)  // 5분(1500 × 200ms)마다
+            {
+                tickCount = 0;
+                _ = AbandonStaleMatchesAsync();  // stale Pending 레코드 정리
+            }
+            await Task.Delay(200, stoppingToken);
+        }
+    }
+}
+</code></pre>
+<p><code>ExecuteAsync</code>를 <strong>override(재정의)</strong> 하는 것은 &quot;무엇을 반복 실행할지&quot;를 프레임워크에 주입하는 행위다. ASP.NET Core가 애플리케이션 시작 시 이 메서드를 호출한다. <strong>언제 시작하고 언제 멈출지</strong>는 프레임워크가 결정하고, <strong>무엇을 할지</strong>는 이 클래스가 결정한다.</p>
+<p><code>CancellationToken</code>이 그 신호를 전달하는 수단이다.</p>
+<hr>
+<h2 id="7-fire-and-forget--결과를-버리는-패턴">7. Fire-and-Forget — 결과를 버리는 패턴</h2>
+<p>반환값 없는 <code>Action</code>처럼 결과를 버리고 실행만 촉발하는 경우가 여럿 있다.</p>
+<p><strong><code>_ = Task.Run(...)</code> — 타임아웃 감시 루프를 백그라운드에서 실행</strong></p>
+<pre><code class="lang-csharp">// GomokuRoom.cs
+
+_ = Task.Run(async () =&gt;
+{
+    while (GameState == GomokuGameState.InProgress)
+    {
+        await Task.Delay(1000);
+        Push(() =&gt; { /* 타임아웃 체크 */ });
+    }
+});
+</code></pre>
+<p><strong><code>_ = ReportMatchResultAsync(...)</code> — 결과 보고 실패해도 게임 흐름 방해 없음</strong></p>
+<pre><code class="lang-csharp">// GomokuRoom.cs
+
+private void FinishGame(int winnerId, GameOverReason reason)
+{
+    GameState = GomokuGameState.Finished;
+    Broadcast(/* SGameOver 패킷 */);
+
+    _ = ReportMatchResultAsync(winnerId, reason);  // 실패해도 게임 흐름은 계속
+    GomokuRoomManager.Instance.Remove(_roomId);
+}
+</code></pre>
+<p><strong><code>_ = AbandonStaleMatchesAsync()</code> — 정리 작업이 200ms 루프를 막지 않음</strong></p>
+<pre><code class="lang-csharp">// GameMatchService.cs
+
+if (tickCount &gt;= 1500)
+{
+    tickCount = 0;
+    _ = AbandonStaleMatchesAsync();  // Task를 명시적으로 버림
+}
+</code></pre>
+<p>공통점: 결과를 기다리지 않는다. <code>Action</code>이 <code>void</code>를 반환하는 것처럼, 반환된 <code>Task</code>를 <code>_</code>로 무시한다.</p>
+<hr>
+<h2 id="8-lua-스크립트--실행할-코드를-문자열로-저장한다">8. Lua 스크립트 — 실행할 코드를 문자열로 저장한다</h2>
+<p><code>GameMatchService.cs</code>에만 있는 독특한 패턴이다.</p>
+<pre><code class="lang-csharp">// GameMatchService.cs
+
+// Lua 코드를 const string에 담아두고 — 나중에 Redis 서버에서 실행한다
+private const string MATCH_STRICT_SCRIPT = @&quot;
+local candidates = redis.call('ZRANGEBYSCORE', KEYS[1], ARGV[2], ARGV[3])
+for i = 1, #candidates do
+    if candidates[i] ~= ARGV[1] then
+        redis.call('ZREM', KEYS[1], candidates[i])
+        return {candidates[i]}
+    end
+end
+return {}&quot;;
+</code></pre>
+<p>호출부는 람다 패턴과 형태가 거의 같다.</p>
+<pre><code class="lang-csharp">var rawResult = await _redisManager.ExecuteAsync(db =&gt;
+    db.ScriptEvaluateAsync(
+        MATCH_STRICT_SCRIPT,               // 실행할 코드 (Lua)
+        new RedisKey[] { queueKey },       // KEYS[1] — 매칭 큐
+        new RedisValue[] { userId, minScore, maxScore }));  // ARGV[1~3]
+</code></pre>
+<pre><code>C# 람다 = C# 코드를 변수에 담아, 나중에 이 프로세스에서 실행
+Lua 스크립트 = Lua 코드를 문자열에 담아, 나중에 Redis 서버에서 실행
+&quot;실행할 코드를 값처럼 저장한다&quot;는 개념은 동일하다.
+</code></pre>
+<hr>
+<h2 id="9-action-vs-func-vs-delegate-비교">9. Action vs Func vs delegate 비교</h2>
+<table>
+<thead>
+<tr>
+<th>타입</th>
+<th>반환값</th>
+<th>이 프로젝트 사용 위치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>delegate</code></td>
+<td>직접 정의</td>
+<td><code>PacketHandlerDelegate&lt;T&gt;</code> — 패킷 ID → 처리 메서드 매핑</td>
+</tr>
+<tr>
+<td><code>Action</code></td>
+<td>없음 (void)</td>
+<td><code>JobQueue._jobQueue</code> — 게임 방 로직 큐</td>
+</tr>
+<tr>
+<td><code>Action</code></td>
+<td>없음 (void)</td>
+<td><code>room.Push(() =&gt; ...)</code> — 오목 패킷 핸들러</td>
+</tr>
+<tr>
+<td><code>Func&lt;IDatabase, Task&lt;T&gt;&gt;</code></td>
+<td>Task&lt;T&gt;</td>
+<td><code>_redisManager.ExecuteAsync(db =&gt; ...)</code> — Redis 쿼리 주입</td>
+</tr>
+<tr>
+<td><code>Func&lt;MatchRecord, bool&gt;</code></td>
+<td>bool</td>
+<td><code>.Where(m =&gt; ...)</code> — LINQ 필터 조건</td>
+</tr>
+<tr>
+<td><code>Func&lt;MatchRecord, MatchHistoryDto&gt;</code></td>
+<td>DTO</td>
+<td><code>.Select(m =&gt; new ...)</code> — LINQ 변환 규칙</td>
+</tr>
+</tbody>
+</table>
+<pre><code>거의 대부분의 경우 Action 이나 Func 으로 해결된다.
+delegate 를 직접 선언하는 경우는 PacketHandlerDelegate&lt;T&gt;처럼
+제네릭 타입 제약이 필요하거나
+Action / Func 으로 표현할 수 없는 형태일 때다.
+</code></pre>
+<hr>
+<h2 id="10-람다식--이름-없는-메서드를-인라인으로-작성한다">10. 람다식 — 이름 없는 메서드를 인라인으로 작성한다</h2>
+<p><code>Action</code>, <code>Func</code>에 메서드를 전달할 때 별도 메서드를 만들지 않고 그 자리에서 쓰는 문법이다.</p>
+<pre><code class="lang-csharp">// 메서드를 따로 정의하는 방식
+room.Push(PlaceStoneJob);
+void PlaceStoneJob() { room.HandlePlaceStone(session, x, y); }
+
+// 람다로 인라인으로 쓰는 방식
+room.Push(() =&gt; room.HandlePlaceStone(session, x, y));
+</code></pre>
+<p>한 줄이면 중괄호를 생략할 수 있다.</p>
+<pre><code class="lang-csharp">// GameRoom.cs
+public OrderBook GetOrderBook() =&gt; _orderBook;  // 표현식 본문 메서드
+
+// GomokuRoom.cs
+internal static void SetLogger(ILogger logger) =&gt; _logger = logger;
+</code></pre>
+<p>여러 줄이면 중괄호로 감싼다.</p>
+<pre><code class="lang-csharp">room.Push(() =&gt;
+{
+    room.Enter(session);
+    _ = session.SendAsync(BuildResponsePacket(/* SLogin 성공 */));
+});
+</code></pre>
+<hr>
+<h2 id="11-최종-요약--이-프로젝트의-흐름으로">11. 최종 요약 — 이 프로젝트의 흐름으로</h2>
+<pre><code>클라이언트가 CPlaceStone 패킷을 보낸다
+    ↓
+PacketManager.HandlePacket(session, packet)
+    → _handlers[CPlaceStone].Invoke()           ← delegate
+    ↓
+Handle_C_PlaceStone(session, packet)
+    → room.Push(() =&gt; room.HandlePlaceStone(x, y))  ← Action 람다
+    ↓
+JobQueue.Flush()
+    → action.Invoke()                            ← Action 실행
+    ↓
+room.HandlePlaceStone(session, x, y)
+    → WinChecker.CheckWin(...)
+    → FinishGame(winner, Reason.FiveInRow)
+    → _ = ReportMatchResultAsync(...)            ← Fire-and-Forget
+    → _redisManager.ExecuteAsync(db =&gt; ...)      ← Func&lt;IDatabase, Task&gt;
+</code></pre>
+<pre><code>가장 중요한 한 줄:
+
+메서드를 미리 정해두지 않고, 실행 시점에 외부에서 주입받는 것이
+delegate / Action / Func / 람다의 공통 목적이다.
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/lecture-04-delegate-action-func.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="styles/docfx.js"></script>
+    <script type="text/javascript" src="styles/main.js"></script>
+  </body>
+</html>

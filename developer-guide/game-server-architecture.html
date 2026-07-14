@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Game.Server 아키텍처 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Game.Server 아키텍처 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="gameserver-아키텍처">Game.Server 아키텍처</h1>
+
+<p>PlatformA.Game.Server는 TCP 소켓 기반 실시간 게임 서버입니다.
+REST API 없이 Protobuf 바이너리 패킷으로 클라이언트와 통신합니다.</p>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>포트</td>
+<td>7777 (TCP)</td>
+</tr>
+<tr>
+<td>런타임</td>
+<td>.NET 10.0</td>
+</tr>
+<tr>
+<td>패킷 포맷</td>
+<td><code>[size: 2B LE] [Protobuf envelope]</code></td>
+</tr>
+<tr>
+<td>동시성 모델</td>
+<td>Lock-Free JobQueue</td>
+</tr>
+<tr>
+<td>인증</td>
+<td>JWT (CLogin 패킷으로 전달)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="전체-구조">전체 구조</h2>
+<pre><code>클라이언트 (DummyClient)
+    │
+    │  TCP Socket
+    ▼
+┌───────────────────────────────────┐
+│  Session (Library)                │
+│  ┌────────────┐ ┌───────────────┐ │
+│  │ FillPipe   │ │  ReadPipe     │ │  ← System.IO.Pipelines
+│  │ (소켓 수신) │ │  (패킷 분리) │ │
+│  └────────────┘ └──────┬────────┘ │
+└─────────────────────────┼─────────┘
+                          │ OnRecv(ReadOnlySequence&lt;byte&gt;)
+                          ▼
+               GameSession.OnRecv()
+                          │ ParseFrom(Protobuf)
+                          ▼
+              PacketManager.HandlePacket()
+                          │ [PacketHandler] 어트리뷰트로 디스패치
+                          ▼
+              PacketHandler.Handle_C_*()
+                          │ room.Push(lambda)
+                          ▼
+                    GameRoom (JobQueue)
+                          │
+                    게임 상태 변경
+                    room.Broadcast()
+</code></pre>
+<hr>
+<h2 id="session-수명주기">Session 수명주기</h2>
+<pre><code class="lang-mermaid">sequenceDiagram
+    participant C as 클라이언트
+    participant S as GameSession
+    participant R as GameRoom
+
+    C-&gt;&gt;S: TCP Connect
+    S-&gt;&gt;S: OnConnected() — SessionId = 0
+    C-&gt;&gt;S: CLogin { jwtToken, roomId }
+    S-&gt;&gt;S: Handle_C_Login — JWT 검증 + Redis 분산락
+    S-&gt;&gt;R: Push(Enter)
+    R--&gt;&gt;S: SLogin { success }
+    C-&gt;&gt;S: CMove { x, y, z }
+    S-&gt;&gt;R: Push(Broadcast SMove)
+    C-&gt;&gt;S: TCP Disconnect
+    S-&gt;&gt;R: Push(Leave)
+    S-&gt;&gt;S: OnDisconnected() — Redis 락 해제
+</code></pre>
+<hr>
+<h2 id="패킷-프레임-구조">패킷 프레임 구조</h2>
+<pre><code>┌────────────────┬──────────────────────────────┐
+│  size (2B LE)  │  Protobuf Envelope (N bytes)  │
+└────────────────┴──────────────────────────────┘
+</code></pre>
+<ul>
+<li><code>size</code> : 헤더 포함 전체 패킷 길이 (uint16, Little-Endian)</li>
+<li>Envelope : <code>ProtoPacket</code> oneof 메시지 — 패킷 종류와 페이로드를 하나의 필드로 결합</li>
+</ul>
+<p><strong>예시 (CLogin 패킷)</strong></p>
+<pre><code>[0x1E 0x00]  // size = 30
+[Protobuf]   // ProtoPacket { CLogin { jwt_token: &quot;...&quot; } }
+</code></pre>
+<p>패킷 정의 위치: <code>PlatformA/PlatformA.Library/Packets/Proto/packets.proto</code></p>
+<hr>
+<h2 id="lock-free-jobqueue-패턴">Lock-Free JobQueue 패턴</h2>
+<p><code>GameRoom</code>의 상태(_sessions 목록, 점수 등)는 여러 스레드가 동시에 접근합니다.
+PlatformA는 전통적인 <code>lock</code> 대신 <strong>JobQueue</strong>로 모든 상태 변경을 단일 스레드에서 순서대로 실행합니다.</p>
+<pre><code class="lang-csharp">// ✅ 올바른 패턴 — room.Push()를 통해 직렬화
+room.Push(() =&gt;
+{
+    room.Enter(session);          // 단일 스레드에서 실행됨 → lock 불필요
+    room.Broadcast(responsePacket);
+});
+
+// ❌ 금지 — Push 밖에서 게임 상태 직접 수정
+session.Room.Enter(session);      // 레이스 컨디션 발생 가능
+</code></pre>
+<p><strong>JobQueue 동작 원리</strong></p>
+<ol>
+<li><code>Push(job)</code> 호출 시 내부 <code>Queue&lt;Action&gt;</code>에 job 추가</li>
+<li>현재 실행 중인 Flush가 없으면 현재 스레드가 <code>Flush()</code> 시작</li>
+<li><code>Flush()</code>는 Queue가 빌 때까지 순서대로 실행 후 종료</li>
+</ol>
+<p>→ 여러 스레드가 Push해도 실행은 항상 한 번에 하나씩 보장</p>
+<hr>
+<h2 id="redis-분산락--중복-로그인-방지">Redis 분산락 — 중복 로그인 방지</h2>
+<p>동일 플레이어가 두 개의 TCP 연결로 동시에 로그인하는 경우를 차단합니다.</p>
+<pre><code class="lang-csharp">// Handle_C_Login 내부
+string lockKey = $&quot;player:login_lock:{playerId}&quot;;
+string? lockValue = await RedisManager.Instance.LockManager.AcquireLockAsync(
+    lockKey,
+    expiry: TimeSpan.FromSeconds(30),
+    waitTime: TimeSpan.FromSeconds(5),
+    retryTime: TimeSpan.FromMilliseconds(100));
+
+if (lockValue == null)
+{
+    // 이미 다른 연결이 락을 점유 중 → 로그인 거부
+    session.SendAsync(SLoginFail);
+    return;
+}
+
+session.LoginLockValue = lockValue;  // 연결 종료 시 해제에 사용
+
+// OnDisconnected()에서
+await RedisManager.Instance.LockManager.ReleaseLockAsync(lockKey, lockValue);
+</code></pre>
+<hr>
+<h2 id="matchingapi--gameserver-이벤트-흐름">Matching.API → Game.Server 이벤트 흐름</h2>
+<p>매칭 성사 시 Matching.API가 Redis Pub/Sub으로 Game.Server에 알립니다.</p>
+<pre><code>Matching.API                Redis              Game.Server
+     │                        │                     │
+     │── PUBLISH match:{id} ─►│                     │
+     │                        │── 이벤트 Push ──────►│
+     │                        │                     │ CreateRoom(roomId)
+     │                        │                     │ (클라이언트 접속 대기)
+</code></pre>
+<p>구독 채널: <code>Consts.REDIS_MATCH_RESULT_CHANNEL</code> (<code>PlatformA/PlatformA.Library/Common/Consts.cs</code> 참조)</p>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/developer-guide/game-server-architecture.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

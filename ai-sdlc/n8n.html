@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI SDLC — n8n GitHub 실패 모니터 운영 가이드 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI SDLC — n8n GitHub 실패 모니터 운영 가이드 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai-sdlc--n8n-github-실패-모니터-운영-가이드">AI SDLC — n8n GitHub 실패 모니터 운영 가이드</h1>
+
+<h2 id="1-목적">1. 목적</h2>
+<p>GitHub Actions CI 실패를 n8n이 자동으로 감지하여 PostgreSQL <code>sdlc.ai_failures</code> 테이블에 기록한다.
+중복 기록은 partial unique index로 방지한다.</p>
+<h2 id="2-구성요소">2. 구성요소</h2>
+<pre><code>GitHub Actions CI (ci.yml)
+    ↓ 실패 발생
+n8n: GitHub CI Failure Monitor (10분 폴링)
+    └─ GitHub API: /actions/runs?status=failure
+    └─ GitHub API: /actions/runs/{id}/jobs
+    └─ 실패 유형 분류 (JS Code 노드)
+    └─ Job Lock claim (로컬 PostgreSQL에서 직접 수행)
+    └─ GitHub: repository_dispatch (ai-auto-fix 이벤트)
+    └─ PostgreSQL: sdlc.ai_failures INSERT
+         (ON CONFLICT DO NOTHING — 중복 방지)
+</code></pre>
+<blockquote>
+<p><strong>Job Lock</strong>: n8n은 로컬 DB에 직접 접근할 수 있으므로 Job Lock claim을 GitHub Actions가 아닌 n8n이 수행한다.
+GitHub Actions에서는 로컬 PostgreSQL에 접근할 수 없다 (보안 경계).</p>
+</blockquote>
+<h2 id="3-워크플로-노드-설명">3. 워크플로 노드 설명</h2>
+<table>
+<thead>
+<tr>
+<th>순서</th>
+<th>노드명</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Schedule (10분)</td>
+<td>10분마다 자동 실행 트리거</td>
+</tr>
+<tr>
+<td>2</td>
+<td>GitHub: 실패한 CI 조회</td>
+<td><code>status=failure</code> runs 최대 5개 조회</td>
+</tr>
+<tr>
+<td>3</td>
+<td>각 실패 run 분리</td>
+<td>workflow_runs 배열을 개별 항목으로 분리</td>
+</tr>
+<tr>
+<td>4</td>
+<td>최근 15분 이내만</td>
+<td>15분 이내 실패만 통과 (오래된 실패 중복 방지)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>GitHub: Job 상세 조회</td>
+<td>각 run의 jobs/steps 상세 조회</td>
+</tr>
+<tr>
+<td>6</td>
+<td>실패 분류</td>
+<td>format/style/test/gate/build로 분류, git_hub_run_id 추출</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Job Lock claim</td>
+<td>로컬 PostgreSQL에서 직접 수행</td>
+</tr>
+<tr>
+<td>8</td>
+<td>GitHub: repository_dispatch</td>
+<td>auto-fix 이벤트 트리거</td>
+</tr>
+<tr>
+<td>9</td>
+<td>PostgreSQL: ai_failures INSERT</td>
+<td>ON CONFLICT 중복 방지 INSERT</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-중복-방지-메커니즘">4. 중복 방지 메커니즘</h2>
+<h3 id="partial-unique-index">Partial Unique Index</h3>
+<pre><code class="lang-sql">CREATE UNIQUE INDEX ux_ai_failures_github_job_failure
+ON sdlc.ai_failures (git_hub_run_id, git_hub_job_id, failure_type)
+WHERE git_hub_run_id IS NOT NULL AND git_hub_job_id IS NOT NULL;
+</code></pre>
+<ul>
+<li><code>git_hub_run_id + git_hub_job_id + failure_type</code> 조합이 동일하면 중복으로 간주</li>
+<li>WHERE 조건: <code>git_hub_run_id IS NOT NULL</code> → GitHub Actions 실패에만 적용</li>
+<li>로컬 수동 기록(<code>github_run_id=NULL</code>)은 이 constraint 미적용 → 항상 INSERT</li>
+</ul>
+<h3 id="on-conflict-구문">ON CONFLICT 구문</h3>
+<pre><code class="lang-sql">ON CONFLICT (git_hub_run_id, git_hub_job_id, failure_type)
+WHERE git_hub_run_id IS NOT NULL AND git_hub_job_id IS NOT NULL
+DO NOTHING
+</code></pre>
+<p>같은 run/job의 같은 실패 유형이 10분마다 재감지되어도 DB row가 1개만 유지된다.</p>
+<h2 id="5-credential-설정">5. Credential 설정</h2>
+<h3 id="github-pat-n8n-ui">GitHub PAT (n8n UI)</h3>
+<ol>
+<li>n8n UI → Settings → Credentials → New</li>
+<li>Type: <strong>HTTP Header Auth</strong></li>
+<li>Name: <code>GitHub PAT</code></li>
+<li>Header Name: <code>Authorization</code></li>
+<li>Header Value: <code>Bearer ghp_...</code> (GitHub Personal Access Token)</li>
+<li>필요 권한: <code>repo</code>, <code>actions:read</code></li>
+</ol>
+<h3 id="sdlc-postgresql-n8n-ui">SDLC PostgreSQL (n8n UI)</h3>
+<ol>
+<li>n8n UI → Settings → Credentials → New</li>
+<li>Type: <strong>Postgres</strong></li>
+<li>Name: <code>SDLC PostgreSQL</code></li>
+<li>Host: <code>postgres</code> (Docker 네트워크) 또는 <code>localhost</code> (로컬 직접)</li>
+<li>Port: <code>5432</code></li>
+<li>Database: <code>platforma_sdlc</code></li>
+<li>User: <code>platforma</code></li>
+<li>Password: <code>platforma_dev_password</code></li>
+<li>Schema: <code>sdlc</code></li>
+</ol>
+<h2 id="6-워크플로-import-방법">6. 워크플로 Import 방법</h2>
+<pre><code>n8n UI → Workflows → + New → ⋮ (더보기) → Import from File
+파일: .n8n/workflows/github-failure-monitor.json
+</code></pre>
+<p>Import 후:</p>
+<ol>
+<li>PostgreSQL 노드 클릭 → Credential 재선택 (<code>SDLC PostgreSQL</code>)</li>
+<li>GitHub 노드 두 곳 클릭 → Credential 재선택 (<code>GitHub PAT</code>)</li>
+<li>우측 상단 Toggle → <strong>Active</strong> 로 전환</li>
+</ol>
+<h2 id="7-수동-실행-절차">7. 수동 실행 절차</h2>
+<ol>
+<li>n8n UI → Workflows → GitHub CI Failure Monitor</li>
+<li>우측 상단 <strong>Test Workflow</strong> 버튼 클릭</li>
+<li>Executions 탭에서 각 노드 결과 확인</li>
+<li>PostgreSQL INSERT 노드: <code>rows affected</code> 확인</li>
+</ol>
+<h2 id="8-데이터-조회">8. 데이터 조회</h2>
+<pre><code class="lang-sql">-- 최근 ai_failures 확인
+SELECT id, failure_type, git_hub_run_id, git_hub_job_id, branch,
+       workflow_name, resolved, created_at
+FROM sdlc.ai_failures
+ORDER BY created_at DESC
+LIMIT 10;
+
+-- 미해결 실패만
+SELECT failure_type, branch, message, created_at
+FROM sdlc.ai_failures
+WHERE resolved = false
+ORDER BY created_at DESC;
+
+-- 중복 방지 인덱스 확인
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE schemaname = 'sdlc' AND tablename = 'ai_failures';
+
+-- ai_jobs 현황
+SELECT sprint, task_name, branch, status
+FROM sdlc.ai_jobs
+ORDER BY sprint DESC
+LIMIT 10;
+</code></pre>
+<h2 id="9-로컬-수동-기록-record_failurepy">9. 로컬 수동 기록 (record_failure.py)</h2>
+<p>GitHub Actions 없이 로컬에서 실패를 기록할 때:</p>
+<pre><code class="lang-bash"># 기본 (github_run_id 없음 → ON CONFLICT 미적용)
+python .github/scripts/record_failure.py \
+    --type build_failed \
+    --branch my-branch \
+    --message &quot;로컬 빌드 실패&quot;
+
+# GitHub identity 포함 (ON CONFLICT 중복 방지 적용)
+python .github/scripts/record_failure.py \
+    --type format_failed \
+    --branch my-branch \
+    --message &quot;format 실패&quot; \
+    --run-id 12345678 \
+    --job-id 87654321 \
+    --commit-sha abc123 \
+    --workflow &quot;CI — Build &amp; Test&quot;
+
+# 미해결 실패 조회
+python .github/scripts/record_failure.py \
+    --list-unresolved \
+    --branch my-branch
+
+# 해결 처리
+python .github/scripts/record_failure.py \
+    --resolve \
+    --branch my-branch \
+    --type format_failed
+</code></pre>
+<h2 id="10-현재-한계">10. 현재 한계</h2>
+<table>
+<thead>
+<tr>
+<th>한계</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>n8n 가동 전제</td>
+<td>n8n이 꺼져 있으면 실패 기록 누락 가능</td>
+</tr>
+<tr>
+<td>자동 수정 범위</td>
+<td>format/style 오류만 auto-format.yml이 자동 수정</td>
+</tr>
+<tr>
+<td>build/test 자동 수정</td>
+<td>미구현 (수동 수정 필요)</td>
+</tr>
+<tr>
+<td>GitHub Actions → DB</td>
+<td>GitHub Actions에서 직접 PostgreSQL에 접근하지 않음 (보안)</td>
+</tr>
+<tr>
+<td>PR merge 자동 재시도</td>
+<td>미구현</td>
+</tr>
+</tbody>
+</table>
+<h2 id="11-트러블슈팅">11. 트러블슈팅</h2>
+<h3 id="postgresql-연결-오류">PostgreSQL 연결 오류</h3>
+<pre><code>n8n 노드: Connection refused
+</code></pre>
+<p>→ Docker Compose 실행 확인: <code>docker ps | grep sdlc-postgres</code>
+→ <code>docker/postgresql/docker-compose.yml</code> 또는 <code>docker/docker-compose.full.yml</code>로 재기동</p>
+<h3 id="credential-재연결-필요">Credential 재연결 필요</h3>
+<pre><code>n8n 노드: Credential not found
+</code></pre>
+<p>→ Import 후 노드를 클릭하여 Credential을 수동으로 재선택</p>
+<h3 id="on-conflict-미동작">ON CONFLICT 미동작</h3>
+<pre><code>ai_failures에 같은 run/job 데이터가 반복 INSERT됨
+</code></pre>
+<p>→ partial unique index 확인:</p>
+<pre><code class="lang-sql">SELECT indexname FROM pg_indexes
+WHERE schemaname='sdlc' AND tablename='ai_failures'
+AND indexname='ux_ai_failures_github_job_failure';
+</code></pre>
+<p>→ 없으면 <code>dotnet ef database update</code> 재실행</p>
+<h3 id="textjsonb-타입-오류">text→jsonb 타입 오류</h3>
+<pre><code>column &quot;metadata&quot; cannot be cast automatically to type jsonb
+</code></pre>
+<p>→ Migration <code>AddGitHubFailureIdentity</code>에 <code>USING metadata::jsonb</code> 포함 여부 확인
+→ <code>dotnet ef database update --context SdlcDbContext</code> 재실행</p>
+<h2 id="12-관련-문서">12. 관련 문서</h2>
+<ul>
+<li><a href="auto-fix.html">Auto Fix 정책</a></li>
+<li><a href="job-lock.html">Job Lock 정책</a></li>
+<li><a href="db-schema.html">DB Schema</a></li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/n8n.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

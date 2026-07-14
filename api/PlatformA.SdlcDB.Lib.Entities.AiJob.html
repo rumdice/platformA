@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Class AiJob | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Class AiJob | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob">
+
+
+
+  <h1 id="PlatformA_SdlcDB_Lib_Entities_AiJob" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob" class="text-break">Class AiJob</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+    <div class="level1"><span class="xref">AiJob</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="PlatformA.html">PlatformA</a>.<a class="xref" href="PlatformA.SdlcDB.html">SdlcDB</a>.<a class="xref" href="PlatformA.SdlcDB.Lib.html">Lib</a>.<a class="xref" href="PlatformA.SdlcDB.Lib.Entities.html">Entities</a></h6>
+  <h6><strong>Assembly</strong>: PlatformA.SdlcDB.Lib.dll</h6>
+  <h5 id="PlatformA_SdlcDB_Lib_Entities_AiJob_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class AiJob</code></pre>
+  </div>
+  <h3 id="properties">Properties
+</h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_AdrRequired.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.AdrRequired%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L13">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_AdrRequired_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.AdrRequired*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_AdrRequired" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.AdrRequired">AdrRequired</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool AdrRequired { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Branch.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Branch%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L8">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Branch_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Branch*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Branch" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Branch">Branch</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Branch { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_CacheTokens.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.CacheTokens%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L16">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_CacheTokens_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.CacheTokens*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_CacheTokens" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.CacheTokens">CacheTokens</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long? CacheTokens { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a>?</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_CompletedAt.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.CompletedAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L22">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_CompletedAt_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.CompletedAt*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_CompletedAt" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.CompletedAt">CompletedAt</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTimeOffset? CompletedAt { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a>?</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_ConsumeTokens.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.ConsumeTokens%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L15">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_ConsumeTokens_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.ConsumeTokens*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_ConsumeTokens" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.ConsumeTokens">ConsumeTokens</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long? ConsumeTokens { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a>?</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_CreatedAt.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.CreatedAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L21">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_CreatedAt_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.CreatedAt*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_CreatedAt" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.CreatedAt">CreatedAt</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTimeOffset CreatedAt { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_DurationSec.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.DurationSec%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L14">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_DurationSec_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.DurationSec*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_DurationSec" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.DurationSec">DurationSec</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int? DurationSec { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>?</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Failures.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Failures%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L27">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Failures_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Failures*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Failures" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Failures">Failures</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ICollection&lt;AiFailure&gt; Failures { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1">ICollection</a>&lt;<a class="xref" href="PlatformA.SdlcDB.Lib.Entities.AiFailure.html">AiFailure</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Id.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Id%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L5">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Id_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Id*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Id" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Id">Id</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long Id { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Impact.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Impact%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L20">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Impact_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Impact*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Impact" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Impact">Impact</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? Impact { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_InsertedAt.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.InsertedAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L23">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_InsertedAt_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.InsertedAt*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_InsertedAt" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.InsertedAt">InsertedAt</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTimeOffset InsertedAt { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_LastError.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.LastError%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L18">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_LastError_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.LastError*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_LastError" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.LastError">LastError</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? LastError { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_ModelRuns.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.ModelRuns%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L28">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_ModelRuns_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.ModelRuns*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_ModelRuns" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.ModelRuns">ModelRuns</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ICollection&lt;AiModelRun&gt; ModelRuns { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1">ICollection</a>&lt;<a class="xref" href="PlatformA.SdlcDB.Lib.Entities.AiModelRun.html">AiModelRun</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_PrUrl.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.PrUrl%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L10">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_PrUrl_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.PrUrl*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_PrUrl" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.PrUrl">PrUrl</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? PrUrl { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_RetryCount.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.RetryCount%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L17">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_RetryCount_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.RetryCount*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_RetryCount" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.RetryCount">RetryCount</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int RetryCount { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_ReviewCompleted.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.ReviewCompleted%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L12">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_ReviewCompleted_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.ReviewCompleted*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_ReviewCompleted" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.ReviewCompleted">ReviewCompleted</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool ReviewCompleted { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_SourceJson.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.SourceJson%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L19">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_SourceJson_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.SourceJson*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_SourceJson" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.SourceJson">SourceJson</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? SourceJson { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Sprint.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Sprint%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L6">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Sprint_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Sprint*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Sprint" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Sprint">Sprint</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int? Sprint { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>?</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Status.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Status%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L9">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Status_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Status*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Status" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Status">Status</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Status { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_Steps.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.Steps%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L26">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_Steps_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Steps*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_Steps" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.Steps">Steps</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ICollection&lt;AiJobStep&gt; Steps { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1">ICollection</a>&lt;<a class="xref" href="PlatformA.SdlcDB.Lib.Entities.AiJobStep.html">AiJobStep</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_TaskName.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.TaskName%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L7">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_TaskName_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.TaskName*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_TaskName" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.TaskName">TaskName</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string TaskName { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_TestGenerated.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.TestGenerated%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L11">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_TestGenerated_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.TestGenerated*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_TestGenerated" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.TestGenerated">TestGenerated</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool TestGenerated { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob_UpdatedAt.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob.UpdatedAt%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L24">View Source</a>
+  </span>
+  <a id="PlatformA_SdlcDB_Lib_Entities_AiJob_UpdatedAt_" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.UpdatedAt*"></a>
+  <h4 id="PlatformA_SdlcDB_Lib_Entities_AiJob_UpdatedAt" data-uid="PlatformA.SdlcDB.Lib.Entities.AiJob.UpdatedAt">UpdatedAt</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="declaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTimeOffset UpdatedAt { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/new/main/apiSpec/new?filename=PlatformA_SdlcDB_Lib_Entities_AiJob.md&amp;value=---%0Auid%3A%20PlatformA.SdlcDB.Lib.Entities.AiJob%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/PlatformA/PlatformA.SdlcDB.Lib/Entities/AiJob.cs/#L3" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

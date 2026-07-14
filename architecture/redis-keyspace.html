@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Redis 키스페이스 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Redis 키스페이스 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="redis-키스페이스">Redis 키스페이스</h1>
+
+<h2 id="키-상수-목록">키 상수 목록</h2>
+<blockquote>
+<p>아래 표는 <code>Consts.cs</code>에서 자동 추출됩니다. 키 추가·변경은 <code>Consts.cs</code>에서만 하세요.</p>
+</blockquote>
+<!-- REDIS_KEY_TABLE_START -->
+<table>
+<thead>
+<tr>
+<th>상수명</th>
+<th>키 패턴</th>
+<th>TTL</th>
+<th>서비스</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REFRESH_TOKEN_KEY_PREFIX</code></td>
+<td><code>refresh:{id}</code></td>
+<td>7일 (604,800초)</td>
+<td>Auth API</td>
+<td></td>
+</tr>
+<tr>
+<td><code>QUEUE_KEY</code></td>
+<td><code>{ticket:queue}:global</code></td>
+<td>없음</td>
+<td>Ticketing API</td>
+<td>CRC16(&quot;{ticket:queue}&quot;) → 동일 슬롯 보장.</td>
+</tr>
+<tr>
+<td><code>QUEUE_HEARTBEATS_KEY</code></td>
+<td><code>{ticket:queue}:heartbeats</code></td>
+<td>없음</td>
+<td>Ticketing API</td>
+<td>CRC16(&quot;{ticket:queue}&quot;) → 동일 슬롯 보장.</td>
+</tr>
+<tr>
+<td><code>ACTIVE_USER_KEY_PREFIX</code></td>
+<td><code>ticket:active:user:{id}</code></td>
+<td>5분 (300초)</td>
+<td>Ticketing API</td>
+<td>사용법: $&quot;{ACTIVE_USER_KEY_PREFIX}{userId}&quot;</td>
+</tr>
+<tr>
+<td><code>LOGIN_LOCK_KEY_PREFIX</code></td>
+<td><code>player:login_lock:{id}</code></td>
+<td>없음</td>
+<td>—</td>
+<td>사용법: $&quot;{LOGIN_LOCK_KEY_PREFIX}{playerId}&quot;</td>
+</tr>
+<tr>
+<td><code>GAME_TRANSFER_KEY_PREFIX</code></td>
+<td><code>game_transfer:{id}</code></td>
+<td>없음</td>
+<td>—</td>
+<td>사용법: $&quot;{GAME_TRANSFER_KEY_PREFIX}{playerId}&quot;</td>
+</tr>
+<tr>
+<td><code>PLAYER_RATING_KEY_PREFIX</code></td>
+<td><code>player:rating:{id}</code></td>
+<td>없음</td>
+<td>Game Server</td>
+<td>플레이어 MMR 기본값 및 Redis 키 접두사</td>
+</tr>
+<tr>
+<td><code>MATCH_QUEUE_KEY</code></td>
+<td><code>queue:gamematch:1v1</code></td>
+<td>없음</td>
+<td>Matching API</td>
+<td>Redis Sorted Set 기반 매칭 대기열 (score = ELO 레이팅, TTL wait key로 대기 시간 추적)</td>
+</tr>
+<tr>
+<td><code>MATCH_WAIT_KEY_PREFIX</code></td>
+<td><code>queue:wait:{id}</code></td>
+<td>없음</td>
+<td>Matching API</td>
+<td></td>
+</tr>
+<tr>
+<td><code>REDIS_SHORT_URL_KEY</code></td>
+<td><code>url:{0}</code></td>
+<td>없음</td>
+<td>Utils API</td>
+<td>Utils.API — Short URL ({0}: 단축 코드)</td>
+</tr>
+<tr>
+<td><code>REDIS_SHORT_URL_STATS_KEY</code></td>
+<td><code>stats:{0}</code></td>
+<td>없음</td>
+<td>Utils API</td>
+<td>Utils.API — Short URL ({0}: 단축 코드)</td>
+</tr>
+<tr>
+<td><code>REDIS_DIRTY_CODES_KEY</code></td>
+<td><code>dirty_codes</code></td>
+<td>없음</td>
+<td>Utils API</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<!-- REDIS_KEY_TABLE_END -->
+<hr>
+<h2 id="전체-키-맵">전체 키 맵</h2>
+<pre><code class="lang-mermaid">graph LR
+  subgraph &quot;Auth API&quot;
+    direction TB
+    R1[&quot;🔑 refresh:{playerId}&lt;br/&gt;Type: String&lt;br/&gt;TTL: 7일&lt;br/&gt;Value: RefreshToken 문자열&quot;]
+  end
+
+  subgraph &quot;Ticketing API&quot;
+    direction TB
+    R2[&quot;🔑 {ticket:queue}:global&lt;br/&gt;Type: Sorted Set&lt;br/&gt;TTL: 없음&lt;br/&gt;Score: UnixTimeMs (입장 순서)&quot;]
+    R3[&quot;🔑 {ticket:queue}:heartbeats&lt;br/&gt;Type: Sorted Set&lt;br/&gt;TTL: 없음&lt;br/&gt;Score: UnixTimeMs (최근 활동)&quot;]
+    R4[&quot;🔑 ticket:active:user:{userId}&lt;br/&gt;Type: String&lt;br/&gt;TTL: 5분&lt;br/&gt;Value: '1' (입장권 보유)&quot;]
+  end
+
+  subgraph &quot;Matching API&quot;
+    direction TB
+    R5[&quot;🔑 queue:gamematch:1v1&lt;br/&gt;Type: Sorted Set&lt;br/&gt;TTL: 없음&lt;br/&gt;Score: UnixTimeMs (대기 순서)&quot;]
+    R6[&quot;🔑 global:room_id&lt;br/&gt;Type: String (Counter)&lt;br/&gt;TTL: 없음&lt;br/&gt;INCR로 방 번호 자동 생성&quot;]
+    R7[&quot;📢 channel:match_success&lt;br/&gt;Type: Pub/Sub 채널&lt;br/&gt;발행: {RoomId, MatchedUserIds}&quot;]
+  end
+
+  subgraph &quot;Game Server&quot;
+    direction TB
+    R8[&quot;🔒 player:login_lock:{playerId}&lt;br/&gt;Type: String NX&lt;br/&gt;TTL: 1일&lt;br/&gt;Value: Guid (락 소유자)&quot;]
+  end
+</code></pre>
+<hr>
+<h2 id="키-상세-명세">키 상세 명세</h2>
+<h3 id="auth-api">Auth API</h3>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>refresh:{playerId}</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>String</td>
+</tr>
+<tr>
+<td><strong>TTL</strong></td>
+<td>604,800초 (7일)</td>
+</tr>
+<tr>
+<td><strong>값</strong></td>
+<td><code>&quot;{playerId}:{uuid}&quot;</code> 형식의 RefreshToken 문자열</td>
+</tr>
+<tr>
+<td><strong>쓰기</strong></td>
+<td>로그인 성공 시, Token Rotation 시</td>
+</tr>
+<tr>
+<td><strong>읽기/삭제</strong></td>
+<td>토큰 갱신, 로그아웃 시 Lua 스크립트로 원자적 GET+DEL</td>
+</tr>
+<tr>
+<td><strong>특징</strong></td>
+<td>단일 세션 강제 — 새 로그인 시 기존 토큰 덮어쓰기</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="ticketing-api">Ticketing API</h3>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>{ticket:queue}:global</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>Sorted Set</td>
+</tr>
+<tr>
+<td><strong>Score</strong></td>
+<td>입장 시각 (UnixTimeMilliseconds)</td>
+</tr>
+<tr>
+<td><strong>Member</strong></td>
+<td>userId (string)</td>
+</tr>
+<tr>
+<td><strong>최대 크기</strong></td>
+<td>10,000개 (Lua로 원자적 제한)</td>
+</tr>
+<tr>
+<td><strong>쓰기</strong></td>
+<td>대기열 진입 (<code>ZADD</code>)</td>
+</tr>
+<tr>
+<td><strong>읽기</strong></td>
+<td>순위 조회 (<code>ZRANK</code>)</td>
+</tr>
+<tr>
+<td><strong>삭제</strong></td>
+<td>이탈 (<code>ZREM</code>), 입장권 발급 후 제거</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>{ticket:queue}:heartbeats</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>Sorted Set</td>
+</tr>
+<tr>
+<td><strong>Score</strong></td>
+<td>최근 Heartbeat 시각</td>
+</tr>
+<tr>
+<td><strong>용도</strong></td>
+<td>Ghost 유저 감지 — 5분 이상 활동 없으면 강제 제거</td>
+</tr>
+<tr>
+<td><strong>해시태그</strong></td>
+<td><code>{ticket:queue}</code> → <code>:global</code>과 동일 Cluster 슬롯 보장 → Lua 멀티키 가능</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>ticket:active:user:{userId}</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>String</td>
+</tr>
+<tr>
+<td><strong>TTL</strong></td>
+<td>300초 (5분) — 미사용 시 자동 만료</td>
+</tr>
+<tr>
+<td><strong>값</strong></td>
+<td><code>&quot;1&quot;</code></td>
+</tr>
+<tr>
+<td><strong>의미</strong></td>
+<td>해당 유저가 입장권 보유 중 → Game Server 접속 허용</td>
+</tr>
+<tr>
+<td><strong>Game Server에서</strong></td>
+<td>존재 확인 후 <code>DEL</code>로 회수 (1회용 티켓)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="matching-api">Matching API</h3>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>queue:gamematch:1v1</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>Sorted Set</td>
+</tr>
+<tr>
+<td><strong>Score</strong></td>
+<td>매칭 요청 시각</td>
+</tr>
+<tr>
+<td><strong>처리</strong></td>
+<td>200ms마다 백그라운드 워커가 <code>ZPOPMIN COUNT 2</code></td>
+</tr>
+<tr>
+<td><strong>롤백</strong></td>
+<td>1명만 있을 경우 다시 <code>ZADD</code> (Lua 원자적 보장)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>global:room_id</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>String (숫자)</td>
+</tr>
+<tr>
+<td><strong>연산</strong></td>
+<td><code>INCR</code> — 매 매칭 성사 시 1 증가</td>
+</tr>
+<tr>
+<td><strong>특이사항</strong></td>
+<td>결과가 <code>1</code>이면 로비 방 번호 → 스킵하고 재시도</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="game-server">Game Server</h3>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th><code>player:login_lock:{playerId}</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>타입</strong></td>
+<td>String</td>
+</tr>
+<tr>
+<td><strong>TTL</strong></td>
+<td>86,400초 (1일)</td>
+</tr>
+<tr>
+<td><strong>값</strong></td>
+<td>Guid 문자열 (락 소유자 식별)</td>
+</tr>
+<tr>
+<td><strong>획득</strong></td>
+<td><code>SET NX EX</code> (원자적)</td>
+</tr>
+<tr>
+<td><strong>해제</strong></td>
+<td>Lua: <code>GET</code> → <code>COMPARE</code> → <code>DEL</code> (내 락인 경우만 해제)</td>
+</tr>
+<tr>
+<td><strong>중복 로그인</strong></td>
+<td>락 획득 실패 시 즉시 연결 거부</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="cluster-슬롯-설계">Cluster 슬롯 설계</h2>
+<p>Redis Cluster에서 Lua 스크립트는 <strong>동일 슬롯</strong>의 키에만 접근 가능합니다.</p>
+<pre><code>{ticket:queue}:global    ─┐
+{ticket:queue}:heartbeats ─┤ 해시태그 {ticket:queue}로 동일 슬롯 보장
+</code></pre>
+<blockquote>
+<p><strong>주의</strong>: <code>ticket:active:user:{userId}</code> 는 별개 슬롯이므로 대기열 키와 Lua에서 함께 사용 불가.
+이 제약은 의도된 설계 — 입장권 발급은 별도 키로 분리 관리.</p>
+</blockquote>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/architecture/redis-keyspace.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

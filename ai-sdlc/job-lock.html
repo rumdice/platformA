@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC Job Lock 정책 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC Job Lock 정책 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-job-lock-정책">AI_SDLC Job Lock 정책</h1>
+
+<h2 id="목적">목적</h2>
+<p>동일 branch/job에 대한 다중 agent 동시 실행을 방지한다.
+&quot;하나의 job에 하나의 agent만&quot; 원칙을 PostgreSQL row-level atomic UPDATE로 강제한다.</p>
+<h2 id="배경">배경</h2>
+<p>Phase C(DB 단독 운영) 이후 파일 충돌은 해소됐지만, 두 agent가 동시에 같은 job을
+처리하면 DB 상태 역행과 step 기록 충돌이 발생할 수 있다.</p>
+<h2 id="구조">구조</h2>
+<h3 id="db-컬럼-ai_jobs-테이블">DB 컬럼 (ai_jobs 테이블)</h3>
+<table>
+<thead>
+<tr>
+<th>컬럼</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>locked_by</code></td>
+<td>lock 소유자 (git user.name 또는 agent 식별자). NULL이면 미잠금.</td>
+</tr>
+<tr>
+<td><code>locked_at</code></td>
+<td>lock 획득 시각</td>
+</tr>
+<tr>
+<td><code>lock_expires_at</code></td>
+<td>lock 만료 시각. 기본 TTL: 60분</td>
+</tr>
+<tr>
+<td><code>lock_token</code></td>
+<td>release/heartbeat 검증용 UUID</td>
+</tr>
+<tr>
+<td><code>agent_id</code></td>
+<td>실행 주체 (claude-code, n8n, auto-fix 등)</td>
+</tr>
+<tr>
+<td><code>last_heartbeat_at</code></td>
+<td>마지막 heartbeat 시각</td>
+</tr>
+</tbody>
+</table>
+<p>자세한 컬럼 명세: <a href="db-schema.html">DB Schema</a></p>
+<h3 id="로컬-파일">로컬 파일</h3>
+<p><code>.ai_sdlc_lock</code> (프로젝트 루트, gitignore 등록):</p>
+<pre><code>branch=2026-06-11_ExampleBranch
+token=&lt;uuid&gt;
+</code></pre>
+<h2 id="워크플로">워크플로</h2>
+<pre><code>/start (1.5단계)
+  └─ job_lock.py claim --branch BRANCH
+        ├─ 성공: .ai_sdlc_lock 생성, 작업 계속
+        └─ 실패: 현재 lock holder 출력 후 즉시 중단
+
+/done (4.5단계 직후)
+  └─ job_lock.py heartbeat --branch BRANCH --token TOKEN
+
+/workflow (6.5단계)
+  └─ job_lock.py heartbeat --branch BRANCH --token TOKEN --ttl 180
+
+/pr (4.8단계)
+  └─ job_lock.py release --branch BRANCH --token TOKEN
+        └─ 실패 시 WARN (PR 생성 차단 않음)
+</code></pre>
+<h2 id="claim-정책">claim 정책</h2>
+<p>atomic UPDATE 조건:</p>
+<pre><code class="lang-sql">WHERE lock_expires_at IS NULL      -- 아무도 점유 중 아님
+   OR lock_expires_at &lt; NOW()      -- TTL 만료됨
+   OR locked_by = %(owner)s        -- 내가 이미 점유 중 (재진입 허용)
+</code></pre>
+<p>UPDATE 0행 → lock 획득 실패 → exit 1</p>
+<h2 id="ttl-정책">TTL 정책</h2>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>TTL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>일반 작업 (<code>/start</code>)</td>
+<td>60분</td>
+</tr>
+<tr>
+<td>긴 작업 (<code>/workflow</code>)</td>
+<td>180분</td>
+</tr>
+<tr>
+<td>n8n auto-fix</td>
+<td>30분</td>
+</tr>
+</tbody>
+</table>
+<h2 id="heartbeat">heartbeat</h2>
+<ul>
+<li><code>/done</code> 4.5단계 이후에 호출 (빌드/테스트 완료 후 TTL 연장)</li>
+<li><code>/workflow</code> 6.5단계에서 <code>/done</code> 실행 전에 호출</li>
+</ul>
+<p>heartbeat 실패 시: WARN (작업 차단 않음). token 불일치는 이미 다른 agent가 lock을 재획득한 신호.</p>
+<h2 id="stale-lock-처리">stale lock 처리</h2>
+<p>TTL 만료된 lock은:</p>
+<ol>
+<li><strong>자동</strong>: 다른 agent의 claim 시 atomic UPDATE 조건에 의해 덮어씌워짐</li>
+<li><strong>수동</strong>: <code>python .github/scripts/job_lock.py expire</code></li>
+<li><strong>감지</strong>: <code>session-start.sh</code>의 <code>[AI_SDLC Job Lock]</code> 섹션에 표시</li>
+<li><strong>감지</strong>: <code>check_sdlc_consistency.py</code>의 <code>stale_locks</code> 항목</li>
+</ol>
+<h2 id="rollback-lock-제거">rollback (lock 제거)</h2>
+<p>lock 기능을 비활성화하려면:</p>
+<ol>
+<li><code>/start</code> SKILL.md의 1.5단계 제거</li>
+<li><code>/pr</code> SKILL.md의 4.8단계 제거</li>
+<li><code>/done</code>, <code>/workflow</code>의 heartbeat 제거</li>
+<li><code>ai_jobs</code> 테이블 lock 컬럼은 그대로 유지 가능</li>
+</ol>
+<h2 id="n8n-auto-fix-정책">n8n auto-fix 정책</h2>
+<p>n8n이 job lock을 획득하는 방식: <a href="n8n.html">n8n 문서</a> 참조.</p>
+<pre><code class="lang-bash">python .github/scripts/job_lock.py claim \
+  --branch &quot;${BRANCH}&quot; \
+  --agent-id &quot;n8n&quot; \
+  --ttl 30
+</code></pre>
+<ul>
+<li>lock 획득 실패 시: PR comment만 남기고 작업 중단</li>
+<li>lock 최대 TTL: <strong>30분</strong></li>
+<li>retry_count &gt;= 3: lock claim 시도 금지</li>
+<li>HIGH risk 작업: lock claim 시도 금지</li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/job-lock.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

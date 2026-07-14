@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC DB Schema | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC DB Schema | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-db-schema">AI_SDLC DB Schema</h1>
+
+<p>PostgreSQL 데이터베이스: <code>platforma_sdlc</code>, 스키마: <code>sdlc</code></p>
+<p>EF Core 마이그레이션: <code>PlatformA.SdlcDB.Lib/Migrations/</code></p>
+<hr>
+<h2 id="sdlcai_jobs">sdlc.ai_jobs</h2>
+<p>SDLC 작업(스프린트 단위 task)의 주 테이블.
+Phase C 이후 task JSON 파일 대신 이 테이블이 단일 진실 공급원이다.</p>
+<table>
+<thead>
+<tr>
+<th>컬럼</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>bigint (PK)</td>
+<td>자동 증가</td>
+</tr>
+<tr>
+<td><code>sprint</code></td>
+<td>int?</td>
+<td>스프린트 번호</td>
+</tr>
+<tr>
+<td><code>task_name</code></td>
+<td>varchar NOT NULL</td>
+<td>PlanName (PascalCase)</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td>varchar NOT NULL UNIQUE</td>
+<td>git 브랜치명</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>varchar NOT NULL</td>
+<td><code>analyzing</code> / <code>coding</code> / <code>testing</code> / <code>done</code> / <code>failed</code></td>
+</tr>
+<tr>
+<td><code>pr_url</code></td>
+<td>varchar?</td>
+<td>GitHub PR URL</td>
+</tr>
+<tr>
+<td><code>test_generated</code></td>
+<td>bool</td>
+<td><code>/test-gen</code> 완료 여부</td>
+</tr>
+<tr>
+<td><code>review_completed</code></td>
+<td>bool</td>
+<td><code>/review</code> 완료 여부</td>
+</tr>
+<tr>
+<td><code>impact_done</code></td>
+<td>bool</td>
+<td><code>/impact</code> 완료 여부</td>
+</tr>
+<tr>
+<td><code>requirement_done</code></td>
+<td>bool</td>
+<td><code>/requirement</code> 완료 여부</td>
+</tr>
+<tr>
+<td><code>adr_required</code></td>
+<td>bool</td>
+<td>DESIGN_REVIEW에서 ADR 필요 판정 여부</td>
+</tr>
+<tr>
+<td><code>duration_sec</code></td>
+<td>int?</td>
+<td>총 작업 시간(초)</td>
+</tr>
+<tr>
+<td><code>consume_tokens</code></td>
+<td>bigint?</td>
+<td>소비 토큰 수</td>
+</tr>
+<tr>
+<td><code>cache_tokens</code></td>
+<td>bigint?</td>
+<td>캐시 토큰 수</td>
+</tr>
+<tr>
+<td><code>retry_count</code></td>
+<td>int</td>
+<td>자동 수정 재시도 횟수</td>
+</tr>
+<tr>
+<td><code>last_error</code></td>
+<td>text?</td>
+<td>마지막 오류 메시지</td>
+</tr>
+<tr>
+<td><code>source_json</code></td>
+<td>text?</td>
+<td>task JSON 원본 (Phase A/B 마이그레이션용)</td>
+</tr>
+<tr>
+<td><code>impact</code></td>
+<td>text?</td>
+<td>/impact 분석 결과 JSON</td>
+</tr>
+<tr>
+<td><code>locked_by</code></td>
+<td>varchar?</td>
+<td>Job Lock 소유자. NULL=미잠금</td>
+</tr>
+<tr>
+<td><code>locked_at</code></td>
+<td>timestamptz?</td>
+<td>Lock 획득 시각</td>
+</tr>
+<tr>
+<td><code>lock_expires_at</code></td>
+<td>timestamptz?</td>
+<td>Lock 만료 시각</td>
+</tr>
+<tr>
+<td><code>lock_token</code></td>
+<td>varchar?</td>
+<td>Release/heartbeat 검증용 UUID</td>
+</tr>
+<tr>
+<td><code>agent_id</code></td>
+<td>varchar?</td>
+<td>실행 주체 (claude-code, n8n 등)</td>
+</tr>
+<tr>
+<td><code>last_heartbeat_at</code></td>
+<td>timestamptz?</td>
+<td>마지막 heartbeat 시각</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>timestamptz</td>
+<td>작업 시작 시각</td>
+</tr>
+<tr>
+<td><code>completed_at</code></td>
+<td>timestamptz?</td>
+<td>작업 완료 시각</td>
+</tr>
+<tr>
+<td><code>inserted_at</code></td>
+<td>timestamptz</td>
+<td>DB 최초 INSERT 시각</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>timestamptz</td>
+<td>마지막 UPDATE 시각</td>
+</tr>
+</tbody>
+</table>
+<h3 id="주요-제약">주요 제약</h3>
+<pre><code class="lang-sql">UNIQUE (branch)
+INDEX (sprint)
+INDEX (status)
+</code></pre>
+<h3 id="gate-조회-쿼리">gate 조회 쿼리</h3>
+<pre><code class="lang-sql">SELECT test_generated, review_completed, impact_done, requirement_done, adr_required
+FROM sdlc.ai_jobs
+WHERE branch = 'my-branch';
+</code></pre>
+<hr>
+<h2 id="sdlcai_job_steps">sdlc.ai_job_steps</h2>
+<p>각 스킬 실행의 단계별 기록.</p>
+<table>
+<thead>
+<tr>
+<th>컬럼</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>bigint (PK)</td>
+<td>자동 증가</td>
+</tr>
+<tr>
+<td><code>job_id</code></td>
+<td>bigint FK</td>
+<td><code>ai_jobs.id</code> 참조</td>
+</tr>
+<tr>
+<td><code>step_name</code></td>
+<td>varchar NOT NULL</td>
+<td>단계명 (requirement, impact, start, test_gen, done, review, pr 등)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>varchar NOT NULL</td>
+<td><code>done</code> / <code>failed</code> / <code>skipped</code></td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td>text?</td>
+<td>단계 요약 1문장</td>
+</tr>
+<tr>
+<td><code>started_at</code></td>
+<td>timestamptz?</td>
+<td>단계 시작 시각</td>
+</tr>
+<tr>
+<td><code>completed_at</code></td>
+<td>timestamptz?</td>
+<td>단계 완료 시각</td>
+</tr>
+<tr>
+<td><code>duration_sec</code></td>
+<td>int?</td>
+<td>단계 소요 시간(초)</td>
+</tr>
+<tr>
+<td><code>result_json</code></td>
+<td>text?</td>
+<td>단계 결과 JSON (선택)</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>timestamptz</td>
+<td>레코드 생성 시각</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="sdlcai_model_runs">sdlc.ai_model_runs</h2>
+<p>LLM 토큰 사용량 상세 기록.</p>
+<table>
+<thead>
+<tr>
+<th>컬럼</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>bigint (PK)</td>
+<td>자동 증가</td>
+</tr>
+<tr>
+<td><code>job_id</code></td>
+<td>bigint? FK</td>
+<td><code>ai_jobs.id</code> 참조 (nullable)</td>
+</tr>
+<tr>
+<td><code>step_id</code></td>
+<td>bigint? FK</td>
+<td><code>ai_job_steps.id</code> 참조 (nullable)</td>
+</tr>
+<tr>
+<td><code>model_name</code></td>
+<td>varchar?</td>
+<td>사용한 모델명 (예: claude-sonnet-4-6)</td>
+</tr>
+<tr>
+<td><code>provider</code></td>
+<td>varchar?</td>
+<td>공급자 (anthropic 등)</td>
+</tr>
+<tr>
+<td><code>input_tokens</code></td>
+<td>bigint?</td>
+<td>입력 토큰 수</td>
+</tr>
+<tr>
+<td><code>output_tokens</code></td>
+<td>bigint?</td>
+<td>출력 토큰 수</td>
+</tr>
+<tr>
+<td><code>cache_read_tokens</code></td>
+<td>bigint?</td>
+<td>캐시 읽기 토큰 수</td>
+</tr>
+<tr>
+<td><code>cache_creation_tokens</code></td>
+<td>bigint?</td>
+<td>캐시 생성 토큰 수</td>
+</tr>
+<tr>
+<td><code>total_tokens</code></td>
+<td>bigint?</td>
+<td>합계 토큰 수</td>
+</tr>
+<tr>
+<td><code>estimated_cost</code></td>
+<td>decimal?</td>
+<td>추정 비용 (USD)</td>
+</tr>
+<tr>
+<td><code>started_at</code></td>
+<td>timestamptz?</td>
+<td>모델 호출 시작 시각</td>
+</tr>
+<tr>
+<td><code>completed_at</code></td>
+<td>timestamptz?</td>
+<td>모델 호출 완료 시각</td>
+</tr>
+<tr>
+<td><code>raw_usage</code></td>
+<td>text?</td>
+<td>API 원본 usage 응답 JSON</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>timestamptz</td>
+<td>레코드 생성 시각</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="sdlcai_failures">sdlc.ai_failures</h2>
+<p>CI 실패 및 auto-fix 실패 기록.</p>
+<table>
+<thead>
+<tr>
+<th>컬럼</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>bigint (PK)</td>
+<td>자동 증가</td>
+</tr>
+<tr>
+<td><code>job_id</code></td>
+<td>bigint? FK</td>
+<td><code>ai_jobs.id</code> 참조 (nullable)</td>
+</tr>
+<tr>
+<td><code>failure_type</code></td>
+<td>varchar NOT NULL</td>
+<td><code>format_failed</code> / <code>build_failed</code> / <code>test_failed</code> / <code>sdlc_gate_failed</code> 등</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>varchar NOT NULL</td>
+<td>실패 발생 위치 (github_actions, local 등)</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>text?</td>
+<td>오류 메시지 요약</td>
+</tr>
+<tr>
+<td><code>log_excerpt</code></td>
+<td>text?</td>
+<td>로그 발췌 (최대 2000자)</td>
+</tr>
+<tr>
+<td><code>fixable_by_ai</code></td>
+<td>bool?</td>
+<td>AI 자동 수정 가능 여부</td>
+</tr>
+<tr>
+<td><code>retry_count</code></td>
+<td>int</td>
+<td>자동 수정 재시도 횟수</td>
+</tr>
+<tr>
+<td><code>resolved</code></td>
+<td>bool</td>
+<td>해결 여부</td>
+</tr>
+<tr>
+<td><code>resolved_at</code></td>
+<td>timestamptz?</td>
+<td>해결 시각</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>timestamptz</td>
+<td>기록 시각</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>text?</td>
+<td>추가 메타데이터 JSON</td>
+</tr>
+<tr>
+<td><code>git_hub_run_id</code></td>
+<td>bigint?</td>
+<td>GitHub Actions run ID</td>
+</tr>
+<tr>
+<td><code>git_hub_job_id</code></td>
+<td>bigint?</td>
+<td>GitHub Actions job ID</td>
+</tr>
+<tr>
+<td><code>workflow_name</code></td>
+<td>varchar?</td>
+<td>워크플로 이름</td>
+</tr>
+<tr>
+<td><code>commit_sha</code></td>
+<td>varchar?</td>
+<td>커밋 SHA</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td>varchar?</td>
+<td>브랜치명</td>
+</tr>
+</tbody>
+</table>
+<h3 id="중복-방지-인덱스">중복 방지 인덱스</h3>
+<pre><code class="lang-sql">CREATE UNIQUE INDEX ux_ai_failures_github_job_failure
+ON sdlc.ai_failures (git_hub_run_id, git_hub_job_id, failure_type)
+WHERE git_hub_run_id IS NOT NULL AND git_hub_job_id IS NOT NULL;
+</code></pre>
+<hr>
+<h2 id="sprint-sequence">Sprint Sequence</h2>
+<pre><code class="lang-sql">-- 스프린트 번호 원자적 발급 (/plan에서 사용)
+SELECT nextval('sdlc.sprint_seq');
+</code></pre>
+<hr>
+<h2 id="ef-core-마이그레이션-이력">EF Core 마이그레이션 이력</h2>
+<table>
+<thead>
+<tr>
+<th>Migration</th>
+<th>날짜</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>InitialSdlcDb</code></td>
+<td>2026-06-03</td>
+<td>4개 테이블 + sprint_seq 초기 생성</td>
+</tr>
+<tr>
+<td><code>AddGitHubFailureIdentity</code></td>
+<td>2026-06-05</td>
+<td>ai_failures에 git_hub_run_id, git_hub_job_id, workflow_name, commit_sha, branch 추가 + partial unique index</td>
+</tr>
+</tbody>
+</table>
+<h3 id="migration-적용">Migration 적용</h3>
+<pre><code class="lang-bash">cd PlatformA/PlatformA.SdlcDB.Lib
+dotnet ef database update --context SdlcDbContext
+</code></pre>
+<hr>
+<h2 id="관련-문서">관련 문서</h2>
+<ul>
+<li><a href="phase-c-db-only.html">Phase C DB 단독 운영</a></li>
+<li><a href="job-lock.html">Job Lock 정책</a></li>
+<li><a href="n8n.html">n8n 실패 모니터</a></li>
+<li><a href="backup-restore.html">Backup / Restore</a></li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/db-schema.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

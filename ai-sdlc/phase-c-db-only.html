@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC Phase C: DB 단독 운영 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC Phase C: DB 단독 운영 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-phase-c-db-단독-운영">AI_SDLC Phase C: DB 단독 운영</h1>
+
+<p>작성일: 2026-06-10 | 관련 스프린트: #52(AdoptPhaseCDbOnly)
+<strong>Phase C 선언일: 2026-06-10</strong></p>
+<hr>
+<h2 id="개요">개요</h2>
+<p>Phase C는 task JSON 파일 신규 쓰기를 중단하고 PostgreSQL을 SDLC 상태의 단일 진실원으로 삼는 단계다.
+파일은 삭제하지 않고 읽기 전용 아카이브로 유지한다.</p>
+<hr>
+<h2 id="현재-상태-체크리스트-2026-06-10">현재 상태 체크리스트 (2026-06-10)</h2>
+<table>
+<thead>
+<tr>
+<th>조건</th>
+<th>상태</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase B 조건 4개 전체 충족</td>
+<td>✅</td>
+<td>Sprint #51에서 확인</td>
+</tr>
+<tr>
+<td><code>generate_cost_log_from_db.py</code> 작성</td>
+<td>✅</td>
+<td>DB → markdown cost-log 출력 가능</td>
+</tr>
+<tr>
+<td><code>check_sdlc_consistency.py --strict</code> exit 0</td>
+<td>✅</td>
+<td>gate 불일치 0건</td>
+</tr>
+<tr>
+<td>gate 검사 파일 fallback 제거 dry-run</td>
+<td>✅</td>
+<td>get-gates 5개 필드 반환 확인</td>
+</tr>
+<tr>
+<td>Sprint 1회 DB 단독 순환 확인</td>
+<td>✅</td>
+<td>Sprint #52 완료</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="전환-절차-완료">전환 절차 (완료)</h2>
+<h3 id="c0--사전-dry-run-완료">C.0 — 사전 dry-run (완료)</h3>
+<pre><code class="lang-bash">python .github/scripts/db_write.py \
+  --action get-gates \
+  --branch &quot;$(git branch --show-current)&quot;
+</code></pre>
+<p>5개 필드 (test_generated, review_completed, impact_done, adr_required, requirement_done) 반환 확인.</p>
+<hr>
+<h3 id="c1--task-json-신규-쓰기-중단-">C.1 — task JSON 신규 쓰기 중단 ✅</h3>
+<p><code>/plan</code> SKILL.md에서 task JSON 생성 코드 제거, DB INSERT만 수행.
+<code>AI/tasks/</code> 디렉토리: 기존 파일 유지, 신규 생성 없음.</p>
+<hr>
+<h3 id="c2--cost-logmd-직접-append-중단-">C.2 — cost-log.md 직접 append 중단 ✅</h3>
+<p><code>/pr</code> SKILL.md에서 <code>AI/cost-log.md</code> Edit 도구 append 제거.
+<code>generate_cost_log_from_db.py --output AI/reports/generated-cost-log-from-db.md</code> 자동 실행.</p>
+<hr>
+<h3 id="c3--gate-검사-파일-fallback-제거-">C.3 — gate 검사 파일 fallback 제거 ✅</h3>
+<p><code>/pr</code>과 <code>/done</code> SKILL.md에서 파일 fallback 제거.
+DB 응답이 없으면 오류 처리.</p>
+<blockquote>
+<p><strong>주의</strong>: 이 단계부터 PostgreSQL 연결이 SDLC 워크플로의 필수 조건이 된다.</p>
+</blockquote>
+<hr>
+<h3 id="c4--check_sdlc_consistencypy-검사-범위-확장-">C.4 — check_sdlc_consistency.py 검사 범위 확장 ✅</h3>
+<p><code>files_archived</code> 분류 추가 — DB status='done' 항목은 Phase C 정상 상태로 처리.</p>
+<hr>
+<h2 id="롤백-계획">롤백 계획</h2>
+<p>Phase C 전환 후 문제가 발생하면:</p>
+<ol>
+<li>task JSON 신규 쓰기 재활성화 (<code>/plan</code> SKILL.md 되돌리기)</li>
+<li>cost-log.md append 재활성화 (<code>/pr</code> SKILL.md 되돌리기)</li>
+<li>gate 검사 파일 fallback 복원 (<code>/pr</code>, <code>/done</code> SKILL.md 되돌리기)</li>
+</ol>
+<p>기존 task JSON 파일은 삭제하지 않았으므로 즉시 복원 가능.</p>
+<hr>
+<h2 id="관련-스크립트">관련 스크립트</h2>
+<table>
+<thead>
+<tr>
+<th>스크립트</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.github/scripts/db_write.py</code></td>
+<td>SDLC DB 쓰기/읽기 헬퍼</td>
+</tr>
+<tr>
+<td><code>.github/scripts/check_sdlc_consistency.py</code></td>
+<td>JSON ↔ DB 정합성 검사</td>
+</tr>
+<tr>
+<td><code>.github/scripts/backup_sdlc_db.sh</code></td>
+<td>PostgreSQL 백업 (7일 보관)</td>
+</tr>
+<tr>
+<td><code>.github/scripts/generate_cost_log_from_db.py</code></td>
+<td>DB 기반 cost-log markdown 생성</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="관련-문서">관련 문서</h2>
+<ul>
+<li><a href="phases.html">Phase A/B/C 로드맵</a></li>
+<li><a href="auto-fix.html">Auto Fix 정책</a></li>
+<li><a href="db-schema.html">DB Schema</a></li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/phase-c-db-only.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

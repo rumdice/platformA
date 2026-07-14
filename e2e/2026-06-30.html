@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Gomoku E2E 검증 리포트 — 2026-06-30 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Gomoku E2E 검증 리포트 — 2026-06-30 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="gomoku-e2e-검증-리포트--2026-06-30">Gomoku E2E 검증 리포트 — 2026-06-30</h1>
+
+<blockquote>
+<p>시나리오: 10 | 판정: ✅ PASS</p>
+</blockquote>
+<h2 id="실행-환경">실행 환경</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>실행 방식</td>
+<td><code>dotnet run -- --e2e 10</code> (ServiceManager 자동 기동)</td>
+</tr>
+<tr>
+<td>총 소요 시간</td>
+<td>113.5초 (01:53)</td>
+</tr>
+<tr>
+<td>유저 수</td>
+<td>1000명 (정상:850 FO-A:50 FO-B:50 FO-C:50)</td>
+</tr>
+<tr>
+<td>JSON 리포트</td>
+<td><code>PlatformA.Game.DummyClient/bin/Release/net10.0/reports/e2e-20260630-102519.json</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="주요-지표">주요 지표</h2>
+<table>
+<thead>
+<tr>
+<th>지표</th>
+<th>값</th>
+<th>목표</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>로그인 성공률</td>
+<td>100.0% (1000/1000)</td>
+<td>≥90%</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Active 성공률</td>
+<td>100.0% (1000/1000)</td>
+<td>≥85%</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>매칭 성공률</td>
+<td>99.9% (949/950)</td>
+<td>—</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>게임 완주율</td>
+<td>94.2% (801/850)</td>
+<td>≥70%</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>verifyOk / verifyFail</td>
+<td>793 / 8</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Failover A (orphan)</td>
+<td>50/50</td>
+<td>목표치</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Failover B (ghost)</td>
+<td>50/50</td>
+<td>목표치</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Failover C (abandon)</td>
+<td>49/50</td>
+<td>목표치</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="수정-내역-이번-실행-전-적용">수정 내역 (이번 실행 전 적용)</h2>
+<h3 id="servicemanagercs--gamegomoku-tcpport-추가">ServiceManager.cs — Game.Gomoku TcpPort 추가</h3>
+<p><strong>문제</strong>: <code>ServiceSpec</code>의 <code>HealthUrl</code>이 <code>http://localhost:7779/healthz</code>로 설정되어 있었음.<br>
+Windows에서 <code>HttpListener</code>는 비관리자 권한으로 해당 주소 바인딩에 조용히 실패하므로, 헬스체크 HTTP 서버가 실제로 기동되지 않음.<br>
+<code>KillByPort</code>도 7779 포트를 기준으로 종료를 시도해 실제 프로세스(7778 TCP)가 남아 재시작 시 충돌.</p>
+<p><strong>수정</strong>: <code>TcpPort: 7778</code> 추가 → <code>PingAsync</code>가 TCP 연결 체크로 전환, <code>KillByPort</code>도 7778 포트로 올바르게 종료.</p>
+<pre><code class="lang-csharp">// Before
+new(&quot;Game.Gomoku&quot;, &quot;PlatformA/PlatformA.Game.Gomoku&quot;, &quot;http://localhost:7779/healthz&quot;),
+// After
+new(&quot;Game.Gomoku&quot;, &quot;PlatformA/PlatformA.Game.Gomoku&quot;, &quot;http://localhost:7779/healthz&quot;, TcpPort: 7778),
+</code></pre>
+<h2 id="판정">판정</h2>
+<p>✅ PASS — 모든 목표 지표 충족. verifyFail 8건은 게임 결과 재시도(Sprint #76) 허용 범위 내.</p>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/e2e/2026-06-30.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

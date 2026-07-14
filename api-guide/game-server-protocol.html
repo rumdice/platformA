@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>게임 서버 프로토콜 (TCP) | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="게임 서버 프로토콜 (TCP) | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="게임-서버-프로토콜-tcp">게임 서버 프로토콜 (TCP)</h1>
+
+<blockquote>
+<p><strong>대상 독자</strong>: 클라이언트 개발자, 서버 통합 담당자<br>
+<strong>서버 버전</strong>: PlatformA Game Server (.NET 10.0)<br>
+<strong>최종 수정</strong>: 2026-05-14</p>
+</blockquote>
+<hr>
+<h2 id="1-접속-정보">1. 접속 정보</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>프로토콜</td>
+<td>TCP</td>
+<td>Raw Socket (System.IO.Pipelines 기반)</td>
+</tr>
+<tr>
+<td>기본 호스트</td>
+<td><code>127.0.0.1</code></td>
+<td>환경변수 <code>GAME_SERVER_IP</code>로 오버라이드</td>
+</tr>
+<tr>
+<td>기본 포트</td>
+<td><code>7777</code></td>
+<td>환경변수 <code>GAME_SERVER_PORT</code>로 오버라이드</td>
+</tr>
+<tr>
+<td>직렬화</td>
+<td>Protocol Buffers (proto3)</td>
+<td>JSON 사용 불가 (ADR-002)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>사전 조건</strong>: 게임 서버 TCP 접속 전에 Ticketing API에서 발급한 입장권(Active 상태)이 유효해야 합니다.<br>
+Active TTL은 300초이며, 이 시간 내에 TCP 접속 및 <code>C_Login</code> 전송을 완료해야 합니다.</p>
+</blockquote>
+<hr>
+<h2 id="2-바이너리-프레이밍">2. 바이너리 프레이밍</h2>
+<p>모든 TCP 메시지는 고정 크기 헤더 + 가변 길이 Protobuf 페이로드 구조를 사용합니다.</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                     TCP 프레임 레이아웃                       │
+├─────────────────┬───────────────────────────────────────────┤
+│  헤더 (2 바이트) │           페이로드 (가변 길이)              │
+│  [frame size]   │        [Packet envelope bytes]            │
+│  ushort LE      │        (Google.Protobuf 직렬화)            │
+└─────────────────┴───────────────────────────────────────────┘
+</code></pre>
+<pre><code class="lang-mermaid">packet-beta
+  0-15: &quot;frame size (ushort, Little-Endian)&quot;
+  16-47: &quot;Packet envelope (Protobuf bytes, 가변 길이)&quot;
+</code></pre>
+<h3 id="헤더-규칙">헤더 규칙</h3>
+<ul>
+<li><strong>크기</strong>: 2바이트 (unsigned short, Little-Endian)</li>
+<li><strong>값</strong>: 헤더 자신(2바이트) + 페이로드 길이의 합
+<ul>
+<li>예: 페이로드가 10바이트이면 <code>frame size = 12</code></li>
+</ul>
+</li>
+<li>최소 프레임 크기: 2 (페이로드 없음)</li>
+<li>수신 측은 <code>frame size</code>만큼 정확히 읽어야 TCP 단편화 문제를 방지할 수 있습니다</li>
+</ul>
+<h3 id="송수신-흐름-다이어그램">송수신 흐름 다이어그램</h3>
+<pre><code class="lang-mermaid">sequenceDiagram
+    participant C as 클라이언트
+    participant S as 게임 서버
+
+    Note over C,S: 송신 (BuildPacket)
+    C-&gt;&gt;C: Packet envelope = new Packet { CLogin = ... }
+    C-&gt;&gt;C: bytes = envelope.ToByteArray()
+    C-&gt;&gt;C: frame[0..1] = ushort(2 + bytes.Length), Little-Endian
+    C-&gt;&gt;C: frame[2..] = bytes
+    C-&gt;&gt;S: TCP Send(frame)
+
+    Note over C,S: 수신 (ReceiveFrameAsync)
+    S-&gt;&gt;C: TCP frame 도착
+    C-&gt;&gt;C: sizeBuf[0..1] 읽기 → frameSize
+    C-&gt;&gt;C: frame[2..frameSize] 읽기 (단편화 대응 루프)
+    C-&gt;&gt;C: Packet.Parser.ParseFrom(frame, 2, frameSize - 2)
+</code></pre>
+<hr>
+<h2 id="3-protobuf-envelope-구조">3. Protobuf Envelope 구조</h2>
+<p>모든 패킷은 <code>Packet</code> 메시지로 감싸서 전송합니다. <code>oneof payload</code> 필드의 태그 번호가 PacketID 역할을 대신합니다.</p>
+<pre><code class="lang-proto">// Packet — 모든 메시지를 감싸는 envelope
+message Packet {
+    oneof payload {
+        CMove      c_move       = 1;
+        SMove      s_move       = 2;
+        CLogin     c_login      = 3;
+        SLogin     s_login      = 4;
+        CEnterRoom c_enter_room = 5;
+        SEnterRoom s_enter_room = 6;
+    }
+}
+</code></pre>
+<p>수신 후 <code>envelope.PayloadCase</code>로 패킷 종류를 판별합니다.</p>
+<hr>
+<h2 id="4-패킷-목록">4. 패킷 목록</h2>
+<h3 id="41-열거형-enums">4.1 열거형 (Enums)</h3>
+<h4 id="loginresultcode">LoginResultCode</h4>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td><code>LOGIN_SUCCESS</code></td>
+<td>로그인 성공 (proto3 기본값 — 주의: wire에 포함되지 않음)</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td><code>LOGIN_INVALID_TOKEN</code></td>
+<td>JWT 토큰이 유효하지 않음</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td><code>LOGIN_NOT_IN_QUEUE</code></td>
+<td>대기열(Active 상태)을 통과하지 않은 접속</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td><code>LOGIN_DUPLICATE</code></td>
+<td>동일 플레이어가 이미 접속 중 (분산 락)</td>
+</tr>
+<tr>
+<td><code>4</code></td>
+<td><code>LOGIN_ROOM_NOT_FOUND</code></td>
+<td>입장 대상 방이 존재하지 않음</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enterroomresultcode">EnterRoomResultCode</h4>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>이름</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td><code>ENTER_ROOM_SUCCESS</code></td>
+<td>방 이동 성공</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td><code>ENTER_ROOM_NOT_FOUND</code></td>
+<td>대상 방 없음</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>proto3 주의사항</strong>: 값이 <code>0</code>인 열거형 필드는 wire에 포함되지 않습니다. <code>LOGIN_SUCCESS = 0</code>, <code>ENTER_ROOM_SUCCESS = 0</code> 수신 시 필드 부재와 구분할 수 없으므로, <code>oneof</code>의 <code>PayloadCase</code>로 패킷 종류를 먼저 확인한 뒤 결과 코드를 해석하십시오.</p>
+</blockquote>
+<h3 id="42-패킷-명세">4.2 패킷 명세</h3>
+<table>
+<thead>
+<tr>
+<th>oneof 태그</th>
+<th>패킷 이름</th>
+<th>방향</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1</code></td>
+<td><code>CMove</code></td>
+<td>C → S</td>
+<td>플레이어 이동 요청</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td><code>SMove</code></td>
+<td>S → C</td>
+<td>이동 브로드캐스트 (룸 내 전체 플레이어에게 전송)</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td><code>CLogin</code></td>
+<td>C → S</td>
+<td>게임 서버 로그인 요청</td>
+</tr>
+<tr>
+<td><code>4</code></td>
+<td><code>SLogin</code></td>
+<td>S → C</td>
+<td>로그인 결과 응답</td>
+</tr>
+<tr>
+<td><code>5</code></td>
+<td><code>CEnterRoom</code></td>
+<td>C → S</td>
+<td>방 이동 요청</td>
+</tr>
+<tr>
+<td><code>6</code></td>
+<td><code>SEnterRoom</code></td>
+<td>S → C</td>
+<td>방 이동 결과 응답</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="c_login-태그-3--c--s">C_Login (태그 3) — C → S</h3>
+<p>TCP 접속 후 가장 먼저 전송해야 하는 패킷입니다.</p>
+<pre><code class="lang-proto">message CLogin {
+    int32  room_id   = 1;  // 입장할 방 ID (로비: 1)
+    string jwt_token = 2;  // Auth API에서 발급한 JWT Access Token
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>room_id</code></td>
+<td>int32</td>
+<td>입장할 방 번호. 로비/광장은 <code>1</code></td>
+</tr>
+<tr>
+<td><code>jwt_token</code></td>
+<td>string</td>
+<td>Auth API <code>/api/Auth/login</code>에서 발급받은 Access Token (Bearer 접두사 불필요)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="s_login-태그-4--s--c">S_Login (태그 4) — S → C</h3>
+<p><code>C_Login</code> 수신 후 서버가 즉시 응답하는 패킷입니다.</p>
+<pre><code class="lang-proto">message SLogin {
+    LoginResultCode result_code = 1;
+    int32           player_id   = 2;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>result_code</code></td>
+<td>LoginResultCode</td>
+<td>로그인 결과 코드</td>
+</tr>
+<tr>
+<td><code>player_id</code></td>
+<td>int32</td>
+<td>성공 시 서버가 할당한 플레이어 ID; 실패 시 <code>0</code></td>
+</tr>
+</tbody>
+</table>
+<p>로그인 실패 시 서버는 응답 직후 연결을 종료합니다.</p>
+<hr>
+<h3 id="c_move-태그-1--c--s">C_Move (태그 1) — C → S</h3>
+<p>플레이어의 이동 좌표를 서버로 전송합니다.</p>
+<pre><code class="lang-proto">message CMove {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>float</td>
+<td>목표 X 좌표</td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td>float</td>
+<td>목표 Y 좌표</td>
+</tr>
+<tr>
+<td><code>z</code></td>
+<td>float</td>
+<td>목표 Z 좌표 (2D 게임이면 <code>0.0</code> 고정)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="s_move-태그-2--s--c">S_Move (태그 2) — S → C</h3>
+<p>한 플레이어의 이동 정보를 같은 룸의 모든 플레이어에게 브로드캐스트합니다.</p>
+<pre><code class="lang-proto">message SMove {
+    int32 player_id = 1;
+    float x         = 2;
+    float y         = 3;
+    float z         = 4;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>player_id</code></td>
+<td>int32</td>
+<td>이동한 플레이어의 ID</td>
+</tr>
+<tr>
+<td><code>x</code></td>
+<td>float</td>
+<td>이동 후 X 좌표</td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td>float</td>
+<td>이동 후 Y 좌표</td>
+</tr>
+<tr>
+<td><code>z</code></td>
+<td>float</td>
+<td>이동 후 Z 좌표</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="c_enterroom-태그-5--c--s">C_EnterRoom (태그 5) — C → S</h3>
+<p>현재 방에서 다른 방으로 이동을 요청합니다. 매칭 성사 후 게임 방 번호를 받았을 때 사용합니다.</p>
+<pre><code class="lang-proto">message CEnterRoom {
+    int32 room_id = 1;  // 이동할 방 ID
+}
+</code></pre>
+<hr>
+<h3 id="s_enterroom-태그-6--s--c">S_EnterRoom (태그 6) — S → C</h3>
+<p><code>C_EnterRoom</code> 요청에 대한 서버 응답입니다.</p>
+<pre><code class="lang-proto">message SEnterRoom {
+    EnterRoomResultCode result_code = 1;
+    int32               room_id     = 2;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>result_code</code></td>
+<td>EnterRoomResultCode</td>
+<td>방 이동 결과</td>
+</tr>
+<tr>
+<td><code>room_id</code></td>
+<td>int32</td>
+<td>성공 시 이동한 방 ID</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5-세션-흐름">5. 세션 흐름</h2>
+<h3 id="51-전체-흐름-접속--로그인--게임--종료">5.1 전체 흐름 (접속 → 로그인 → 게임 → 종료)</h3>
+<pre><code class="lang-mermaid">sequenceDiagram
+    participant C as 클라이언트
+    participant AuthAPI as Auth API&lt;br/&gt;(:7001 HTTPS)
+    participant TicketAPI as Ticketing API&lt;br/&gt;(:7003 HTTPS)
+    participant MatchAPI as Matching API&lt;br/&gt;(:7002 HTTPS)
+    participant GS as 게임 서버&lt;br/&gt;(:7777 TCP)
+    participant Redis as Redis Cluster
+
+    Note over C,AuthAPI: 1. 인증
+    C-&gt;&gt;AuthAPI: POST /api/Auth/login {Username, Password}
+    AuthAPI--&gt;&gt;C: 200 OK {token (JWT), refreshToken, playerId}
+
+    Note over C,TicketAPI: 2. 대기열 진입
+    C-&gt;&gt;TicketAPI: POST /api/queue/enter (Bearer JWT)
+    TicketAPI--&gt;&gt;C: 200 OK
+    loop 대기열 폴링 (또는 SignalR QueueActivated 이벤트)
+        C-&gt;&gt;TicketAPI: GET /api/queue/status (Bearer JWT)
+        TicketAPI--&gt;&gt;C: {Status: &quot;Waiting&quot;, Rank: N}
+    end
+    TicketAPI--&gt;&gt;C: {Status: &quot;Active&quot;} 또는 SignalR QueueActivated push
+    Note over TicketAPI,Redis: Active 입장권 Redis에 저장&lt;br/&gt;TTL: 300초
+
+    Note over C,MatchAPI: 3. 매칭 요청 (선택)
+    C-&gt;&gt;MatchAPI: POST /api/GameMatch/RequestMatch (Bearer JWT)
+    MatchAPI--&gt;&gt;C: 200 OK
+    MatchAPI--&gt;&gt;Redis: Pub/Sub match_success_channel
+    Redis--&gt;&gt;GS: 매칭 성공 이벤트 (roomId, userIds)
+    MatchAPI--&gt;&gt;C: SignalR MatchFound {RoomId, MatchedUserIds}
+
+    Note over C,GS: 4. TCP 접속 및 로그인
+    C-&gt;&gt;GS: TCP Connect (127.0.0.1:7777)
+    C-&gt;&gt;GS: [frame] Packet { CLogin { room_id, jwt_token } }
+    GS-&gt;&gt;Redis: GET ticket:active:user:{playerId}
+    alt Active 키 없음
+        GS--&gt;&gt;C: Packet { SLogin { LOGIN_NOT_IN_QUEUE } }
+        GS-&gt;&gt;C: TCP Disconnect
+    else Active 키 있음
+        GS-&gt;&gt;Redis: DEL ticket:active:user:{playerId} (소비)
+        GS-&gt;&gt;Redis: SET player:login_lock:{playerId} (분산 락)
+        GS--&gt;&gt;C: Packet { SLogin { LOGIN_SUCCESS, player_id } }
+    end
+
+    Note over C,GS: 5. 게임 플레이
+    loop 이동 루프
+        C-&gt;&gt;GS: [frame] Packet { CMove { x, y, z } }
+        GS--&gt;&gt;C: [frame] Packet { SMove { player_id, x, y, z } }
+        Note right of GS: 동일 룸 전체 플레이어에게&lt;br/&gt;SMove 브로드캐스트
+    end
+
+    opt 방 이동 (매칭 게임방 진입)
+        C-&gt;&gt;GS: [frame] Packet { CEnterRoom { room_id } }
+        GS--&gt;&gt;C: [frame] Packet { SEnterRoom { ENTER_ROOM_SUCCESS, room_id } }
+    end
+
+    Note over C,GS: 6. 종료
+    C-&gt;&gt;GS: TCP Disconnect
+    GS-&gt;&gt;Redis: DEL player:login_lock:{playerId}
+    Note right of GS: 룸에서 플레이어 제거
+</code></pre>
+<h3 id="52-로그인-결과별-처리">5.2 로그인 결과별 처리</h3>
+<pre><code class="lang-mermaid">flowchart TD
+    A[TCP 접속] --&gt; B[C_Login 전송]
+    B --&gt; C{S_Login 수신}
+    C --&gt;|LOGIN_SUCCESS| D[게임 플레이 시작]
+    C --&gt;|LOGIN_INVALID_TOKEN| E[JWT 만료 → Auth API 재로그인]
+    C --&gt;|LOGIN_NOT_IN_QUEUE| F[Ticketing API 대기열 재진입]
+    C --&gt;|LOGIN_DUPLICATE| G[이미 접속 중 → 기존 세션 종료 후 재시도]
+    C --&gt;|LOGIN_ROOM_NOT_FOUND| H[매칭 이벤트 재대기]
+    E --&gt; A
+    F --&gt; A
+</code></pre>
+<hr>
+<h2 id="6-dummyclient-연동-예시">6. DummyClient 연동 예시</h2>
+<p>실제 <code>PlatformA.Game.DummyClient</code> 코드에서 발췌한 연결/패킷 전송 예시입니다.</p>
+<h3 id="61-tcp-연결-및-c_login-전송">6.1 TCP 연결 및 C_Login 전송</h3>
+<pre><code class="lang-csharp">using System.Net.Sockets;
+using PlatformA.Library.Common;
+using PlatformA.Library.Packets;
+
+// TCP 소켓 생성 및 연결
+using Socket client = new Socket(
+    AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+await client.ConnectAsync(Consts.GAME_SERVER_IP, Consts.GAME_SERVER_PORT);
+
+// C_Login 패킷 빌드 및 전송
+byte[] loginPacket = PacketHelper.BuildPacket(new Packet
+{
+    CLogin = new CLogin
+    {
+        RoomId   = 1,           // 로비(광장) 방 번호
+        JwtToken = accessToken  // Auth API에서 발급받은 JWT Access Token
+    }
+});
+
+await client.SendAsync(loginPacket, SocketFlags.None);
+</code></pre>
+<h3 id="62-패킷-빌드-구현-packethelperbuildpacket">6.2 패킷 빌드 구현 (PacketHelper.BuildPacket)</h3>
+<pre><code class="lang-csharp">// 송신: Packet envelope → [ushort size (2B)][Packet bytes]
+internal static byte[] BuildPacket(Packet envelope)
+{
+    byte[] envelopeBytes = envelope.ToByteArray();
+    ushort size = (ushort)(2 + envelopeBytes.Length);
+    byte[] buf = new byte[size];
+    BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(0, 2), size);
+    envelopeBytes.CopyTo(buf, 2);
+    return buf;
+}
+</code></pre>
+<h3 id="63-프레임-수신-구현-packethelperreceiveframeasync">6.3 프레임 수신 구현 (PacketHelper.ReceiveFrameAsync)</h3>
+<pre><code class="lang-csharp">// 수신: size 헤더를 실제로 사용해 정확한 바이트 수를 읽음 (TCP 단편화 대응)
+internal static async Task&lt;byte[]?&gt; ReceiveFrameAsync(Socket socket, CancellationToken ct = default)
+{
+    byte[] sizeBuf = new byte[2];
+    int totalRead = 0;
+    while (totalRead &lt; 2)
+    {
+        int n = await socket.ReceiveAsync(sizeBuf.AsMemory(totalRead), SocketFlags.None, ct);
+        if (n == 0) return null; // 연결 종료
+        totalRead += n;
+    }
+
+    ushort frameSize = BinaryPrimitives.ReadUInt16LittleEndian(sizeBuf);
+    if (frameSize &lt; 2) return null;
+
+    byte[] frame = new byte[frameSize];
+    sizeBuf.CopyTo(frame, 0);
+    totalRead = 2;
+    while (totalRead &lt; frameSize)
+    {
+        int n = await socket.ReceiveAsync(frame.AsMemory(totalRead), SocketFlags.None, ct);
+        if (n == 0) return null;
+        totalRead += n;
+    }
+    return frame;
+}
+</code></pre>
+<h3 id="64-수신-루프에서-패킷-분기-처리">6.4 수신 루프에서 패킷 분기 처리</h3>
+<pre><code class="lang-csharp">while (true)
+{
+    byte[]? frame = await PacketHelper.ReceiveFrameAsync(client);
+    if (frame == null) break; // 서버 연결 종료
+
+    // frame[2..] 을 Packet envelope 으로 파싱
+    Packet envelope = Packet.Parser.ParseFrom(frame, 2, frame.Length - 2);
+
+    switch (envelope.PayloadCase)
+    {
+        case Packet.PayloadOneofCase.SLogin:
+            SLogin login = envelope.SLogin;
+            if (login.ResultCode == LoginResultCode.LoginSuccess)
+                Console.WriteLine($&quot;로그인 성공! PlayerID: {login.PlayerId}&quot;);
+            else
+                Console.WriteLine($&quot;로그인 실패: {login.ResultCode}&quot;);
+            break;
+
+        case Packet.PayloadOneofCase.SMove:
+            SMove move = envelope.SMove;
+            Console.WriteLine($&quot;플레이어 {move.PlayerId} 이동 → ({move.X}, {move.Y}, {move.Z})&quot;);
+            break;
+
+        case Packet.PayloadOneofCase.SEnterRoom:
+            SEnterRoom enter = envelope.SEnterRoom;
+            if (enter.ResultCode == EnterRoomResultCode.EnterRoomSuccess)
+                Console.WriteLine($&quot;{enter.RoomId}번 방에 입장 성공!&quot;);
+            break;
+    }
+}
+</code></pre>
+<h3 id="65-c_move-전송-예시">6.5 C_Move 전송 예시</h3>
+<pre><code class="lang-csharp">byte[] movePacket = PacketHelper.BuildPacket(new Packet
+{
+    CMove = new CMove { X = 10.5f, Y = -3.2f, Z = 0f }
+});
+await client.SendAsync(movePacket, SocketFlags.None);
+</code></pre>
+<h3 id="66-c_enterroom-전송-예시-매칭-성사-후">6.6 C_EnterRoom 전송 예시 (매칭 성사 후)</h3>
+<pre><code class="lang-csharp">// 매칭 API가 SignalR MatchFound 이벤트로 RoomId를 전달한 경우
+matchHub.On&lt;MatchSuccessEvent&gt;(&quot;MatchFound&quot;, async (matchInfo) =&gt;
+{
+    byte[] enterPacket = PacketHelper.BuildPacket(new Packet
+    {
+        CEnterRoom = new CEnterRoom { RoomId = matchInfo.RoomId }
+    });
+    await client.SendAsync(enterPacket, SocketFlags.None);
+});
+</code></pre>
+<hr>
+<h2 id="7-패킷-처리-아키텍처-서버-내부">7. 패킷 처리 아키텍처 (서버 내부)</h2>
+<p>클라이언트 개발자가 참고할 수 있는 서버 내부 스레드 모델입니다.</p>
+<pre><code class="lang-mermaid">flowchart LR
+    A[네트워크 I/O 스레드\nGameSession.OnReceive] --&gt;|패킷 파싱| B[PacketManager\n.HandlePacket]
+    B --&gt;|room.Push 액션 enqueue| C[JobQueue]
+    C --&gt;|Dequeue + 실행| D[GameRoom Worker Thread\n게임 상태 변경]
+    D --&gt;|브로드캐스트| E[다른 클라이언트들에게\nSMove / SEnterRoom 전송]
+</code></pre>
+<ul>
+<li>모든 게임 상태 변경은 반드시 <code>room.Push(action)</code>을 통해 직렬화됩니다</li>
+<li>네트워크 스레드에서 직접 게임 상태를 수정하면 레이스 컨디션이 발생합니다</li>
+</ul>
+<hr>
+<h2 id="8-환경변수-참조">8. 환경변수 참조</h2>
+<p><code>Consts.cs</code>에서 관리하는 게임 서버 관련 환경변수 목록입니다.</p>
+<table>
+<thead>
+<tr>
+<th>환경변수</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GAME_SERVER_IP</code></td>
+<td><code>127.0.0.1</code></td>
+<td>게임 서버 IP (K8s/Docker ConfigMap으로 오버라이드)</td>
+</tr>
+<tr>
+<td><code>GAME_SERVER_PORT</code></td>
+<td><code>7777</code></td>
+<td>게임 서버 포트</td>
+</tr>
+<tr>
+<td><code>JWT_SECRET</code></td>
+<td>(하드코딩 기본값)</td>
+<td>JWT 서명 키 — 프로덕션에서는 반드시 환경변수로 주입</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="관련-문서">관련 문서</h2>
+<ul>
+<li><a href="auth.html">Auth API</a> — JWT Access Token 발급</li>
+<li><a href="ticketing.html">Ticketing API</a> — 대기열 진입 및 Active 입장권 발급</li>
+<li><a href="matching.html">Matching API</a> — 매칭 요청 및 게임방 배정</li>
+<li><code>PlatformA/PlatformA.Library/Packets/Proto/packets.proto</code> — 패킷 정의 원본</li>
+<li><code>PlatformA/PlatformA.Game.DummyClient/Scenarios/PacketHelper.cs</code> — 프레이밍 구현</li>
+<li><code>AI/DOMAIN.md</code> — Game Server 세션 흐름 상세 규칙</li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/api-guide/game-server-protocol.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

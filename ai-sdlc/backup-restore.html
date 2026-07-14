@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC PostgreSQL Backup / Restore | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC PostgreSQL Backup / Restore | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-postgresql-backup--restore">AI_SDLC PostgreSQL Backup / Restore</h1>
+
+<p><code>platforma_sdlc</code> DB 백업·복원 절차.</p>
+<h2 id="자동-백업">자동 백업</h2>
+<h3 id="backup_sdlc_dbsh">backup_sdlc_db.sh</h3>
+<p>매일 자동 실행 (cron 또는 수동):</p>
+<pre><code class="lang-bash">bash .github/scripts/backup_sdlc_db.sh
+</code></pre>
+<ul>
+<li>저장 위치: <code>AI/backups/sdlc_db_YYYY-MM-DD.sql.gz</code></li>
+<li>보관 기간: 7일 (자동 삭제)</li>
+<li>포함 내용: <code>sdlc</code> 스키마 전체 (ai_jobs, ai_job_steps, ai_model_runs, ai_failures, sprint_seq)</li>
+</ul>
+<h3 id="스케줄-설정-예시-windows-task-scheduler">스케줄 설정 예시 (Windows Task Scheduler)</h3>
+<pre><code>트리거: 매일 오전 3:00
+작업: bash C:\Users\rumdi\Desktop\workspace\platformA\.github\scripts\backup_sdlc_db.sh
+</code></pre>
+<h2 id="수동-백업">수동 백업</h2>
+<pre><code class="lang-bash">pg_dump \
+  --host localhost \
+  --port 5432 \
+  --username platforma \
+  --schema sdlc \
+  --no-password \
+  platforma_sdlc \
+  | gzip &gt; AI/backups/sdlc_db_manual_$(date +%Y-%m-%d_%H%M).sql.gz
+</code></pre>
+<p>환경변수로 비밀번호 설정: <code>PGPASSWORD=platforma_dev_password</code></p>
+<h2 id="복원">복원</h2>
+<pre><code class="lang-bash"># 복원 대상 DB가 존재하는 경우 (덮어쓰기)
+gunzip -c AI/backups/sdlc_db_YYYY-MM-DD.sql.gz | \
+  psql \
+    --host localhost \
+    --port 5432 \
+    --username platforma \
+    platforma_sdlc
+
+# 신규 DB에 복원 (최초 설치 후)
+createdb -U platforma platforma_sdlc
+gunzip -c AI/backups/sdlc_db_YYYY-MM-DD.sql.gz | \
+  psql -U platforma platforma_sdlc
+</code></pre>
+<h2 id="마이그레이션-재적용">마이그레이션 재적용</h2>
+<p>DB를 새로 만들거나 스키마가 누락된 경우:</p>
+<pre><code class="lang-bash">cd PlatformA/PlatformA.SdlcDB.Lib
+dotnet ef database update --context SdlcDbContext
+</code></pre>
+<h2 id="백업-상태-확인">백업 상태 확인</h2>
+<pre><code class="lang-bash">ls -la AI/backups/*.sql.gz
+</code></pre>
+<h2 id="정합성-검사">정합성 검사</h2>
+<p>복원 후 정합성 확인:</p>
+<pre><code class="lang-bash">python .github/scripts/check_sdlc_consistency.py --strict
+</code></pre>
+<p>exit 0이면 정상.</p>
+<h2 id="docker-postgresql-컨테이너-사용-시">Docker PostgreSQL 컨테이너 사용 시</h2>
+<pre><code class="lang-bash"># 컨테이너 이름 확인
+docker ps | grep sdlc-postgres
+
+# 컨테이너 내부에서 pg_dump
+docker exec sdlc-postgres pg_dump \
+  -U platforma \
+  -n sdlc \
+  platforma_sdlc | gzip &gt; AI/backups/sdlc_db_$(date +%Y-%m-%d).sql.gz
+</code></pre>
+<h2 id="관련-문서">관련 문서</h2>
+<ul>
+<li><a href="db-schema.html">DB Schema</a></li>
+<li><a href="phase-c-db-only.html">Phase C DB 단독 운영</a></li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/backup-restore.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

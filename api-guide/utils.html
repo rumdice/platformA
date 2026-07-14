@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Utils API | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Utils API | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="utils-api">Utils API</h1>
+
+<p>IP 조회, URL 단축, 클릭 통계 등 유틸리티 기능을 제공합니다.</p>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>개발 환경 기본 URL</td>
+<td><code>https://localhost:7004</code></td>
+</tr>
+<tr>
+<td>런타임</td>
+<td>.NET 10.0</td>
+</tr>
+<tr>
+<td>인증 방식</td>
+<td>없음 (공개 API)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="공통-오류-응답-형식">공통 오류 응답 형식</h2>
+<pre><code class="lang-json">{ &quot;message&quot;: &quot;설명 메시지&quot; }
+</code></pre>
+<hr>
+<h2 id="엔드포인트">엔드포인트</h2>
+<h3 id="get-utilmyip">GET /util/myip</h3>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<hr>
+<h3 id="post-utilshorten">POST /util/shorten</h3>
+<p><strong>요청 Body</strong></p>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>타입</th>
+<th>필수</th>
+<th>제약 조건</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url</td>
+<td>string</td>
+<td></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-json">{
+  &quot;url&quot;: &quot;&lt;url&gt;&quot;
+}
+</code></pre>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>입력 검증 실패 또는 잘못된 요청</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="get-gocode">GET /go/{code}</h3>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>404</td>
+<td>리소스를 찾을 수 없음</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="get-utilstatscode">GET /util/stats/{code}</h3>
+<p>클릭수 조회</p>
+<p><strong>응답 200</strong></p>
+<blockquote>
+<p>응답 JSON 형식은 구현 코드 또는 Swagger(<code>/swagger</code>)를 참조하세요.</p>
+</blockquote>
+<p><strong>오류 코드</strong></p>
+<table>
+<thead>
+<tr>
+<th>코드</th>
+<th>상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>404</td>
+<td>리소스를 찾을 수 없음</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<blockquote>
+<p><strong>이 파일은 <code>.github/scripts/generate_api_docs.py</code>로 자동 생성됩니다.</strong> 수동 편집 내용은 다음 실행 시 덮어씌워집니다. 내용 변경이 필요하면 컨트롤러 XML 주석 또는 스크립트를 수정하세요.</p>
+</blockquote>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/api-guide/utils.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

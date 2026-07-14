@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Gomoku Mass E2E 검증 리포트 — 2026-06-29 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Gomoku Mass E2E 검증 리포트 — 2026-06-29 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="gomoku-mass-e2e-검증-리포트--2026-06-29">Gomoku Mass E2E 검증 리포트 — 2026-06-29</h1>
+
+<blockquote>
+<p>기준 커밋: PR #107 (Sprint #74) 머지 이후 + 버그 수정(Consts.cs HTTPS, GomokuRoom SSL)</p>
+</blockquote>
+<hr>
+<h2 id="실행-환경">실행 환경</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Windows 11 Home 10.0.26200</td>
+</tr>
+<tr>
+<td>.NET</td>
+<td>8.0 (서버), 9.0 (Matching.API)</td>
+</tr>
+<tr>
+<td>실행 방식</td>
+<td><code>dotnet run -- --e2e 10</code></td>
+</tr>
+<tr>
+<td>로그</td>
+<td><code>logs/e2e-{timestamp}.log</code> (TeeWriter)</td>
+</tr>
+<tr>
+<td>JSON 리포트</td>
+<td><code>reports/e2e-{timestamp}.json</code> (Sprint #75 추가)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="기동-서비스-구성">기동 서비스 구성</h3>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>포트</th>
+<th>프로토콜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth.API</td>
+<td>:7001</td>
+<td>HTTPS</td>
+</tr>
+<tr>
+<td>Ticketing.API</td>
+<td>:7003</td>
+<td>HTTPS</td>
+</tr>
+<tr>
+<td>Matching.API</td>
+<td>:7002</td>
+<td>HTTPS</td>
+</tr>
+<tr>
+<td>Game.Gomoku</td>
+<td>:7778</td>
+<td>TCP</td>
+</tr>
+<tr>
+<td>Game.Lobby</td>
+<td>:7777</td>
+<td>HTTP/WebSocket</td>
+</tr>
+<tr>
+<td>Redis Cluster</td>
+<td>6371-6376</td>
+<td>TCP</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>3306</td>
+<td>TCP</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="실행-파라미터">실행 파라미터</h2>
+<pre><code>userCount           = 1000
+spawnRate           = 50명/초
+maxGameConcurrency  = 200
+matchTimeoutSec     = 60
+gameTimeoutSec      = 90
+totalTimeoutSec     = 600
+failoverA(orphan)   = 5%  (50명)
+failoverB(ghost)    = 5%  (50명)
+failoverC(abandon)  = 5%  (50명)
+</code></pre>
+<hr>
+<h2 id="e2e-결과-2026-06-25-기준-실행--https-수정-前">E2E 결과 (2026-06-25 기준 실행 — HTTPS 수정 前)</h2>
+<blockquote>
+<p>PR #107 머지 직후 실행. MATCHING_API_BASE_URL이 <code>http://localhost:7002</code> 기본값이었던 상태.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th>지표</th>
+<th>값</th>
+<th>기준</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage 1: Auth 로그인</td>
+<td>성공/실패</td>
+<td>919 / 81</td>
+<td>≥90%</td>
+<td>✅ 91.9%</td>
+</tr>
+<tr>
+<td>Stage 2: 대기열 진입</td>
+<td>성공/실패</td>
+<td>919 / 0</td>
+<td>—</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Stage 3: Active 대기</td>
+<td>성공/실패</td>
+<td>919 / 0</td>
+<td>≥85%</td>
+<td>✅ 91.9%</td>
+</tr>
+<tr>
+<td>Failover-A(orphan)</td>
+<td>실행 수</td>
+<td>46명</td>
+<td>목표 50</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Stage 4: Lobby SignalR</td>
+<td>성공/실패</td>
+<td>873 / 0</td>
+<td>—</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Stage 5+6: RequestMatch→MatchFound</td>
+<td>요청/성사/타임아웃</td>
+<td>873 / 864 / 9</td>
+<td>—</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Failover-B(ghost)</td>
+<td>실행 수</td>
+<td>46명</td>
+<td>목표 50</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Stage 7+8: TCP→SGameStart</td>
+<td>TCP성공/실패, GameStart</td>
+<td>818✔ 0✗ / 776</td>
+<td>—</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Failover-C(abandon)</td>
+<td>실행 수</td>
+<td>42명</td>
+<td>목표 50</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Stage 9: 게임 완주</td>
+<td>완주/실패</td>
+<td>734 / 116</td>
+<td>≥70%</td>
+<td>✅ 86.4%</td>
+</tr>
+<tr>
+<td>Stage 10: MatchRecord 검증</td>
+<td>성공/실패</td>
+<td><strong>0 / 734</strong></td>
+<td>—</td>
+<td>❌ (버그)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>결과 분포</strong>: 승 388 / 패 346 / 무 0<br>
+<strong>총 소요 시간</strong>: 158.1초<br>
+<strong>OVERALL</strong>: ✅ PASS (Stage 10은 PASS 판정에 미포함)</p>
+<h3 id="stage-10-실패-원인-root-cause">Stage 10 실패 원인 (Root Cause)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>버그</th>
+<th>위치</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D</td>
+<td>MATCHING_API_BASE_URL 기본값 HTTP</td>
+<td><code>Consts.cs</code></td>
+<td><code>http://localhost:7002</code> → Kestrel HTTPS 전용 포트에 400 응답</td>
+</tr>
+<tr>
+<td>E</td>
+<td>GomokuRoom._httpClient SSL 미설정</td>
+<td><code>GomokuRoom.cs</code></td>
+<td>자체 서명 인증서 검증 실패 → <code>/api/gamematch/result</code> 무음 실패</td>
+</tr>
+</tbody>
+</table>
+<p><strong>수정 완료</strong>: Sprint #75 이전에 main 커밋으로 반영됨.</p>
+<pre><code class="lang-csharp">// Consts.cs — HTTPS로 수정
+public static readonly string MATCHING_API_BASE_URL =
+    Environment.GetEnvironmentVariable(&quot;MATCHING_API_BASE_URL&quot;)
+    ?? &quot;https://localhost:7002&quot;;
+
+// GomokuRoom.cs — SSL bypass 핸들러 추가
+private static readonly HttpClient _httpClient = new HttpClient(
+    new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+    }) { BaseAddress = new Uri(Consts.MATCHING_API_BASE_URL), ... };
+</code></pre>
+<hr>
+<h2 id="sprint-75-코드-변경-사항">Sprint #75 코드 변경 사항</h2>
+<h3 id="1-json-리포트-자동-출력-massgomokue2escenariocs">1. JSON 리포트 자동 출력 (<code>MassGomokuE2EScenario.cs</code>)</h3>
+<p><code>PrintReport()</code> 종료 시점에 <code>SaveJsonReport()</code>를 호출하여 아래 경로에 JSON 파일을 자동 생성한다:</p>
+<pre><code>reports/e2e-{yyyyMMdd-HHmmss}.json
+</code></pre>
+<p>출력 예시:</p>
+<pre><code class="lang-json">{
+  &quot;scenario&quot;: &quot;MassGomokuE2E&quot;,
+  &quot;date&quot;: &quot;2026-06-25T...&quot;,
+  &quot;userCount&quot;: 1000,
+  &quot;spawnRate&quot;: 50,
+  &quot;maxGameConcurrency&quot;: 200,
+  &quot;totalElapsedSeconds&quot;: 158.1,
+  &quot;loginOk&quot;: 919, &quot;loginFail&quot;: 81,
+  &quot;queueOk&quot;: 919, &quot;queueFail&quot;: 0,
+  &quot;activeOk&quot;: 919, &quot;activeFail&quot;: 0,
+  &quot;lobbyOk&quot;: 873, &quot;lobbyFail&quot;: 0,
+  &quot;matchReq&quot;: 873, &quot;matchOk&quot;: 864, &quot;matchTimeout&quot;: 9,
+  &quot;tcpOk&quot;: 818, &quot;tcpFail&quot;: 0,
+  &quot;gameStartOk&quot;: 776,
+  &quot;gameOverOk&quot;: 734, &quot;gameOverFail&quot;: 116,
+  &quot;verifyOk&quot;: 0, &quot;verifyFail&quot;: 734,
+  &quot;win&quot;: 388, &quot;lose&quot;: 346, &quot;draw&quot;: 0,
+  &quot;failoverA&quot;: 46, &quot;failoverB&quot;: 46, &quot;failoverC&quot;: 42,
+  &quot;passed&quot;: true
+}
+</code></pre>
+<h3 id="2-gitignore-추가">2. <code>.gitignore</code> 추가</h3>
+<pre><code>**/logs/
+**/reports/
+</code></pre>
+<p><code>reports/</code> 디렉터리는 로컬 생성물이며 git 추적 대상 아님.</p>
+<hr>
+<h2 id="잔여-상태-검증-항목">잔여 상태 검증 항목</h2>
+<blockquote>
+<p>E2E 재실행 후 아래 항목을 수동으로 검증한다.</p>
+</blockquote>
+<h3 id="redis-잔여-키-확인">Redis 잔여 키 확인</h3>
+<pre><code class="lang-bash"># Redis Cluster 접속 (노드 중 하나)
+redis-cli -p 6371
+
+# 확인 대상 키 패턴
+KEYS game_transfer:*        # 5분 TTL — 완료 후 자동 만료 예정
+ZRANGE {ticket:queue}:global 0 -1  # 정상 종료 시 빈 큐
+KEYS player:login_lock:*    # 게임 종료 후 해제
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>키 패턴</th>
+<th>예상 상태</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>game_transfer:*</code></td>
+<td>만료됨(TTL 5분)</td>
+<td>E2E 완료 5분 후 자동 소멸</td>
+</tr>
+<tr>
+<td><code>{ticket:queue}:global</code></td>
+<td>비어 있음</td>
+<td>정상 종료 후 큐 비어야 함</td>
+</tr>
+<tr>
+<td><code>player:login_lock:*</code></td>
+<td>해제됨</td>
+<td>TCP 연결 종료 시 자동 해제</td>
+</tr>
+</tbody>
+</table>
+<h3 id="db-matchrecord-상태-확인">DB MatchRecord 상태 확인</h3>
+<pre><code class="lang-sql">-- MySQL 연결: db_WebApp
+SELECT Status, COUNT(*) as cnt FROM match_records GROUP BY Status;
+SELECT * FROM match_records WHERE Status = 'InProgress';
+SELECT mr.WinnerId, mr.Status, mr.UpdatedAt 
+FROM match_records mr 
+WHERE Status = 'Completed' 
+ORDER BY UpdatedAt DESC 
+LIMIT 20;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>조건</th>
+<th>예상 결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>InProgress</code> 잔여</td>
+<td>0건 (모두 Completed 또는 Aborted)</td>
+</tr>
+<tr>
+<td><code>Completed</code> 레코드 수</td>
+<td>≈ gameOverOk 수</td>
+</tr>
+<tr>
+<td>WinnerId 일치</td>
+<td>SGameOver.WinnerId와 match_records.WinnerId 동일</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="차기-e2e-실행-기대-결과">차기 E2E 실행 기대 결과</h2>
+<p>HTTPS 수정(버그 D+E)이 반영된 이후 실행 시:</p>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>이전 (06-25)</th>
+<th>기대 (수정 後)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage 10 verifyOk</td>
+<td>0</td>
+<td>&gt; 0 (≈ gameOverOk 수)</td>
+</tr>
+<tr>
+<td>GomokuRoom 결과 보고</td>
+<td>무음 실패</td>
+<td>HTTP 200 정상 응답</td>
+</tr>
+<tr>
+<td>JSON 리포트</td>
+<td>미생성</td>
+<td><code>reports/e2e-*.json</code> 자동 생성</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="발견된-문제-및-개선점">발견된 문제 및 개선점</h2>
+<h3 id="1-fire-and-forget-실패-가시성">1. fire-and-forget 실패 가시성</h3>
+<p><strong>문제</strong>: <code>GomokuRoom.ReportMatchResultAsync()</code>가 실패해도 <code>Console.WriteLine</code>만 출력 → 운영 환경에서 감지 불가<br>
+<strong>개선 제안</strong>: <code>LogWarning</code> 레벨로 올리고 실패율을 Prometheus 메트릭으로 집계</p>
+<h3 id="2-e2e-잔여-계정-누적">2. E2E 잔여 계정 누적</h3>
+<p><strong>문제</strong>: <code>mass_e2e_{1..1000}</code> 계정이 MySQL에 영구 잔존<br>
+<strong>개선 제안</strong>: E2E 완료 후 자동 정리 스크립트 또는 별도 테스트 DB 격리</p>
+<h3 id="3-failover-목표-미달-a-4650-b-4650-c-4250">3. Failover 목표 미달 (A: 46/50, B: 46/50, C: 42/50)</h3>
+<p><strong>원인</strong>: 해시 기반 결정론적 분배지만 실제 유저 생성 수(919명 로그인)가 1000명 미달<br>
+<strong>영향</strong>: PASS 기준 통과이나 목표 대비 약 10% 미달<br>
+<strong>개선 제안</strong>: Failover 판정 기준을 &quot;절대값 목표&quot; 대신 &quot;실제 정상 유저 비율&quot;로 전환</p>
+<hr>
+<h2 id="다음-우선-작업-제안">다음 우선 작업 제안</h2>
+<ol>
+<li><strong>E2E 재실행</strong> — Sprint #75 코드(JSON 리포트) 반영 후 <code>dotnet run -- --e2e 10</code> 실행, Stage 10 verifyOk &gt; 0 확인</li>
+<li><strong>Game.Gomoku /readyz 추가</strong> — Redis + Matching.API 헬스체크 엔드포인트 (현재 없음)</li>
+<li><strong>ILogger 전환</strong> — GomokuRoom의 <code>Console.WriteLine</code> → <code>ILogger&lt;GomokuRoom&gt;</code> (운영 로깅 요건)</li>
+<li><strong>MMR 업데이트 연동</strong> — Matching.API <code>match_records</code>에서 ELO 점수 업데이트 미연동 상태</li>
+<li><strong>E2E 계정 정리 스크립트</strong> — <code>mass_e2e_*</code> 계정 일괄 삭제 CLI 추가</li>
+</ol>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/e2e/gomoku-mass-e2e-2026-06-29.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

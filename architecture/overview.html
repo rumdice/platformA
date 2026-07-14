@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>시스템 아키텍처 개요 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="시스템 아키텍처 개요 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="시스템-아키텍처-개요">시스템 아키텍처 개요</h1>
+
+<blockquote>
+<p>이 파일은 <code>.github/scripts/generate_architecture_docs.py</code>가 자동 생성합니다.<br>
+<strong>동적 섹션</strong>(구성도·서비스표·통신방식·포트맵)은 직접 수정하지 마세요.<br>
+<strong>정적 섹션</strong>(핵심 설계 원칙·서비스 경계·프로젝트 의존성·런타임 버전)은
+<code>&lt;!-- STATIC_BEGIN --&gt;</code> / <code>&lt;!-- STATIC_END --&gt;</code> 블록 내에서 직접 편집할 수 있습니다.</p>
+</blockquote>
+<h2 id="전체-구성도">전체 구성도</h2>
+<pre><code class="lang-mermaid">graph TB
+  subgraph 클라이언트 계층
+    C[게임 클라이언트&lt;br/&gt;Web / Mobile / DummyClient]
+  end
+
+  subgraph API 계층
+    A[&quot;Auth API&lt;br/&gt;HTTPS :7001&lt;br/&gt;JWT 인증·갱신&quot;]
+    T[&quot;Ticketing API&lt;br/&gt;HTTPS :7003&lt;br/&gt;대기열·입장권&quot;]
+    M[&quot;Matching API&lt;br/&gt;HTTPS :7002&lt;br/&gt;1:1 매칭 엔진&quot;]
+    U[&quot;Utils API&lt;br/&gt;HTTPS :7004&lt;br/&gt;URL 단축·통계&quot;]
+  end
+
+  subgraph 로비 계층
+    L[&quot;Game.Lobby&lt;br/&gt;HTTP :7777&lt;br/&gt;로비 허브·매칭 신청&quot;]
+  end
+
+  subgraph 게임 계층
+    G[&quot;Game.Gomoku&lt;br/&gt;7778 (TCP)&lt;br/&gt;오목 실시간 세션&quot;]
+  end
+
+  subgraph 데이터 계층
+    R[&quot;Redis Cluster&lt;br/&gt;6-node :6371-6376&lt;br/&gt;세션·큐·락&quot;]
+    DB[&quot;MariaDB :3306&lt;br/&gt;db_WebApp / db_LogApp&quot;]
+  end
+
+  %% 클라이언트 → 서비스
+  C --&gt;|&quot;① 로그인 (REST)&quot;| A
+  C --&gt;|&quot;② 대기열 진입 (REST + SignalR)&quot;| T
+  C --&gt;|&quot;③ 로비 접속 (SignalR)&quot;| L
+  C --&gt;|&quot;⑤ 게임 접속 (TCP Binary)&quot;| G
+  C -.-&gt;|&quot;⑥ Utils (REST)&quot;| U
+
+  %% Lobby → Matching 내부 HTTP
+  L --&gt;|&quot;④ 매칭 요청 (내부 HTTP)&quot;| M
+
+  %% 서비스 → Redis
+  A --&gt;|&quot;refresh token 저장&quot;| R
+  T --&gt;|&quot;queue 관리&quot;| R
+  M --&gt;|&quot;match queue + Pub/Sub&quot;| R
+  G --&gt;|&quot;login lock + active ticket&quot;| R
+  L --&gt;|&quot;매칭 알림 구독 (Pub/Sub)&quot;| R
+
+  %% 서비스 → DB
+  A --&gt;|&quot;플레이어 정보&quot;| DB
+  M --&gt;|&quot;매치 기록&quot;| DB
+
+  %% SignalR 역방향
+  T -.-&gt;|&quot;QueueActivated (SignalR)&quot;| C
+  L -.-&gt;|&quot;MatchFound (SignalR)&quot;| C
+</code></pre>
+<hr>
+<h2 id="서비스별-책임">서비스별 책임</h2>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>포트</th>
+<th>주요 책임</th>
+<th>Redis 사용</th>
+<th>DB 사용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auth API</strong></td>
+<td>HTTPS :7001</td>
+<td>JWT 발급·갱신·로그아웃, Rate Limit</td>
+<td><code>refresh:{playerId}</code></td>
+<td><code>players</code>, <code>player_stats</code></td>
+</tr>
+<tr>
+<td><strong>Ticketing API</strong></td>
+<td>HTTPS :7003</td>
+<td>대기열 진입·이탈·순위 조회, 입장권 발급, Ghost 감지(Heartbeat)</td>
+<td><code>{ticket:queue}:global</code>, <code>ticket:active:user:{userId}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Matching API</strong></td>
+<td>HTTPS :7002</td>
+<td>매칭 큐 관리, ELO 기반 1:1 매칭, 타임아웃 처리, 매칭 알림</td>
+<td><code>queue:gamematch:*</code>, <code>global:room_id</code>, Pub/Sub</td>
+<td><code>match_records</code></td>
+</tr>
+<tr>
+<td><strong>Game.Lobby</strong></td>
+<td>HTTP :7777</td>
+<td>로비 SignalR 허브, 매칭 신청·취소·상태 조회 (Matching 내부 HTTP 경유), 유저 프레젠스</td>
+<td>Pub/Sub 구독 (MatchNotificationService)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Game.Gomoku</strong></td>
+<td>7778 (TCP)</td>
+<td>Binary Protobuf 패킷 처리, 분산 락으로 중복 로그인 방지, 오목 GameRoom 브로드캐스트</td>
+<td><code>player:login_lock:{playerId}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Utils API</strong></td>
+<td>HTTPS :7004</td>
+<td>URL 단축(Snowflake+Base62), IP 지오로케이션, 클릭 통계</td>
+<td>Rate Limit</td>
+<td>SQLite (<code>app.db</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="통신-방식">통신 방식</h2>
+<table>
+<thead>
+<tr>
+<th>통신</th>
+<th>방식</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>클라이언트 ↔ Auth / Ticketing / Matching / Utils</td>
+<td>REST over HTTPS</td>
+<td>일반 API 호출</td>
+</tr>
+<tr>
+<td>클라이언트 ↔ Ticketing</td>
+<td>SignalR WebSocket</td>
+<td><code>QueueActivated</code> 이벤트 수신</td>
+</tr>
+<tr>
+<td>클라이언트 ↔ Game.Lobby</td>
+<td>SignalR WebSocket</td>
+<td><code>MatchFound</code>, <code>MatchTimeout</code>, 프레젠스 이벤트</td>
+</tr>
+<tr>
+<td>클라이언트 ↔ Game.Gomoku</td>
+<td>TCP Raw Socket</td>
+<td>Binary Protobuf 패킷</td>
+</tr>
+<tr>
+<td>Game.Lobby → Matching.API</td>
+<td>내부 HTTP (IHttpClientFactory)</td>
+<td>매칭 요청·취소·상태 조회</td>
+</tr>
+<tr>
+<td>Matching.API → Game.Lobby</td>
+<td>Redis Pub/Sub</td>
+<td>매칭 성사 이벤트 (<code>MATCH_FOUND_CHANNEL</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="포트-맵">포트 맵</h2>
+<table>
+<thead>
+<tr>
+<th>서비스</th>
+<th>프로토콜</th>
+<th>포트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth API</td>
+<td>HTTPS</td>
+<td>7001</td>
+</tr>
+<tr>
+<td>Matching API</td>
+<td>HTTPS</td>
+<td>7002</td>
+</tr>
+<tr>
+<td>Ticketing API</td>
+<td>HTTPS</td>
+<td>7003</td>
+</tr>
+<tr>
+<td>Utils API</td>
+<td>HTTP/HTTPS</td>
+<td>7004</td>
+</tr>
+<tr>
+<td>Game.Lobby</td>
+<td>HTTP + SignalR</td>
+<td>7777</td>
+</tr>
+<tr>
+<td>Game.Gomoku</td>
+<td>TCP</td>
+<td>7778</td>
+</tr>
+<tr>
+<td>Game.Gomoku HealthCheck</td>
+<td>HTTP</td>
+<td>7779</td>
+</tr>
+<tr>
+<td>Redis 마스터 1~3</td>
+<td>TCP</td>
+<td>6371~6373</td>
+</tr>
+<tr>
+<td>Redis 레플리카 1~3</td>
+<td>TCP</td>
+<td>6374~6376</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>TCP</td>
+<td>3306</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<!-- STATIC_BEGIN -->
+<p><code>/</code></p>
+<!-- STATIC_END -->
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/architecture/overview.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>문서 기여 가이드 | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="문서 기여 가이드 | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="문서-기여-가이드">문서 기여 가이드</h1>
+
+<p>이 사이트는 <a href="https://dotnet.github.io/docfx/">DocFX v2</a>로 빌드되며 GitHub Pages에 자동 배포된다.<br>
+문서를 수정하거나 추가할 때는 <strong>로컬에서 먼저 확인한 뒤 PR을 올린다.</strong></p>
+<h2 id="사전-준비-최초-1회">사전 준비 (최초 1회)</h2>
+<pre><code class="lang-powershell"># DocFX 설치
+dotnet tool install -g docfx
+
+# 로컬 HTTP 서버 설치
+dotnet tool install -g dotnet-serve
+</code></pre>
+<h2 id="로컬-테스트-절차">로컬 테스트 절차</h2>
+<h3 id="1단계--빌드">1단계 — 빌드</h3>
+<p>프로젝트 루트(<code>platformA/</code>)에서 실행한다.</p>
+<pre><code class="lang-powershell">$env:PATH = &quot;$env:PATH;$env:USERPROFILE\.dotnet\tools&quot;
+docfx Docs/docfx.json
+</code></pre>
+<p>빌드 결과는 <code>Docs/_site/</code> 디렉토리에 생성된다.</p>
+<blockquote>
+<p><strong>참고</strong>: 빌드 시 NuGet 취약점 경고(NU1902/NU1903)와 Phase 2 문서 미완성 경고가 출력되나 무시해도 된다.<br>
+<code>Build succeeded with warning. 0 error(s)</code> 가 나오면 정상이다.</p>
+</blockquote>
+<h3 id="2단계--로컬-서버-실행">2단계 — 로컬 서버 실행</h3>
+<pre><code class="lang-powershell">&amp; &quot;$env:USERPROFILE\.dotnet\tools\dotnet-serve.exe&quot; `
+    --directory Docs/_site `
+    --port 8080 `
+    --open-browser
+</code></pre>
+<p>브라우저가 자동으로 열리며 <code>http://localhost:8080</code> 에서 확인할 수 있다.</p>
+<blockquote>
+<p><strong>주의</strong>: DocFX 내장 <code>--serve</code> 옵션은 Windows에서 Content-Type 헤더에 charset을 포함하지 않아<br>
+한국어가 깨질 수 있다. 반드시 <code>dotnet-serve</code>를 사용한다.</p>
+</blockquote>
+<h3 id="3단계--확인-체크리스트">3단계 — 확인 체크리스트</h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>확인 방법</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>한국어 정상 표시</td>
+<td>홈(<code>/</code>) 제목과 본문이 깨지지 않는지</td>
+</tr>
+<tr>
+<td>Mermaid 다이어그램 렌더링</td>
+<td><code>아키텍처 → 시스템 개요</code> 에서 SVG 다이어그램 표시 여부</td>
+</tr>
+<tr>
+<td>네비게이션 동작</td>
+<td>좌측 메뉴 클릭 시 페이지 이동</td>
+</tr>
+<tr>
+<td>검색 동작</td>
+<td>상단 검색창에서 키워드 입력 후 결과 표시</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4단계--pr-생성">4단계 — PR 생성</h3>
+<p>로컬 확인 후 커밋하고 PR을 올린다.</p>
+<pre><code class="lang-bash">git checkout -b YYYY-MM-DD_DocsUpdate
+git add Docs/
+git commit -m &quot;docs: 변경 내용 요약&quot;
+git push -u origin YYYY-MM-DD_DocsUpdate
+</code></pre>
+<h2 id="자동-배포-구조">자동 배포 구조</h2>
+<pre><code class="lang-mermaid">flowchart LR
+    A[PR 머지 → main] --&gt; B[GitHub Actions\ndocs.yml 트리거]
+    B --&gt; C[docfx Docs/docfx.json\n빌드]
+    C --&gt; D[gh-pages 브랜치\n배포]
+    D --&gt; E[rumdice.github.io/platformA/\n공개]
+</code></pre>
+<p><code>main</code> 브랜치에 <code>Docs/**</code> 또는 <code>PlatformA/**/*.cs</code> 변경이 push되면 자동으로 빌드·배포된다.</p>
+<h2 id="디렉토리-구조">디렉토리 구조</h2>
+<pre><code>Docs/
+├── docfx.json                  # DocFX 빌드 설정
+├── toc.yml                     # 최상위 네비게이션
+├── index.md                    # 홈 페이지
+├── architecture/               # 아키텍처 다이어그램
+├── developer-guide/            # 개발자 가이드 (현재 파일)
+├── stakeholder/                # 비개발자 가이드
+└── templates/custom/           # DocFX 커스텀 템플릿
+    └── partials/
+        └── head.tmpl.partial   # charset + Mermaid.js 주입
+</code></pre>
+<h2 id="자주-발생하는-문제">자주 발생하는 문제</h2>
+<h3 id="_site가-이전-내용을-보여줄-때"><code>_site</code>가 이전 내용을 보여줄 때</h3>
+<p>DocFX는 증분 빌드를 하므로 오래된 파일이 남아있을 수 있다. 클린 빌드를 수행한다.</p>
+<pre><code class="lang-powershell">Remove-Item -Recurse -Force Docs/_site
+docfx Docs/docfx.json
+</code></pre>
+<h3 id="mermaid-다이어그램이-raw-텍스트로-보일-때">Mermaid 다이어그램이 raw 텍스트로 보일 때</h3>
+<p>브라우저 캐시 문제일 가능성이 높다. <code>Ctrl+Shift+R</code> (강제 새로고침) 후 재확인한다.</p>
+<h3 id="dotnet-serve를-찾을-수-없을-때"><code>dotnet-serve</code>를 찾을 수 없을 때</h3>
+<p>새 터미널을 열면 PATH가 초기화된다. 아래 명령으로 전체 경로를 직접 사용한다.</p>
+<pre><code class="lang-powershell">&amp; &quot;$env:USERPROFILE\.dotnet\tools\dotnet-serve.exe&quot; --directory Docs/_site --port 8080
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/developer-guide/docs-contributing.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

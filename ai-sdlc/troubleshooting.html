@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC Troubleshooting | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC Troubleshooting | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-troubleshooting">AI_SDLC Troubleshooting</h1>
+
+<p>자주 발생하는 문제와 해결 방법.</p>
+<h2 id="postgresql-연결-실패">PostgreSQL 연결 실패</h2>
+<h3 id="증상">증상</h3>
+<pre><code>DB 게이트 조회 실패. PostgreSQL 연결을 확인하세요.
+</code></pre>
+<h3 id="원인-및-해결">원인 및 해결</h3>
+<pre><code class="lang-bash"># Docker 컨테이너 실행 여부 확인
+docker ps | grep sdlc-postgres
+
+# 미실행 시 재기동
+cd docker/postgresql &amp;&amp; docker-compose up -d
+
+# 직접 연결 테스트
+psql -h localhost -p 5432 -U platforma -d platforma_sdlc -c &quot;SELECT 1&quot;
+</code></pre>
+<p>환경변수 확인:</p>
+<pre><code class="lang-bash">echo $SDLC_DB_CONNECTION
+# 없으면 기본값 사용: Host=localhost;Port=5432;Database=platforma_sdlc;Username=platforma;Password=platforma_dev_password
+</code></pre>
+<hr>
+<h2 id="job-lock-획득-실패">Job Lock 획득 실패</h2>
+<h3 id="증상-1">증상</h3>
+<pre><code>⛔ AI_SDLC job lock 획득 실패 — 다른 agent가 이미 작업 중일 수 있습니다.
+</code></pre>
+<h3 id="원인-및-해결-1">원인 및 해결</h3>
+<pre><code class="lang-bash"># 현재 lock 상태 확인
+python .github/scripts/job_lock.py status --branch my-branch
+
+# lock 소유자 확인
+python .github/scripts/check_sdlc_consistency.py
+# → active_locks, stale_locks 항목 확인
+
+# stale lock 수동 해제 (TTL 만료 확인 후)
+python .github/scripts/job_lock.py expire
+</code></pre>
+<p>세션 시작 시 <code>[AI_SDLC Job Lock]</code> 섹션에서도 확인 가능.</p>
+<hr>
+<h2 id="sdlc-gate-검사-차단">SDLC gate 검사 차단</h2>
+<h3 id="증상-2">증상</h3>
+<pre><code>❌ /done 중단: /test-gen이 실행되지 않았습니다.
+</code></pre>
+<h3 id="해결">해결</h3>
+<pre><code class="lang-bash"># 해당 스킬 실행
+/test-gen   # test_generated 미충족 시
+/impact     # impact_done 미충족 시
+/review     # review_completed 미충족 시
+/requirement # requirement_done 미충족 시
+</code></pre>
+<p>테스트 파일이 이미 충분하여 test-gen이 불필요한 경우:</p>
+<pre><code class="lang-bash">python .github/scripts/db_write.py \
+  --action upsert-job \
+  --branch my-branch \
+  --test-generated 2&gt;/dev/null
+</code></pre>
+<hr>
+<h2 id="db-write-실패-로그">DB write 실패 로그</h2>
+<h3 id="확인-방법">확인 방법</h3>
+<pre><code class="lang-bash"># 오늘 실패 로그
+cat AI/logs/db-write-failures/$(date +%Y-%m-%d).log
+</code></pre>
+<p>세션 시작 시 <code>[AI_SDLC DB Write 실패 감지]</code> 섹션에도 표시된다.</p>
+<h3 id="흔한-오류">흔한 오류</h3>
+<table>
+<thead>
+<tr>
+<th>오류</th>
+<th>해결</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>null value in column &quot;task_name&quot;</code></td>
+<td><code>--task</code> 인수 누락. db_write.py 호출 스킬 확인</td>
+</tr>
+<tr>
+<td><code>duplicate key value violates unique constraint &quot;ai_jobs_branch_key&quot;</code></td>
+<td>동일 브랜치로 재실행. <code>--action upsert-job</code> 사용 중인지 확인</td>
+</tr>
+<tr>
+<td><code>relation &quot;sdlc.ai_jobs&quot; does not exist</code></td>
+<td>Migration 미적용. <code>dotnet ef database update</code> 실행</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="docfx-빌드-오류">DocFX 빌드 오류</h2>
+<h3 id="invalidfilelink">InvalidFileLink</h3>
+<pre><code>InvalidFileLink: Docs/ai-sdlc/some-file.md
+</code></pre>
+<p>→ <code>Docs/ai-sdlc/toc.yml</code>에 href가 있지만 파일이 없는 경우.
+<code>check_docs_toc.py</code>로 미등재 파일 확인:</p>
+<pre><code class="lang-bash">python .github/scripts/check_docs_toc.py
+</code></pre>
+<h3 id="sdlcdblib-빌드-오류">SdlcDB.Lib 빌드 오류</h3>
+<pre><code>Could not find project PlatformA.SdlcDB.Lib.csproj
+</code></pre>
+<p>→ <code>Docs/docfx.json</code>의 경로 확인:</p>
+<pre><code class="lang-json">&quot;../PlatformA.SdlcDB.Lib/PlatformA.SdlcDB.Lib.csproj&quot;
+</code></pre>
+<hr>
+<h2 id="정합성-검사-실패">정합성 검사 실패</h2>
+<pre><code class="lang-bash">python .github/scripts/check_sdlc_consistency.py --strict
+</code></pre>
+<h3 id="unmatched_files-db에-없는-task-json">unmatched_files (DB에 없는 task JSON)</h3>
+<p>Phase C 이전 파일이 DB에 마이그레이션되지 않은 경우:</p>
+<pre><code class="lang-bash">python .github/scripts/migrate_tasks_to_postgres.py --apply
+</code></pre>
+<h3 id="gate_mismatch-db와-파일-값-불일치">gate_mismatch (DB와 파일 값 불일치)</h3>
+<p>Phase B에서 발생. Phase C에서는 파일 write 중단으로 더 이상 발생하지 않는다.</p>
+<hr>
+<h2 id="n8n-관련">n8n 관련</h2>
+<p><a href="n8n.html#11-%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85">n8n 트러블슈팅</a> 참조.</p>
+<hr>
+<h2 id="빌드-오류-c-솔루션">빌드 오류 (C# 솔루션)</h2>
+<pre><code class="lang-bash"># 빌드 캐시 오류 (MSB3492)
+cd PlatformA &amp;&amp; dotnet clean PlatformA.sln &amp;&amp; dotnet build PlatformA.sln
+</code></pre>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/troubleshooting.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

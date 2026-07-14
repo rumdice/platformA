@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>AI_SDLC Cost &amp; Reports | PlatformA 개발자 문서 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="AI_SDLC Cost &amp; Reports | PlatformA 개발자 문서 ">
+    
+    
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid').forEach(function (code) {
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code.textContent;
+            code.parentElement.replaceWith(div);
+          });
+          mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+        });
+      </script>
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="PlatformA">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first=First data-prev=Previous data-next=Next data-last=Last></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="ai_sdlc-cost--reports">AI_SDLC Cost &amp; Reports</h1>
+
+<p>AI 작업 비용 추적 및 리포트 생성 가이드.</p>
+<h2 id="데이터-흐름">데이터 흐름</h2>
+<pre><code>/pr 스킬
+  └─ count_tokens.py        ← Claude API 토큰 사용량 계산
+  └─ db_write.py upsert-job ← ai_jobs.consume_tokens / cache_tokens 업데이트
+  └─ insert_model_run.py    ← ai_model_runs 레코드 삽입
+  └─ generate_cost_log_from_db.py ← AI/reports/generated-cost-log-from-db.md 생성
+</code></pre>
+<p>Phase C 이후 <code>AI/cost-log.md</code> 직접 append는 중단됐다.
+모든 비용 데이터는 PostgreSQL <code>sdlc.ai_model_runs</code>가 단일 진실 공급원이다.</p>
+<h2 id="스크립트-사용법">스크립트 사용법</h2>
+<h3 id="generate_cost_log_from_dbpy">generate_cost_log_from_db.py</h3>
+<p>DB에서 전체 작업 비용을 집계하여 markdown 리포트를 생성한다.</p>
+<pre><code class="lang-bash"># 기본 출력
+python .github/scripts/generate_cost_log_from_db.py \
+  --output AI/reports/generated-cost-log-from-db.md
+
+# 특정 스프린트만
+python .github/scripts/generate_cost_log_from_db.py \
+  --sprint 59 \
+  --output AI/reports/sprint-059-cost.md
+
+# 날짜 범위
+python .github/scripts/generate_cost_log_from_db.py \
+  --from 2026-06-01 \
+  --to 2026-06-30
+</code></pre>
+<h3 id="count_tokenspy">count_tokens.py</h3>
+<p>Claude API 사용 내역을 집계한다. <code>/pr</code> 스킬에서 자동 호출된다.</p>
+<pre><code class="lang-bash">python .github/scripts/count_tokens.py &quot;2026-06-11T00:00:00Z&quot;
+# 출력: duration_sec=120, consume_tokens=45000, cache_tokens=120000
+</code></pre>
+<h3 id="insert_model_runpy">insert_model_run.py</h3>
+<p><code>sdlc.ai_model_runs</code> 레코드를 삽입한다. <code>/pr</code> 스킬에서 자동 호출된다.</p>
+<pre><code class="lang-bash">python .github/scripts/insert_model_run.py \
+  --branch my-branch \
+  --created-at &quot;2026-06-11T00:00:00Z&quot;
+</code></pre>
+<h2 id="db-조회">DB 조회</h2>
+<pre><code class="lang-sql">-- 스프린트별 비용 집계
+SELECT j.sprint, j.task_name, j.branch,
+       j.consume_tokens, j.cache_tokens, j.duration_sec,
+       j.status, j.pr_url
+FROM sdlc.ai_jobs j
+ORDER BY j.sprint DESC, j.created_at DESC;
+
+-- 전체 모델 사용량
+SELECT model_name, provider,
+       SUM(input_tokens) AS total_input,
+       SUM(output_tokens) AS total_output,
+       SUM(total_tokens) AS total_tokens,
+       SUM(estimated_cost) AS total_cost
+FROM sdlc.ai_model_runs
+GROUP BY model_name, provider
+ORDER BY total_cost DESC;
+
+-- 이번 달 작업 요약
+SELECT DATE_TRUNC('day', created_at) AS day,
+       COUNT(*) AS jobs,
+       SUM(consume_tokens) AS tokens
+FROM sdlc.ai_jobs
+WHERE created_at &gt;= DATE_TRUNC('month', NOW())
+GROUP BY day ORDER BY day DESC;
+</code></pre>
+<h2 id="생성된-리포트-위치">생성된 리포트 위치</h2>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AI/reports/generated-cost-log-from-db.md</code></td>
+<td>전체 작업 비용 (PR 생성 시 자동 갱신)</td>
+</tr>
+<tr>
+<td><code>AI/cost-log.md</code></td>
+<td>읽기 전용 아카이브 (Phase C 이전 데이터)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="관련-문서">관련 문서</h2>
+<ul>
+<li><a href="db-schema.html">DB Schema</a></li>
+<li><a href="phase-c-db-only.html">Phase C DB 단독 운영</a></li>
+</ul>
+
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rumdice/platformA/blob/main/Docs/ai-sdlc/cost-and-reports.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      PlatformA Team © 2026
+      
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
