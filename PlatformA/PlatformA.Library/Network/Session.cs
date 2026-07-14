@@ -61,7 +61,8 @@ namespace PlatformA.Library.Network
             // RST 수신 직후 OS 상태 갱신 타이밍에 따라 SocketException(107) ENOTCONN이 발생할 수 있으며,
             // 이 경우 OnDisconnected()가 호출되지 않으면 Redis 로그인 락이 해제되지 않는다.
             EndPoint? endPoint = null;
-            try { endPoint = _socket?.RemoteEndPoint; }
+            try
+            { endPoint = _socket?.RemoteEndPoint; }
             catch (SocketException) { }
             catch (ObjectDisposedException) { }
 
