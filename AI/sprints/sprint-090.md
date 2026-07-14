@@ -3,7 +3,8 @@ sprint: 90
 title: Session Disconnect 안전성 수정
 branch: 2026-07-14_FixSessionDisconnectSafety
 date: 2026-07-14
-status: in-progress
+status: done
+completed: 2026-07-14
 ---
 
 # Sprint #90 — Session Disconnect 안전성 수정
