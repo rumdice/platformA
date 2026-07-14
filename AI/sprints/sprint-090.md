@@ -5,6 +5,7 @@ branch: 2026-07-14_FixSessionDisconnectSafety
 date: 2026-07-14
 status: done
 completed: 2026-07-14
+pr: https://github.com/rumdice/platformA/pull/124
 ---
 
 # Sprint #90 — Session Disconnect 안전성 수정
